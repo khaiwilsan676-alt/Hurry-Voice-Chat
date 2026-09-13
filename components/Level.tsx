@@ -13,13 +13,7 @@ interface TierData {
   rightGraphic: string
   medalBadgeSrc: string
   isWhiteBg: boolean
-  coinsAmount?: string
-  features: {
-    title: string
-    subtitle?: string
-    badgeText?: string
-    isReward?: boolean
-  }[]
+  rewards: { level: number; coins: string }[]
 }
 
 const tiersList: TierData[] = [
@@ -29,13 +23,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230430.png',
     medalBadgeSrc: '/1785137410522.png',
     isWhiteBg: true,
-    coinsAmount: '5,00,000',
-    features: [
-      { title: 'Level 1-10', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '10' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 2, coins: '16,000' },
+      { level: 4, coins: '25,000' },
+      { level: 6, coins: '35,000' },
+      { level: 8, coins: '46,000' },
+      { level: 10, coins: '58,000' },
     ],
   },
   {
@@ -44,13 +37,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230448.png',
     medalBadgeSrc: '/1787573593167~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '14,50,000',
-    features: [
-      { title: 'Level 11-20', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '20' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 12, coins: '70,000' },
+      { level: 14, coins: '84,000' },
+      { level: 16, coins: '98,000' },
+      { level: 18, coins: '114,000' },
+      { level: 20, coins: '130,000' },
     ],
   },
   {
@@ -59,13 +51,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230538.png',
     medalBadgeSrc: '/1787573599045~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '20,00,000',
-    features: [
-      { title: 'Level 21-30', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '30' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 22, coins: '146,000' },
+      { level: 24, coins: '164,000' },
+      { level: 26, coins: '280,000' },
+      { level: 28, coins: '430,000' },
+      { level: 30, coins: '676,000' },
     ],
   },
   {
@@ -74,13 +65,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230602.png',
     medalBadgeSrc: '/1787573616413~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '26,75,000',
-    features: [
-      { title: 'Level 31-40', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '40' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 32, coins: '1,000,000' },
+      { level: 34, coins: '1,600,000' },
+      { level: 36, coins: '11,200,000' },
+      { level: 38, coins: '11,400,000' },
+      { level: 40, coins: '16,000,000' },
     ],
   },
   {
@@ -89,13 +79,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230631.png',
     medalBadgeSrc: '/1787586493548~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '30,56,000',
-    features: [
-      { title: 'Level 41-50', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '50' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 42, coins: '22,000,000' },
+      { level: 44, coins: '29,000,000' },
+      { level: 46, coins: '37,000,000' },
+      { level: 48, coins: '47,000,000' },
+      { level: 50, coins: '58,000,000' },
     ],
   },
   {
@@ -104,13 +93,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230722.png',
     medalBadgeSrc: '/1787573621768~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '34,00,000',
-    features: [
-      { title: 'Level 51-60', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '60' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 52, coins: '70,000,000' },
+      { level: 54, coins: '84,000,000' },
+      { level: 56, coins: '100,000,000' },
+      { level: 58, coins: '120,000,000' },
+      { level: 60, coins: '140,000,000' },
     ],
   },
   {
@@ -119,13 +107,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230739.png',
     medalBadgeSrc: '/1787586465659~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '40,50,000',
-    features: [
-      { title: 'Level 61-70', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '70' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 62, coins: '160,000,000' },
+      { level: 64, coins: '180,000,000' },
+      { level: 66, coins: '200,000,000' },
+      { level: 68, coins: '230,000,000' },
+      { level: 70, coins: '260,000,000' },
     ],
   },
   {
@@ -134,13 +121,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230808.png',
     medalBadgeSrc: '/1787573604873~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '47,67,000',
-    features: [
-      { title: 'Level 71-80', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '80' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 72, coins: '290,000,000' },
+      { level: 74, coins: '320,000,000' },
+      { level: 76, coins: '360,000,000' },
+      { level: 78, coins: '400,000,000' },
+      { level: 80, coins: '440,000,000' },
     ],
   },
   {
@@ -149,13 +135,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/IMG_20260911_230826.png',
     medalBadgeSrc: '/1787573627153~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '57,00,000',
-    features: [
-      { title: 'Level 81-90', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '90' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 82, coins: '480,000,000' },
+      { level: 84, coins: '520,000,000' },
+      { level: 86, coins: '570,000,000' },
+      { level: 88, coins: '620,000,000' },
+      { level: 90, coins: '680,000,000' },
     ],
   },
   {
@@ -164,13 +149,12 @@ const tiersList: TierData[] = [
     rightGraphic: '/file_00000000b06081fabde2d7eac02ce8c2.png',
     medalBadgeSrc: '/1787573633612~2.jpg',
     isWhiteBg: false,
-    coinsAmount: '90,99,999',
-    features: [
-      { title: 'Level 91-100', subtitle: 'Level badge upgraded' },
-      { title: 'Special Entry Tag', badgeText: 'Entry Tag' },
-      { title: 'Special Label', badgeText: '100' },
-      { title: 'Reward Coins', isReward: true },
-      { title: 'Room Send image' },
+    rewards: [
+      { level: 92, coins: '740,000,000' },
+      { level: 94, coins: '800,000,000' },
+      { level: 96, coins: '860,000,000' },
+      { level: 98, coins: '930,000,000' },
+      { level: 100, coins: '1,000,000,000' },
     ],
   },
 ]
@@ -316,8 +300,8 @@ export default function Level({ onBack }: LevelProps) {
           </button>
         </div>
 
-        {/* Top Image Card Frame (Shifted further up) */}
-        <div className="relative -mt-5 -mx-4">
+        {/* Top Image Card Frame (Shifted up further) */}
+        <div className="relative -mt-10 -mx-4">
           <img
             src="/file_000000007044820ea729df406d1dc320.png"
             alt="Top Card Frame"
@@ -452,62 +436,60 @@ export default function Level({ onBack }: LevelProps) {
                 </div>
               </div>
 
-              {/* Cards (BORDERS COMPLETELY REMOVED) */}
+              {/* 3 Square Cards Row at the top of each section */}
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 px-0.5">
+                {/* 1. Coins Card */}
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
+                  <ShaderImageBadge
+                    src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
+                    isWhiteBg={true}
+                    className="w-8 h-8 object-contain mb-1.5 drop-shadow-md"
+                  />
+                  <span className="text-[11px] font-semibold text-white/90">Coins</span>
+                </div>
+
+                {/* 2. Entry Card */}
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
+                  <div className="px-2 py-0.5 rounded-md bg-gradient-to-r from-[#177488] to-[#1ea3b3] text-white font-bold text-[9px] mb-1.5 shadow-sm">
+                    Entry Tag
+                  </div>
+                  <span className="text-[11px] font-semibold text-white/90">Entry</span>
+                </div>
+
+                {/* 3. Frame Card */}
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
+                  <ShaderImageBadge
+                    src={tier.medalBadgeSrc}
+                    isWhiteBg={tier.isWhiteBg}
+                    className="w-8 h-8 object-contain mb-1.5 drop-shadow-md"
+                  />
+                  <span className="text-[11px] font-semibold text-white/90">Frame</span>
+                </div>
+              </div>
+
+              {/* Lambe Lambe Level Reward Cards (BORDERS COMPLETELY REMOVED) */}
               <div className="flex flex-col gap-2.5 w-full">
-                {tier.features.map((item, fIdx) => (
+                {tier.rewards.map((reward, rIdx) => (
                   <div
-                    key={fIdx}
+                    key={rIdx}
                     className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]"
                   >
                     <div className="flex flex-col justify-center z-10">
                       <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                        {item.title}
+                        Level {reward.level} Reward
                       </span>
-                      {item.subtitle && (
-                        <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
-                          {item.subtitle}
-                        </span>
-                      )}
                     </div>
 
-                    {/* Right side items */}
-                    <div className="flex items-center gap-2 shrink-0 z-10">
-                      {item.isReward ? (
-                        <div className="flex items-center gap-1.5">
-                          <ShaderImageBadge
-                            src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
-                            isWhiteBg={true}
-                            className="w-6 h-6 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
-                          />
-                          <span className="text-[13px] font-extrabold text-[#fcd34d] tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                            {tier.coinsAmount}
-                          </span>
-                        </div>
-                      ) : item.badgeText ? (
-                        <div className="px-2.5 py-0.5 rounded-md bg-gradient-to-r from-[#177488] to-[#1ea3b3] text-white font-bold text-[11px] shadow-sm flex items-center">
-                          {item.badgeText}
-                        </div>
-                      ) : item.title === 'Room Send image' ? (
-                        <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                          <svg
-                            className="w-4 h-4 text-blue-300"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                            <circle cx="8.5" cy="8.5" r="1.5" />
-                            <polyline points="21 15 16 10 5 21" />
-                          </svg>
-                        </div>
-                      ) : (
-                        <ShaderImageBadge
-                          src={tier.medalBadgeSrc}
-                          isWhiteBg={tier.isWhiteBg}
-                          className="w-9 h-6 object-contain"
-                        />
-                      )}
+                    {/* Right side items (Coin icon + Coin amount) */}
+                    <div className="flex items-center gap-1.5 shrink-0 z-10">
+                      <ShaderImageBadge
+                        src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
+                        isWhiteBg={true}
+                        className="w-6 h-6 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
+                      />
+                      <span className="text-[13px] font-extrabold text-[#fcd34d] tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                        {reward.coins}
+                      </span>
                     </div>
                   </div>
                 ))}
