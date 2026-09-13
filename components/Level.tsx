@@ -435,7 +435,12 @@ export default function Level({ onBack }: LevelProps) {
               {/* 3 Square Cards Row at the top of each section (No Borders) */}
               <div className="grid grid-cols-3 gap-2 w-full mb-4 px-0.5">
                 {/* 1. First Coins Card of this specific section */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                <div className="relative bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                  {/* Top Left Level Tag */}
+                  <span className="absolute top-1 left-1.5 text-[9px] font-bold text-white/70">
+                    Lv.{tier.rewards[0].level}
+                  </span>
+                  
                   <ShaderImageBadge
                     src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
                     isWhiteBg={true}
@@ -464,7 +469,7 @@ export default function Level({ onBack }: LevelProps) {
               {/* Lambe Lambe Level Reward Cards */}
               <div className="flex flex-col gap-2.5 w-full">
                 
-                {/* Frame wali image ab pehle lambe card mein */}
+                {/* Frame wali image (Level Badge Upgraded) */}
                 <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
                   <div className="flex flex-col justify-center z-10">
                     <span className="text-[13.5px] font-semibold text-white tracking-wide">
@@ -483,7 +488,89 @@ export default function Level({ onBack }: LevelProps) {
                   </div>
                 </div>
 
-                {/* Baki bache hue Coin Rewards (Index 1 se shuru) */}
+                {/* Room Send Image ki wapsi - Level Badge ke theek niche */}
+                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+                  <div className="flex flex-col justify-center z-10">
+                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
+                      Room Send image
+                    </span>
+                    {/* Lv.5 sirf first section (tier 1-10) mein show hoga */}
+                    {tIdx === 0 && (
+                      <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                        Lv.5
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 z-10">
+                    <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-blue-300"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Background Image Card (Tier 3 / Lv 21 aur uske baad aayega) */}
+                {tIdx >= 2 && (
+                  <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+                    <div className="flex flex-col justify-center z-10">
+                      <span className="text-[13.5px] font-semibold text-white tracking-wide">
+                        Background Image
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 z-10">
+                      <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-emerald-300"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Room Theme Card (Tier 8 / Lv 71 aur uske baad aayega) */}
+                {tIdx >= 7 && (
+                  <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+                    <div className="flex flex-col justify-center z-10">
+                      <span className="text-[13.5px] font-semibold text-white tracking-wide">
+                        Room Theme
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 z-10">
+                      <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
+                        <svg 
+                          className="w-4 h-4 text-fuchsia-300" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                        >
+                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+                          <path d="M2 12h20" />
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Baki bache hue Coin Rewards (Index 1 se shuru, sabse end mein) */}
                 {tier.rewards.slice(1).map((reward, rIdx) => (
                   <div
                     key={rIdx}
@@ -506,30 +593,6 @@ export default function Level({ onBack }: LevelProps) {
                     </div>
                   </div>
                 ))}
-
-                {/* Room Send Image ki wapsi */}
-                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-                  <div className="flex flex-col justify-center z-10">
-                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                      Room Send image
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 z-10">
-                    <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-blue-300"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <polyline points="21 15 16 10 5 21" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
 
               </div>
             </div>
