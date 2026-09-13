@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import {
   Menu,
@@ -13,8 +14,23 @@ import {
 } from "lucide-react";
 
 export default function HurryOfficial() {
+  // Menu open/close ke liye state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Smooth scroll ke liye global CSS */}
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
+        body {
+          margin: 0;
+          background: #000;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+      `}</style>
+
       {/* Navbar */}
       <header className="sticky top-0 z-50 flex items-center justify-between bg-black/10 backdrop-blur-md px-5 py-4 shadow-sm border-b border-white/5">
         <div className="flex items-center gap-3">
@@ -28,21 +44,53 @@ export default function HurryOfficial() {
           <span className="text-2xl font-bold tracking-wide text-white">Hurry</span>
         </div>
 
-        <button
-          aria-label="Menu"
-          className="text-white transition hover:scale-110"
-        >
-          <Menu size={29} />
-        </button>
+        {/* Menu Button aur Dropdown */}
+        <div className="relative">
+          <button
+            aria-label="Menu"
+            className="text-white transition hover:scale-110"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            <Menu size={29} />
+          </button>
+
+          {/* Dropdown Box */}
+          {isMenuOpen && (
+            <div className="absolute right-0 mt-4 flex w-40 flex-col overflow-hidden rounded-2xl border border-gray-800 bg-[#0a0a0a] shadow-[0_0_20px_rgba(0,0,0,0.8)]">
+              <a
+                href="#home"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+              >
+                Home
+              </a>
+              <div className="h-[1px] w-full bg-gray-800/50"></div>
+              <a
+                href="#feature"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+              >
+                Feature
+              </a>
+              <div className="h-[1px] w-full bg-gray-800/50"></div>
+              <a
+                href="#about"
+                onClick={() => setIsMenuOpen(false)}
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+              >
+                About
+              </a>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}
       <main className="px-4 py-12 md:px-8">
         
-        {/* 1. Hero Section Card */}
-        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-16 text-center shadow-2xl">
-          {/* Top Blue Glow */}
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/30 blur-[75px] pointer-events-none"></div>
+        {/* 1. Hero Section Card -> ID: home */}
+        <section id="home" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-16 text-center shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/20 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col items-center">
             <Image
@@ -50,7 +98,7 @@ export default function HurryOfficial() {
               alt="Hurry App"
               width={100}
               height={100}
-              className="mb-8 h-24 w-24 object-contain rounded-3xl shadow-[0_0_40px_rgba(37,99,235,0.4)]"
+              className="mb-8 h-24 w-24 object-contain rounded-3xl shadow-[0_0_40px_rgba(96,165,250,0.3)]"
             />
 
             <h1 className="mb-5 text-4xl font-bold leading-tight text-white md:text-6xl">
@@ -66,27 +114,26 @@ export default function HurryOfficial() {
           </div>
         </section>
 
-        {/* 2. Creative Stage Card - (Text Left, 1 Image Right Corner) */}
-        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+        {/* 2. Creative Stage Card -> ID: about (Yaha se about section start hota hai) */}
+        <section id="about" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
             <div className="md:w-3/5">
-              <h2 className="mb-4 text-3xl font-bold text-white">Creative Stage</h2>
+              <h2 className="mb-4 text-3xl font-bold text-white">Creative Stage (About)</h2>
               <p className="text-lg font-light leading-relaxed text-gray-300">
                 Dive into a world where theater and comedy thrive. Share your moments, from backstage snippets to stand-up clips, and connect with like-minded enthusiasts.
               </p>
             </div>
-            {/* 1 Image right side m kar di */}
             <div className="md:w-2/5 flex justify-center md:justify-end">
               <ScreenBox text="App Screen 1" large />
             </div>
           </div>
         </section>
 
-        {/* 3. Dynamic Socializing Card - (Text Left, 1 Image Right Corner) */}
-        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+        {/* 3. Dynamic Socializing Card */}
+        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
             <div className="md:w-3/5">
@@ -95,16 +142,15 @@ export default function HurryOfficial() {
                 Beyond posting updates, Hurry makes socializing dynamic and personal. Engage in lively video chats about the latest shows, or dive into 1-on-1 private conversations to build deeper connections.
               </p>
             </div>
-            {/* 1 Image right side m kar di */}
             <div className="md:w-2/5 flex justify-center md:justify-end">
               <ScreenBox text="App Screen 2" large />
             </div>
           </div>
         </section>
 
-        {/* 4. Find Your Crowd Card - (Text Left, 1 Image Right Corner) */}
-        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+        {/* 4. Find Your Crowd Card */}
+        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
             <div className="md:w-3/5">
@@ -124,9 +170,9 @@ export default function HurryOfficial() {
           </div>
         </section>
 
-        {/* 5. Key Features Card */}
-        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+        {/* 5. Key Features Card -> ID: feature */}
+        <section id="feature" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <SectionTitle title="Key Features" />
@@ -156,8 +202,8 @@ export default function HurryOfficial() {
         </section>
 
         {/* 6. Community Card */}
-        <section className="mx-auto mb-16 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+        <section className="mx-auto mb-16 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <SectionTitle title="Join Our Community" />
@@ -220,7 +266,7 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <div className="mb-12 text-center">
       <h2 className="mb-3 text-3xl font-bold text-white">{title}</h2>
-      <div className="mx-auto h-1 w-16 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]" />
+      <div className="mx-auto h-1 w-16 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.6)]" />
     </div>
   );
 }
@@ -254,7 +300,7 @@ function FeatureCard({
 }) {
   return (
     <div className="rounded-3xl bg-[#141414] p-8 text-center shadow-lg transition-all hover:bg-[#1a1a1a]">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0a0a0a] text-blue-500 shadow-inner">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0a0a0a] text-blue-400 shadow-inner">
         {icon}
       </div>
       <h3 className="mb-3 text-xl font-bold text-white">{title}</h3>
@@ -274,7 +320,7 @@ function CommunityItem({
 }) {
   return (
     <div className="text-center transition hover:scale-105">
-      <div className="mb-4 flex justify-center text-blue-500 drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+      <div className="mb-4 flex justify-center text-blue-400 drop-shadow-[0_0_15px_rgba(96,165,250,0.4)]">
         {icon}
       </div>
       <h4 className="mb-2 text-xl font-bold text-white">{title}</h4>
@@ -282,4 +328,3 @@ function CommunityItem({
     </div>
   );
 }
-
