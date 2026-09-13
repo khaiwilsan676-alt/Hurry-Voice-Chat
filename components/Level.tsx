@@ -267,7 +267,7 @@ export default function Level({ onBack }: LevelProps) {
 
   return (
     <div className="relative w-full max-w-[440px] mx-auto h-screen bg-[#04060a] text-white flex flex-col font-sans select-none overflow-hidden">
-      {/* 1. TOP BACKGROUND IMAGE (280px Height) */}
+      {/* 1. TOP BACKGROUND IMAGE */}
       <div className="absolute top-0 left-0 w-full h-[280px] pointer-events-none z-0 overflow-hidden">
         <div
           className="absolute inset-0 bg-top bg-cover bg-no-repeat"
@@ -300,7 +300,7 @@ export default function Level({ onBack }: LevelProps) {
           </button>
         </div>
 
-        {/* Top Image Card Frame (Shifted up further) */}
+        {/* Top Image Card Frame */}
         <div className="relative -mt-10 -mx-4">
           <img
             src="/file_000000007044820ea729df406d1dc320.png"
@@ -325,7 +325,6 @@ export default function Level({ onBack }: LevelProps) {
                   KāziR Khān
                 </span>
 
-                {/* Direct Badge Image */}
                 <ShaderImageBadge
                   src="/1785137410522.png"
                   isWhiteBg={true}
@@ -353,9 +352,8 @@ export default function Level({ onBack }: LevelProps) {
           </div>
         </div>
 
-        {/* Dynamic Sticky Header: Screen Edge Chipki Image + Left Text + Right Graphic */}
+        {/* Dynamic Sticky Header */}
         <div className="relative flex items-center justify-between w-full -mt-10 pb-1 min-h-[85px]">
-          {/* Left Screen Corner se Chipki Hui Image */}
           <div className="absolute -top-3.5 -left-4 pointer-events-none z-20">
             <img
               src="/file_000000006688821197edc482e295d3fd.png"
@@ -364,7 +362,6 @@ export default function Level({ onBack }: LevelProps) {
             />
           </div>
 
-          {/* Left Side: Text and Arrow */}
           <div className="flex items-center gap-2 -mt-4 z-10">
             <div className="flex flex-col items-center justify-center">
               <svg
@@ -385,7 +382,6 @@ export default function Level({ onBack }: LevelProps) {
             </h2>
           </div>
 
-          {/* Right Floating Graphic */}
           <div className="shrink-0 -mr-2 -mt-6 z-10 transition-all duration-300">
             <img
               key={currentTier.rightGraphic}
@@ -436,40 +432,59 @@ export default function Level({ onBack }: LevelProps) {
                 </div>
               </div>
 
-              {/* 3 Square Cards Row at the top of each section */}
+              {/* 3 Square Cards Row at the top of each section (No Borders) */}
               <div className="grid grid-cols-3 gap-2 w-full mb-4 px-0.5">
-                {/* 1. Coins Card */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
+                {/* 1. First Coins Card of this specific section */}
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
                   <ShaderImageBadge
                     src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
                     isWhiteBg={true}
                     className="w-8 h-8 object-contain mb-1.5 drop-shadow-md"
                   />
-                  <span className="text-[11px] font-semibold text-white/90">Coins</span>
+                  <span className="text-[11px] font-semibold text-white/90">
+                    {tier.rewards[0].coins}
+                  </span>
                 </div>
 
                 {/* 2. Entry Card */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
                   <div className="px-2 py-0.5 rounded-md bg-gradient-to-r from-[#177488] to-[#1ea3b3] text-white font-bold text-[9px] mb-1.5 shadow-sm">
                     Entry Tag
                   </div>
                   <span className="text-[11px] font-semibold text-white/90">Entry</span>
                 </div>
 
-                {/* 3. Frame Card */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)] border border-white/5">
-                  <ShaderImageBadge
-                    src={tier.medalBadgeSrc}
-                    isWhiteBg={tier.isWhiteBg}
-                    className="w-8 h-8 object-contain mb-1.5 drop-shadow-md"
-                  />
+                {/* 3. Empty Frame Card */}
+                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
+                  <div className="w-8 h-8 mb-1.5"></div> {/* Empty space for frame */}
                   <span className="text-[11px] font-semibold text-white/90">Frame</span>
                 </div>
               </div>
 
-              {/* Lambe Lambe Level Reward Cards (BORDERS COMPLETELY REMOVED) */}
+              {/* Lambe Lambe Level Reward Cards */}
               <div className="flex flex-col gap-2.5 w-full">
-                {tier.rewards.map((reward, rIdx) => (
+                
+                {/* Frame wali image ab pehle lambe card mein */}
+                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+                  <div className="flex flex-col justify-center z-10">
+                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
+                      Level {tier.range.replace(/Lv\./g, '')}
+                    </span>
+                    <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                      Level badge upgraded
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 z-10">
+                    <ShaderImageBadge
+                      src={tier.medalBadgeSrc}
+                      isWhiteBg={tier.isWhiteBg}
+                      className="w-9 h-6 object-contain"
+                    />
+                  </div>
+                </div>
+
+                {/* Baki bache hue Coin Rewards (Index 1 se shuru) */}
+                {tier.rewards.slice(1).map((reward, rIdx) => (
                   <div
                     key={rIdx}
                     className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]"
@@ -479,8 +494,6 @@ export default function Level({ onBack }: LevelProps) {
                         Level {reward.level} Reward
                       </span>
                     </div>
-
-                    {/* Right side items (Coin icon + Coin amount) */}
                     <div className="flex items-center gap-1.5 shrink-0 z-10">
                       <ShaderImageBadge
                         src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
@@ -493,6 +506,31 @@ export default function Level({ onBack }: LevelProps) {
                     </div>
                   </div>
                 ))}
+
+                {/* Room Send Image ki wapsi */}
+                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
+                  <div className="flex flex-col justify-center z-10">
+                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
+                      Room Send image
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 z-10">
+                    <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
+                      <svg
+                        className="w-4 h-4 text-blue-300"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           ))}
