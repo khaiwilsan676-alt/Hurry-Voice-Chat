@@ -2,16 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import {
-  Menu,
-  MessageCircle,
-  Upload,
-  Link as LinkIcon,
-  Theater,
-  Laugh,
-  Mic,
-  Users,
-} from "lucide-react";
+import { Menu } from "lucide-react";
 
 export default function HurryOfficial() {
   // Menu open/close ke liye state
@@ -60,7 +51,7 @@ export default function HurryOfficial() {
               <a
                 href="#home"
                 onClick={() => setIsMenuOpen(false)}
-                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-600"
               >
                 Home
               </a>
@@ -68,7 +59,7 @@ export default function HurryOfficial() {
               <a
                 href="#feature"
                 onClick={() => setIsMenuOpen(false)}
-                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-600"
               >
                 Feature
               </a>
@@ -76,7 +67,7 @@ export default function HurryOfficial() {
               <a
                 href="#about"
                 onClick={() => setIsMenuOpen(false)}
-                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-400"
+                className="px-5 py-3 text-sm font-medium text-gray-300 transition hover:bg-[#141414] hover:text-blue-600"
               >
                 About
               </a>
@@ -89,68 +80,88 @@ export default function HurryOfficial() {
       <main className="px-4 py-12 md:px-8">
         
         {/* 1. Hero Section Card -> ID: home */}
-        <section id="home" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-16 text-center shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/20 blur-[75px] pointer-events-none"></div>
-          
-          <div className="relative z-10 flex flex-col items-center">
-            <Image
-              src="/logo.png"
-              alt="Hurry App"
-              width={100}
-              height={100}
-              className="mb-8 h-24 w-24 object-contain rounded-3xl shadow-[0_0_40px_rgba(96,165,250,0.3)]"
-            />
-
-            <h1 className="mb-5 text-4xl font-bold leading-tight text-white md:text-6xl">
-              Hurry - Chat,
-              <br />
-              Share, Connect
-            </h1>
-
-            <p className="max-w-xl text-lg font-light leading-relaxed text-gray-300 md:text-xl">
-              Hurry is not just another social app—it's a vibrant stage for
-              creative souls.
-            </p>
-          </div>
-        </section>
-
-        {/* 2. Creative Stage Card -> ID: about (Yaha se about section start hota hai) */}
-        <section id="about" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
+        <section id="home" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-16 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/30 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
-            <div className="md:w-3/5">
-              <h2 className="mb-4 text-3xl font-bold text-white">Creative Stage (About)</h2>
-              <p className="text-lg font-light leading-relaxed text-gray-300">
-                Dive into a world where theater and comedy thrive. Share your moments, from backstage snippets to stand-up clips, and connect with like-minded enthusiasts.
-              </p>
+            <div className="md:w-1/2 flex flex-col items-center md:items-start">
+              <div className="flex items-center gap-5 mb-4">
+                <Image
+                  src="/logo.png"
+                  alt="Hurry App"
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 object-contain rounded-3xl shadow-[0_0_40px_rgba(37,99,235,0.4)]"
+                />
+                <h1 className="text-5xl font-bold leading-tight text-white md:text-6xl">
+                  Hurry
+                </h1>
+              </div>
+              
+              <h2 className="text-2xl font-light text-gray-300 md:text-4xl">
+                Party Rooms Chat
+              </h2>
             </div>
-            <div className="md:w-2/5 flex justify-center md:justify-end">
-              <ScreenBox text="App Screen 1" large />
+
+            <div className="md:w-1/2 flex justify-center md:justify-end">
+              <Image 
+                src="/file_00000000d60081fa99e9262352f29b19.png" 
+                alt="Hurry App Screen" 
+                width={260} 
+                height={520} 
+                className="object-contain rounded-2xl shadow-xl"
+              />
             </div>
           </div>
         </section>
 
-        {/* 3. Dynamic Socializing Card */}
+        {/* 2. Invite Your Friend Card */}
         <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
             <div className="md:w-3/5">
-              <h2 className="mb-4 text-3xl font-bold text-white">Dynamic Socializing</h2>
-              <p className="text-lg font-light leading-relaxed text-gray-300">
-                Beyond posting updates, Hurry makes socializing dynamic and personal. Engage in lively video chats about the latest shows, or dive into 1-on-1 private conversations to build deeper connections.
-              </p>
+              <h2 className="mb-4 text-3xl font-bold text-white md:text-5xl leading-tight">
+                Invite Your Friend <br /> And find your Honour
+              </h2>
             </div>
             <div className="md:w-2/5 flex justify-center md:justify-end">
-              <ScreenBox text="App Screen 2" large />
+              <Image 
+                src="/file_000000009bc481fa8cddb12eb18774a1.png" 
+                alt="Invite Friend Screen" 
+                width={240} 
+                height={480} 
+                className="object-contain rounded-2xl shadow-xl"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* 3. Honour Events Card */}
+        <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
+          
+          <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
+            <div className="md:w-3/5">
+              <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
+                Honour Events
+              </h2>
+            </div>
+            <div className="md:w-2/5 flex justify-center md:justify-end">
+              <Image 
+                src="/IMG_20260913_205804.png" 
+                alt="Honour Events Screen" 
+                width={240} 
+                height={480} 
+                className="object-contain rounded-2xl shadow-xl"
+              />
             </div>
           </div>
         </section>
 
         {/* 4. Find Your Crowd Card */}
         <section className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10 flex flex-col-reverse md:flex-row items-center justify-between gap-10 text-center md:text-left">
             <div className="md:w-3/5">
@@ -165,45 +176,50 @@ export default function HurryOfficial() {
               </p>
             </div>
             <div className="md:w-2/5 flex justify-center md:justify-end">
-              <ScreenBox text="App Screen 3" large />
+              <Image 
+                src="/file_00000000ab208211968341bc1564060f.png" 
+                alt="Find Your Crowd Screen" 
+                width={240} 
+                height={480} 
+                className="object-contain rounded-2xl shadow-xl"
+              />
             </div>
           </div>
         </section>
 
         {/* 5. Key Features Card -> ID: feature */}
         <section id="feature" className="mx-auto mb-10 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <SectionTitle title="Key Features" />
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Chote cards hata kar bade 3 columns wale image cards laga diye */}
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               <FeatureCard
-                icon={<MessageCircle size={32} />}
+                image="/IMG_20260913_205718.png"
                 title="Chat"
                 text="Engage in lively video chats about the latest shows or dive into 1-on-1 private conversations."
               />
 
               <FeatureCard
-                icon={<Upload size={32} />}
+                image="/IMG_20260913_205700.png"
                 title="Share"
                 text="Share your moments, from backstage snippets to stand-up clips with like-minded enthusiasts."
               />
 
-              <div className="md:col-span-2">
-                <FeatureCard
-                  icon={<LinkIcon size={32} />}
-                  title="Connect"
-                  text="Connect with creative souls in a vibrant stage designed for theater and comedy lovers."
-                />
-              </div>
+              <FeatureCard
+                image="/IMG_20260913_205733.png"
+                title="Connect"
+                text="Connect with creative souls in a vibrant stage designed for theater and comedy lovers."
+              />
             </div>
           </div>
         </section>
 
-        {/* 6. Community Card */}
-        <section className="mx-auto mb-16 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
-          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-400/15 blur-[75px] pointer-events-none"></div>
+        {/* 6. Community Card -> ID: about */}
+        <section id="about" className="mx-auto mb-16 max-w-5xl overflow-hidden relative rounded-[32px] bg-[#0a0a0a] p-8 md:p-12 shadow-2xl scroll-mt-24">
+          <div className="absolute -top-32 left-1/2 h-64 w-[150%] -translate-x-1/2 rounded-[100%] bg-blue-600/20 blur-[75px] pointer-events-none"></div>
           
           <div className="relative z-10">
             <SectionTitle title="Join Our Community" />
@@ -220,27 +236,28 @@ export default function HurryOfficial() {
               relationships in a space designed for creativity.
             </p>
 
+            {/* Icons hata kar real images laga di */}
             <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:grid-cols-4">
               <CommunityItem
-                icon={<Theater size={52} />}
+                image="/IMG_20260913_205638.png"
                 title="Theater Lovers"
                 text="Connect with fellow theater enthusiasts"
               />
 
               <CommunityItem
-                icon={<Laugh size={52} />}
+                image="/IMG_20260913_205620.png"
                 title="Comedy Fans"
                 text="Share laughs and discover new comedians"
               />
 
               <CommunityItem
-                icon={<Mic size={52} />}
+                image="/IMG_20260913_205607.png"
                 title="Performers"
                 text="Showcase your talent and get feedback"
               />
 
               <CommunityItem
-                icon={<Users size={52} />}
+                image="/IMG_20260913_205553.png"
                 title="Community"
                 text="Build meaningful connections"
               />
@@ -266,65 +283,62 @@ function SectionTitle({ title }: { title: string }) {
   return (
     <div className="mb-12 text-center">
       <h2 className="mb-3 text-3xl font-bold text-white">{title}</h2>
-      <div className="mx-auto h-1 w-16 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.6)]" />
+      <div className="mx-auto h-1 w-16 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.6)]" />
     </div>
   );
 }
 
-function ScreenBox({
-  text,
-  large = false,
-}: {
-  text: string;
-  large?: boolean;
-}) {
-  return (
-    <div
-      className={`flex shrink-0 items-center justify-center rounded-2xl bg-[#141414] text-gray-400 shadow-xl ${
-        large ? "h-96 w-48 md:w-64" : "h-80 w-40"
-      }`}
-    >
-      {text}
-    </div>
-  );
-}
-
+// Chote card wale icon props ki jagah ab directly images use ho rahi hain (FeatureCard me)
 function FeatureCard({
-  icon,
+  image,
   title,
   text,
 }: {
-  icon: React.ReactNode;
+  image: string;
   title: string;
   text: string;
 }) {
   return (
-    <div className="rounded-3xl bg-[#141414] p-8 text-center shadow-lg transition-all hover:bg-[#1a1a1a]">
-      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0a0a0a] text-blue-400 shadow-inner">
-        {icon}
+    <div className="rounded-3xl bg-[#141414] p-8 text-center shadow-lg transition-all hover:bg-[#1a1a1a] flex flex-col items-center">
+      <div className="mb-6 flex justify-center">
+        <Image 
+          src={image} 
+          alt={title} 
+          width={180} 
+          height={180} 
+          className="object-contain rounded-2xl drop-shadow-[0_0_20px_rgba(37,99,235,0.2)] transition hover:scale-105"
+        />
       </div>
-      <h3 className="mb-3 text-xl font-bold text-white">{title}</h3>
+      <h3 className="mb-3 text-2xl font-bold text-white">{title}</h3>
       <p className="text-sm font-light text-gray-400">{text}</p>
     </div>
   );
 }
 
+// Community Item me bhi Icon ki jagah Image lag gayi hai
 function CommunityItem({
-  icon,
+  image,
   title,
   text,
 }: {
-  icon: React.ReactNode;
+  image: string;
   title: string;
   text: string;
 }) {
   return (
-    <div className="text-center transition hover:scale-105">
-      <div className="mb-4 flex justify-center text-blue-400 drop-shadow-[0_0_15px_rgba(96,165,250,0.4)]">
-        {icon}
+    <div className="text-center transition hover:scale-105 flex flex-col items-center">
+      <div className="mb-4 flex justify-center">
+        <Image 
+          src={image} 
+          alt={title} 
+          width={90} 
+          height={90} 
+          className="object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+        />
       </div>
       <h4 className="mb-2 text-xl font-bold text-white">{title}</h4>
       <p className="text-sm text-gray-400">{text}</p>
     </div>
   );
 }
+
