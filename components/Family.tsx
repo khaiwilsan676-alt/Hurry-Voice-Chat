@@ -113,7 +113,7 @@ export default function Family({ onBack }: FamilyProps) {
   // ==========================================
   if (currentView === 'topRankings') {
     return (
-      <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto font-sans text-white pb-20">
+      <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white pb-6">
         <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
           <filter id="remove-green" colorInterpolationFilters="sRGB">
             <feColorMatrix type="matrix" values="
@@ -192,7 +192,7 @@ export default function Family({ onBack }: FamilyProps) {
           <img 
             src="/IMG_20260901_230319.jpg" 
             alt="Middle New" 
-            onClick={() => setActiveRow('mid')}
+            onClick={() => { setActiveRow('mid'); setCurrentView('main'); }} // FIX: Middle click navigates back correctly
             className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10 cursor-pointer transition-all duration-300" 
             style={{ filter: activeRow === 'mid' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
           />
@@ -311,7 +311,7 @@ export default function Family({ onBack }: FamilyProps) {
   // ==========================================
   if (currentView === 'create') {
     return (
-      <div className="min-h-screen bg-white flex flex-col font-sans text-black relative overflow-y-auto">
+      <div className="min-h-screen bg-white flex flex-col font-sans text-black relative overflow-y-auto overflow-x-hidden">
         <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
           <filter id="remove-white" colorInterpolationFilters="sRGB">
             <feColorMatrix type="matrix" values="
@@ -390,7 +390,7 @@ export default function Family({ onBack }: FamilyProps) {
   // ==========================================
   if (currentView === 'join') {
     return (
-      <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto font-sans text-white">
+      <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white">
         <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
           <filter id="remove-green" colorInterpolationFilters="sRGB">
             <feColorMatrix type="matrix" values="
@@ -434,7 +434,7 @@ export default function Family({ onBack }: FamilyProps) {
   // VIEW 1: MAIN FAMILY PAGE
   // ==========================================
   return (
-    <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto font-sans text-white">
+    <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white">
       <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
         <filter id="remove-green" colorInterpolationFilters="sRGB">
           <feColorMatrix type="matrix" values="
@@ -449,7 +449,7 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
 
       <div className="relative z-20 flex flex-col w-full">
-        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
+        <div className="flex flex-row items-center w-full px-3 relative z-30" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
@@ -465,7 +465,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        <div className="w-full h-[10vh]"></div>
+        <div className="w-full h-[13vh]"></div>
 
         {/* MAIN PAGE ROW IMAGES - Click Logic */}
         <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
