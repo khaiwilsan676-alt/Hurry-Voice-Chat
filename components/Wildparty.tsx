@@ -1178,7 +1178,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   <span className="text-[10px] text-white/70 uppercase font-bold text-left">Bet Amount</span>
                   <div className="flex items-center gap-1">
                     <LoadingShaderImage src="/1786855398290.png" className="w-4 h-4 object-contain opacity-80" />
-                    <span className="text-white font-bold text-xs tracking-wide leading-none">
+                    <span className="text-white font-bold text-[12px] tracking-wide leading-none">
                       {roundBetAmount.toLocaleString()}
                     </span>
                   </div>
@@ -1194,12 +1194,12 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
             <div className="w-full flex-1 flex flex-col items-center justify-end pb-10">
               
-              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-full h-auto object-cover mb-2 drop-shadow-md" />
+              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-2 drop-shadow-md" />
               
-              <div className="flex items-end justify-center gap-3 w-full px-1">
+              <div className="flex items-end justify-center gap-2 w-full px-1">
                 
                 {/* Top 2 (Left) */}
-                <div className="flex flex-col items-center mb-2">
+                <div className="flex flex-col items-center mb-6">
                   <div className="relative w-16 h-16 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[1].avatar} className="w-11 h-11 rounded-full object-cover" />
                     <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
@@ -1225,7 +1225,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 </div>
 
                 {/* Top 3 (Right) */}
-                <div className="flex flex-col items-center mb-2">
+                <div className="flex flex-col items-center mb-6">
                   <div className="relative w-16 h-16 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[2].avatar} className="w-11 h-11 rounded-full object-cover" />
                     <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
