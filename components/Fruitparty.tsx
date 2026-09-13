@@ -657,7 +657,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             <img src="/1787413631876~2.jpg" alt="Fruit Party Background" className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
 
             {/* BUTTONS: Reduced gap to 'gap-1' (4px) and increased width to 100px & height to 120px slightly */}
-            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-0.5 w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
+            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end -space-x-4 w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
               <button onClick={() => setActiveBtn(1)} className="relative flex flex-col items-center w-[100px] h-[120px] cursor-pointer">
                 <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[105px] h-auto object-contain transition-all duration-150 ${activeBtn === 1 ? 'top-[44px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[36px] z-10'}`} />
                 <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[42px] left-1/2 -translate-x-1/2 w-[115px] h-auto object-contain pointer-events-none ${activeBtn === 1 ? 'z-10' : 'z-0'}`} />
@@ -707,10 +707,10 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             </div>
 
             {gameState.phase === 'result' && gameState.showResultPopup && (
-              <div className="absolute bottom-0 left-0 w-full h-[40vh] z-[75] animate-slide-up overflow-hidden rounded-md">
+              <div className="absolute bottom-0 left-0 w-full h-[44vh] z-[75] animate-slide-up overflow-hidden rounded-md">
                 <img src="/file_00000000ced481fa9117afc4fa91791e.png" className="absolute inset-0 w-full h-full object-fill z-0" />
                 
-                <div className="absolute left-0 w-full px-4 flex justify-center items-center z-10" style={{ bottom: '36vh' }}>
+                <div className="absolute left-0 w-full px-4 flex justify-center items-center z-10" style={{ bottom: '38vh' }}>
                   <span className="text-white font-bold text-lg drop-shadow-lg tracking-wide">
                     Round {gameState.round}
                   </span>
@@ -724,7 +724,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   <img src={popupWinnerImg} className="w-[50px] h-[50px] object-contain z-10 pointer-events-none drop-shadow-md" />
                 </div>
 
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '13vh' }}>
+                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '15vh' }}>
                   <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md">
                     <span>Your Winning Amount</span>
                     <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
@@ -737,7 +737,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   </div>
                 </div>
 
-                <div className="absolute left-0 w-full z-10 flex flex-col items-center" style={{ bottom: '0.8vh' }}>
+                <div className="absolute left-0 w-full z-10 flex flex-col items-center" style={{ bottom: '2vh' }}>
                   <div className="w-[85%] h-[1px] bg-white/20 mb-1" />
                   <span className="text-yellow-100 font-extrabold text-[10px] mb-1 drop-shadow-md uppercase tracking-wider">Top winner Of this Round</span>
                   
