@@ -104,7 +104,7 @@ interface MessagePageProps {
 export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: MessagePageProps) {
   const [fixedChats] = useState<FixedChat[]>([
     { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
-    { id: 'hawa-system', name: 'Hurry System', image: '/1784465161302~2.jpg', uid: 'hurry_system_official', isFixed: true }
+    { id: 'hawa-system', name: 'Hurry System', image: '/file_00000000a66881f8aa9e15d2fe2b9a0c.png', uid: 'hurry_system_official', isFixed: true }
   ]);
 
   const [dynamicChats, setDynamicChats] = useState<ChatPreview[]>([]);
@@ -309,7 +309,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         {/* Empty state */}
         {!isLoading && dynamicChats.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-sm">No conversations yet</p>
+            <p className="text-gray-400 text-sm"></p>
           </div>
         )}
       </div>
