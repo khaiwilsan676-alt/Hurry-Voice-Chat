@@ -18,6 +18,23 @@ interface FamilyProps {
   onBack: () => void
 }
 
+// Helper Component for Reward Items (To match 1000193621.jpg)
+const RewardItem = ({ title }: { title: string }) => (
+  <div className="flex flex-col items-center w-[28%]">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
+      <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[85%] h-[85%] object-contain drop-shadow-md" alt="Reward" />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -31,7 +48,7 @@ export default function Family({ onBack }: FamilyProps) {
   const [showApplyMode, setShowApplyMode] = useState(false)
   const [applyModeState, setApplyModeState] = useState<'free' | 'admin'>('free')
 
-  // NEW STATE: Sirf ek active image ko track karega (Radio Button Logic)
+  // STATE: Ek active image ko track karega (Radio Button Logic)
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>(null)
 
   useEffect(() => {
@@ -92,7 +109,7 @@ export default function Family({ onBack }: FamilyProps) {
   }
 
   // ==========================================
-  // VIEW 4: TOP RANKINGS PAGE (UPDATED)
+  // VIEW 4: TOP RANKINGS PAGE (UPDATED CARDS)
   // ==========================================
   if (currentView === 'topRankings') {
     return (
@@ -108,7 +125,7 @@ export default function Family({ onBack }: FamilyProps) {
           </filter>
         </svg>
 
-        {/* SAME MAIN PAGE 50VH Background */}
+        {/* MAIN PAGE 50VH Background */}
         <div 
           className="absolute top-0 left-0 w-full h-[50vh] z-0"
           style={{
@@ -134,7 +151,7 @@ export default function Family({ onBack }: FamilyProps) {
           </button>
         </div>
 
-        {/* 3 BIG IMAGES FRAME (SAME AS MAIN) */}
+        {/* 3 BIG IMAGES FRAME */}
         <div className="flex flex-col w-full mt-2 relative z-20">
           <div className="flex justify-center w-full relative z-20 -mt-16">
             <img 
@@ -161,10 +178,10 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         {/* SPACE TO MATCH LAYOUT */}
-        <div className="w-full h-[12vh]"></div>
+        <div className="w-full h-[10vh]"></div>
 
-        {/* ROW IMAGES - Color Selection Logic */}
-        <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
+        {/* ROW IMAGES - Click Logic */}
+        <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20 mb-2">
           <img 
             src="/IMG_20260901_230303.jpg" 
             alt="Left New" 
@@ -188,109 +205,99 @@ export default function Family({ onBack }: FamilyProps) {
           />
         </div>
 
-        <div className="h-4"></div>
-
-        {/* TOP 1 SECTION (Edge-to-Edge Square Red Card, White Text) */}
-        <div className="w-full flex flex-col mt-4">
-          <div className="flex items-center w-full">
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
-            <div className="relative flex justify-center items-center">
-              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
-              <span className="absolute text-white font-black text-xl tracking-widest mt-1 drop-shadow-md">Top 1</span>
-            </div>
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+        {/* ======================================= */}
+        {/* TOP 1 SECTION */}
+        {/* ======================================= */}
+        <div className="w-full flex flex-col relative px-4 mt-8">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 1 Reward</span>
           </div>
-          <div className="w-full mt-2 bg-[#4a0b0b] border-y-2 border-[#FFD700] p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *7 days" />
+              <RewardItem title="Top1 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+              <RewardItem title="Room Theme *7 d" />
             </div>
-            <div className="flex justify-center w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-center w-full px-2">
+              <RewardItem title="Page Effect *7 days" />
             </div>
           </div>
         </div>
 
-        <div className="h-8"></div>
-
-        {/* TOP 2 SECTION (Edge-to-Edge) */}
-        <div className="w-full flex flex-col">
-          <div className="flex items-center w-full">
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
-            <div className="relative flex justify-center items-center">
-              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
-              <span className="absolute text-white font-black text-xl tracking-widest mt-1 drop-shadow-md">Top 2</span>
-            </div>
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+        {/* ======================================= */}
+        {/* TOP 2 SECTION */}
+        {/* ======================================= */}
+        <div className="w-full flex flex-col relative px-4 mt-12">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 2 Reward</span>
           </div>
-          <div className="w-full mt-2 bg-[#4a0b0b] border-y-2 border-[#FFD700] p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *7 days" />
+              <RewardItem title="Top2 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+              <RewardItem title="Room Theme *7 d" />
             </div>
-            <div className="flex justify-center w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-center w-full px-2">
+              <RewardItem title="Page Effect *7 days" />
             </div>
           </div>
         </div>
 
-        <div className="h-8"></div>
-
-        {/* TOP 3 SECTION (Edge-to-Edge) */}
-        <div className="w-full flex flex-col">
-          <div className="flex items-center w-full">
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
-            <div className="relative flex justify-center items-center">
-              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
-              <span className="absolute text-white font-black text-xl tracking-widest mt-1 drop-shadow-md">Top 3</span>
-            </div>
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+        {/* ======================================= */}
+        {/* TOP 3 SECTION */}
+        {/* ======================================= */}
+        <div className="w-full flex flex-col relative px-4 mt-12">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 3 Reward</span>
           </div>
-          <div className="w-full mt-2 bg-[#4a0b0b] border-y-2 border-[#FFD700] p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *7 days" />
+              <RewardItem title="Top3 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-center gap-3 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+              <RewardItem title="Room Theme *7 d" />
             </div>
-            <div className="flex justify-center w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            <div className="flex justify-center w-full px-2">
+              <RewardItem title="Page Effect *7 days" />
             </div>
           </div>
         </div>
 
-        <div className="h-8"></div>
-
-        {/* TOP 4 TO 10 SECTION (Edge-to-Edge) */}
-        <div className="w-full flex flex-col">
-          <div className="flex items-center w-full">
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
-            <div className="relative flex justify-center items-center">
-              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
-              <span className="absolute text-white font-black text-sm tracking-widest mt-1 text-center w-full leading-tight drop-shadow-md">Top<br/>4 to 10</span>
-            </div>
-            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+        {/* ======================================= */}
+        {/* TOP 4 TO 10 SECTION (ONLY ONE ROW) */}
+        {/* ======================================= */}
+        <div className="w-full flex flex-col relative px-4 mt-12 mb-10">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-[13px] tracking-widest mt-0.5 text-center leading-tight drop-shadow-md">TOP 4 TO 10<br/>Reward</span>
           </div>
-          <div className="w-full mt-2 bg-[#4a0b0b] border-y-2 border-[#FFD700] p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
-            <div className="flex justify-center gap-6 w-full">
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[35%] object-contain" alt="Card" />
-              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[35%] object-contain" alt="Card" />
+
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* SIRF EK ROW (3 ITEMS) */}
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *3 days" />
+              <RewardItem title="Frames *3 days" />
+              <RewardItem title="Vehicle *3 days" />
             </div>
           </div>
         </div>
@@ -460,7 +467,7 @@ export default function Family({ onBack }: FamilyProps) {
 
         <div className="w-full h-[10vh]"></div>
 
-        {/* MAIN PAGE ROW IMAGES - Color Selection Logic */}
+        {/* MAIN PAGE ROW IMAGES - Click Logic */}
         <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
           <img 
             src="/IMG_20260901_230303.jpg" 
