@@ -1194,13 +1194,13 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
             <div className="w-full flex-1 flex flex-col items-center justify-end pb-10">
               
-              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-2 drop-shadow-md" />
+              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-2- drop-shadow-md" />
               
               <div className="flex items-end justify-center gap-2 w-full px-1">
                 
                 {/* Top 2 (Left) */}
                 <div className="flex flex-col items-center mb-10">
-                  <div className="relative w-22 h-16 flex items-center justify-center mb-1">
+                  <div className="relative w-22 h-12 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[1].avatar} className="w-15 h-15 rounded-full object-cover" />
                     <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
                   </div>
