@@ -17,7 +17,6 @@ interface StoreItem {
   isOwned?: boolean;
 }
 
-// Naya Tab data icons ke sath
 const tabData = [
   { id: "Vehicle", label: "Vehicle", icon: "/IMG_20260913_090019.png" },
   { id: "Avatar Frame", label: "Frame", icon: "/IMG_20260913_090057.png" },
@@ -416,8 +415,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
         {/* Fixed/Sticky Top Area (Header + Tabs) */}
         <div className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col">
           
-          {/* Top Header (Absolute Top) */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2 w-full">
+          <div className="flex items-center justify-between px-3 pt-3 pb-2 w-full">
             <button
               type="button"
               onClick={() => {
@@ -436,7 +434,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
               {currentView === "store" ? "Store" : "Bag"}
             </h1>
 
-            {/* Changed from Images to Simple Text */}
             <button 
               type="button"
               onClick={() => setCurrentView(currentView === "store" ? "bag" : "store")}
@@ -446,8 +443,8 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             </button>
           </div>
 
-          {/* Category Tabs (1.5 gap from header = mt-6, gap-1 between tabs) */}
-          <div className="flex items-center gap-1 px-4 mt-3 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full">
+          {/* Category Tabs - Removed scroll (overflow-hidden), added pl-3 and pr-[2vh] */}
+          <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-3 mb-3 overflow-hidden shrink-0 w-full">
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
               
@@ -460,7 +457,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                     isActive ? "bg-transparent" : "bg-black/20"
                   }`}
                 >
-                  {/* Background card image if active */}
                   {isActive && (
                     <div className="absolute inset-0 z-0">
                       <Image
@@ -472,7 +468,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                     </div>
                   )}
                   
-                  {/* Icon & Title */}
                   <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
                     <div className="relative w-10 h-10">
                       <Image
@@ -495,8 +490,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
         {/* Scrollable Bottom Area (Grid & ID View) */}
         <div className="flex-1 overflow-y-auto no-scrollbar w-full pb-10">
           {activeTab === "ID" ? (
-            <div className="px-4 py-2 flex flex-col gap-3 h-full">
-              {/* Customize ID Card Box */}
+            <div className="px-3 py-2 flex flex-col gap-3 h-full">
               <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-4">
                 <h2 className="text-[17px] font-bold text-gray-900">Customize ID</h2>
                 <div className="w-full bg-[#f3f4f6] text-gray-400 text-[14px] font-medium py-3 px-4 rounded-2xl text-center">
@@ -504,7 +498,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                 </div>
               </div>
 
-              {/* Bottom Customize Button */}
               <button 
                 type="button"
                 className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center"
@@ -513,7 +506,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 px-4 py-1 content-start">
+            <div className="grid grid-cols-2 gap-2 px-3 py-1 content-start">
               {displayedItems.map((item) => {
                 const isTheme = item.tab === "Theme";
                 const isVehicle = item.tab === "Vehicle";
@@ -538,7 +531,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                       </div>
                     )}
 
-                    {/* Top Bar inside Card */}
                     <div className="flex items-center justify-between w-full z-10 mb-2">
                       <button 
                         type="button"
@@ -588,12 +580,10 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
 
                     {isTheme && <div className="flex-1 w-full min-h-[80px]"></div>}
 
-                    {/* Stars */}
                     <div className="flex items-center justify-center gap-0.5 mt-2 mb-1 w-full z-10">
                       {renderStars(item.stars)}
                     </div>
 
-                    {/* Price Row */}
                     <div className="flex items-center justify-center gap-1.5 mb-3 w-full z-10">
                       <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
                         <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
@@ -603,7 +593,6 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                       </span>
                     </div>
 
-                    {/* Bottom Buttons */}
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
                       <button
                         type="button"
@@ -663,7 +652,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
       {/* THEME TRY OVERLAY MODAL */}
       {tryThemeItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center">
+          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
             
             <button
               type="button"
@@ -684,6 +673,10 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
 
             <div className="flex items-center justify-center gap-1 mt-4">
               {renderStars(tryThemeItem.stars)}
+            </div>
+
+            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
+              {tryThemeItem.name}
             </div>
 
           </div>
