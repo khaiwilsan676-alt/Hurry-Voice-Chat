@@ -42,7 +42,8 @@ export default function Family({ onBack }: FamilyProps) {
   const [newMemberRelation, setNewMemberRelation] = useState('')
   const [familyCode, setFamilyCode] = useState('')
 
-  const [currentView, setCurrentView] = useState<'main' | 'join' | 'create' | 'topRankings'>('main')
+  // Removed 'join' state from currentView
+  const [currentView, setCurrentView] = useState<'main' | 'create' | 'topRankings'>('main')
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 })
 
   const [showApplyMode, setShowApplyMode] = useState(false)
@@ -362,51 +363,6 @@ export default function Family({ onBack }: FamilyProps) {
   }
 
   // ==========================================
-  // VIEW 2: JOIN FAMILY PAGE
-  // ==========================================
-  if (currentView === 'join') {
-    return (
-      <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white">
-        <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
-          <filter id="remove-green" colorInterpolationFilters="sRGB">
-            <feColorMatrix type="matrix" values="
-              1 0 0 0 0
-              0 1 0 0 0
-              0 0 1 0 0
-              1.5 -2.5 1.5 1 0
-            " />
-          </filter>
-        </svg>
-
-        <div className="relative w-full h-[50vh] flex-shrink-0">
-          <div className="absolute inset-0 w-full h-full z-0" style={{ backgroundImage: "url('/IMG_20260901_162148.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
-          <div className="absolute top-0 left-0 w-full flex flex-row items-center justify-between px-2 z-20" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
-            <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 flex items-center justify-start text-white active:scale-95 transition-transform">
-              <ArrowLeft size={28} className="text-white drop-shadow-md" />
-            </button>
-            <button className="p-1 cursor-pointer flex items-center justify-end">
-              <HelpCircle size={28} className="text-white drop-shadow-md" />
-            </button>
-          </div>
-        </div>
-
-        <div className="w-full pt-2 pb-16 space-y-2 z-10 relative">
-          {Array.from({ length: 50 }, (_, index) => {
-            const rank = index + 1;
-            return (
-              <div key={rank} className="relative w-full h-20 flex items-center justify-between px-2">
-                <img src="/1788259008478~2.jpg" alt="Row Background" className="absolute inset-0 w-full h-full object-fill" style={{ filter: 'url(#remove-green)' }} />
-                <div className="relative z-10 pl-4"><span className="text-lg font-black text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{rank}</span></div>
-                <div className="relative z-10 pr-4"><img src="/IMG_20260901_160944.png" alt="Icon" className="w-18 h-18 object-contain" style={{ filter: 'url(#remove-green)' }} /></div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  // ==========================================
   // VIEW 1: MAIN FAMILY PAGE
   // ==========================================
   return (
@@ -498,13 +454,10 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* NEW DARK BROWN CARD FOR BOTTOM BUTTONS */}
-      <div className="fixed bottom-4 left-4 right-4 h-[10vh] bg-[#3B0C06] rounded-md flex items-center justify-between px-4 z-50 shadow-[0_4px_25px_rgba(0,0,0,0.5)] border border-[#5C1A06]/50">
+      {/* NEW DARK BROWN CARD FOR BOTTOM BUTTONS - Edge to Edge, Bottom aligned, Center Single Button */}
+      <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
         <button onClick={() => setCurrentView('create')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
           <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
-        </button>
-        <button onClick={() => setCurrentView('join')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
-          <img src="/1788263346291~2.jpg" alt="Join Family" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
         </button>
       </div>
     </div>
