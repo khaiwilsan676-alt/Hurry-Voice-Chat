@@ -17,7 +17,14 @@ interface StoreItem {
   isOwned?: boolean;
 }
 
-const tabs = ["Vehicle", "Avatar Frame", "Theme", "Chat Bubble", "ID"];
+// Naya Tab data icons ke sath
+const tabData = [
+  { id: "Vehicle", label: "Vehicle", icon: "/IMG_20260913_090019.png" },
+  { id: "Avatar Frame", label: "Frame", icon: "/IMG_20260913_090057.png" },
+  { id: "Theme", label: "Theme", icon: "/IMG_20260913_090137.png" },
+  { id: "Chat Bubble", label: "Bubble", icon: "/IMG_20260913_090116.png" },
+  { id: "ID", label: "ID", icon: "/IMG_20260913_090150.png" },
+];
 
 const allStoreItems: StoreItem[] = [
   // Vehicle
@@ -51,7 +58,7 @@ const allStoreItems: StoreItem[] = [
   { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" }, 
   { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" }, 
   
-  // ID (Placeholder owned item so it doesn't break bag/store switch logic)
+  // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
 ];
 
@@ -403,218 +410,226 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f6f8] text-gray-800 pb-10 select-none font-sans relative">
-      <div 
-        className="max-w-md mx-auto min-h-screen flex flex-col"
-        style={{ paddingTop: 'env(safe-area-inset-top, 12px)' }}
-      >
+    <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
+      <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
         
-        {/* Top Header */}
-        <div className="relative flex items-center justify-between px-4 pb-2 pt-1 bg-transparent">
-          <button
-            type="button"
-            onClick={() => {
-              if (currentView === "bag") {
-                setCurrentView("store");
-              } else {
-                onBack();
-              }
-            }}
-            className="p-1 -ml-2 text-black hover:bg-black/5 rounded-full transition-colors z-10"
-          >
-            <ArrowLeft size={26} strokeWidth={2} />
-          </button>
+        {/* Fixed/Sticky Top Area (Header + Tabs) */}
+        <div className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col">
           
-          <h1 className="text-[18px] font-bold text-black absolute left-1/2 -translate-x-1/2">
-            {currentView === "store" ? "Store" : "Bag"}
-          </h1>
-
-          {currentView === "store" ? (
-            <button 
+          {/* Top Header (Absolute Top) */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-2 w-full">
+            <button
               type="button"
-              onClick={() => setCurrentView("bag")}
-              className="relative w-[70px] h-[70px] z-10 flex items-center justify-center hover:opacity-80 transition-opacity"
+              onClick={() => {
+                if (currentView === "bag") {
+                  setCurrentView("store");
+                } else {
+                  onBack();
+                }
+              }}
+              className="p-1 -ml-2 text-black hover:bg-black/5 rounded-full transition-colors z-10"
             >
-              <Image
-                src="/file_0000000050008211a231ccb3937eab0a.png"
-                alt="Bag Icon"
-                fill
-                className="object-contain"
-              />
+              <ArrowLeft size={26} strokeWidth={2} />
             </button>
-          ) : (
+            
+            <h1 className="text-[18px] font-bold text-black absolute left-1/2 -translate-x-1/2 z-0">
+              {currentView === "store" ? "Store" : "Bag"}
+            </h1>
+
+            {/* Changed from Images to Simple Text */}
             <button 
               type="button"
-              onClick={() => setCurrentView("store")}
-              className="relative w-[70px] h-[70px] z-10 flex items-center justify-center hover:opacity-80 transition-opacity"
+              onClick={() => setCurrentView(currentView === "store" ? "bag" : "store")}
+              className="font-bold text-[#1d4ed8] text-[15px] z-10 hover:opacity-80 transition-opacity pr-1"
             >
-              <Image
-                src="/file_00000000d634821189c7f69b4e3786e8.png"
-                alt="Store Icon"
-                fill
-                className="object-contain"
-              />
-            </button>
-          )}
-        </div>
-
-        {/* Category Tabs */}
-        <div className="flex items-center gap-3 px-4 mt-1 mb-2 overflow-x-auto no-scrollbar shrink-0">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`whitespace-nowrap text-[14px] px-4 py-1.5 rounded-xl transition-colors ${
-                  isActive
-                    ? "bg-[#1d4ed8] text-white font-medium shadow-sm"
-                    : "text-gray-400 font-medium hover:text-gray-600 bg-transparent"
-                }`}
-              >
-                {tab}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Items Grid or ID Tab Custom View */}
-        {activeTab === "ID" ? (
-          <div className="px-4 py-2 flex-1 flex flex-col gap-3">
-            {/* Customize ID Card Box */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-              <h2 className="text-[17px] font-bold text-gray-900">Customize ID</h2>
-              <div className="w-full bg-[#f3f4f6] text-gray-400 text-[14px] font-medium py-3 px-4 rounded-2xl text-center">
-                Start Your Customization Journey
-              </div>
-            </div>
-
-            {/* Bottom Customize Button */}
-            <button 
-              type="button"
-              className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center"
-            >
-              Customize
+              {currentView === "store" ? "Bag" : "Store"}
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 px-4 py-1 flex-1 content-start">
-            {displayedItems.map((item) => {
-              const isTheme = item.tab === "Theme";
-              const isVehicle = item.tab === "Vehicle";
-              const isAvatarFrame = item.tab === "Avatar Frame";
 
+          {/* Category Tabs (1.5 gap from header = mt-6, gap-1 between tabs) */}
+          <div className="flex items-center gap-1 px-4 mt-6 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full">
+            {tabData.map((tab) => {
+              const isActive = activeTab === tab.id;
+              
               return (
-                <div
-                  key={item.id}
-                  className={`relative bg-white rounded-xl p-1 flex flex-col items-center justify-between shadow-sm overflow-hidden ${
-                    isTheme ? "min-h-[220px]" : "h-auto"
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative w-[72px] h-[72px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
+                    isActive ? "bg-transparent" : "bg-black"
                   }`}
                 >
-                  {isTheme && (
-                    <div className="absolute inset-0 w-full h-full z-0">
+                  {/* Background card image if active */}
+                  {isActive && (
+                    <div className="absolute inset-0 z-0">
                       <Image
-                        src={item.image}
-                        alt={item.name}
+                        src="/IMG_20260913_090226.png"
+                        alt="Active Bg"
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-black/20"></div>
                     </div>
                   )}
-
-                  {/* Top Bar inside Card */}
-                  <div className="flex items-center justify-between w-full z-10 mb-2">
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isTheme) {
-                          setTryThemeItem(item);
-                        } else {
-                          setTryCenterItem(item);
-                        }
-                      }}
-                      className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
-                        isTheme 
-                          ? "text-white border-white bg-white/20" 
-                          : "text-[#1d4ed8] border-[#1d4ed8]"
-                      }`}
-                    >
-                      Try
-                    </button>
-                    <div className={`flex items-center gap-1 text-[11px] font-medium ${isTheme ? "text-white drop-shadow-md" : "text-gray-500"}`}>
-                      <Clock size={12} strokeWidth={2.5} />
-                      <span>{item.duration}</span>
+                  
+                  {/* Icon & Title */}
+                  <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
+                    <div className="relative w-8 h-8">
+                      <Image
+                        src={tab.icon}
+                        alt={tab.label}
+                        fill
+                        className="object-contain"
+                      />
                     </div>
-                  </div>
-
-                  {!isTheme && (
-                    <div className="relative w-full h-[80px] my-2 flex items-center justify-center z-10">
-                      <div className={`absolute flex items-center justify-center ${
-                        isVehicle || isAvatarFrame ? "w-[120px] h-[120px]" : "w-full h-full"
-                      }`}>
-                        {item.image.endsWith('.mp4') ? (
-                          <WebGLVideoAvatar src={item.image} />
-                        ) : item.removeGreen ? (
-                          <WebGLImageAvatar src={item.image} />
-                        ) : (
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-contain"
-                            sizes="50vw"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {isTheme && <div className="flex-1 w-full min-h-[80px]"></div>}
-
-                  {/* Stars */}
-                  <div className="flex items-center justify-center gap-0.5 mt-2 mb-1 w-full z-10">
-                    {renderStars(item.stars)}
-                  </div>
-
-                  {/* Price Row */}
-                  <div className="flex items-center justify-center gap-1.5 mb-3 w-full z-10">
-                    <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-                      <WebGLCoinIcon src="/1786855398290.png" />
-                    </div>
-                    <span className={`text-[14px] font-bold tracking-tight truncate ${isTheme ? "text-white drop-shadow-md" : "text-gray-900"}`}>
-                      {item.price}
+                    <span className="text-[11px] font-medium text-white tracking-wide">
+                      {tab.label}
                     </span>
                   </div>
-
-                  {/* Bottom Buttons */}
-                  <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
-                    <button
-                      type="button"
-                      className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
-                    >
-                      Send
-                    </button>
-                    <button
-                      type="button"
-                      className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800"
-                    >
-                      {currentView === "bag" ? "Equip" : "Buy"}
-                    </button>
-                  </div>
-                </div>
+                </button>
               );
             })}
-
-            {displayedItems.length === 0 && (
-              <div className="col-span-2 text-center text-gray-400 mt-12 text-sm font-medium">
-                {currentView === "bag" ? "No items in Bag for this category" : "No items found"}
-              </div>
-            )}
           </div>
-        )}
+        </div>
+
+        {/* Scrollable Bottom Area (Grid & ID View) */}
+        <div className="flex-1 overflow-y-auto no-scrollbar w-full pb-10">
+          {activeTab === "ID" ? (
+            <div className="px-4 py-2 flex flex-col gap-3 h-full">
+              {/* Customize ID Card Box */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+                <h2 className="text-[17px] font-bold text-gray-900">Customize ID</h2>
+                <div className="w-full bg-[#f3f4f6] text-gray-400 text-[14px] font-medium py-3 px-4 rounded-2xl text-center">
+                  Start Your Customization Journey
+                </div>
+              </div>
+
+              {/* Bottom Customize Button */}
+              <button 
+                type="button"
+                className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center"
+              >
+                Customize
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 px-4 py-1 content-start">
+              {displayedItems.map((item) => {
+                const isTheme = item.tab === "Theme";
+                const isVehicle = item.tab === "Vehicle";
+                const isAvatarFrame = item.tab === "Avatar Frame";
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`relative bg-white rounded-xl p-1 flex flex-col items-center justify-between shadow-sm overflow-hidden ${
+                      isTheme ? "min-h-[220px]" : "h-auto"
+                    }`}
+                  >
+                    {isTheme && (
+                      <div className="absolute inset-0 w-full h-full z-0">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20"></div>
+                      </div>
+                    )}
+
+                    {/* Top Bar inside Card */}
+                    <div className="flex items-center justify-between w-full z-10 mb-2">
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isTheme) {
+                            setTryThemeItem(item);
+                          } else {
+                            setTryCenterItem(item);
+                          }
+                        }}
+                        className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
+                          isTheme 
+                            ? "text-white border-white bg-white/20" 
+                            : "text-[#1d4ed8] border-[#1d4ed8]"
+                        }`}
+                      >
+                        Try
+                      </button>
+                      <div className={`flex items-center gap-1 text-[11px] font-medium ${isTheme ? "text-white drop-shadow-md" : "text-gray-500"}`}>
+                        <Clock size={12} strokeWidth={2.5} />
+                        <span>{item.duration}</span>
+                      </div>
+                    </div>
+
+                    {!isTheme && (
+                      <div className="relative w-full h-[80px] my-2 flex items-center justify-center z-10">
+                        <div className={`absolute flex items-center justify-center ${
+                          isVehicle || isAvatarFrame ? "w-[120px] h-[120px]" : "w-full h-full"
+                        }`}>
+                          {item.image.endsWith('.mp4') ? (
+                            <WebGLVideoAvatar src={item.image} />
+                          ) : item.removeGreen ? (
+                            <WebGLImageAvatar src={item.image} />
+                          ) : (
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-contain"
+                              sizes="50vw"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {isTheme && <div className="flex-1 w-full min-h-[80px]"></div>}
+
+                    {/* Stars */}
+                    <div className="flex items-center justify-center gap-0.5 mt-2 mb-1 w-full z-10">
+                      {renderStars(item.stars)}
+                    </div>
+
+                    {/* Price Row */}
+                    <div className="flex items-center justify-center gap-1.5 mb-3 w-full z-10">
+                      <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                        <WebGLCoinIcon src="/1786855398290.png" />
+                      </div>
+                      <span className={`text-[14px] font-bold tracking-tight truncate ${isTheme ? "text-white drop-shadow-md" : "text-gray-900"}`}>
+                        {item.price}
+                      </span>
+                    </div>
+
+                    {/* Bottom Buttons */}
+                    <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
+                      <button
+                        type="button"
+                        className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
+                      >
+                        Send
+                      </button>
+                      <button
+                        type="button"
+                        className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800"
+                      >
+                        {currentView === "bag" ? "Equip" : "Buy"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {displayedItems.length === 0 && (
+                <div className="col-span-2 text-center text-gray-400 mt-12 text-sm font-medium">
+                  {currentView === "bag" ? "No items in Bag for this category" : "No items found"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* FULL WIDE VEHICLE & FRAME TRY MODAL */}
