@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hurry - Chat, Share, Connect</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb', // Rich Blue for Header
+                        secondary: '#60a5fa', // Light Blue for Highlights/Text
+                        darkBg: '#0f172a', // Dark Slate Background
+                        cardBg: '#1e293b' // Card Background
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background-color: #0f172a; 
+            color: white; 
+            font-family: system-ui, -apple-system, sans-serif; 
+        }
+        /* City background overlay matching the dark vibe */
+        .bg-city {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.98)), url('https://images.unsplash.com/photo-1477959858617-679af05371a5?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-city min-h-screen">
+    
+    <!-- Navbar -->
+    <header class="bg-primary p-4 flex justify-between items-center sticky top-0 z-50 shadow-lg">
+        <div class="flex items-center gap-3">
+            <img src="/logo.png" alt="Hurry Logo" class="h-8 object-contain">
+            <span class="text-2xl font-bold tracking-wide">Hurry</span>
+        </div>
+        <button class="text-white text-2xl focus:outline-none">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="px-6 py-12 flex flex-col items-center text-center">
+        
+        <!-- Hero App Icon (Using your logo) -->
+        <div class="bg-gradient-to-tr from-blue-500 to-blue-200 w-28 h-28 rounded-3xl flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.4)] mb-8">
+            <img src="/logo.png" alt="Hurry App Icon" class="w-16 h-16 object-contain" onerror="this.outerHTML='<i class=\'fas fa-heart text-5xl text-white\'></i>'">
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-secondary leading-tight">
+            Hurry - Chat,<br>Share, Connect
+        </h1>
+        
+        <p class="text-gray-300 text-lg md:text-xl max-w-md mx-auto mb-20 font-light">
+            Hurry is not just another social app—it's a vibrant stage for creative souls.
+        </p>
+
+        <!-- About Section -->
+        <div class="w-full max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-3">About Hurry</h2>
+            <div class="h-1 w-16 bg-secondary mx-auto mb-16 rounded-full"></div>
+
+            <!-- Feature 1: Creative Stage -->
+            <div class="text-left mb-20">
+                <h3 class="text-2xl font-bold text-secondary mb-4">Creative Stage</h3>
+                <p class="text-gray-300 mb-8 text-lg font-light leading-relaxed">
+                    Dive into a world where theater and comedy thrive. Share your moments, from backstage snippets to stand-up clips, and connect with like-minded enthusiasts.
+                </p>
+                <!-- Placeholder Mockups (Replace src with your app screenshots) -->
+                <div class="flex gap-4 justify-center overflow-x-auto pb-4">
+                    <div class="w-40 h-80 bg-cardBg border border-gray-700 rounded-2xl shadow-xl flex items-center justify-center text-gray-500">App Screen 1</div>
+                    <div class="w-40 h-80 bg-cardBg border border-gray-700 rounded-2xl shadow-xl flex items-center justify-center text-gray-500">App Screen 2</div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Dynamic Socializing -->
+            <div class="text-left mb-20">
+                <h3 class="text-2xl font-bold text-secondary mb-4">Dynamic Socializing</h3>
+                <p class="text-gray-300 mb-8 text-lg font-light leading-relaxed">
+                    Beyond posting updates, Hurry makes socializing dynamic and personal. Engage in lively video chats about the latest shows, or dive into 1-on-1 private conversations to build deeper connections.
+                </p>
+                <div class="flex gap-4 justify-center overflow-x-auto pb-4">
+                    <div class="w-40 h-80 bg-cardBg border border-gray-700 rounded-2xl shadow-xl flex items-center justify-center text-gray-500">App Screen 3</div>
+                    <div class="w-40 h-80 bg-cardBg border border-gray-700 rounded-2xl shadow-xl flex items-center justify-center text-gray-500">App Screen 4</div>
+                </div>
+            </div>
+
+            <!-- Feature 3: Find Your Crowd -->
+            <div class="text-left mb-20">
+                <h3 class="text-2xl font-bold text-secondary mb-4">Find Your Crowd</h3>
+                <p class="text-gray-300 mb-6 text-lg font-light leading-relaxed">
+                    Whether you're discussing a punchline or sharing your own stories, Hurry helps you find your crowd and express yourself freely.
+                </p>
+                <p class="text-gray-200 mb-10 text-lg font-medium">
+                    Join Hurry and make your day!
+                </p>
+                <div class="flex justify-center">
+                     <div class="w-48 h-96 bg-cardBg border border-gray-700 rounded-2xl shadow-xl flex items-center justify-center text-gray-500">App Screen 5</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Features Grid -->
+        <div class="w-full max-w-4xl mx-auto mb-20 mt-12">
+            <h2 class="text-3xl font-bold mb-3">Key Features</h2>
+            <div class="h-1 w-16 bg-secondary mx-auto mb-12 rounded-full"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Chat Card -->
+                <div class="bg-cardBg/60 backdrop-blur-md p-8 rounded-3xl border border-gray-700 text-center hover:border-secondary transition-all shadow-lg">
+                    <div class="w-16 h-16 mx-auto bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                        <i class="fas fa-comment-dots text-3xl text-gray-100"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Chat</h3>
+                    <p class="text-gray-400 text-sm font-light">Engage in lively video chats about the latest shows or dive into 1-on-1 private conversations.</p>
+                </div>
+
+                <!-- Share Card -->
+                <div class="bg-cardBg/60 backdrop-blur-md p-8 rounded-3xl border border-gray-700 text-center hover:border-secondary transition-all shadow-lg">
+                    <div class="w-16 h-16 mx-auto bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                        <i class="fas fa-upload text-3xl text-orange-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Share</h3>
+                    <p class="text-gray-400 text-sm font-light">Share your moments, from backstage snippets to stand-up clips with like-minded enthusiasts.</p>
+                </div>
+
+                <!-- Connect Card (Full Width) -->
+                <div class="bg-cardBg/60 backdrop-blur-md p-8 rounded-3xl border border-gray-700 text-center md:col-span-2 hover:border-secondary transition-all shadow-lg">
+                    <div class="w-16 h-16 mx-auto bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+                        <i class="fas fa-link text-3xl text-blue-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Connect</h3>
+                    <p class="text-gray-400 text-sm font-light max-w-md mx-auto">Connect with creative souls in a vibrant stage designed for theater and comedy lovers.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Join Our Community -->
+        <div class="w-full max-w-4xl mx-auto mb-16">
+            <h2 class="text-3xl font-bold mb-3">Join Our Community</h2>
+            <div class="h-1 w-16 bg-secondary mx-auto mb-10 rounded-full"></div>
+            
+            <p class="text-gray-300 text-left mb-6 text-lg font-light leading-relaxed">
+                Hurry is more than an app—it's a home for creative expression. Whether you're a theater enthusiast, comedy lover, or just someone who appreciates authentic connections, you'll find your place here.
+            </p>
+            <p class="text-gray-300 text-left mb-16 text-lg font-light leading-relaxed">
+                Share your passion, discover new talents, and build meaningful relationships in a space designed for creativity.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-8 mt-12">
+                <div class="text-center">
+                    <i class="fas fa-masks-theater text-5xl text-orange-500 mb-4 drop-shadow-md"></i>
+                    <h4 class="text-xl font-bold mb-2">Theater Lovers</h4>
+                    <p class="text-gray-400 text-sm">Connect with fellow theater enthusiasts</p>
+                </div>
+                <div class="text-center">
+                    <i class="fas fa-face-laugh-squint text-5xl text-yellow-400 mb-4 drop-shadow-md"></i>
+                    <h4 class="text-xl font-bold mb-2">Comedy Fans</h4>
+                    <p class="text-gray-400 text-sm">Share laughs and discover new comedians</p>
+                </div>
+                <div class="text-center">
+                    <i class="fas fa-microphone text-5xl text-gray-300 mb-4 drop-shadow-md"></i>
+                    <h4 class="text-xl font-bold mb-2">Performers</h4>
+                    <p class="text-gray-400 text-sm">Showcase your talent and get feedback</p>
+                </div>
+                <div class="text-center">
+                    <i class="fas fa-user-group text-5xl text-blue-500 mb-4 drop-shadow-md"></i>
+                    <h4 class="text-xl font-bold mb-2">Community</h4>
+                    <p class="text-gray-400 text-sm">Build meaningful connections</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-black/60 py-10 text-center text-sm text-gray-400 mt-auto backdrop-blur-sm border-t border-gray-800">
+        <p class="mb-4 hover:text-white transition-colors cursor-pointer">Support: HurrySup@outlook.com</p>
+        <p>&copy; 2026 Hurry App. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
+
