@@ -171,7 +171,6 @@ export default function Family({ onBack }: FamilyProps) {
               src="/file_00000000e56882119c217d508b6733dc.png"
               alt="Coin" 
               className="w-5 h-5 object-contain"
-              style={{ filter: 'url(#remove-white)' }}
             />
             <span className="font-bold text-white/90 text-sm tracking-wider mt-0.5">1500000</span>
           </button>

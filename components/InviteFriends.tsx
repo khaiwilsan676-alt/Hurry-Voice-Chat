@@ -78,47 +78,8 @@ const WhiteKeyImage = ({
   className?: string; 
   style?: React.CSSProperties 
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-
-  useEffect(() => {
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.src = src
-
-    img.onload = () => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
-      canvas.width = img.naturalWidth || img.width
-      canvas.height = img.naturalHeight || img.height
-
-      ctx.drawImage(img, 0, 0)
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-      const data = imgData.data
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i]
-        const g = data[i + 1]
-        const b = data[i + 2]
-
-        if (r > 210 && g > 210 && b > 210) {
-          const avg = (r + g + b) / 3
-          if (avg > 240) {
-            data[i + 3] = 0
-          } else {
-            const factor = (avg - 210) / 30
-            data[i + 3] = Math.round(data[i + 3] * (1 - factor))
-          }
-        }
-      }
-      ctx.putImageData(imgData, 0, 0)
-    }
-  }, [src])
-
   return (
-    <canvas ref={canvasRef} className={className} style={style} aria-label={alt} />
+    <img src={src} className={className} style={style} alt={alt} />
   )
 }
 

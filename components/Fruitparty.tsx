@@ -64,48 +64,8 @@ async function saveStateToDB(state: any) {
   } catch (e) {}
 }
 
-const imageCache: Record<string, string> = {};
-
 function WebGLShaderImage({ src }: { src: string }) {
-  if (imageCache[src]) {
-    return <img src={imageCache[src]} className="w-full h-full object-contain" alt="" />;
-  }
-  return <CanvasProcessor src={src} />;
-}
-
-function CanvasProcessor({ src }: { src: string }) {
-  const [finalSrc, setFinalSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.src = src;
-    
-    image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0);
-      try {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i] > 220 && data[i + 1] > 220 && data[i + 2] > 220) {
-            data[i + 3] = 0; 
-          }
-        }
-        ctx.putImageData(imageData, 0, 0);
-        const dataUrl = canvas.toDataURL();
-        imageCache[src] = dataUrl;
-        setFinalSrc(dataUrl);
-      } catch (err) {}
-    };
-  }, [src]);
-
-  return finalSrc ? <img src={finalSrc} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full" />;
+  return <img src={src} className="w-full h-full object-contain" alt="" />;
 }
 
 const getDynamicTextSize = (val: number) => {
