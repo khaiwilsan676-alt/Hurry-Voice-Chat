@@ -374,7 +374,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               {/* Larger Half Overflow Coin Image */}
               <div className="absolute -top-9 right-3 w-28 h-28 pointer-events-none z-20 drop-shadow-xl">
                 <WhiteColorRemovalShader
-                  imageSrc="/1786855398290.png"
+                  imageSrc="/file_00000000e56882119c217d508b6733dc.png"
                   className="w-full h-full object-contain"
                   threshold={0.88}
                 />
@@ -404,7 +404,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                   +20,000
                   <div className="w-2.5 h-2.5">
                     <WhiteColorRemovalShader
-                      imageSrc="/1786855398290.png"
+                      imageSrc="/file_00000000e56882119c217d508b6733dc.png"
                       className="w-full h-full object-contain"
                       threshold={0.88}
                     />
@@ -414,7 +414,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 {/* Center Coin Image */}
                 <div className="w-12 h-12 my-2 flex items-center justify-center">
                   <WhiteColorRemovalShader
-                    imageSrc="/1786855398290.png"
+                    imageSrc="/file_00000000e56882119c217d508b6733dc.png"
                     className="w-full h-full object-contain"
                     threshold={0.88}
                   />
@@ -484,7 +484,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                     <span>100 =</span>
                     <div className="w-3.5 h-3.5 inline-block align-middle">
                       <WhiteColorRemovalShader
-                        imageSrc="/1786855398290.png"
+                        imageSrc="/file_00000000e56882119c217d508b6733dc.png"
                         className="w-full h-full object-contain"
                         threshold={0.88}
                       />
@@ -526,7 +526,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                     />
                     <div className="w-4 h-4 flex-shrink-0 ml-1.5">
                       <WhiteColorRemovalShader
-                        imageSrc="/1786855398290.png"
+                        imageSrc="/file_00000000e56882119c217d508b6733dc.png"
                         className="w-full h-full object-contain"
                         threshold={0.88}
                       />

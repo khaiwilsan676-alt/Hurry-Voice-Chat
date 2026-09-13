@@ -217,7 +217,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             </div>
             <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '100px', right: '35px' }}>
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
-              <WhiteKeyImage src="/1786855398290.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
+              <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
               <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center ml-0.5">
                 <ChevronRight size={12} strokeWidth={3} className="text-[#4d0515] -mr-0.5" />
@@ -231,7 +231,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             </div>
             <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '175px', right: '35px' }}>
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
-              <WhiteKeyImage src="/1786855398290.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
+              <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
               <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center ml-0.5">
                 <ChevronRight size={12} strokeWidth={3} className="text-[#4d0515] -mr-0.5" />
@@ -245,7 +245,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             </div>
             <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '255px', right: '35px' }}>
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
-              <WhiteKeyImage src="/1786855398290.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
+              <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold pr-1">6%</span>
               <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center ml-0.5">
                 <ChevronRight size={12} strokeWidth={3} className="text-[#4d0515] -mr-0.5" />
@@ -263,7 +263,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             
             {/* Top Center Items (Coin, 0, Claim) */}
             <div className="absolute flex flex-col items-center w-full" style={{ bottom: '31vh' }}>
-              <WhiteKeyImage src="/1786855398290.png" alt="coin" className="object-contain" style={{ width: '50px', height: '50px' }} />
+              <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '50px', height: '50px' }} />
               <div className="text-yellow-400 font-bold text-3xl drop-shadow-md leading-none mt-1">0</div>
               <button className="mt-3 bg-gradient-to-b from-yellow-300 to-yellow-500 text-[#451a03] font-extrabold text-sm rounded-full px-6 py-1.5 shadow-[0_4px_0_#92400e] active:shadow-[0_0px_0_#92400e] active:translate-y-1 transition-all cursor-pointer">
                 Claim
@@ -278,7 +278,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
             {/* Bottom Right Items (Coin, 0, Total Coins Rewards) */}
             <div className="absolute flex flex-col items-center" style={{ bottom: '10vh', right: '80px' }}>
-              <WhiteKeyImage src="/1786855398290.png" alt="coin" className="object-contain" style={{ width: '40px', height: '40px' }} />
+              <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '40px', height: '40px' }} />
               <div className="text-yellow-400 font-bold text-2xl drop-shadow-md leading-none mt-1">0</div>
               <div className="text-yellow-400 text-[10px] font-semibold text-center leading-tight mt-1">Total Coins<br/>Rewards</div>
             </div>

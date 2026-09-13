@@ -557,7 +557,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                       </div>
                       {(bets[item.id] || 0) > 0 && (
                         <div className="absolute bottom-[30%] left-1/2 -translate-x-1/2 w-[85%] h-[16px] max-h-[25%] bg-gradient-to-r from-blue-500/80 to-pink-500/80 flex items-center justify-center gap-[2px] rounded z-20 pointer-events-none shadow-md border border-white/20 overflow-hidden">
-                          <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                          <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                           <span className="text-white text-[clamp(6px,2vw,9px)] font-bold leading-none mt-[1px]">{bets[item.id]}</span>
                         </div>
                       )}
@@ -605,7 +605,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             
             {(bets[10] || 0) > 0 && (
               <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 w-[80%] h-[16px] max-h-[25%] bg-gradient-to-r from-blue-500/80 to-pink-500/80 flex items-center justify-center gap-[2px] rounded z-20 pointer-events-none shadow-md border border-white/20 overflow-hidden">
-                <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                 <span className="text-white text-[clamp(6px,2vw,9px)] font-bold leading-none mt-[1px]">{bets[10]}</span>
               </div>
             )}
@@ -622,7 +622,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             
             {(bets[11] || 0) > 0 && (
               <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 w-[80%] h-[16px] max-h-[25%] bg-gradient-to-r from-blue-500/80 to-pink-500/80 flex items-center justify-center gap-[2px] rounded z-20 pointer-events-none shadow-md border border-white/20 overflow-hidden">
-                <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                <div className="w-[10px] h-[10px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                 <span className="text-white text-[clamp(6px,2vw,9px)] font-bold leading-none mt-[1px]">{bets[11]}</span>
               </div>
             )}
@@ -747,12 +747,12 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             </div>
 
             <div className="absolute bottom-[6vh] z-30 flex items-center gap-0.5 w-[90px]" style={{ left: '8vh' }}>
-              <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+              <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
               <span className={`text-white font-bold drop-shadow-md text-left flex-1 truncate pt-0.5 leading-none ${getDynamicTextSize(balance)}`}>{balance}</span>
             </div>
 
             <div className="absolute bottom-[6vh] z-30 flex items-center gap-0.5 w-[90px]" style={{ right: '5vh' }}>
-              <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+              <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
               <span className={`text-white font-bold drop-shadow-md text-left flex-1 truncate pt-0.5 leading-none ${getDynamicTextSize(totalWon)}`}>{totalWon}</span>
             </div>
 
@@ -781,12 +781,12 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                 <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '13vh' }}>
                   <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md">
                     <span>Your Winning Amount</span>
-                    <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                    <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                     <span className="text-green-400">{lastRoundStats.won}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md mt-0.5">
                     <span>Your Bet Amount</span>
-                    <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                    <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                     <span className="text-yellow-300">{lastRoundStats.bet}</span>
                   </div>
                 </div>
@@ -805,7 +805,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                       </div>
                       <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">Alex</span>
                       <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                         <span className="text-yellow-300 text-[9px] font-extrabold drop-shadow-md truncate">72882</span>
                       </div>
                     </div>
@@ -819,7 +819,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                       </div>
                       <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">Simi</span>
                       <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                         <span className="text-gray-200 text-[9px] font-extrabold drop-shadow-md truncate">8889</span>
                       </div>
                     </div>
@@ -833,7 +833,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                       </div>
                       <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">kbhir</span>
                       <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                         <span className="text-orange-300 text-[9px] font-extrabold drop-shadow-md truncate">8373</span>
                       </div>
                     </div>
@@ -921,11 +921,11 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                                     <img src={fruit.img} className="w-5 h-5 object-contain drop-shadow-md" alt="Bet Fruit" />
                                   </div>
                                   <div className="flex justify-center items-center gap-1">
-                                    <div className="w-3.5 h-3.5 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                                    <div className="w-3.5 h-3.5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                                     <span className="text-gray-200 text-xs font-semibold">{betAmt}</span>
                                   </div>
                                   <div className="flex justify-center items-center gap-1">
-                                    <div className="w-3.5 h-3.5 flex-shrink-0"><WebGLShaderImage src="/1786855398290.png" /></div>
+                                    <div className="w-3.5 h-3.5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                                     <span className={`text-xs font-semibold ${awardAmt > 0 ? 'text-green-400' : 'text-gray-400'}`}>{awardAmt}</span>
                                   </div>
                                 </div>

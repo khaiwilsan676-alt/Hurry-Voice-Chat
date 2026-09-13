@@ -168,7 +168,7 @@ export default function Family({ onBack }: FamilyProps) {
           <button className="w-[90%] max-w-md bg-[#3b82f6] shadow-[0_5px_0_#2563eb] active:shadow-[0_0px_0_#2563eb] active:translate-y-1 rounded-full transition-all cursor-pointer flex flex-row items-center justify-center py-3.5 gap-2 pointer-events-auto">
             <span className="text-white font-bold text-lg tracking-wide">Create</span>
             <img 
-              src="/1786855398290.png" 
+              src="/file_00000000e56882119c217d508b6733dc.png"
               alt="Coin" 
               className="w-5 h-5 object-contain"
               style={{ filter: 'url(#remove-white)' }}

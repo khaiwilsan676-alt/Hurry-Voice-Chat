@@ -205,7 +205,7 @@ function TaskItem({
 export default function Roomtask({ onBack }: RoomtaskProps) {
   
   // Yaha original WebGL hook se clean image aayegi (base64 data URL)
-  const cleanedIconSrc = useProcessedShaderImage('/1786855398290.png');
+  const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
