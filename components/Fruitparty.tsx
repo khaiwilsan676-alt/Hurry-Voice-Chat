@@ -64,7 +64,6 @@ async function saveStateToDB(state: any) {
   } catch (e) {}
 }
 
-// White remove logic hata diya hai, sidha original image aayegi 
 function WebGLShaderImage({ src }: { src: string }) {
   return <img src={src} className="w-full h-full object-contain" alt="" />;
 }
@@ -88,7 +87,6 @@ type HistoryItem = {
 };
 
 export default function Fruitparty({ onClose, onMinimize, isMinimized = false }: FruitpartyProps) {
-  // Agar minimize se wapas aaye toh loading nahi aayegi, cross se aaye toh aayegi
   const [loading, setLoading] = useState(!isAppMinimizedSession);
   const [progress, setProgress] = useState(isAppMinimizedSession ? 100 : 0);
   const [isLoadedFromDB, setIsLoadedFromDB] = useState(false);
@@ -126,14 +124,12 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
 
   const [scale, setScale] = useState(1);
 
-  // Cross button click handler - Fresh Reset
   const handleFullClose = () => {
     isAppMinimizedSession = false;
     sessionBetsGlobal = {};
     onClose();
   };
 
-  // Minimize button click handler
   const handleMinimizeClick = () => {
     isAppMinimizedSession = true;
     sessionBetsGlobal = bets;
@@ -142,7 +138,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
     }
   };
   
-  // 5:30 AM Auto Clear History Logic
   useEffect(() => {
     const checkAndClearRecords = () => {
       const now = new Date();
@@ -212,7 +207,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
     }
   }, [balance, totalWon, bets]);
 
-  // Loading Screen Logic
   useEffect(() => {
     if (isAppMinimizedSession) {
       setLoading(false);
@@ -278,7 +272,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
     }
   }, [gameState.highlight, gameState.phase, isVibrationOn, isMinimized]);
 
-  // Game Real-Time Engine Loop
   useEffect(() => {
     const clock = setInterval(() => {
       const CYCLE_MS = 40000; 
@@ -291,7 +284,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
       const randomVal = seed - Math.floor(seed);
       
       let winnerIdx = 0;
-      // Probabilities adjusted to medium
       if (randomVal < 0.025) {
         winnerIdx = 10; 
       } else if (randomVal < 0.05) {
@@ -318,14 +310,11 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         currentPhase = 'spinning';
         currentCountdown = 6 - Math.floor((elapsed - 30000) / 1000);
         
-        // 1 second delay from 30s to 31s
         const spinElapsed = elapsed - 31000;
         
         if (spinElapsed < 0) {
-          // Waiting state (Highlight stays still for 1 second)
           currentHighlight = SPIN_PATH[0];
         } else {
-          // Actual Spin
           let targetPathIndex = SPIN_PATH.indexOf(winnerIdx);
           if (targetPathIndex === -1) targetPathIndex = 0; 
           
@@ -489,7 +478,8 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             right: '8vh'
           }}
         >
-          <div className="grid grid-cols-3 gap-0 w-full h-full mx-auto max-w-md pointer-events-auto">
+          {/* Poora machine grid vibrate karega ek sath agar condition true hai */}
+          <div className={`grid grid-cols-3 gap-0 w-full h-full mx-auto max-w-md pointer-events-auto ${gameState.phase === 'spinning' && isVibrationOn ? 'animate-machine-vibrate' : ''}`}>
             {GRID_ITEMS.map((item, index) => {
               const isBettingHighlight = gameState.phase === 'betting' && gameState.handPointer === index;
               
@@ -506,14 +496,12 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
               );
 
               const applyGreen = isBettingHighlight || isSpinningHighlight;
-              // Shake apply hoga jab spinning phase mein box highlight hoga
-              const applyShake = gameState.phase === 'spinning' && isSpinningHighlight;
 
               return (
                 <div 
                   key={item.id || index} 
                   onClick={() => { if (item.type === 'fruit') handleBetClick(item.id); }}
-                  className={`relative w-full h-full flex items-center justify-center transition-transform ${item.move || ''} ${item.type === 'fruit' ? 'cursor-pointer' : ''} ${applyGreen ? '!z-[999]' : ''} ${isFinalWinner ? 'animate-single-blink' : ''} ${applyShake ? 'animate-spin-shake' : ''}`}
+                  className={`relative w-full h-full flex items-center justify-center transition-transform ${item.move || ''} ${item.type === 'fruit' ? 'cursor-pointer' : ''} ${applyGreen ? '!z-[999]' : ''} ${isFinalWinner ? 'animate-single-blink' : ''}`}
                 >
                   {item.type === 'fruit' ? (
                     <>
@@ -552,7 +540,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
 
       {!loading && (
         <div
-          className="fixed z-[75] flex flex-row items-center justify-center gap-1 pointer-events-none"
+          className={`fixed z-[75] flex flex-row items-center justify-center gap-1 pointer-events-none ${gameState.phase === 'spinning' && isVibrationOn ? 'animate-machine-vibrate' : ''}`}
           style={{
             top: '69vh',
             bottom: '21vh',
@@ -604,8 +592,8 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         {!loading && (
           <>
             <div className="absolute bottom-[64vh] left-7 z-30 flex items-center gap-0.5">
-              {/* VIBRATION TOGGLE - No border, Pure Brown Solid Fill Mobile Icon */}
-              <button onClick={() => setIsVibrationOn(!isVibrationOn)} className="w-6 h-6 bg-transparent flex items-center justify-center hover:bg-black/10 active:scale-95 transition-all p-0.5">
+              {/* VIBRATION TOGGLE - Added Circle Border Back */}
+              <button onClick={() => setIsVibrationOn(!isVibrationOn)} className="w-6 h-6 rounded-full border-[2px] border-[#4a2810] bg-transparent flex items-center justify-center hover:bg-black/10 active:scale-95 transition-all p-0.5">
                 {isVibrationOn ? (
                   <svg viewBox="0 0 24 24" className="w-full h-full fill-[#4a2810]">
                     <path d="M16 1H8C6.9 1 6 1.9 6 3v18c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H8V5h8v14zM22 7v10h-2V7h2zM4 7v10H2V7h2z"/>
@@ -669,8 +657,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             <img src="/1787413631876~2.jpg" alt="Fruit Party Background" className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
 
-            {/* RED BUTTONS - Position 14vh from bottom, increased size, gap maintained */}
-            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-[6px] w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
+            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-1 w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
               <button onClick={() => setActiveBtn(1)} className="relative flex flex-col items-center w-[95px] h-[115px] cursor-pointer">
                 <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain transition-all duration-150 ${activeBtn === 1 ? 'top-[42px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[34px] z-10'}`} />
                 <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[40px] left-1/2 -translate-x-1/2 w-[110px] h-auto object-contain pointer-events-none ${activeBtn === 1 ? 'z-10' : 'z-0'}`} />
@@ -709,7 +696,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
               })}
             </div>
 
-            {/* Fixed Alignments for Wallets */}
             <div className="absolute bottom-[6vh] z-30 flex items-center justify-start gap-1 w-[110px]" style={{ left: '8vh' }}>
               <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
               <span className={`text-white font-bold drop-shadow-md truncate pt-0.5 leading-none ${getDynamicTextSize(balance)}`}>{balance}</span>
@@ -733,7 +719,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   </span>
                 </div>
 
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-[200px] h-[190px]" style={{ top: '1.5vh' }}>
+                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-[200px] h-[190px]" style={{ top: '1vh' }}>
                   <img src="/file_00000000eb0081f4885ade7d7db3bef8.png" className="absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-2xl" />
                   <img src={popupWinnerImg} className="w-[50px] h-[50px] object-contain z-10 pointer-events-none drop-shadow-md" />
                 </div>
@@ -931,16 +917,18 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
           50% { opacity: 0.15; filter: brightness(2.2); }
           100% { opacity: 1; filter: brightness(1); }
         }
-        @keyframes spinShake {
-          0%, 100% { transform: rotate(0deg) translate(0, 0); }
-          25% { transform: rotate(-2deg) translate(-1px, 1px); }
-          50% { transform: rotate(2deg) translate(1px, -1px); }
-          75% { transform: rotate(-1deg) translate(-1px, -1px); }
+        
+        /* EK SAATH MACHINE VIBRATE HONE WALI ANIMATION YAHAN HAI */
+        @keyframes machineVibrate {
+          0%, 100% { transform: translate(0, 0); }
+          25% { transform: translate(-1px, 1px); }
+          50% { transform: translate(1px, -1px); }
+          75% { transform: translate(-1px, -1px); }
         }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
         .animate-single-blink { animation: singleBlink 0.5s ease-in-out 1; }
-        .animate-spin-shake { animation: spinShake 0.15s infinite ease-in-out; }
+        .animate-machine-vibrate { animation: machineVibrate 0.1s infinite linear; }
         
         /* HIDDEN SCROLLBAR FOR HISTORY PATTI */
         .no-scrollbar::-webkit-scrollbar { display: none; }
