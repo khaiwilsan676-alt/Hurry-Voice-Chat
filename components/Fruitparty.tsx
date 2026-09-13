@@ -273,7 +273,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
 
   useEffect(() => {
     const clock = setInterval(() => {
-      const CYCLE_MS = 40000; 
+      const CYCLE_MS = 41000; 
       const now = Date.now();
       
       const roundNumber = (Math.floor(now / CYCLE_MS) % 10000) + 1000;
@@ -331,7 +331,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
 
       } else {
         currentPhase = 'result';
-        currentCountdown = 4 - Math.floor((elapsed - 36000) / 1000);
+        currentCountdown = 5 - Math.floor((elapsed - 36000) / 1000);
         currentHighlight = winnerIdx;
         
         if (elapsed >= 37500) {
@@ -621,7 +621,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
 
             <div className="absolute bottom-[64vh] left-1/2 -translate-x-1/2 z-30">
               <span className="text-white font-bold text-base drop-shadow-md tracking-wide">
-                Round {gameState.round}
+                Round of Today {gameState.round}
               </span>
             </div>
 
@@ -657,7 +657,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             <img src="/1787413631876~2.jpg" alt="Fruit Party Background" className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
 
             {/* BUTTONS: Reduced gap to 'gap-1' (4px) and increased width to 100px & height to 120px slightly */}
-            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-1 w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
+            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-[2px] w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
               <button onClick={() => setActiveBtn(1)} className="relative flex flex-col items-center w-[100px] h-[120px] cursor-pointer">
                 <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[105px] h-auto object-contain transition-all duration-150 ${activeBtn === 1 ? 'top-[44px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[36px] z-10'}`} />
                 <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[42px] left-1/2 -translate-x-1/2 w-[115px] h-auto object-contain pointer-events-none ${activeBtn === 1 ? 'z-10' : 'z-0'}`} />
