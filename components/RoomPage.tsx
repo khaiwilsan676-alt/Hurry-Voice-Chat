@@ -11,6 +11,7 @@ import Wildparty from './Wildparty';
 import Fruitparty from './Fruitparty';
 import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
+import StorePage from './StorePage';
 import { generateStableId } from '../lib/hash';
 import { getRoom, updateRoom, getRoomMembers, joinRoom, leaveRoom, sendRoomMessage, getRoomMessages } from "../src/lib/googleSheets";
 
@@ -161,6 +162,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const [showWildParty, setShowWildParty] = useState<boolean | 'minimized'>(false);
   const [showFruitParty, setShowFruitParty] = useState<boolean | 'minimized'>(false);
   const [showRoomTask, setShowRoomTask] = useState(false);
+  const [showStore, setShowStore] = useState(false);
+  const [storeInitialView, setStoreInitialView] = useState<"store" | "bag">("store");
 
   const { localParticipant } = useLocalParticipant();
   const remoteParticipants = useRemoteParticipants();
@@ -260,6 +263,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         setShowRoomInfo(false);
       } else if (showGameSheet) {
         setShowGameSheet(false);
+      } else if (showStore) {
+        setShowStore(false);
       } else if (showRoomTask) {
         setShowRoomTask(false);
       } else if (showUserProfile) {
@@ -277,7 +282,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     return () => {
       window.removeEventListener('hardwareBackPress', handleHardwareBack);
     };
-  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showRoomTask, showUserProfile, showMessageSheet]);
+  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
 
 
   const hasSeat = seats.some(s => s.isOccupied && s.user?.accountId === userAccountId);
@@ -1079,6 +1084,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     window.addEventListener('mouseup', handleMouseUp);
   };
 
+  if (showStore) {
+    return <StorePage onBack={() => setShowStore(false)} initialView={storeInitialView} />;
+  }
+
   if (showSettingPage) {
     return (
       <RoomSettingPage
@@ -1775,6 +1784,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           onTogglePublicMsg={() => setPublicMsgOff(prev => !prev)}
           speaker={isSpeakerOn}
           onToggleSpeaker={() => setIsSpeakerOn(prev => !prev)}
+          onOpenStore={(view) => {
+            setStoreInitialView(view);
+            setShowStore(true);
+            setShowFourGride(false);
+          }}
           onMusicPlay={(track) => {
             const idb = indexedDB.open('HurryMusicDB', 1);
             idb.onsuccess = () => {

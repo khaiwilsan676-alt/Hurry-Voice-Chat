@@ -10,6 +10,7 @@ interface FourgrideProps {
   speaker: boolean;
   onToggleSpeaker: () => void;
   onMusicPlay?: (track: { id: string; name: string; url: string }) => void;
+  onOpenStore?: (view: "store" | "bag") => void;
 }
 
 // ---------- IndexedDB Helpers (Music Storage) ----------
@@ -75,6 +76,7 @@ export default function Fourgride({
   speaker,
   onToggleSpeaker,
   onMusicPlay,
+  onOpenStore,
 }: FourgrideProps) {
   // Toggle states (except publicMsgOff, which is controlled)
   const [entryEffect, setEntryEffect] = useState(false);
@@ -377,7 +379,9 @@ export default function Fourgride({
             {/* 7. Store */}
             <div className="flex flex-col items-center">
               <button
-                onClick={() => console.log('Store')}
+                onClick={() => {
+                  if (onOpenStore) onOpenStore("store");
+                }}
                 className="transition-transform hover:scale-105"
               >
                 <img src="/IMG_20260814_110501.png" alt="Store" className="w-12 h-12 object-contain" />
@@ -388,7 +392,9 @@ export default function Fourgride({
             {/* 8. My-Iteam */}
             <div className="flex flex-col items-center">
               <button
-                onClick={() => console.log('My Item')}
+                onClick={() => {
+                  if (onOpenStore) onOpenStore("bag");
+                }}
                 className="transition-transform hover:scale-105"
               >
                 <img src="/IMG_20260814_110545.png" alt="My Item" className="w-12 h-12 object-contain" />
