@@ -1143,14 +1143,14 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 <div className="flex-shrink-0 flex items-center justify-center">
                   {winMode === 'single' && winnerAnimal && (
                     <div className="w-24 h-24 flex items-center justify-center scale-110 drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]">
-                      <GreenScreenImage src={winnerAnimal.src} className="w-full h-full object-contain" />
+                      <GreenScreenImage src={winnerAnimal.src} className="w-80 h-80 object-contain" />
                     </div>
                   )}
                   {winMode === 'mix_big' && (
                     <div className="grid grid-cols-2 gap-1.5 w-24 h-24 p-0.5 drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]">
                       {animals.slice(4, 8).map((a) => (
                         <div key={a.alt} className="w-10 h-10">
-                          <GreenScreenImage src={a.src} className="w-full h-full object-contain" />
+                          <GreenScreenImage src={a.src} className="w-80 h-80 object-contain" />
                         </div>
                       ))}
                     </div>
@@ -1159,7 +1159,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                     <div className="grid grid-cols-2 gap-1.5 w-24 h-24 p-0.5 drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]">
                       {animals.slice(0, 4).map((a) => (
                         <div key={a.alt} className="w-10 h-10">
-                          <GreenScreenImage src={a.src} className="w-full h-full object-contain" />
+                          <GreenScreenImage src={a.src} className="w-80 h-80 object-contain" />
                         </div>
                       ))}
                     </div>
@@ -1194,7 +1194,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
             <div className="w-full flex-1 flex flex-col items-center justify-end pb-10">
               
-              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-2- drop-shadow-md" />
+              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-6- drop-shadow-md" />
               
               <div className="flex items-end justify-center gap-2 w-full px-1">
                 
