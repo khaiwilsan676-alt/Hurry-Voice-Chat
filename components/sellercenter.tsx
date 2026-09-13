@@ -116,7 +116,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
   const [salesMethod, setSalesMethod] = useState<'user' | 'seller'>('user');
 
   // WebGL Shader se white background hataya hua coin image (Logic ekdam same)
-  const cleanedCoinIcon = useProcessedShaderImage('/1786855398290.png');
+  const cleanedCoinIcon = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
 
   // Dummy transactions logic unchanged
   const transactions = [

@@ -224,7 +224,7 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
               <span className="text-yellow-400 flex items-center gap-0.5 mt-0.5 text-[9px]">
                 <div className="coin-wrapper w-2.5 h-2.5 relative overflow-hidden rounded-full">
                   <Image
-                    src="/1786855398290.png"
+                    src="/file_00000000e56882119c217d508b6733dc.png"
                     alt="Coins"
                     fill
                     className="coin-image object-cover"
@@ -242,7 +242,7 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
           <div className="balance-container flex items-center gap-1 px-2.5 py-1 rounded-full">
             <div className="coin-wrapper w-5 h-5 relative overflow-hidden rounded-full">
               <Image
-                src="/1786855398290.png"
+                src="/file_00000000e56882119c217d508b6733dc.png"
                 alt="Coins"
                 fill
                 className="coin-image object-cover"

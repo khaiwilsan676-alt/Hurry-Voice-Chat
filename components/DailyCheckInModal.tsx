@@ -212,13 +212,13 @@ const WhiteColorRemovalShader = ({
 
 // Rewards data
 const SIGN_IN_REWARDS = [
-  { day: 1, reward: '+5000', image: '1786855398290.png', color: '#FF6B6B' },
-  { day: 2, reward: '+5000', image: '1786855398290.png', color: '#FFA726' },
+  { day: 1, reward: '+5000', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#FF6B6B' },
+  { day: 2, reward: '+5000', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#FFA726' },
   { day: 3, reward: '×2 Days', image: '/file_00000000d808821186c1b7b612eea3fc.png', color: '#66BB6A' },
-  { day: 4, reward: '+10,000', image: '1786855398290.png', color: '#42A5F5' },
-  { day: 5, reward: '+10,000', image: '1786855398290.png', color: '#AB47BC' },
-  { day: 6, reward: '×2 Days', image: '1786855398290.png', color: '#EF5350', special: true },
-  { day: 7, reward: '+15,000', image: '1786855398290.png', color: '#FFD700' },
+  { day: 4, reward: '+10,000', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#42A5F5' },
+  { day: 5, reward: '+10,000', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#AB47BC' },
+  { day: 6, reward: '×2 Days', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#EF5350', special: true },
+  { day: 7, reward: '+15,000', image: 'file_00000000e56882119c217d508b6733dc.png', color: '#FFD700' },
 ];
 
 interface DailyCheckInModalProps {
@@ -267,7 +267,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-1.5">
         <div className="flex flex-col items-center">
-          {renderIcon('1786855398290.png', 'w-6 h-6')}
+          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-6 h-6')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
         </div>
         <div className="flex flex-col items-center">
@@ -282,7 +282,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-1.5">
         <div className="flex flex-col items-center">
-          {renderIcon('1786855398290.png', 'w-6 h-6')}
+          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-6 h-6')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
         </div>
         <div className="flex flex-col items-center">
@@ -297,7 +297,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-3">
         <div className="flex flex-col items-center">
-          {renderIcon('1786855398290.png', 'w-8 h-8')}
+          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
           <span className="text-[10px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+15,000</span>
         </div>
         <div className="flex flex-col items-center">

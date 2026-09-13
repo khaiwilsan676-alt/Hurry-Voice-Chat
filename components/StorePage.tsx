@@ -596,7 +596,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                     {/* Price Row */}
                     <div className="flex items-center justify-center gap-1.5 mb-3 w-full z-10">
                       <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-                        <WebGLCoinIcon src="/1786855398290.png" />
+                        <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                       </div>
                       <span className={`text-[14px] font-bold tracking-tight truncate ${isTheme ? "text-white drop-shadow-md" : "text-gray-900"}`}>
                         {item.price}

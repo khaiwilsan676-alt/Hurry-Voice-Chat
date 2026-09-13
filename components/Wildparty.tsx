@@ -1087,7 +1087,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
         {!loading && (
           <div className="absolute bottom-4 left-2.5 z-30 flex items-center gap-1.5 pointer-events-auto select-none">
             <LoadingShaderImage
-              src="/1786855398290.png"
+              src="/file_00000000e56882119c217d508b6733dc.png"
               className="w-5 h-5 object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
             />
             <span className="text-yellow-400 font-black text-xs sm:text-sm tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
@@ -1169,7 +1169,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 <div className="grid grid-cols-[auto_auto] gap-x-2 gap-y-1.5 items-center">
                   <span className="text-[10px] text-white/70 uppercase font-bold text-left">Winning Amount</span>
                   <div className="flex items-center gap-1">
-                    <LoadingShaderImage src="/1786855398290.png" className="w-4 h-4 object-contain" />
+                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
                     <span className="text-yellow-400 font-black text-sm tracking-wide leading-none">
                       {roundWinningAmount.toLocaleString()}
                     </span>
@@ -1177,7 +1177,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
                   <span className="text-[10px] text-white/70 uppercase font-bold text-left">Bet Amount</span>
                   <div className="flex items-center gap-1">
-                    <LoadingShaderImage src="/1786855398290.png" className="w-4 h-4 object-contain opacity-80" />
+                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain opacity-80" />
                     <span className="text-white font-bold text-[12px] tracking-wide leading-none">
                       {roundBetAmount.toLocaleString()}
                     </span>
@@ -1206,7 +1206,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                   <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[1].name}</span>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/1786855398290.png" className="w-3.5 h-3.5 object-contain" />
+                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
                     <span className="text-yellow-400 font-bold text-[10px]">{fakePodiumUsers[1].win.toLocaleString()}</span>
                   </div>
                 </div>
@@ -1219,7 +1219,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                   <span className="text-white font-bold text-xs drop-shadow-md">{fakePodiumUsers[0].name}</span>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/1786855398290.png" className="w-4 h-4 object-contain" />
+                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
                     <span className="text-yellow-400 font-black text-xs">{fakePodiumUsers[0].win.toLocaleString()}</span>
                   </div>
                 </div>
@@ -1232,7 +1232,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                   <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[2].name}</span>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/1786855398290.png" className="w-3.5 h-3.5 object-contain" />
+                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
                     <span className="text-yellow-400 font-bold text-[10px]">{fakePodiumUsers[2].win.toLocaleString()}</span>
                   </div>
                 </div>
