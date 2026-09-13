@@ -430,7 +430,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   useEffect(() => {
     if (loading) return;
 
-    const roundDuration = 48;
+    // Total Duration set to 47 seconds per cycle (30 Bet + 10 Spin + 7 Result/Hold)
+    const roundDuration = 47; 
     const resetBoundary = get5AMResetBoundary();
 
     const syncTick = () => {
@@ -443,17 +444,20 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       targetOutcomeRef.current = determineRoundOutcome(calculatedRoundNo);
 
       if (secondInCycle < 30) {
+        // 30 seconds ki betting
         setGamePhase('betting');
         setCountdown(30 - secondInCycle);
         setWinnerAnimal(null);
-        setShowWinnerSheet(false);
-      } else if (secondInCycle < 45) {
+        setShowWinnerSheet(false); // Ensure winner page closes properly yahan aake
+      } else if (secondInCycle < 40) {
+        // 10 seconds ka spinning
         setGamePhase('spinning');
-        setCountdown(45 - secondInCycle);
+        setCountdown(40 - secondInCycle);
         setShowWinnerSheet(false);
       } else {
+        // Baki 7 seconds ka Result phase
         setGamePhase('result');
-        setCountdown(48 - secondInCycle);
+        setCountdown(47 - secondInCycle);
 
         const outcome = targetOutcomeRef.current;
         setWinMode(outcome.mode);
@@ -496,12 +500,12 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       const filter = ctx.createBiquadFilter();
       const gain = ctx.createGain();
 
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
 
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(2500, ctx.currentTime);
-      filter.Q.value = 5;
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1500, ctx.currentTime);
+      filter.Q.value = 10;
 
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
 
@@ -516,7 +520,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     }
 
     const resetBoundary = get5AMResetBoundary();
-    const roundDuration = 48;
+    const roundDuration = 47; // Update round duration here as well
     const targetIdx = targetOutcomeRef.current.winnerIndex;
 
     const animFrame = setInterval(() => {
@@ -527,7 +531,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
       if (spinTimeMs < 0) return;
 
-      if (spinTimeMs >= 15000) {
+      // 10000ms (10s) ka hi spin ab chalega pehle ke 15s ke comparison me
+      if (spinTimeMs >= 10000) {
         setActiveHighlightIndex(targetIdx);
         if (oscRef.current && audioCtxRef.current) {
           const ctx = audioCtxRef.current;
@@ -539,17 +544,17 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           oscRef.current = null;
         }
       } else {
-        const progress = spinTimeMs / 15000; 
+        const progress = spinTimeMs / 10000; 
         const easeOut = 1 - Math.pow(1 - progress, 3);
-        const finalStepsCount = 160 + targetIdx; 
+        const finalStepsCount = 120 + targetIdx; // Changed from 160 to make it slightly smoother for 10s timeframe
         const currentStep = Math.floor(easeOut * finalStepsCount);
         
         setActiveHighlightIndex(currentStep % 8);
 
         if (oscRef.current && filterRef.current && gainRef.current && audioCtxRef.current) {
           const ctx = audioCtxRef.current;
-          const newFreq = 150 - (100 * easeOut); 
-          const newFilterFreq = 2500 - (2000 * easeOut); 
+          const newFreq = 600 - (500 * easeOut); 
+          const newFilterFreq = 1500 - (1000 * easeOut); 
           const newVol = 0.15 - (0.15 * easeOut); 
           
           if(!isMuted) {
@@ -617,6 +622,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
       setRoundWinningAmount(totalWinnings);
 
+      // Yahan 1.5 Second (1500ms) ka perfect delay (hold) before Winner Sheet
       setTimeout(() => {
         if (totalWinnings > 0) {
           setBalance((prevBal) => {
@@ -640,6 +646,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   useEffect(() => {
     if (!showWinnerSheet) return;
 
+    // Timer strictly set to 1000ms tak ki ye precise 5 sec tak hi show ho
     const timer = setInterval(() => {
       setWinnerCountdown((prev) => {
         if (prev <= 1) {
@@ -649,7 +656,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
         }
         return prev - 1;
       });
-    }, 1500); 
+    }, 1000); 
 
     return () => clearInterval(timer);
   }, [showWinnerSheet]);
@@ -1185,15 +1192,14 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               </div>
             </div>
 
-            <div className="w-full flex-1 flex flex-col items-center justify-end pb-6">
+            <div className="w-full flex-1 flex flex-col items-center justify-end pb-10">
               
-              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-full h-auto object-cover mb-1 drop-shadow-md" />
+              <img src="/IMG_20260913_000423.png" alt="Heading" className="w-full h-auto object-cover mb-2 drop-shadow-md" />
               
-              {/* FIXED PODIUM: Sab ek row mein hain, sirf Center wala halka sa upar hai */}
               <div className="flex items-end justify-center gap-3 w-full px-1">
                 
-                {/* Top 2 (Left) - Same row as Top 3 */}
-                <div className="flex flex-col items-center pb-0">
+                {/* Top 2 (Left) */}
+                <div className="flex flex-col items-center mb-2">
                   <div className="relative w-16 h-16 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[1].avatar} className="w-11 h-11 rounded-full object-cover" />
                     <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
@@ -1205,8 +1211,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                 </div>
 
-                {/* Top 1 (Center) - Sirf yeh thoda sa upar (pb-3) */}
-                <div className="flex flex-col items-center pb-3">
+                {/* Top 1 (Center) */}
+                <div className="flex flex-col items-center mb-8">
                   <div className="relative w-24 h-24 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[0].avatar} className="w-16 h-16 rounded-full object-cover" />
                     <img src="/IMG_20260912_235215.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
@@ -1218,8 +1224,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                 </div>
 
-                {/* Top 3 (Right) - Same row as Top 2 */}
-                <div className="flex flex-col items-center pb-0">
+                {/* Top 3 (Right) */}
+                <div className="flex flex-col items-center mb-2">
                   <div className="relative w-16 h-16 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[2].avatar} className="w-11 h-11 rounded-full object-cover" />
                     <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
