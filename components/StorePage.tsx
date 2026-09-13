@@ -456,7 +456,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative w-[72px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
+                  className={`relative w-[65px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
                     isActive ? "bg-transparent" : "bg-black/20"
                   }`}
                 >
@@ -474,7 +474,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   
                   {/* Icon & Title */}
                   <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
-                    <div className="relative w-8 h-8">
+                    <div className="relative w-9 h-9">
                       <Image
                         src={tab.icon}
                         alt={tab.label}
