@@ -5,7 +5,8 @@ import StatusBarController from './StatusBarController'
 import BackButtonController from './BackButtonController'
 
 export const metadata: Metadata = {
-  title: 'Hurry – Official Website',
+  title: 'Hurry',
+
   description:
     'Hurry is a social app to chat, connect with friends, share moments, and discover popular content.',
 
@@ -14,19 +15,19 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: '/logo.png?v=2',
-    apple: '/logo.png?v=2',
+    icon: '/assets/logo.png',
+    apple: '/assets/logo.png',
   },
 
   openGraph: {
-    title: 'Hurry – Official Website',
+    title: 'Hurry',
     description:
       'Chat, connect, share moments, and discover popular content on Hurry.',
     url: 'https://jb-hm.vercel.app/',
     siteName: 'Hurry',
     images: [
       {
-        url: 'https://jb-hm.vercel.app/logo.png',
+        url: 'https://jb-hm.vercel.app/assets/logo.png',
         width: 512,
         height: 512,
         alt: 'Hurry',
@@ -38,10 +39,10 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Hurry – Official Website',
+    title: 'Hurry',
     description:
       'Chat, connect, share moments, and discover popular content on Hurry.',
-    images: ['https://jb-hm.vercel.app/logo.png'],
+    images: ['https://jb-hm.vercel.app/assets/logo.png'],
   },
 }
 
@@ -76,9 +77,15 @@ export default function RootLayout({
           content="Hurry"
         />
 
-        <meta name="theme-color" content="#000000" />
+        <meta
+          name="theme-color"
+          content="#000000"
+        />
 
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link
+          rel="apple-touch-icon"
+          href="/assets/logo.png"
+        />
 
         <meta
           name="mobile-web-app-capable"
