@@ -264,7 +264,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           <div
             key={chat.id}
             onClick={() => handleOpenFixedChat(chat)}
-            className="flex items-center gap-4 px-2 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            className="flex items-center gap-4 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
           >
             <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
@@ -280,7 +280,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           <div
             key={chat.chatId}
             onClick={() => handleOpenDynamicChat(chat)}
-            className="flex items-center gap-4 px-2 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            className="flex items-center gap-4 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
           >
             <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
@@ -326,4 +326,5 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       )}
     </div>
   );
-        }
+}
+
