@@ -231,8 +231,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
   return (
     <>
-      {/* MAIN SETTINGS PAGE - Hidden when Admin sheet is open */}
-      <div className={`fixed inset-0 z-50 bg-white flex flex-col ${showAdminSheet ? 'hidden' : ''}`}>
+      {/* MAIN SETTINGS PAGE */}
+      <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* Header */}
         <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white">
           <button
@@ -486,7 +486,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         )}
       </div>
 
-      {/* ADMIN MANAGEMENT SHEET - Renders independently so it looks like Settings is closed */}
+      {/* ADMIN MANAGEMENT SHEET */}
       {showAdminSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAdminSheet(false)} />
@@ -515,7 +515,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 value={adminSearchQuery}
                 onChange={(e) => setAdminSearchQuery(e.target.value)}
                 placeholder="Search a ID for Admin"
-                className="w-full bg-white/10 text-white placeholder-gray-400 text-xs px-3 py-2 rounded-xl focus:outline-none border border-white/10"
+                className="w-full bg-black/10 text-white placeholder-gray-400 text-xs px-3 py-2 rounded-md focus:outline-none"
               />
             </div>
 
