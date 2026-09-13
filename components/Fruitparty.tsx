@@ -710,7 +710,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
               <div className="absolute bottom-0 left-0 w-full h-[44vh] z-[75] animate-slide-up overflow-hidden rounded-md">
                 <img src="/file_00000000ced481fa9117afc4fa91791e.png" className="absolute inset-0 w-full h-full object-fill z-0" />
                 
-                <div className="absolute left-0 w-full px-4 flex justify-center items-center z-10" style={{ bottom: '38vh' }}>
+                <div className="absolute left-0 w-full px-4 flex justify-center items-center z-10" style={{ bottom: '40vh' }}>
                   <span className="text-white font-bold text-lg drop-shadow-lg tracking-wide">
                     Round {gameState.round}
                   </span>
@@ -724,13 +724,13 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   <img src={popupWinnerImg} className="w-[50px] h-[50px] object-contain z-10 pointer-events-none drop-shadow-md" />
                 </div>
 
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '15vh' }}>
-                  <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md">
+                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '16.5vh' }}>
+                  <div className="flex items-center gap-1.5 text-white text-[16px] font-bold drop-shadow-md">
                     <span>Your Winning Amount</span>
                     <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                     <span className="text-green-400">{lastRoundStats.won}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md mt-0.5">
+                  <div className="flex items-center gap-1.5 text-white text-[16px] font-bold drop-shadow-md mt-0.5">
                     <span>Your Bet Amount</span>
                     <div className="w-[16px] h-[16px] flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
                     <span className="text-yellow-300">{lastRoundStats.bet}</span>
