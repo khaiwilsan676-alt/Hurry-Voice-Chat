@@ -103,13 +103,14 @@ export default function HurryOfficial() {
               </h2>
             </div>
 
+            {/* Hero Image ka size increase kar diya */}
             <div className="md:w-1/2 flex justify-center md:justify-end">
               <Image 
                 src="/file_00000000d60081fa99e9262352f29b19.png" 
                 alt="Hurry App Screen" 
-                width={260} 
-                height={520} 
-                className="object-contain rounded-2xl shadow-xl"
+                width={380} 
+                height={760} 
+                className="object-contain rounded-2xl shadow-xl w-72 md:w-80 lg:w-[380px]"
               />
             </div>
           </div>
@@ -194,8 +195,7 @@ export default function HurryOfficial() {
           <div className="relative z-10">
             <SectionTitle title="Key Features" />
 
-            {/* Chote cards hata kar bade 3 columns wale image cards laga diye */}
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
               <FeatureCard
                 image="/IMG_20260913_205718.png"
                 title="Chat"
@@ -236,7 +236,6 @@ export default function HurryOfficial() {
               relationships in a space designed for creativity.
             </p>
 
-            {/* Icons hata kar real images laga di */}
             <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 md:grid-cols-4">
               <CommunityItem
                 image="/IMG_20260913_205638.png"
@@ -288,7 +287,7 @@ function SectionTitle({ title }: { title: string }) {
   );
 }
 
-// Chote card wale icon props ki jagah ab directly images use ho rahi hain (FeatureCard me)
+// Yahan se Background Card (bg-#141414, padding etc) hata diya aur Image chhoto kardi (80px)
 function FeatureCard({
   image,
   title,
@@ -299,23 +298,22 @@ function FeatureCard({
   text: string;
 }) {
   return (
-    <div className="rounded-3xl bg-[#141414] p-8 text-center shadow-lg transition-all hover:bg-[#1a1a1a] flex flex-col items-center">
-      <div className="mb-6 flex justify-center">
+    <div className="text-center flex flex-col items-center transition hover:scale-105">
+      <div className="mb-5 flex justify-center">
         <Image 
           src={image} 
           alt={title} 
-          width={180} 
-          height={180} 
-          className="object-contain rounded-2xl drop-shadow-[0_0_20px_rgba(37,99,235,0.2)] transition hover:scale-105"
+          width={80} 
+          height={80} 
+          className="object-contain drop-shadow-[0_0_15px_rgba(37,99,235,0.3)]"
         />
       </div>
       <h3 className="mb-3 text-2xl font-bold text-white">{title}</h3>
-      <p className="text-sm font-light text-gray-400">{text}</p>
+      <p className="text-sm font-light text-gray-400 px-4">{text}</p>
     </div>
   );
 }
 
-// Community Item me bhi Icon ki jagah Image lag gayi hai
 function CommunityItem({
   image,
   title,
