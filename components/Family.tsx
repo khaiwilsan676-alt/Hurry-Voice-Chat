@@ -25,11 +25,15 @@ export default function Family({ onBack }: FamilyProps) {
   const [newMemberRelation, setNewMemberRelation] = useState('')
   const [familyCode, setFamilyCode] = useState('')
 
-  const [currentView, setCurrentView] = useState<'main' | 'join' | 'create'>('main')
+  // ADDED 'topRankings' in currentView
+  const [currentView, setCurrentView] = useState<'main' | 'join' | 'create' | 'topRankings'>('main')
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 })
 
   const [showApplyMode, setShowApplyMode] = useState(false)
   const [applyModeState, setApplyModeState] = useState<'free' | 'admin'>('free')
+
+  // NEW STATES FOR ROW IMAGES COLOR LOGIC
+  const [rowColors, setRowColors] = useState({ left: false, mid: false })
 
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
@@ -86,6 +90,200 @@ export default function Family({ onBack }: FamilyProps) {
     setNewMemberName('')
     setNewMemberRelation('')
     setShowAddMember(false)
+  }
+
+  // ==========================================
+  // VIEW 4: TOP RANKINGS PAGE (NEW)
+  // ==========================================
+  if (currentView === 'topRankings') {
+    return (
+      <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto font-sans text-white pb-20">
+        <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+          <filter id="remove-green" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              1.5 -2.5 1.5 1 0
+            " />
+          </filter>
+        </svg>
+
+        {/* 50VH Background Mixing in Dark Brown */}
+        <div 
+          className="absolute top-0 left-0 w-full h-[50vh] z-0"
+          style={{
+            backgroundImage: "url('/IMG_20260913_231309.jpg')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)'
+          }}
+        />
+
+        {/* Top Left Back Icon */}
+        <div
+          className="flex flex-row items-center w-full px-2 relative z-30"
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
+        >
+          <button
+            type="button"
+            onClick={() => setCurrentView('main')}
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
+          >
+            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+          </button>
+        </div>
+
+        {/* Spacer for 50vh height adjustment */}
+        <div className="w-full h-[35vh]"></div>
+
+        {/* The Same Row Images (Left Click -> Back to Main) */}
+        <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
+          <img 
+            src="/IMG_20260901_230303.jpg" 
+            alt="Left New" 
+            onClick={() => setCurrentView('main')}
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer" 
+            style={{ filter: 'url(#remove-green)' }}
+          />
+          <img 
+            src="/IMG_20260901_230319.jpg" 
+            alt="Middle New" 
+            className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10" 
+            style={{ filter: 'url(#remove-green)' }}
+          />
+          <img 
+            src="/IMG_20260901_230330.jpg" 
+            alt="Right New" 
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl" 
+            style={{ filter: 'url(#remove-green)' }}
+          />
+        </div>
+
+        {/* GAP-2 */}
+        <div className="h-4"></div>
+
+        {/* TOP 1 SECTION */}
+        <div className="w-full flex flex-col mt-4">
+          <div className="flex items-center w-full">
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+            <div className="relative flex justify-center items-center">
+              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
+              <span className="absolute text-[#5a0000] font-black text-xl tracking-widest mt-1">Top 1</span>
+            </div>
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+          </div>
+          <div className="mx-4 mt-2 bg-[#4a0b0b] border-2 border-[#FFD700] rounded-xl p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 2 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 3 */}
+            <div className="flex justify-center w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+          </div>
+        </div>
+
+        {/* GAP-4 */}
+        <div className="h-8"></div>
+
+        {/* TOP 2 SECTION */}
+        <div className="w-full flex flex-col">
+          <div className="flex items-center w-full">
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+            <div className="relative flex justify-center items-center">
+              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
+              <span className="absolute text-[#5a0000] font-black text-xl tracking-widest mt-1">Top 2</span>
+            </div>
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+          </div>
+          <div className="mx-4 mt-2 bg-[#4a0b0b] border-2 border-[#FFD700] rounded-xl p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 2 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 3 */}
+            <div className="flex justify-center w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+          </div>
+        </div>
+
+        {/* GAP-4 */}
+        <div className="h-8"></div>
+
+        {/* TOP 3 SECTION */}
+        <div className="w-full flex flex-col">
+          <div className="flex items-center w-full">
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+            <div className="relative flex justify-center items-center">
+              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
+              <span className="absolute text-[#5a0000] font-black text-xl tracking-widest mt-1">Top 3</span>
+            </div>
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+          </div>
+          <div className="mx-4 mt-2 bg-[#4a0b0b] border-2 border-[#FFD700] rounded-xl p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 2 */}
+            <div className="flex justify-center gap-3 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+            {/* Row 3 */}
+            <div className="flex justify-center w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[30%] object-contain" alt="Card" />
+            </div>
+          </div>
+        </div>
+
+        {/* GAP-4 */}
+        <div className="h-8"></div>
+
+        {/* TOP 4 TO 10 SECTION */}
+        <div className="w-full flex flex-col">
+          <div className="flex items-center w-full">
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+            <div className="relative flex justify-center items-center">
+              <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-48 h-auto object-contain" />
+              <span className="absolute text-[#5a0000] font-black text-sm tracking-widest mt-1 text-center w-full leading-tight">Top<br/>4 to 10</span>
+            </div>
+            <div className="h-[3px] bg-[#FFD700] flex-1"></div>
+          </div>
+          <div className="mx-4 mt-2 bg-[#4a0b0b] border-2 border-[#FFD700] rounded-xl p-5 flex flex-col gap-3 shadow-[0_0_15px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Only 2 Cards for Top 4 to 10 */}
+            <div className="flex justify-center gap-6 w-full">
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[35%] object-contain" alt="Card" />
+              <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[35%] object-contain" alt="Card" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    )
   }
 
   // ==========================================
@@ -231,7 +429,7 @@ export default function Family({ onBack }: FamilyProps) {
           </filter>
         </svg>
 
-        {/* TOP BANNER AREA (Ab yeh bhi scrollable flow ke andar hai) */}
+        {/* TOP BANNER AREA */}
         <div className="relative w-full h-[50vh] flex-shrink-0">
           <div 
             className="absolute inset-0 w-full h-full z-0"
@@ -260,7 +458,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* SCROLL AREA - Entire page scrollable */}
+        {/* SCROLL AREA */}
         <div className="w-full pt-2 pb-16 space-y-2 z-10 relative">
           {Array.from({ length: 50 }, (_, index) => {
             const rank = index + 1;
@@ -325,7 +523,7 @@ export default function Family({ onBack }: FamilyProps) {
       />
 
       {/* ======================================= */}
-      {/* TOP SECTION (Ab scrollable flow ke sath) */}
+      {/* TOP SECTION */}
       {/* ======================================= */}
       <div className="relative z-20 flex flex-col w-full">
         
@@ -375,27 +573,30 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         {/* SPACE */}
-        <div className="w-full h-[15vh]"></div>
+        <div className="w-full h-[10vh]"></div>
 
-        {/* 3 NEW IMAGES IN A ROW */}
+        {/* 3 NEW IMAGES IN A ROW WITH COLOR LESS (Grayscale) & CLICK LOGIC */}
         <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
           <img 
             src="/IMG_20260901_230303.jpg" 
             alt="Left New" 
-            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl" 
-            style={{ filter: 'url(#remove-green)' }}
+            onClick={() => setRowColors(p => ({ ...p, left: !p.left }))}
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300" 
+            style={{ filter: !rowColors.left ? 'url(#remove-green) grayscale(100%)' : 'url(#remove-green)' }}
           />
           <img 
             src="/IMG_20260901_230319.jpg" 
             alt="Middle New" 
-            className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10" 
-            style={{ filter: 'url(#remove-green)' }}
+            onClick={() => setRowColors(p => ({ ...p, mid: !p.mid }))}
+            className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10 cursor-pointer transition-all duration-300" 
+            style={{ filter: !rowColors.mid ? 'url(#remove-green) grayscale(100%)' : 'url(#remove-green)' }}
           />
           <img 
             src="/IMG_20260901_230330.jpg" 
             alt="Right New" 
-            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl" 
-            style={{ filter: 'url(#remove-green)' }}
+            onClick={() => setCurrentView('topRankings')} // Right image opens new page
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300 hover:scale-105" 
+            style={{ filter: 'url(#remove-green) grayscale(100%)' }}
           />
         </div>
 
@@ -466,7 +667,7 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* BOTTOM FLOATING BUTTONS (Fixed at bottom screen) */}
+      {/* BOTTOM FLOATING BUTTONS */}
       <div className="fixed bottom-6 left-0 w-full px-6 flex items-center justify-between z-50 pointer-events-none">
         <button 
           onClick={() => setCurrentView('create')}
