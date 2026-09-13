@@ -1199,8 +1199,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               <div className="flex items-end justify-center gap-2 w-full px-1">
                 
                 {/* Top 2 (Left) */}
-                <div className="flex flex-col items-center mb-10">
-                  <div className="relative w-22 h-12 flex items-center justify-center mb-1">
+                <div className="flex flex-col items-center mb-14">
+                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[1].avatar} className="w-15 h-15 rounded-full object-cover" />
                     <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
                   </div>
@@ -1212,7 +1212,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 </div>
 
                 {/* Top 1 (Center) */}
-                <div className="flex flex-col items-center mb-12">
+                <div className="flex flex-col items-center mb-15">
                   <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[0].avatar} className="w-18 h-18 rounded-full object-cover" />
                     <img src="/IMG_20260912_235215.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
@@ -1225,7 +1225,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 </div>
 
                 {/* Top 3 (Right) */}
-                <div className="flex flex-col items-center mb-10">
+                <div className="flex flex-col items-center mb-14">
                   <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[2].avatar} className="w-15 h-15 rounded-full object-cover" />
                     <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
