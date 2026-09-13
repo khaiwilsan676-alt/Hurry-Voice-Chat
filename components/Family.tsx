@@ -18,11 +18,11 @@ interface FamilyProps {
   onBack: () => void
 }
 
-// Helper Component for Reward Items (To match 1000193621.jpg)
+// Helper Component for Reward Items
 const RewardItem = ({ title }: { title: string }) => (
   <div className="flex flex-col items-center w-[28%]">
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
-      <img src="/file_0000000013a08211898f7703f6a3704a.png" className="w-[85%] h-[85%] object-contain drop-shadow-md" alt="Reward" />
+      {/* Andar ki image hata di hai jaisa tune bola */}
     </div>
     <div className="flex gap-[1px] mt-1.5">
       {[...Array(5)].map((_, i) => (
@@ -178,7 +178,7 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         {/* SPACE TO MATCH LAYOUT */}
-        <div className="w-full h-[10vh]"></div>
+        <div className="w-full h-[13vh]"></div>
 
         {/* ROW IMAGES - Click Logic */}
         <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20 mb-2">
@@ -208,10 +208,10 @@ export default function Family({ onBack }: FamilyProps) {
         {/* ======================================= */}
         {/* TOP 1 SECTION */}
         {/* ======================================= */}
-        <div className="w-full flex flex-col relative px-4 mt-8">
+        <div className="w-full flex flex-col relative px-2 mt-8">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 1 Reward</span>
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 1 Reward</span>
           </div>
 
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
@@ -234,10 +234,10 @@ export default function Family({ onBack }: FamilyProps) {
         {/* ======================================= */}
         {/* TOP 2 SECTION */}
         {/* ======================================= */}
-        <div className="w-full flex flex-col relative px-4 mt-12">
+        <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 2 Reward</span>
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 2 Reward</span>
           </div>
 
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
@@ -260,10 +260,10 @@ export default function Family({ onBack }: FamilyProps) {
         {/* ======================================= */}
         {/* TOP 3 SECTION */}
         {/* ======================================= */}
-        <div className="w-full flex flex-col relative px-4 mt-12">
+        <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-            <span className="absolute text-white font-black text-lg tracking-widest mt-1 drop-shadow-md">TOP 3 Reward</span>
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 3 Reward</span>
           </div>
 
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
@@ -286,10 +286,10 @@ export default function Family({ onBack }: FamilyProps) {
         {/* ======================================= */}
         {/* TOP 4 TO 10 SECTION (ONLY ONE ROW) */}
         {/* ======================================= */}
-        <div className="w-full flex flex-col relative px-4 mt-12 mb-10">
+        <div className="w-full flex flex-col relative px-2 mt-12 mb-10">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
-            <span className="absolute text-white font-black text-[13px] tracking-widest mt-0.5 text-center leading-tight drop-shadow-md">TOP 4 TO 10<br/>Reward</span>
+            <span className="absolute text-white font-black text-[11px] tracking-widest mt-0.5 text-center leading-tight drop-shadow-md">TOP 4 TO 10<br/>Reward</span>
           </div>
 
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
