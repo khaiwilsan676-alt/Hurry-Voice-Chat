@@ -64,48 +64,9 @@ async function saveStateToDB(state: any) {
   } catch (e) {}
 }
 
-const imageCache: Record<string, string> = {};
-
+// White remove logic hata diya hai, sidha original image aayegi 
 function WebGLShaderImage({ src }: { src: string }) {
-  if (imageCache[src]) {
-    return <img src={imageCache[src]} className="w-full h-full object-contain" alt="" />;
-  }
-  return <CanvasProcessor src={src} />;
-}
-
-function CanvasProcessor({ src }: { src: string }) {
-  const [finalSrc, setFinalSrc] = useState<string | null>(null);
-
-  useEffect(() => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
-
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.src = src;
-    
-    image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      ctx.drawImage(image, 0, 0);
-      try {
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        for (let i = 0; i < data.length; i += 4) {
-          if (data[i] > 220 && data[i + 1] > 220 && data[i + 2] > 220) {
-            data[i + 3] = 0; 
-          }
-        }
-        ctx.putImageData(imageData, 0, 0);
-        const dataUrl = canvas.toDataURL();
-        imageCache[src] = dataUrl;
-        setFinalSrc(dataUrl);
-      } catch (err) {}
-    };
-  }, [src]);
-
-  return finalSrc ? <img src={finalSrc} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full" />;
+  return <img src={src} className="w-full h-full object-contain" alt="" />;
 }
 
 const getDynamicTextSize = (val: number) => {
@@ -158,7 +119,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
   const [activeBtn, setActiveBtn] = useState<number | null>(null);
   
   const [isMuted, setIsMuted] = useState(false);
-  const [isVibrationOn, setIsVibrationOn] = useState(true); // Vibration State Added Here
+  const [isVibrationOn, setIsVibrationOn] = useState(true);
   
   const bgAudioRef = useRef<HTMLAudioElement | null>(null);
   const tickAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -310,11 +271,9 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
     }
   }, [gameState.highlight, gameState.phase, isMuted, isMinimized]);
 
-  // VIBRATION LOGIC ADDED HERE 
   useEffect(() => {
     if (isMinimized || !isVibrationOn) return;
     if (gameState.phase === 'spinning' && navigator.vibrate) {
-      // Vibrate on each spin tick
       navigator.vibrate(30);
     }
   }, [gameState.highlight, gameState.phase, isVibrationOn, isMinimized]);
@@ -332,11 +291,12 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
       const randomVal = seed - Math.floor(seed);
       
       let winnerIdx = 0;
-      if (randomVal < 0.01) {
+      // Probabilities adjusted to medium
+      if (randomVal < 0.025) {
         winnerIdx = 10; 
-      } else if (randomVal < 0.02) {
+      } else if (randomVal < 0.05) {
         winnerIdx = 11; 
-      } else if (randomVal < 0.94) {
+      } else if (randomVal < 0.85) {
         const lowPayouts = [0, 2, 8, 6]; 
         winnerIdx = lowPayouts[Math.floor(randomVal * 100) % lowPayouts.length];
       } else {
@@ -354,31 +314,39 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         currentPhase = 'betting';
         currentCountdown = 30 - Math.floor(elapsed / 1000);
         currentHandPointer = SPIN_PATH[Math.floor(elapsed / 1000) % SPIN_PATH.length];
-      } else if (elapsed < 35000) {
+      } else if (elapsed < 36000) {
         currentPhase = 'spinning';
-        currentCountdown = 5 - Math.floor((elapsed - 30000) / 1000);
+        currentCountdown = 6 - Math.floor((elapsed - 30000) / 1000);
         
-        const spinElapsed = elapsed - 30000;
-        let targetPathIndex = SPIN_PATH.indexOf(winnerIdx);
-        if (targetPathIndex === -1) targetPathIndex = 0; 
+        // 1 second delay from 30s to 31s
+        const spinElapsed = elapsed - 31000;
         
-        const spinDuration = 5000; 
-        let t = spinElapsed / spinDuration; 
-        
-        let easeOut = 1 - Math.pow(1 - t, 3);
-        
-        const maxSteps = 55; 
-        const step = Math.round(maxSteps * easeOut);
-        
-        const startOffset = (targetPathIndex - (maxSteps % SPIN_PATH.length) + SPIN_PATH.length * 10) % SPIN_PATH.length;
-        currentHighlight = SPIN_PATH[(startOffset + step) % SPIN_PATH.length];
+        if (spinElapsed < 0) {
+          // Waiting state (Highlight stays still for 1 second)
+          currentHighlight = SPIN_PATH[0];
+        } else {
+          // Actual Spin
+          let targetPathIndex = SPIN_PATH.indexOf(winnerIdx);
+          if (targetPathIndex === -1) targetPathIndex = 0; 
+          
+          const spinDuration = 5000; 
+          let t = spinElapsed / spinDuration; 
+          
+          let easeOut = 1 - Math.pow(1 - t, 3);
+          
+          const maxSteps = 55; 
+          const step = Math.round(maxSteps * easeOut);
+          
+          const startOffset = (targetPathIndex - (maxSteps % SPIN_PATH.length) + SPIN_PATH.length * 10) % SPIN_PATH.length;
+          currentHighlight = SPIN_PATH[(startOffset + step) % SPIN_PATH.length];
+        }
 
       } else {
         currentPhase = 'result';
-        currentCountdown = 5 - Math.floor((elapsed - 35000) / 1000);
+        currentCountdown = 4 - Math.floor((elapsed - 36000) / 1000);
         currentHighlight = winnerIdx;
         
-        if (elapsed >= 36500) {
+        if (elapsed >= 37500) {
           currentShowResultPopup = true;
         }
       }
@@ -467,7 +435,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         setBets({});
         sessionBetsGlobal = {};
         setProcessedRound(gameState.round);
-        // HISTORY LIMIT INCREASED TO 18
         setWinners(w => [...w, winnerImgToSave].slice(-18));
         
         if (totalBetThisRound > 0) {
@@ -539,12 +506,14 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
               );
 
               const applyGreen = isBettingHighlight || isSpinningHighlight;
+              // Shake apply hoga jab spinning phase mein box highlight hoga
+              const applyShake = gameState.phase === 'spinning' && isSpinningHighlight;
 
               return (
                 <div 
                   key={item.id || index} 
                   onClick={() => { if (item.type === 'fruit') handleBetClick(item.id); }}
-                  className={`relative w-full h-full flex items-center justify-center transition-transform ${item.move || ''} ${item.type === 'fruit' ? 'cursor-pointer' : ''} ${applyGreen ? '!z-[999]' : ''} ${isFinalWinner ? 'animate-single-blink' : ''}`}
+                  className={`relative w-full h-full flex items-center justify-center transition-transform ${item.move || ''} ${item.type === 'fruit' ? 'cursor-pointer' : ''} ${applyGreen ? '!z-[999]' : ''} ${isFinalWinner ? 'animate-single-blink' : ''} ${applyShake ? 'animate-spin-shake' : ''}`}
                 >
                   {item.type === 'fruit' ? (
                     <>
@@ -581,9 +550,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         </div>
       )}
 
-      {/* ============================================================== */}
-      {/* 2 ROW MIX CARDS */}
-      {/* ============================================================== */}
       {!loading && (
         <div
           className="fixed z-[75] flex flex-row items-center justify-center gap-1 pointer-events-none"
@@ -638,17 +604,16 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         {!loading && (
           <>
             <div className="absolute bottom-[64vh] left-7 z-30 flex items-center gap-0.5">
-              {/* VIBRATION TOGGLE BUTTON ADDED IN TOP LEFT */}
-              <button onClick={() => setIsVibrationOn(!isVibrationOn)} className="w-6 h-6 rounded-full border-[2px] border-[#4a2810] bg-transparent flex items-center justify-center hover:bg-black/10 active:scale-95 transition-all p-1">
+              {/* VIBRATION TOGGLE - No border, Pure Brown Solid Fill Mobile Icon */}
+              <button onClick={() => setIsVibrationOn(!isVibrationOn)} className="w-6 h-6 bg-transparent flex items-center justify-center hover:bg-black/10 active:scale-95 transition-all p-0.5">
                 {isVibrationOn ? (
-                  <svg viewBox="0 0 24 24" className="w-full h-full fill-none stroke-[#4a2810] stroke-[2]" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="7" y="4" width="10" height="16" rx="2" ry="2"></rect>
-                    <path d="M3 8v8M21 8v8"></path>
+                  <svg viewBox="0 0 24 24" className="w-full h-full fill-[#4a2810]">
+                    <path d="M16 1H8C6.9 1 6 1.9 6 3v18c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H8V5h8v14zM22 7v10h-2V7h2zM4 7v10H2V7h2z"/>
                   </svg>
                 ) : (
-                  <svg viewBox="0 0 24 24" className="w-full h-full fill-none stroke-[#4a2810] stroke-[2]" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="7" y="4" width="10" height="16" rx="2" ry="2"></rect>
-                    <line x1="2" y1="2" x2="22" y2="22"></line>
+                  <svg viewBox="0 0 24 24" className="w-full h-full fill-[#4a2810]">
+                    <path d="M16 1H8C6.9 1 6 1.9 6 3v18c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H8V5h8v14z"/>
+                    <line x1="2" y1="2" x2="22" y2="22" stroke="#4a2810" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 )}
               </button>
@@ -704,32 +669,30 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             <img src="/1787413631876~2.jpg" alt="Fruit Party Background" className="absolute inset-0 w-full h-full object-fill pointer-events-none" />
 
-            <div className="absolute bottom-[15vh] left-1/2 z-30 flex flex-row items-end gap-1 w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
-              <button onClick={() => setActiveBtn(1)} className="relative flex flex-col items-center w-[85px] h-[100px] cursor-pointer">
-                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[90px] h-auto object-contain transition-all duration-150 ${activeBtn === 1 ? 'top-[36px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[29px] z-10'}`} />
-                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[34px] left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain pointer-events-none ${activeBtn === 1 ? 'z-10' : 'z-0'}`} />
-                <span className="absolute bottom-[35px] text-white font-bold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">1K</span>
+            {/* RED BUTTONS - Position 14vh from bottom, increased size, gap maintained */}
+            <div className="absolute bottom-[14vh] left-1/2 z-30 flex flex-row items-end gap-[6px] w-max" style={{ transform: `translateX(-50%) scale(${scale})`, transformOrigin: 'bottom center' }}>
+              <button onClick={() => setActiveBtn(1)} className="relative flex flex-col items-center w-[95px] h-[115px] cursor-pointer">
+                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain transition-all duration-150 ${activeBtn === 1 ? 'top-[42px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[34px] z-10'}`} />
+                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[40px] left-1/2 -translate-x-1/2 w-[110px] h-auto object-contain pointer-events-none ${activeBtn === 1 ? 'z-10' : 'z-0'}`} />
+                <span className="absolute bottom-[40px] text-white font-bold text-[13px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">1K</span>
               </button>
-              <button onClick={() => setActiveBtn(2)} className="relative flex flex-col items-center w-[85px] h-[100px] cursor-pointer">
-                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[90px] h-auto object-contain transition-all duration-150 ${activeBtn === 2 ? 'top-[36px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[29px] z-10'}`} />
-                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[34px] left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain pointer-events-none ${activeBtn === 2 ? 'z-10' : 'z-0'}`} />
-                <span className="absolute bottom-[35px] text-white font-bold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">50K</span>
+              <button onClick={() => setActiveBtn(2)} className="relative flex flex-col items-center w-[95px] h-[115px] cursor-pointer">
+                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain transition-all duration-150 ${activeBtn === 2 ? 'top-[42px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[34px] z-10'}`} />
+                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[40px] left-1/2 -translate-x-1/2 w-[110px] h-auto object-contain pointer-events-none ${activeBtn === 2 ? 'z-10' : 'z-0'}`} />
+                <span className="absolute bottom-[40px] text-white font-bold text-[13px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">50K</span>
               </button>
-              <button onClick={() => setActiveBtn(3)} className="relative flex flex-col items-center w-[85px] h-[100px] cursor-pointer">
-                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[90px] h-auto object-contain transition-all duration-150 ${activeBtn === 3 ? 'top-[36px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[29px] z-10'}`} />
-                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[34px] left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain pointer-events-none ${activeBtn === 3 ? 'z-10' : 'z-0'}`} />
-                <span className="absolute bottom-[35px] text-white font-bold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">1M</span>
+              <button onClick={() => setActiveBtn(3)} className="relative flex flex-col items-center w-[95px] h-[115px] cursor-pointer">
+                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain transition-all duration-150 ${activeBtn === 3 ? 'top-[42px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[34px] z-10'}`} />
+                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[40px] left-1/2 -translate-x-1/2 w-[110px] h-auto object-contain pointer-events-none ${activeBtn === 3 ? 'z-10' : 'z-0'}`} />
+                <span className="absolute bottom-[40px] text-white font-bold text-[13px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">1M</span>
               </button>
-              <button onClick={() => setActiveBtn(4)} className="relative flex flex-col items-center w-[85px] h-[100px] cursor-pointer">
-                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[90px] h-auto object-contain transition-all duration-150 ${activeBtn === 4 ? 'top-[36px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[29px] z-10'}`} />
-                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[34px] left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain pointer-events-none ${activeBtn === 4 ? 'z-10' : 'z-0'}`} />
-                <span className="absolute bottom-[35px] text-white font-bold text-xs drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">5M</span>
+              <button onClick={() => setActiveBtn(4)} className="relative flex flex-col items-center w-[95px] h-[115px] cursor-pointer">
+                <img src="/file_00000000d9b08211b0304c61b802348b.png" className={`absolute left-1/2 -translate-x-1/2 w-[100px] h-auto object-contain transition-all duration-150 ${activeBtn === 4 ? 'top-[42px] hue-rotate-[120deg] brightness-110 saturate-150 z-0' : 'top-[34px] z-10'}`} />
+                <img src="/file_000000003d24821182882f8ca412d2b6.png" className={`absolute top-[40px] left-1/2 -translate-x-1/2 w-[110px] h-auto object-contain pointer-events-none ${activeBtn === 4 ? 'z-10' : 'z-0'}`} />
+                <span className="absolute bottom-[40px] text-white font-bold text-[13px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] z-20 pointer-events-none">5M</span>
               </button>
             </div>
 
-            {/* ============================================================== */}
-            {/* HISTORY PATTI - HORIZONTAL SCROLL ENABLED & 2vh Right Space */}
-            {/* ============================================================== */}
             <div className="absolute z-40 flex flex-row gap-2 overflow-x-auto no-scrollbar items-center" style={{ bottom: '2vh', left: '7vh', right: '2vh' }}>
               {winners.slice().reverse().map((imgUrl, i) => {
                 return (
@@ -746,19 +709,17 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
               })}
             </div>
 
-            <div className="absolute bottom-[6vh] z-30 flex items-center gap-0.5 w-[90px]" style={{ left: '8vh' }}>
+            {/* Fixed Alignments for Wallets */}
+            <div className="absolute bottom-[6vh] z-30 flex items-center justify-start gap-1 w-[110px]" style={{ left: '8vh' }}>
               <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
-              <span className={`text-white font-bold drop-shadow-md text-left flex-1 truncate pt-0.5 leading-none ${getDynamicTextSize(balance)}`}>{balance}</span>
+              <span className={`text-white font-bold drop-shadow-md truncate pt-0.5 leading-none ${getDynamicTextSize(balance)}`}>{balance}</span>
             </div>
 
-            <div className="absolute bottom-[6vh] z-30 flex items-center gap-0.5 w-[90px]" style={{ right: '5vh' }}>
+            <div className="absolute bottom-[6vh] z-30 flex items-center justify-start gap-1 w-[110px]" style={{ right: '4vh' }}>
               <div className="w-5 h-5 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
-              <span className={`text-white font-bold drop-shadow-md text-left flex-1 truncate pt-0.5 leading-none ${getDynamicTextSize(totalWon)}`}>{totalWon}</span>
+              <span className={`text-white font-bold drop-shadow-md truncate pt-0.5 leading-none ${getDynamicTextSize(totalWon)}`}>{totalWon}</span>
             </div>
 
-            {/* ============================================================== */}
-            {/* WINNER RESULT POPUP PAGE */}
-            {/* ============================================================== */}
             {gameState.phase === 'result' && gameState.showResultPopup && (
               <div className="absolute bottom-0 left-0 w-full h-[40vh] z-[75] animate-slide-up overflow-hidden rounded-md">
                 <img src="/file_00000000ced481fa9117afc4fa91791e.png" className="absolute inset-0 w-full h-full object-fill z-0" />
@@ -772,12 +733,11 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   </span>
                 </div>
 
-                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-[160px] h-[160px]" style={{ top: '2vh' }}>
+                <div className="absolute left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-[200px] h-[190px]" style={{ top: '1.5vh' }}>
                   <img src="/file_00000000eb0081f4885ade7d7db3bef8.png" className="absolute inset-0 w-full h-full object-contain pointer-events-none drop-shadow-2xl" />
                   <img src={popupWinnerImg} className="w-[50px] h-[50px] object-contain z-10 pointer-events-none drop-shadow-md" />
                 </div>
 
-                {/* Winning Amount UP, Bet Amount DOWN */}
                 <div className="absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center w-full" style={{ bottom: '13vh' }}>
                   <div className="flex items-center gap-1.5 text-white text-[14px] font-bold drop-shadow-md">
                     <span>Your Winning Amount</span>
@@ -845,9 +805,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         )}
       </div>
 
-      {/* ============================================================== */}
-      {/* MY RECORDS / HISTORY MODAL */}
-      {/* ============================================================== */}
       {showHistory && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center">
           <div className="absolute inset-0 bg-transparent" onClick={() => setShowHistory(false)} />
@@ -942,9 +899,6 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         </div>
       )}
 
-      {/* ============================================================== */}
-      {/* RULES MODAL */}
-      {/* ============================================================== */}
       {showRules && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center">
           <div className="absolute inset-0 bg-transparent" onClick={() => setShowRules(false)} />
@@ -977,9 +931,16 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
           50% { opacity: 0.15; filter: brightness(2.2); }
           100% { opacity: 1; filter: brightness(1); }
         }
+        @keyframes spinShake {
+          0%, 100% { transform: rotate(0deg) translate(0, 0); }
+          25% { transform: rotate(-2deg) translate(-1px, 1px); }
+          50% { transform: rotate(2deg) translate(1px, -1px); }
+          75% { transform: rotate(-1deg) translate(-1px, -1px); }
+        }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
         .animate-single-blink { animation: singleBlink 0.5s ease-in-out 1; }
+        .animate-spin-shake { animation: spinShake 0.15s infinite ease-in-out; }
         
         /* HIDDEN SCROLLBAR FOR HISTORY PATTI */
         .no-scrollbar::-webkit-scrollbar { display: none; }
