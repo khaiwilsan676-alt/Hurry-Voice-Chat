@@ -1199,9 +1199,9 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               <div className="flex items-end justify-center gap-2 w-full px-1">
                 
                 {/* Top 2 (Left) */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative w-16 h-16 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[1].avatar} className="w-11 h-11 rounded-full object-cover" />
+                <div className="flex flex-col items-center mb-10">
+                  <div className="relative w-22 h-16 flex items-center justify-center mb-1">
+                    <img src={fakePodiumUsers[1].avatar} className="w-15 h-15 rounded-full object-cover" />
                     <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
                   </div>
                   <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[1].name}</span>
@@ -1212,9 +1212,9 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 </div>
 
                 {/* Top 1 (Center) */}
-                <div className="flex flex-col items-center mb-8">
-                  <div className="relative w-24 h-24 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[0].avatar} className="w-16 h-16 rounded-full object-cover" />
+                <div className="flex flex-col items-center mb-12">
+                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
+                    <img src={fakePodiumUsers[0].avatar} className="w-18 h-18 rounded-full object-cover" />
                     <img src="/IMG_20260912_235215.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
                   </div>
                   <span className="text-white font-bold text-xs drop-shadow-md">{fakePodiumUsers[0].name}</span>
@@ -1225,9 +1225,9 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 </div>
 
                 {/* Top 3 (Right) */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative w-16 h-16 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[2].avatar} className="w-11 h-11 rounded-full object-cover" />
+                <div className="flex flex-col items-center mb-10">
+                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
+                    <img src={fakePodiumUsers[2].avatar} className="w-15 h-15 rounded-full object-cover" />
                     <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
                   </div>
                   <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[2].name}</span>
