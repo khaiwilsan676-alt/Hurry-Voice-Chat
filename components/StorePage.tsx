@@ -457,7 +457,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
                   className={`relative w-[65px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
-                    isActive ? "bg-transparent" : "bg-black/20"
+                    isActive ? "bg-transparent" : "bg-black/40"
                   }`}
                 >
                   {/* Background card image if active */}
