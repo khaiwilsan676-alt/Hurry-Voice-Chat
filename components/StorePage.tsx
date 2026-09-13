@@ -456,8 +456,8 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative w-[65px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
-                    isActive ? "bg-transparent" : "bg-black/40"
+                  className={`relative w-[63px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
+                    isActive ? "bg-transparent" : "bg-black/20"
                   }`}
                 >
                   {/* Background card image if active */}
@@ -474,7 +474,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   
                   {/* Icon & Title */}
                   <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
-                    <div className="relative w-9 h-9">
+                    <div className="relative w-10 h-10">
                       <Image
                         src={tab.icon}
                         alt={tab.label}
@@ -482,7 +482,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                         className="object-contain"
                       />
                     </div>
-                    <span className="text-[11px] font-medium text-white tracking-wide">
+                    <span className="text-[12px] font-medium text-white tracking-wide">
                       {tab.label}
                     </span>
                   </div>
