@@ -248,7 +248,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     <div className="w-full min-h-screen bg-white">
       {/* Header */}
       <div
-        className="px-4 pb-4 flex items-center justify-between sticky top-0 z-10 safe-top"
+        className="px-2 pb-4 flex items-center justify-between sticky top-0 z-10 safe-top"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
           paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
@@ -258,7 +258,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       </div>
 
       {/* Main content: Chats only */}
-      <div className="px-4 pt-4 pb-24 flex flex-col gap-1">
+      <div className="px-2 pt-4 pb-24 flex flex-col gap-1">
         {/* Fixed chats */}
         {fixedChats.map((chat) => (
           <div
