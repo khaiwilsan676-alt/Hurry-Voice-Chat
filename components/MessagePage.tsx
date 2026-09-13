@@ -190,7 +190,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         chats.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
 
         if (isMounted) {
-          setConversations(chats);
+          setDynamicChats(chats);
           await saveToDB(chats);
         }
       } catch (error) {
@@ -226,7 +226,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   const handleOpenDynamicChat = async (chat: ChatPreview) => {
     setActiveChat({ uid: chat.otherUser.uid, name: chat.otherUser.name, photo: chat.otherUser.photo });
     try {
+      // @ts-ignore
       const convoRef = doc(db, 'conversations', chat.chatId);
+      // @ts-ignore
       await updateDoc(convoRef, {
         [`unreadCounts.${currentUserUid}`]: 0,
       });
@@ -248,7 +250,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     <div className="w-full min-h-screen bg-white">
       {/* Header */}
       <div
-        className="px-2 pb-4 flex items-center justify-between sticky top-0 z-10 safe-top"
+        className="px-4 pb-4 flex items-center justify-between sticky top-0 z-10 safe-top"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
           paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
@@ -258,13 +260,13 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       </div>
 
       {/* Main content: Chats only */}
-      <div className="px-2 pt-4 pb-24 flex flex-col gap-1">
+      <div className="pt-4 pb-24 flex flex-col gap-1">
         {/* Fixed chats */}
         {fixedChats.map((chat) => (
           <div
             key={chat.id}
             onClick={() => handleOpenFixedChat(chat)}
-            className="flex items-center gap-4 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
           >
             <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
@@ -280,7 +282,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           <div
             key={chat.chatId}
             onClick={() => handleOpenDynamicChat(chat)}
-            className="flex items-center gap-4 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
           >
             <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
               <Image
