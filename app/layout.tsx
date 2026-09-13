@@ -1,16 +1,43 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import StatusBarController from "./StatusBarController"
-import BackButtonController from "./BackButtonController"
+import StatusBarController from './StatusBarController'
+import BackButtonController from './BackButtonController'
 
 export const metadata: Metadata = {
-  title: 'Hurry - Chat & Connect',
-  description: 'Connect with friends on Hurry. Chat, share moments, and discover popular content.',
-  generator: 'v0.app',
+  title: 'Hurry – Official Website',
+  description:
+    'Hurry is a social app to chat, connect with friends, share moments, and discover popular content.',
+
   icons: {
     icon: '/logo.png?v=2',
     apple: '/logo.png?v=2',
+  },
+
+  openGraph: {
+    title: 'Hurry – Official Website',
+    description:
+      'Chat, connect, share moments, and discover popular content on Hurry.',
+    url: 'https://jb-hm.vercel.app/',
+    siteName: 'Hurry',
+    images: [
+      {
+        url: 'https://jb-hm.vercel.app/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Hurry',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Hurry – Official Website',
+    description:
+      'Chat, connect, share moments, and discover popular content on Hurry.',
+    images: ['https://jb-hm.vercel.app/logo.png'],
   },
 }
 
@@ -29,18 +56,29 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Hurry" />
+        <meta
+          name="apple-mobile-web-app-capable"
+          content="yes"
+        />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta
+          name="apple-mobile-web-app-title"
+          content="Hurry"
+        />
         <meta name="theme-color" content="#000000" />
         <link rel="apple-touch-icon" href="/logo.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
+
       <body className="antialiased app-root bg-transparent">
-        {/* Client runtime controller: StatusBar plugin + DOM fixes */}
         <StatusBarController />
         <BackButtonController />
+
         {children}
+
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
