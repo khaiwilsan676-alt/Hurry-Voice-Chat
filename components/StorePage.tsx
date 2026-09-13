@@ -447,7 +447,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
           </div>
 
           {/* Category Tabs (1.5 gap from header = mt-6, gap-1 between tabs) */}
-          <div className="flex items-center gap-1 px-4 mt-6 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full">
+          <div className="flex items-center gap-1 px-4 mt-3 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full">
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
               
@@ -456,8 +456,8 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative w-[72px] h-[72px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
-                    isActive ? "bg-transparent" : "bg-black"
+                  className={`relative w-[72px] h-[80px] rounded-md flex flex-col items-center justify-center shrink-0 overflow-hidden transition-all ${
+                    isActive ? "bg-transparent" : "bg-black/20"
                   }`}
                 >
                   {/* Background card image if active */}
@@ -467,7 +467,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                         src="/IMG_20260913_090226.png"
                         alt="Active Bg"
                         fill
-                        className="object-cover"
+                        className="object-contain"
                       />
                     </div>
                   )}
