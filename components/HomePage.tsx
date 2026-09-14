@@ -1906,7 +1906,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-1">
         <button
           type="button"
           onClick={() => setActiveMineTab('following')}
@@ -2673,7 +2673,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
-                    className={`font-bold text-[14px] tracking-[0.2px] transition-colors relative pb-1.5 ${
+                    className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'mine'
                         ? 'font-extrabold text-[#1E1E1E]'
                         : 'text-[#6E6E6E]'
@@ -2690,7 +2690,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('popular')}
-                    className={`font-bold text-[14px] tracking-[0.2px] transition-colors relative pb-1.5 ${
+                    className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'popular'
                         ? 'font-extrabold text-[#1E1E1E]'
                         : 'text-[#6E6E6E]'
