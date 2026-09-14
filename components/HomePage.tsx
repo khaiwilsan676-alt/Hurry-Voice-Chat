@@ -1906,7 +1906,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
       </div>
 
-      <div className="flex gap-2 mb-3"
+      <div className="flex gap-2 mb-3">
         <button
           type="button"
           onClick={() => setActiveMineTab('following')}
