@@ -1848,7 +1848,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
   // ============ RENDER MINE TAB ============
   const renderMineTab = () => (
-    <div className="px-3 -mt-1">
+    <div className="px-3 -mt-2">
       <div
         onClick={handleCardClick}
         className="rounded-md p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all mb-6"
@@ -1906,7 +1906,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
       </div>
 
-      <div className="flex gap-2 -mt-2">
+      <div className="flex gap-3 -mt-5">
         <button
           type="button"
           onClick={() => setActiveMineTab('following')}
@@ -2666,7 +2666,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
               }}
             >
               {/* --- HEADER START --- */}
-              <div className="w-full flex justify-between items-center py-1 box-border mb-2 px-1">
+              <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
                 
                 {/* Left side: Tabs "Mine" and "Popular" */}
                 <div className="flex items-center gap-3">
