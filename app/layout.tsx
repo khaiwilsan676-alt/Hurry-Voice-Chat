@@ -10,8 +10,9 @@ export const metadata: Metadata = {
   description:
     'Hurry Party Voice Chat Rooms – connect with friends, join voice chat rooms, share moments, and discover new people.',
 
-  verification: {
-    google: 'uezQIpYhfc4_N7IFIu-iJ6wATwJ1pj8L51prETGgGeo',
+  robots: {
+    index: false,
+    follow: false,
   },
 
   icons: {
@@ -60,8 +61,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="manifest" href="/manifest.json" />
-
         <meta
           name="apple-mobile-web-app-capable"
           content="yes"
