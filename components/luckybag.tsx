@@ -21,11 +21,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       {/* Backdrop Click to close - Completely transparent */}
       <div className="absolute inset-0 bg-transparent" onClick={onClose} />
 
-      {/* Main Bottom Sheet Container */}
+      {/* Main Bottom Sheet Container - Wapas original padding pt-3 aur pb-[100px] kar di hai */}
       <div
         className="relative w-full max-w-[440px] flex flex-col items-center pb-[100px] pt-3 px-4 rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
         style={{
-          // Nayi background image update kar di hai
           backgroundImage: `url('/file_00000000e08881f68258aed00843ff1b.png')`,
           backgroundSize: '100% 100%',
           backgroundPosition: 'center top',
@@ -73,7 +72,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           </div>
         </div>
 
-        {/* Total Coins Section - (Thoda margin-top add kiya kyunki tabs hta diye) */}
+        {/* Total Coins Section */}
         <div className="w-full mt-4 mb-3">
           <p className="text-white text-[14px] font-bold mb-2 ml-1">Total Coins</p>
 
@@ -100,7 +99,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           </div>
         </div>
 
-        {/* Dropdown Rows: Number of Recipients, Countdown, How to Join */}
+        {/* Dropdown Rows */}
         <div className="w-full flex flex-col gap-3 my-1">
           {/* Number of Recipients */}
           <div className="w-full flex items-center justify-between">
@@ -165,12 +164,11 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           <p className="text-[#AFA1CE] text-[12px] -mt-1 font-medium">Everyone can receive it.</p>
         </div>
 
-        {/* Decorative Downward Purple Tip / Notch */}
-        <div className="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[14px] border-t-[#49048E] -mb-1 mt-2"></div>
-
-        {/* Big SEND Button with Gold Border & Neon Gradient */}
-        <div className="w-full mt-10 flex justify-center">
-          <button className="w-[85%] h-[50px] rounded-full bg-gradient-to-r from-[#A817FF] via-[#7B1CFD] to-[#A817FF] border-2 border-[#FFDF6C] shadow-[0_0_15px_rgba(168,23,255,0.4),inset_0_1px_2px_rgba(255,255,255,0.5)] active:scale-95 transition-all flex items-center justify-center">
+        {/* 3D Big SEND Button (Bottom par fix kiya bina container bigade) */}
+        <div className="absolute bottom-8 w-full flex justify-center left-0 px-4">
+          <button 
+            className="w-[85%] h-[50px] rounded-full bg-gradient-to-r from-[#A817FF] via-[#7B1CFD] to-[#A817FF] border-2 border-[#FFDF6C] shadow-[0_6px_0_#49048E,0_10px_20px_rgba(168,23,255,0.5),inset_0_1px_2px_rgba(255,255,255,0.5)] active:shadow-[0_0px_0_#49048E,0_4px_6px_rgba(168,23,255,0.4)] active:translate-y-[6px] transition-all flex items-center justify-center"
+          >
             <span
               className="text-white font-black text-[20px] tracking-widest uppercase"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
