@@ -169,8 +169,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
         <div className="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-t-[14px] border-t-[#49048E] -mb-1 mt-2"></div>
 
         {/* Big SEND Button with Gold Border & Neon Gradient */}
-        <div className="w-full mt-4 flex justify-center">
-          <button className="w-[88%] h-[50px] rounded-full bg-gradient-to-r from-[#A817FF] via-[#7B1CFD] to-[#A817FF] border-2 border-[#FFDF6C] shadow-[0_0_15px_rgba(168,23,255,0.4),inset_0_1px_2px_rgba(255,255,255,0.5)] active:scale-95 transition-all flex items-center justify-center">
+        <div className="w-full mt-10 flex justify-center">
+          <button className="w-[85%] h-[50px] rounded-full bg-gradient-to-r from-[#A817FF] via-[#7B1CFD] to-[#A817FF] border-2 border-[#FFDF6C] shadow-[0_0_15px_rgba(168,23,255,0.4),inset_0_1px_2px_rgba(255,255,255,0.5)] active:scale-95 transition-all flex items-center justify-center">
             <span
               className="text-white font-black text-[20px] tracking-widest uppercase"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
