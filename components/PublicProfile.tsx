@@ -1299,7 +1299,8 @@ export default function PublicProfile({
       </div>
 
       {/* Profile Info Details Section */}
-      <div className="px-5 pt-5">
+<div className="relative bg-white rounded-xl -mt-6 px-5 pt-6 z-20">
+
         <div className="flex flex-wrap items-center gap-0.5">
           <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
           <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-0.5 whitespace-nowrap">
