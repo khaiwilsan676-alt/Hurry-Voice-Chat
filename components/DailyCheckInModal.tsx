@@ -57,13 +57,13 @@ export default function DailyCheckInModal({
 
   const renderDay5Special = () => {
     return (
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="flex items-center justify-center gap-2">
         <div className="flex flex-col items-center">
           {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
         </div>
         <div className="flex flex-col items-center">
-          {renderIcon('/IMG_20260903_141944.png', 'w-8 h-8')}
+          {renderIcon('/IMG_20260903_141944.png', 'w-10 h-10')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">×1 Day</span>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function DailyCheckInModal({
 
   const renderDay6Special = () => {
     return (
-      <div className="flex items-center justify-center gap-1.5">
+      <div className="flex items-center justify-center gap-2">
         <div className="flex flex-col items-center">
           {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
@@ -87,17 +87,17 @@ export default function DailyCheckInModal({
 
   const renderDay7Special = () => {
     return (
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-5">
         <div className="flex flex-col items-center">
           {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-10 h-10')}
           <span className="text-[10px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+15,000</span>
         </div>
         <div className="flex flex-col items-center">
-          {renderIcon('/file_0000000044388211996656afc9ce9c03.png', 'w-10 h-10')}
+          {renderIcon('/file_0000000044388211996656afc9ce9c03.png', 'w-12 h-12')}
           <span className="text-[10px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">×3 days</span>
         </div>
         <div className="flex flex-col items-center">
-          {renderIcon('/IMG-20260903-WA0077.jpg', 'w-10 h-10')}
+          {renderIcon('/IMG-20260903-WA0077.jpg', 'w-12 h-12')}
           <span className="text-[10px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">×3 days</span>
         </div>
       </div>
@@ -116,8 +116,8 @@ export default function DailyCheckInModal({
     >
       <div className="absolute inset-0 bg-black/60" />
 
-      {/* Header image - New Banner Without WebShader */}
-      <div className="relative w-full max-w-xl" style={{ 
+      {/* Header image - Banner thora sa upar shift kiya hai '-mt-6' ke saath */}
+      <div className="relative w-full max-w-xl -mt-6" style={{ 
         marginBottom: '-50px',
         zIndex: 20
       }}>
