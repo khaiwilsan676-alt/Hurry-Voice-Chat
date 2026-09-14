@@ -122,7 +122,7 @@ export default function DailyCheckInModal({
         zIndex: 20
       }}>
         <img 
-          src="File_000000004b6c8211855003bf899492fd.png" 
+          src="/File_000000004b6c8211855003bf899492fd.png" 
           alt="Top Banner" 
           className="w-full h-auto"
           style={{
