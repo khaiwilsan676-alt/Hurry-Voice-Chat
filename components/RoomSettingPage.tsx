@@ -36,7 +36,7 @@ interface RoomSettingPageProps {
 }
 
 // ---------- Mic mode image card component (for bottom sheet only) ----------
-function MicModeImageCard({ count, selected }: { count: number; selected: boolean }) {
+function MicModeImageCard({ count }: { count: number }) {
   const getModeImage = (count: number) => {
     switch(count) {
       case 5:
@@ -51,7 +51,7 @@ function MicModeImageCard({ count, selected }: { count: number; selected: boolea
   }
 
   return (
-    <div className={`relative w-full rounded-xl overflow-hidden ${selected ? 'ring-2 ring-blue-400' : ''}`}>
+    <div className="relative w-full rounded-xl overflow-hidden">
       <img 
         src={getModeImage(count)} 
         alt={`Mic mode ${count}`}
@@ -113,7 +113,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomName, setRoomName] = useState<string>(roomData?.roomName || '')
   const [announcement, setAnnouncement] = useState<string>(roomData?.announcement || '')
   const [isLocked, setIsLocked] = useState<boolean>(roomData?.isLocked || false)
-  // Default mic mode set to 10 (since 9 is replaced)
   const [selectedMicMode, setSelectedMicMode] = useState<number>(roomData?.micMode || 10)
   const [showMicModeSheet, setShowMicModeSheet] = useState<boolean>(false)
   const [showThemePage, setShowThemePage] = useState<boolean>(false)
@@ -133,8 +132,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     const fetchMembers = async () => {
       if (!roomOwnerId) return
       try {
-        // Assume getRoomMembers is defined globally or imported elsewhere
-        // const res = await getRoomMembers(roomOwnerId)
         const res: any = [] // Added placeholder to prevent compile errors
         if (Array.isArray(res)) {
           const users: RoomUser[] = res.map((m: any) => ({
@@ -210,15 +207,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       micMode: selectedMicMode,
       theme: selectedTheme,
       admin: admins,
-    }
-
-    if (roomOwnerId) {
-      try {
-        // Assume db and setDoc are imported and configured properly
-        // await setDoc(doc(db, "globalRooms", roomOwnerId), {...}, { merge: true })
-      } catch (err) {
-        console.error("Firestore update failed:", err)
-      }
     }
 
     if (onSave) onSave(settingsData)
@@ -453,7 +441,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         {showMicModeSheet && (
           <div className="absolute inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowMicModeSheet(false)} />
-            <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl px-4 py-6 animate-slide-up">
+            <div className="relative bg-white w-full max-w-md rounded-md shadow-2xl px-4 py-6 animate-slide-up">
               <h3 className="text-lg font-bold text-gray-800 text-center mb-4">Select Mic Mode</h3>
 
               <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
@@ -464,14 +452,16 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                       setSelectedMicMode(mode)
                       setShowMicModeSheet(false)
                     }}
-                    className={`flex flex-col items-center rounded-xl overflow-hidden transition-all ${
-                      selectedMicMode === mode
-                        ? 'ring-2 ring-blue-400 ring-offset-1'
-                        : 'hover:opacity-90'
-                    }`}
+                    className="flex flex-col items-center rounded-xl overflow-hidden transition-all hover:opacity-90"
                   >
-                    <MicModeImageCard count={mode} selected={selectedMicMode === mode} />
-                    <span className="text-sm font-medium text-gray-700 mt-2 mb-1">Mic {mode}</span>
+                    <MicModeImageCard count={mode} />
+                    <span className={`text-sm mt-2 mb-1 ${
+                      selectedMicMode === mode 
+                        ? 'text-blue-500 font-bold' 
+                        : 'text-gray-700 font-medium'
+                    }`}>
+                      Mic {mode}
+                    </span>
                   </button>
                 ))}
               </div>
