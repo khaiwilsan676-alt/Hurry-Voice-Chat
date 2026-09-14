@@ -7,9 +7,6 @@ interface LuckyBagProps {
 }
 
 export default function LuckyBag({ onClose }: LuckyBagProps) {
-  // Tabs: Normal vs Lucky Rain
-  const [activeTab, setActiveTab] = useState<'Normal' | 'Lucky Rain'>('Normal')
-
   // Selected coin options
   const [selectedCoins, setSelectedCoins] = useState<number>(5777)
   const coinOptions = [5777, 17777, 99999, 177777]
@@ -20,16 +17,16 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [howToJoin, setHowToJoin] = useState<string>('Everyone')
 
   return (
-    // Blur hata diya gaya hai jaisa aapne bola tha (backdrop-blur removed)
-    <div className="fixed inset-0 z-[200] flex items-end justify-center select-none bg-black/40">
-      {/* Backdrop Click to close */}
-      <div className="absolute inset-0" onClick={onClose} />
+    <div className="fixed inset-0 z-[200] flex items-end justify-center select-none bg-transparent">
+      {/* Backdrop Click to close - Completely transparent */}
+      <div className="absolute inset-0 bg-transparent" onClick={onClose} />
 
       {/* Main Bottom Sheet Container */}
       <div
-        className="relative w-full max-w-[440px] flex flex-col items-center pb-6 pt-3 px-4 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
+        className="relative w-full max-w-[440px] flex flex-col items-center pb-6 pt-3 px-4 rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
         style={{
-          backgroundImage: `url('/file_0000000073ac8211a90c9183e250a8c1.png')`,
+          // Nayi background image update kar di hai
+          backgroundImage: `url('/file_00000000e08881f68258aed00843ff1b.png')`,
           backgroundSize: '100% 100%',
           backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
@@ -46,7 +43,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             <span className="text-white/70 text-[11px] font-bold">&gt;</span>
           </div>
 
-          {/* Lucky Bag Title (Exactly like image) */}
+          {/* Lucky Bag Title */}
           <h2
             className="text-[32px] font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-b from-[#FFF5C3] via-[#FFD700] to-[#E6A100]"
             style={{
@@ -57,7 +54,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             Lucky Bag
           </h2>
 
-          {/* Right Action Icons (Rules & Help) - Golden outline like image */}
+          {/* Right Action Icons (Rules & Help) */}
           <div className="flex items-center gap-2">
             {/* Rules / Notepad Icon */}
             <button className="w-7 h-7 rounded-md border border-[#FFDF6C] bg-[#49048E]/80 flex items-center justify-center text-[#FFDF6C] active:scale-90 transition-transform">
@@ -76,32 +73,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           </div>
         </div>
 
-        {/* Tab Switcher: Normal vs Lucky Rain */}
-        <div className="w-full h-[46px] rounded-full bg-[#35026F] p-1 flex items-center my-2 shadow-inner border border-purple-500/30">
-          <button
-            onClick={() => setActiveTab('Normal')}
-            className={`flex-1 h-full rounded-full font-black text-[15px] transition-all flex items-center justify-center ${
-              activeTab === 'Normal'
-                ? 'bg-gradient-to-b from-[#872BEA] to-[#5108A8] text-white shadow-[0_2px_8px_rgba(0,0,0,0.5)] border-[1.5px] border-[#FFDF6C]'
-                : 'text-[#AFA1CE] hover:text-white'
-            }`}
-          >
-            Normal
-          </button>
-          <button
-            onClick={() => setActiveTab('Lucky Rain')}
-            className={`flex-1 h-full rounded-full font-black text-[15px] transition-all flex items-center justify-center ${
-              activeTab === 'Lucky Rain'
-                ? 'bg-gradient-to-b from-[#872BEA] to-[#5108A8] text-white shadow-[0_2px_8px_rgba(0,0,0,0.5)] border-[1.5px] border-[#FFDF6C]'
-                : 'text-[#AFA1CE] hover:text-white'
-            }`}
-          >
-            Lucky Rain
-          </button>
-        </div>
-
-        {/* Total Coins Section */}
-        <div className="w-full mt-2 mb-3">
+        {/* Total Coins Section - (Thoda margin-top add kiya kyunki tabs hta diye) */}
+        <div className="w-full mt-4 mb-3">
           <p className="text-white text-[14px] font-bold mb-2 ml-1">Total Coins</p>
 
           <div className="grid grid-cols-2 gap-2.5">
