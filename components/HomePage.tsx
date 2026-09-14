@@ -2646,7 +2646,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       )}
 
       <div className="w-full">
-        {currentPage === 'home' && (
+               {currentPage === 'home' && (
           <div
             className="w-full bg-white"
             style={{
@@ -2665,8 +2665,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 paddingBottom: '12px'
               }}
             >
-                                          <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
-                
+              {/* --- HEADER START --- */}
               <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
                 
                 {/* Left side: Tabs "Mine" and "Popular" */}
@@ -2708,8 +2707,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
                 {/* Right side: Icons (Original Icons) */}
                 <div className="flex items-center gap-2">
-                  
-                  {/* Original Search Icon */}
                   <button
                     type="button"
                     onClick={() => setIsSearchOpen(true)}
@@ -2722,7 +2719,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     </svg>
                   </button>
 
-                  {/* Original House Icon */}
                   <button
                     type="button"
                     onClick={handleHouseClick}
@@ -2742,12 +2738,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
                       <rect x="19.5" y="14" width="3.5" height="6.5" rx="1.5" fill="#2D2D2D" />
                     </svg>
                   </button>
-
                 </div>
               </div>
-
-
-
+              {/* --- HEADER END --- */}
 
               {activeTab === 'popular' && (
                 <>
@@ -2819,6 +2812,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
             {activeTab === 'mine' ? renderMineTab() : renderPopularTab()}
           </div>
         )}
+
 
         {currentPage === 'message' && (
           <MessagePage onChatOpen={setIsChatOpen} onJoinRoom={handleJoinRoomFromChat} />
