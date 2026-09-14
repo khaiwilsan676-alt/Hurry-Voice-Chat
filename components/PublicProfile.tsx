@@ -1214,7 +1214,7 @@ export default function PublicProfile({
 
         {/* --- Top Icons Header Wrapper --- */}
         <div 
-          className="absolute top-0 pt-[max(env(safe-area-inset-top),12px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10"
+          className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10"
         >
           <button onClick={onBack} className="text-white">
             <ArrowLeft size={28} />
@@ -1302,7 +1302,7 @@ export default function PublicProfile({
       </div>
 
       {/* Profile Info Details Section */}
-      <div className="relative bg-white rounded-xl -mt-6 px-5 pt-6 z-20">
+      <div className="relative bg-white rounded-xl -mt-6 px-3 pt-6 z-20">
 
         <div className="flex flex-wrap items-center gap-0.5">
           <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
