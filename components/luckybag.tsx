@@ -23,7 +23,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
 
       {/* Main Bottom Sheet Container */}
       <div
-        className="relative w-full max-w-[440px] flex flex-col items-center pb-6 pt-3 px-4 rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
+        className="relative w-full max-w-[440px] flex flex-col items-center pb-[100px] pt-3 px-4 rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
         style={{
           // Nayi background image update kar di hai
           backgroundImage: `url('/file_00000000e08881f68258aed00843ff1b.png')`,
