@@ -40,13 +40,13 @@ function MicModeImageCard({ count, selected }: { count: number; selected: boolea
   const getModeImage = (count: number) => {
     switch(count) {
       case 5:
-        return '/IMG_20260812_015943.jpg'
-      case 9:
-        return '/IMG_20260812_015111.jpg'
-      case 13:
-        return '/IMG_20260812_020022.jpg'
+        return '/IMG_20260914_110225.png'
+      case 10:
+        return '/IMG_20260914_110239.png'
+      case 15:
+        return '/IMG_20260914_110253.png'
       default:
-        return '/IMG_20260812_015111.jpg'
+        return '/IMG_20260914_110239.png'
     }
   }
 
@@ -113,7 +113,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomName, setRoomName] = useState<string>(roomData?.roomName || '')
   const [announcement, setAnnouncement] = useState<string>(roomData?.announcement || '')
   const [isLocked, setIsLocked] = useState<boolean>(roomData?.isLocked || false)
-  const [selectedMicMode, setSelectedMicMode] = useState<number>(roomData?.micMode || 9)
+  // Default mic mode set to 10 (since 9 is replaced)
+  const [selectedMicMode, setSelectedMicMode] = useState<number>(roomData?.micMode || 10)
   const [showMicModeSheet, setShowMicModeSheet] = useState<boolean>(false)
   const [showThemePage, setShowThemePage] = useState<boolean>(false)
   const [showLockCard, setShowLockCard] = useState<boolean>(false)
@@ -150,7 +151,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     fetchMembers()
   }, [roomOwnerId])
 
-  const micModes = [5, 9, 13]
+  const micModes = [5, 10, 15]
 
   const themes = [
     { id: 'forest-night', name: 'Forest Night', image: '/1784875884052~2.jpg' },
