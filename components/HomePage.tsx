@@ -2665,17 +2665,17 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 paddingBottom: '12px'
               }}
             >
-                            <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
+                                          <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
                 
                 {/* Left side: Tabs "Mine" and "Popular" */}
-                <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
                     className={`text-[22px] transition-all relative ${
                       activeTab === 'mine'
-                        ? 'font-black text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
-                        : 'font-bold text-[#9CA3AF] tracking-normal'
+                        ? 'font-bold text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
+                        : 'font-semibold text-[#9CA3AF] tracking-normal'
                     }`}
                   >
                     {t.mine || 'Mine'}
@@ -2686,8 +2686,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     onClick={() => setActiveTab('popular')}
                     className={`text-[22px] transition-all relative ${
                       activeTab === 'popular'
-                        ? 'font-black text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
-                        : 'font-bold text-[#9CA3AF] tracking-normal'
+                        ? 'font-bold text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
+                        : 'font-semibold text-[#9CA3AF] tracking-normal'
                     }`}
                   >
                     {t.popular || 'Popular'}
@@ -2695,7 +2695,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 </div>
 
                 {/* Right side: Icons (Search and House) */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   
                   {/* Search Icon */}
                   <button
@@ -2710,20 +2710,26 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     </svg>
                   </button>
 
-                  {/* House Icon (Exact match from 1000193921.jpg) */}
+                  {/* House Icon (Exact match from 1000193921_2.jpg) */}
                   <button
                     type="button"
                     onClick={handleHouseClick}
                     className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
                     aria-label="Home"
                   >
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                      <path fillRule="evenodd" clipRule="evenodd" d="M12 1.5 Q10 6 7 7 C2 8 2 14 5 15 L5 21 C5 21.8 5.5 22 6.5 22 L17.5 22 C18.5 22 19 21.8 19 21 L19 15 C22 14 22 8 17 7 Q14 6 12 1.5 Z M9.5 22 L9.5 16.5 C9.5 14.5 12 13.5 12 13.5 C12 13.5 14.5 14.5 14.5 16.5 L14.5 22 Z" fill="#1A1A1C"/>
+                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+                      <path 
+                        fillRule="evenodd" 
+                        clipRule="evenodd" 
+                        d="M16 2.5C17.5 8.5 21 10 24 10C28 10 29.5 14 27 18L25.5 29C25.4 29.6 24.9 30 24.3 30H7.7C7.1 30 6.6 29.6 6.5 29L5 18C2.5 14 4 10 8 10C11 10 14.5 8.5 16 2.5ZM20.5 30V21A4.5 4.5 0 0 0 11.5 21V30H20.5Z" 
+                        fill="#1A1A1C"
+                      />
                     </svg>
                   </button>
 
                 </div>
               </div>
+
 
 
               {activeTab === 'popular' && (
