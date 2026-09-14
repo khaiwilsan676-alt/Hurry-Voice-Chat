@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react'
 import {
-  ChevronLeft,
+  ArrowLeft,
   Edit3,
   MapPin,
   Copy,
@@ -1212,9 +1212,12 @@ export default function PublicProfile({
           </div>
         )}
 
-        <div className="absolute top-10 left-0 right-0 px-4 flex items-center justify-between z-10">
+        {/* --- Top Icons Header Wrapper --- */}
+        <div 
+          className="absolute top-0 pt-[max(env(safe-area-inset-top),12px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10"
+        >
           <button onClick={onBack} className="text-white">
-            <ChevronLeft size={28} />
+            <ArrowLeft size={28} />
           </button>
 
           {isOtherUser ? (
@@ -1299,7 +1302,7 @@ export default function PublicProfile({
       </div>
 
       {/* Profile Info Details Section */}
-<div className="relative bg-white rounded-xl -mt-6 px-5 pt-6 z-20">
+      <div className="relative bg-white rounded-xl -mt-6 px-5 pt-6 z-20">
 
         <div className="flex flex-wrap items-center gap-0.5">
           <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
@@ -1528,7 +1531,7 @@ export default function PublicProfile({
           <div className="relative bg-white w-full max-w-md rounded-t-3xl animate-slide-up flex flex-col h-[70vh]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
-                <ChevronLeft size={24} className="text-gray-700" />
+                <ArrowLeft size={24} className="text-gray-700" />
               </button>
               <h2 className="text-lg font-bold text-gray-900">Edit Information</h2>
               <div className="w-6"></div>
@@ -1792,3 +1795,4 @@ export default function PublicProfile({
     </div>
   )
 }
+
