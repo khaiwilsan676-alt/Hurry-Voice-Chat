@@ -26,13 +26,12 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
 
       {/* Main Bottom Sheet Container */}
       <div
-        className="relative w-full max-w-[440px] flex flex-col items-center pb-6 pt-3 px-4 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-hidden"
+        className="relative w-full max-w-[440px] flex flex-col items-center pb-6 pt-3 px-4 shadow-[0_-10px_35px_rgba(0,0,0,0.8)] rounded-t-[34px] animate-in slide-in-from-bottom duration-300 overflow-visible"
         style={{
           backgroundImage: `url('/file_0000000073ac8211a90c9183e250a8c1.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'bottom center',
+          backgroundSize: '100% 100%',
+          backgroundPosition: 'center top',
           backgroundRepeat: 'no-repeat',
-          backgroundColor: '#49048E',
         }}
       >
         {/* Top Header Row: Balance Pill, Title, Right Action Icons */}
@@ -212,4 +211,3 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
     </div>
   )
 }
-
