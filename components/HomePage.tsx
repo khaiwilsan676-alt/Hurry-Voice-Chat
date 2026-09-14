@@ -1848,7 +1848,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
   // ============ RENDER MINE TAB ============
   const renderMineTab = () => (
-    <div className="px-3 mt-4">
+    <div className="px-3 -mt-1">
       <div
         onClick={handleCardClick}
         className="rounded-md p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all mb-6"
@@ -1906,11 +1906,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
       </div>
 
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-3 mb-4">
         <button
           type="button"
           onClick={() => setActiveMineTab('following')}
-          className={`relative pb-1.5 text-xs font-medium transition-colors ${
+          className={`relative pb-1.5 text-[10px] font-medium transition-colors ${
             activeMineTab === 'following'
               ? 'text-gray-900'
               : 'text-gray-400 hover:text-gray-600'
@@ -1924,7 +1924,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         <button
           type="button"
           onClick={() => setActiveMineTab('recent')}
-          className={`relative pb-1.5 text-sm font-medium transition-colors ${
+          className={`relative pb-1.5 text-[10px] font-medium transition-colors ${
             activeMineTab === 'recent'
               ? 'text-gray-900'
               : 'text-gray-400 hover:text-gray-600'
@@ -2667,68 +2667,85 @@ export default function HomePage({ onLogout }: HomePageProps) {
             >
                                           <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
                 
+              <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
+                
                 {/* Left side: Tabs "Mine" and "Popular" */}
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
-                    className={`text-[22px] transition-all relative ${
+                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'mine'
-                        ? 'font-bold text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
-                        : 'font-semibold text-[#9CA3AF] tracking-normal'
+                        ? 'font-extrabold text-[#1E1E1E]'
+                        : 'text-[#6E6E6E]'
                     }`}
                   >
                     {t.mine || 'Mine'}
+                    {activeTab === 'mine' && (
+                      <svg className="absolute -bottom-1 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
+                        <path d="M2 1.5 Q 8 6 14 1.5" stroke="#1E1E1E" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                    )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveTab('popular')}
-                    className={`text-[22px] transition-all relative ${
+                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'popular'
-                        ? 'font-bold text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
-                        : 'font-semibold text-[#9CA3AF] tracking-normal'
+                        ? 'font-extrabold text-[#1E1E1E]'
+                        : 'text-[#6E6E6E]'
                     }`}
                   >
                     {t.popular || 'Popular'}
+                    {activeTab === 'popular' && (
+                      <svg className="absolute -bottom-1 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
+                        <path d="M2 1.5 Q 8 6 14 1.5" stroke="#1E1E1E" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                    )}
                   </button>
                 </div>
 
-                {/* Right side: Icons (Search and House) */}
-                <div className="flex items-center gap-3">
+                {/* Right side: Icons (Original Icons) */}
+                <div className="flex items-center gap-2">
                   
-                  {/* Search Icon */}
+                  {/* Original Search Icon */}
                   <button
                     type="button"
                     onClick={() => setIsSearchOpen(true)}
-                    className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                    className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform p-1"
                     aria-label="Search"
                   >
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                      <circle cx="12.5" cy="12.5" r="7" stroke="#1A1A1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M18.2 18.2 L24 24" stroke="#1A1A1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+                      <circle cx="12.5" cy="12.5" r="7" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M18.2 18.2 L24 24" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
 
-                  {/* House Icon (Exact match from 1000193921_2.jpg) */}
+                  {/* Original House Icon */}
                   <button
                     type="button"
                     onClick={handleHouseClick}
-                    className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                    className="flex items-center justify-center cursor-pointer p-1"
                     aria-label="Home"
                   >
-                    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                      <path 
-                        fillRule="evenodd" 
-                        clipRule="evenodd" 
-                        d="M16 2.5C17.5 8.5 21 10 24 10C28 10 29.5 14 27 18L25.5 29C25.4 29.6 24.9 30 24.3 30H7.7C7.1 30 6.6 29.6 6.5 29L5 18C2.5 14 4 10 8 10C11 10 14.5 8.5 16 2.5ZM20.5 30V21A4.5 4.5 0 0 0 11.5 21V30H20.5Z" 
-                        fill="#1A1A1C"
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                      <path
+                        d="M16 3.5 C 14.5 3.5, 3 8, 3 13.5 L 3 21.5 C 3 25.5, 6 28.5, 10.5 28.5 H 21.5 C 26 28.5, 29 25.5, 29 21.5 L 29 13.5 C 29 8, 17.5 3.5, 16 3.5 Z"
+                        stroke="#2D2D2D"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
+                      <rect x="9" y="14.5" width="3.5" height="6" rx="1.5" fill="#2D2D2D" />
+                      <rect x="14.2" y="11.5" width="3.5" height="9" rx="1.5" fill="#2D2D2D" />
+                      <rect x="19.5" y="14" width="3.5" height="6.5" rx="1.5" fill="#2D2D2D" />
                     </svg>
                   </button>
 
                 </div>
               </div>
+
 
 
 
