@@ -1201,7 +1201,7 @@ export default function PublicProfile({
       }`}
     >
       {/* Cover Image & Header Section */}
-      <div className="relative w-full h-[340px] bg-gray-800">
+      <div className="relative w-full h-[350px] bg-gray-800">
         {user.coverPhoto ? (
           <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />
         ) : user.photo ? (
@@ -1269,7 +1269,7 @@ export default function PublicProfile({
         </div>
 
         {/* Avatar with WebGL Shader Overlay */}
-        <div className="absolute bottom-6 left-6 flex items-center z-30">
+        <div className="absolute bottom-12 left-6 flex items-center z-30">
           <div className="relative w-24 h-24 rounded-full shadow-lg border-3 border-white bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
