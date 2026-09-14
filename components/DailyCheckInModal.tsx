@@ -59,7 +59,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-1.5">
         <div className="flex flex-col items-center">
-          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
+          {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
         </div>
         <div className="flex flex-col items-center">
@@ -74,7 +74,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-1.5">
         <div className="flex flex-col items-center">
-          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
+          {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-8 h-8')}
           <span className="text-[9px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+10,000</span>
         </div>
         <div className="flex flex-col items-center">
@@ -89,7 +89,7 @@ export default function DailyCheckInModal({
     return (
       <div className="flex items-center justify-center gap-3">
         <div className="flex flex-col items-center">
-          {renderIcon('file_00000000e56882119c217d508b6733dc.png', 'w-10 h-10')}
+          {renderIcon('/file_00000000e56882119c217d508b6733dc.png', 'w-10 h-10')}
           <span className="text-[10px] font-bold text-gray-700 mt-0.5 whitespace-nowrap">+15,000</span>
         </div>
         <div className="flex flex-col items-center">
@@ -122,7 +122,7 @@ export default function DailyCheckInModal({
         zIndex: 20
       }}>
         <img 
-          src="/File_000000004b6c8211855003bf899492fd.png" 
+          src="/file_000000004b6c8211855003bf899492fd.png" 
           alt="Top Banner" 
           className="w-full h-auto"
           style={{
