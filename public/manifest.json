@@ -1,8 +1,8 @@
 {
-  "name": "Hurry - Chat & Connect",
+  "name": "Hurry party Voice chat Rooms",
   "short_name": "Hurry",
   "description": "Connect with friends on Hurry. Chat, share moments, and discover popular content.",
-  "start_url": "/",
+  "start_url": "/HurryOfficial"",
   "scope": "/",
   "display": "fullscreen",
   "orientation": "portrait-primary",
