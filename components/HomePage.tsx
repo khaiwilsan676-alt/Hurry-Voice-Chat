@@ -2666,7 +2666,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
               }}
             >
               {/* --- HEADER START --- */}
-              <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
+              <div className="w-full flex justify-between items-center py-1 box-border mb-2 px-1">
                 
                 {/* Left side: Tabs "Mine" and "Popular" */}
                 <div className="flex items-center gap-3">
