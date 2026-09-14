@@ -52,10 +52,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
         {/* ========================================= */}
         {/* BIG DARK RED CARD WRAPPER - Padding aur margin kam karke chota kiya */}
         {/* ========================================= */}
-        <div className="w-full bg-[#8F1616] rounded-[20px] p-3 mt-2 shadow-lg flex flex-col items-center border border-white/5">
+        <div className="w-[50px] bg-[#8F1616] rounded-md p-3 mt-13 shadow-lg flex flex-col items-center border border-white/5">
           
           {/* Section 1: Gold Coins Count */}
-          <div className="w-full flex flex-col items-center mb-1">
+          <div className="w-full flex flex-col items-center -mt-3">
             <h3 className="text-white font-extrabold text-[18px] mb-2 tracking-wide drop-shadow-md">
               Gold Coins Count
             </h3>
@@ -130,7 +130,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
 
         {/* Big SEND Button (Chota size aur mx-auto center) */}
         <button
-          className="w-[85%] h-[48px] rounded-full bg-gradient-to-b from-[#FFF7C2] via-[#FFC04D] to-[#FF9000] shadow-[0_5px_15px_rgba(200,0,0,0.5),_inset_0_-4px_6px_rgba(214,115,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.9)] active:translate-y-1 active:shadow-[0_2px_5px_rgba(200,0,0,0.5),_inset_0_-2px_4px_rgba(214,115,0,0.8)] transition-all flex justify-center items-center mx-auto"
+          className="w-[80%] h-[48px] rounded-full bg-gradient-to-b from-[#FFF7C2] via-[#FFC04D] to-[#FF9000] shadow-[0_5px_15px_rgba(200,0,0,0.5),_inset_0_-4px_6px_rgba(214,115,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.9)] active:translate-y-1 active:shadow-[0_2px_5px_rgba(200,0,0,0.5),_inset_0_-2px_4px_rgba(214,115,0,0.8)] transition-all flex justify-center items-center -mt-3"
         >
           <span
             className="text-white font-black text-[20px] tracking-wider"
