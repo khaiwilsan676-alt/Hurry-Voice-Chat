@@ -1906,11 +1906,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
       </div>
 
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-2 mb-3"
         <button
           type="button"
           onClick={() => setActiveMineTab('following')}
-          className={`relative pb-1.5 text-[10px] font-medium transition-colors ${
+          className={`relative pb-1.5 text-[14px] font-medium transition-colors ${
             activeMineTab === 'following'
               ? 'text-gray-900'
               : 'text-gray-400 hover:text-gray-600'
@@ -1924,7 +1924,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         <button
           type="button"
           onClick={() => setActiveMineTab('recent')}
-          className={`relative pb-1.5 text-[10px] font-medium transition-colors ${
+          className={`relative pb-1.5 text-[14px] font-medium transition-colors ${
             activeMineTab === 'recent'
               ? 'text-gray-900'
               : 'text-gray-400 hover:text-gray-600'
@@ -2673,7 +2673,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
-                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1.5 ${
+                    className={`font-bold text-[14px] tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'mine'
                         ? 'font-extrabold text-[#1E1E1E]'
                         : 'text-[#6E6E6E]'
@@ -2690,7 +2690,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('popular')}
-                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1.5 ${
+                    className={`font-bold text-[14px] tracking-[0.2px] transition-colors relative pb-1.5 ${
                       activeTab === 'popular'
                         ? 'font-extrabold text-[#1E1E1E]'
                         : 'text-[#6E6E6E]'
@@ -2698,7 +2698,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   >
                     {t.popular || 'Popular'}
                     {activeTab === 'popular' && (
-                      <svg className="absolute -bottom-1 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
+                      <svg className="absolute bottom-0 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
                         <path d="M2 1.5 Q 8 6 14 1.5" stroke="#1E1E1E" strokeWidth="3" strokeLinecap="round" />
                       </svg>
                     )}
@@ -2722,7 +2722,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   <button
                     type="button"
                     onClick={handleHouseClick}
-                    className="flex items-center justify-center cursor-pointer p-1"
+                    className="flex items-center justify-center cursor-pointer p-0"
                     aria-label="Home"
                   >
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
