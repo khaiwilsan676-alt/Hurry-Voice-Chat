@@ -2665,72 +2665,66 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 paddingBottom: '12px'
               }}
             >
-              <div className="w-full flex justify-between items-center py-1 box-border mb-4">
-                {/* Left side: House icon */}
-                <div className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={handleHouseClick}
-                    className="flex items-center justify-center cursor-pointer"
-                    aria-label="Home"
-                  >
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                      <path
-                        d="M16 3.5 C 14.5 3.5, 3 8, 3 13.5 L 3 21.5 C 3 25.5, 6 28.5, 10.5 28.5 H 21.5 C 26 28.5, 29 25.5, 29 21.5 L 29 13.5 C 29 8, 17.5 3.5, 16 3.5 Z"
-                        stroke="#2D2D2D"
-                        strokeWidth="2.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <rect x="9" y="14.5" width="3.5" height="6" rx="1.5" fill="#2D2D2D" />
-                      <rect x="14.2" y="11.5" width="3.5" height="9" rx="1.5" fill="#2D2D2D" />
-                      <rect x="19.5" y="14" width="3.5" height="6.5" rx="1.5" fill="#2D2D2D" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Middle: Tabs "Me" and "Popular" */}
-                <div className="flex items-center gap-4">
+                            <div className="w-full flex justify-between items-center py-1 box-border mb-4 px-1">
+                
+                {/* Left side: Tabs "Mine" and "Popular" */}
+                <div className="flex items-center gap-5">
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
-                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1 ${
+                    className={`text-[22px] transition-all relative ${
                       activeTab === 'mine'
-                        ? 'font-extrabold text-[#1E1E1E]'
-                        : 'text-[#6E6E6E]'
+                        ? 'font-black text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
+                        : 'font-bold text-[#9CA3AF] tracking-normal'
                     }`}
                   >
-                    {t.mine}
+                    {t.mine || 'Mine'}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveTab('popular')}
-                    className={`font-bold text-lg tracking-[0.2px] transition-colors relative pb-1 ${
+                    className={`text-[22px] transition-all relative ${
                       activeTab === 'popular'
-                        ? 'font-extrabold text-[#1E1E1E]'
-                        : 'text-[#6E6E6E]'
+                        ? 'font-black text-[#111111] tracking-wide scale-105 origin-left drop-shadow-sm'
+                        : 'font-bold text-[#9CA3AF] tracking-normal'
                     }`}
                   >
-                    {t.popular}
+                    {t.popular || 'Popular'}
                   </button>
                 </div>
 
-                {/* Right side: Search icon */}
-                <div className="flex items-center">
+                {/* Right side: Icons (Search and House) */}
+                <div className="flex items-center gap-4">
+                  
+                  {/* Search Icon */}
                   <button
                     type="button"
                     onClick={() => setIsSearchOpen(true)}
                     className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
                     aria-label="Search"
                   >
-                    <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-                      <circle cx="12.5" cy="12.5" r="7" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M18.2 18.2 L24 24" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                      <circle cx="12.5" cy="12.5" r="7" stroke="#1A1A1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M18.2 18.2 L24 24" stroke="#1A1A1C" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
+
+                  {/* House Icon (Exact match from 1000193921.jpg) */}
+                  <button
+                    type="button"
+                    onClick={handleHouseClick}
+                    className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
+                    aria-label="Home"
+                  >
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M12 1.5 Q10 6 7 7 C2 8 2 14 5 15 L5 21 C5 21.8 5.5 22 6.5 22 L17.5 22 C18.5 22 19 21.8 19 21 L19 15 C22 14 22 8 17 7 Q14 6 12 1.5 Z M9.5 22 L9.5 16.5 C9.5 14.5 12 13.5 12 13.5 C12 13.5 14.5 14.5 14.5 16.5 L14.5 22 Z" fill="#1A1A1C"/>
+                    </svg>
+                  </button>
+
                 </div>
               </div>
+
 
               {activeTab === 'popular' && (
                 <>
