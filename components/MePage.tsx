@@ -16,7 +16,7 @@ import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
 import { saveFeedback, getUsers } from '../src/lib/googleSheet'
-import FollowList from './followlist'
+import FollowList from './followlist' // <--- Import FollowList
 
 // ============ IndexedDB Functions for User Data ============
 const USER_DB_NAME = 'UserDataDB';
@@ -910,10 +910,9 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        {/* 1 Row 2 Images Section */}
-        <div className="flex mt-4 px-3 gap-1.5">
+        <div className="flex gap-1.3 mt-3">
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
               setWalletTab('coins');
               setShowWallet(true);
@@ -926,7 +925,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             />
           </div>
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
               setWalletTab('diamond');
               setShowWallet(true);
@@ -940,21 +939,20 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
       </div>
-      
-            {/*top SVIP Image - EDGE TO EDGE */}
-        <div className="-mt-4 w-full relative z-10">
+              
+
+        {/* 👇 BASS YAHAN YEH NAYA CODE ADD KARNA HAI 👇 */}
+        <div className="-mt-3 rounded-lg overflow-hidden w-full">
           <img
-            src="/file_000000000b3881f4bbae79c3de4f068e.png"
-            alt="Promo Banner"
-            className="w-full h-14 object-cover object-center block"
+            src="/file_00000000158082118e896234213c6673.png"
+            alt="SVIP"
+            className="w-full h-auto object-cover shadow-sm"
           />
         </div>
-
-      
-
+        {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
 
       {/* Top Menu Cards */}
-      <div className="px-3 -mt-1">
+      <div className="px-3 mt-1">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
@@ -1049,4 +1047,3 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     </div>
   )
 }
-
