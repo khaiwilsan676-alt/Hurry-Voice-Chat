@@ -946,7 +946,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_00000000158082118e896234213c6673.png"
             alt="SVIP"
-            className="w-[90%] h-auto object-cover shadow-sm"
+            className="w-[90%] mx-auto block h-auto object-cover"
           />
         </div>
         {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
