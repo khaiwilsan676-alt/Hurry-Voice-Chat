@@ -927,7 +927,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- IN IMAGES KO KISI BHI CARD KE ANDAR NAHI RAKHA HAI, DIRECT RENDER KIYA HAI --- */}
       
       {/* Coins Images Direct Body Par (Ab Upar) */}
-      <div className="px-3 flex gap-1.5 -mt-5 mb-3">
+      <div className="px-3 flex gap-1.5 mt-0 mb-3">
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
           onClick={() => {
@@ -957,7 +957,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
 
       {/* SVIP Image Direct Body Par (Ab Niche) */}
-      <div className="px-3 mb-6 cursor-pointer active:scale-95 transition-transform">
+      <div className="px-3 -mt-3 mb-6 cursor-pointer active:scale-95 transition-transform">
         <img
           src="/file_00000000a25081fbb57574619596eed8.png"
           alt="SVIP Banner"
@@ -968,7 +968,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- CARDS KA BACKGROUND WAPAS WHITE HAI (Menu Items) --- */}
 
       {/* Top Menu Cards */}
-      <div className="px-3 -mt-6">
+      <div className="px-4 -mt-6">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
