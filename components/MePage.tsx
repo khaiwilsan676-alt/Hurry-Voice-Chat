@@ -876,8 +876,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </button>
         </div>
 
-        {/* Followers, Following, Visitors - All Clickable */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+            {/* Followers, Following, Visitors - All Clickable */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div 
             className="text-center cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -910,7 +910,18 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        <div className="flex gap-1 -mt-1 -mx-2">
+        {/* 👇 1. SVIP IMAGE YAHAN AA GAYI (Followers ke theek baad) 👇 */}
+        <div className="relative z-30 w-full mb-4">
+          <img
+            src="/file_00000000158082118e896234213c6673.png"
+            alt="SVIP"
+            className="w-[96%] h-auto mx-auto block rounded-lg object-cover shadow-sm"
+          />
+        </div>
+        {/* 👆 SVIP IMAGE YAHAN KHATAM 👆 */}
+
+        {/* 👇 2. COINS & DIAMONDS IMAGE YAHAN AA GAYI 👇 */}
+        <div className="flex gap-1 -mx-2 relative z-20">
           <div 
             className="flex-1 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -938,19 +949,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             />
           </div>
         </div>
-      </div>
-              
-
-        {/* 👇 BASS YAHAN YEH NAYA CODE ADD KARNA HAI 👇 */}
-        <div className="-mt-12 relative z-30 rounded-none overflow-hidden w-full">
-          <img
-            src="/file_00000000158082118e896234213c6673.png"
-            alt="SVIP"
-            className="w-[96%] h-auto mx-auto block rounded-none object-cover shadow-sm"
-          />
-        </div>
-        {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
-
+        
+      </div> 
       {/* Top Menu Cards */}
       <div className="px-3 -mt-5">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
