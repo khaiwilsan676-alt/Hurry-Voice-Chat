@@ -936,7 +936,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           }}
         >
           <img
-            src="/file_0000000061388211b79e6357da462e90.png"
+            src="/file_00000000fe848207abf557a118ff8a5b"
             alt="Feature 1"
             className="w-full h-14 object-cover"
           />
@@ -949,7 +949,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           }}
         >
           <img
-            src="/file_00000000c92482118ec028e0de928fa5.png"
+            src="/file_00000000f26c81f88083bc494a0f229b"
             alt="Feature 2"
             className="w-full h-14 object-cover"
           />
