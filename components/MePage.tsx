@@ -1,365 +1,1063 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
-import { getMessages, getUser } from '../src/lib/googleSheets';
+import React, { useEffect, useState, useRef } from 'react'
+import { ChevronRight, Copy, ArrowLeft } from 'lucide-react'
+import SettingPage from './settingpage'
+import PublicProfile from './PublicProfile'
+import HurrySupport from './HurrySupport'
+import LanguagePage from './LanguagePage'
+import { translations, getTranslation, LanguageCode } from '../lib/translations'
+import { getUser, saveUser } from "../src/lib/googleSheets"
+import Wallet from './Wallet'
+import StorePage from './StorePage'
+import InviteFriends from './InviteFriends'
+import Family from './Family'
+import Level from './Level'
+import Medal from './Medal'
+import SellerCenter from './sellercenter'
+import { saveFeedback, getUsers } from '../src/lib/googleSheet'
+import FollowList from './followlist' // <--- Import FollowList
 
-import ChatScreen from './ChatScreen';
+// ============ IndexedDB Functions for User Data ============
+const USER_DB_NAME = 'UserDataDB';
+const USER_STORE = 'userData';
+const FEEDBACK_STORE = 'feedbacks';
 
-// ============ Simple IndexedDB Functions ============
-const DB_NAME = 'MessagesDB';
-const STORE_NAME = 'conversations';
-
-// IndexedDB kholo
-const openDB = (): Promise<IDBDatabase> => {
+const openUserDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(USER_DB_NAME, 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = () => {
       const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'chatId' });
+      if (!db.objectStoreNames.contains(USER_STORE)) {
+        const userStore = db.createObjectStore(USER_STORE, { keyPath: 'uid' });
+        userStore.createIndex('name', 'name', { unique: false });
+        userStore.createIndex('updatedAt', 'updatedAt', { unique: false });
+      }
+      if (!db.objectStoreNames.contains(FEEDBACK_STORE)) {
+        const feedbackStore = db.createObjectStore(FEEDBACK_STORE, { keyPath: 'id', autoIncrement: true });
+        feedbackStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
     };
   });
 };
 
-// IndexedDB mein save karo
-const saveToDB = async (conversations: ChatPreview[]) => {
+const saveUserToDB = async (userData: any) => {
   try {
-    const db = await openDB();
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-
-    // Purana data clear karo
-    store.clear();
-
-    // Naya data save karo
-    conversations.forEach(chat => {
-      store.put(chat);
+    const db = await openUserDB();
+    const transaction = db.transaction([USER_STORE], 'readwrite');
+    const store = transaction.objectStore(USER_STORE);
+    
+    const completeUserData = {
+      ...userData,
+      cachedAt: Date.now(),
+      updatedAt: new Date().toISOString(),
+    };
+    
+    await new Promise<void>((resolve, reject) => {
+      const request = store.put(completeUserData);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
     });
 
     db.close();
-    console.log('IndexedDB mein save ho gaya:', conversations.length);
   } catch (error) {
-    console.error('Save error:', error);
+    console.error('❌ User save error:', error);
   }
 };
 
-// IndexedDB se load karo
-const loadFromDB = async (): Promise<ChatPreview[]> => {
+const loadUserFromDB = async (uid: string): Promise<any> => {
   try {
-    const db = await openDB();
-    const transaction = db.transaction([STORE_NAME], 'readonly');
-    const store = transaction.objectStore(STORE_NAME);
+    const db = await openUserDB();
+    const transaction = db.transaction([USER_STORE], 'readonly');
+    const store = transaction.objectStore(USER_STORE);
 
-    const chats = await new Promise<ChatPreview[]>((resolve, reject) => {
-      const request = store.getAll();
+    const userData = await new Promise<any>((resolve, reject) => {
+      const request = store.get(uid);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
 
     db.close();
-    return chats;
+    return userData || null;
   } catch (error) {
-    console.error('Load error:', error);
-    return [];
+    console.error('❌ User load error:', error);
+    return null;
   }
 };
 
-// ============ Types ============
-interface ChatPreview {
-  chatId: string;
-  otherUser: {
-    uid: string;
-    name: string;
-    photo: string;
-  };
-  lastMessage: string;
-  lastTimestamp: number;
-  unreadCount: number;
+const saveFeedbackToDB = async (feedbackData: any) => {
+  try {
+    const db = await openUserDB();
+    const transaction = db.transaction([FEEDBACK_STORE], 'readwrite');
+    const store = transaction.objectStore(FEEDBACK_STORE);
+    
+    store.add({
+      ...feedbackData,
+      cachedAt: Date.now(),
+      synced: false,
+    });
+
+    db.close();
+  } catch (error) {
+    console.error('Feedback save error:', error);
+  }
+};
+
+interface MenuItem {
+  id: string
+  labelKey: keyof typeof translations['en'] | string
+  src?: string
+  icon?: React.ReactNode
+  action?: string
+  badge?: string
 }
 
-interface FixedChat {
-  id: string;
-  name: string;
-  image: string;
-  uid: string;
-  isFixed: boolean;
+interface MePageProps {
+  onLogout?: () => void
+  onPublicProfileChange?: (isOpen: boolean) => void
 }
 
-interface MessagePageProps {
-  onChatOpen?: (open: boolean) => void;
-  onJoinRoom?: (roomId: string) => void;
-  sharedRoomData?: {
-    roomId: string;
-    roomName: string;
-    roomImage: string;
-  } | null;
+const menuItems: MenuItem[] = [
+  { id: '1', labelKey: 'inviteFriends', src: '/1784562849790.png' },
+  { id: '2', labelKey: 'family', src: '/IMG_20260720_142354.png' },
+  { id: '3', labelKey: 'level', src: '/IMG_20260720_211413.png' },
+  { id: '4', labelKey: 'medal', src: '/1784621763019.png' },
+  { id: '5', labelKey: 'store', src: '/IMG_20260720_142332.png' },
+  { id: '6', labelKey: 'bag', src: '/IMG_20260720_142227.png' },
+  { id: '11', labelKey: 'Seller Center', src: '/IMG_20260907_214725.jpg' }
+]
+
+const bottomMenuItems: MenuItem[] = [
+  {
+    id: '7',
+    labelKey: 'languageSetting',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path>
+      </svg>
+    )
+  },
+  {
+    id: '8',
+    labelKey: 'settings',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l8 4.67v9.33L12 22l-8-4.67V6.67L12 2z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    )
+  },
+  {
+    id: '9',
+    labelKey: 'customerService',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E1E1E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5.5 11 V8.5 C5.5 5 8.2 3 12 3 C15.8 3 18.5 5 18.5 8.5 V15.2 C18.5 18.5 16.2 21 12 21"/>
+        <path d="M3 10.2 V13.8 C3 13.8 3.5 15.2 4.2 15.2 H5.5 V9 H4.2 C3.5 9 3 9.5 3 10.2 Z"/>
+        <path d="M18.5 9 V15.2 H19.8 C20.5 15.2 21 14.6 21 13.8 V10.2 C21 9.4 20.5 9 19.8 9 H18.5"/>
+        <path d="M9.2 13.8 C9.2 15 10.3 16 12 16 C13.7 16 14.8 15 14.8 13.8"/>
+      </svg>
+    )
+  },
+  {
+    id: '10',
+    labelKey: 'helpFeedback',
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+      </svg>
+    )
+  }
+]
+
+const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005']
+const ADMIN_IDS = ['700001', '700002', '700003']
+
+const FEEDBACK_TYPES = [
+  { id: 'bug', label: 'Bug', icon: '' },
+  { id: 'account', label: 'Account Issue', icon: '' },
+  { id: 'recharge', label: 'Recharge', icon: '' },
+  { id: 'other', label: 'Other Suggestion', icon: '' },
+]
+
+export const getOrCreateAccountNumber = (uid: string) => {
+  if (!uid || uid === 'N/A') return { fullAccNum: '', displayAccNum: '' }
+
+  if (OFFICIAL_IDS.includes(uid) || ADMIN_IDS.includes(uid)) {
+    return { fullAccNum: uid, displayAccNum: uid }
+  }
+
+  if (typeof window !== 'undefined') {
+    const savedAcc = localStorage.getItem('accountNumber')
+    if (savedAcc) {
+      return { fullAccNum: savedAcc, displayAccNum: savedAcc }
+    }
+  }
+
+  let hash = 0
+  for (let i = 0; i < uid.length; i++) {
+    hash = (hash << 5) - hash + uid.charCodeAt(i)
+    hash |= 0
+  }
+  const positiveHash = Math.abs(hash)
+  const generated = String(10000000 + (positiveHash % 90000000))
+  
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('accountNumber', generated)
+  }
+  return { fullAccNum: generated, displayAccNum: generated }
 }
 
-export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: MessagePageProps) {
-  const [fixedChats] = useState<FixedChat[]>([
-    { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
-    { id: 'hawa-system', name: 'Hurry System', image: '/file_00000000a66881f8aa9e15d2fe2b9a0c.png', uid: 'hurry_system_official', isFixed: true }
-  ]);
+const isValidName = (val?: string | null): boolean => {
+  if (!val) return false;
+  const clean = val.trim().toLowerCase();
+  return clean !== '' && clean !== 'guest' && clean !== 'user' && clean !== 'null' && clean !== 'undefined';
+}
 
-  const [dynamicChats, setDynamicChats] = useState<ChatPreview[]>([]);
-  const [activeChat, setActiveChat] = useState<{ uid: string; name: string; photo: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const WhiteColorRemovalShader = ({ 
+  imageSrc, 
+  threshold = 0.9,
+  className = "",
+  style = {}
+}: { 
+  imageSrc: string
+  threshold?: number
+  className?: string
+  style?: React.CSSProperties
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
 
-  const getCurrentUserData = () => {
-    const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
-    const name = typeof window !== 'undefined' ? localStorage.getItem('userName') || 'Me' : 'Me';
-    const photo = typeof window !== 'undefined' ? localStorage.getItem('userPhoto') || '' : '';
-    return { uid, name, photo };
-  };
-
-  const currentUserUid = getCurrentUserData().uid;
-
-  // Sirf IndexedDB se load karo
   useEffect(() => {
-    const loadData = async () => {
-      if (currentUserUid === 'N/A') {
-        setIsLoading(false);
-        return;
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const gl = canvas.getContext('webgl', { premultipliedAlpha: true })
+    if (!gl) return
+
+    const vertexShaderSource = `
+      attribute vec2 a_position;
+      attribute vec2 a_texCoord;
+      varying vec2 v_texCoord;
+      void main() {
+        gl_Position = vec4(a_position, 0.0, 1.0);
+        v_texCoord = a_texCoord;
       }
+    `
 
-      // IndexedDB se data load karo
-      const cachedChats = await loadFromDB();
-      
-      if (cachedChats.length > 0) {
-        setDynamicChats(cachedChats);
-        console.log('IndexedDB se data load hua:', cachedChats.length);
-      }
-      
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, [currentUserUid]);
-
-  // Google Sheets fetching
-  useEffect(() => {
-    if (!currentUserUid || currentUserUid === 'N/A') return;
-
-    let isMounted = true;
-
-    const fetchConversations = async () => {
-      try {
-        const msgs = await getMessages(currentUserUid);
-        if (!isMounted || !Array.isArray(msgs)) return;
-
-        const convoMap = new Map<string, ChatPreview>();
-
-        for (const msg of msgs) {
-          const senderId = msg.senderId || msg.USER_A_ID || msg.userAId;
-          const receiverId = msg.receiverId || msg.USER_B_ID || msg.userBId;
-          const text = msg.chat || msg.text || '';
-          const time = Number(msg.createdAt || msg.timestamp || Date.now());
-
-          const otherUid = senderId === currentUserUid ? receiverId : senderId;
-          if (!otherUid || otherUid === currentUserUid) continue;
-
-          const ids = [currentUserUid, otherUid].sort();
-          const chatId = `${ids[0]}_${ids[1]}`;
-
-          const existing = convoMap.get(chatId);
-          if (!existing || time > existing.lastTimestamp) {
-            let otherName = msg.name || msg.senderName || 'User';
-            let otherDp = msg.dp || msg.avatar || '/default-avatar.png';
-
-            convoMap.set(chatId, {
-              chatId,
-              otherUser: {
-                uid: otherUid,
-                name: otherName,
-                photo: otherDp
-              },
-              lastMessage: text,
-              lastTimestamp: time,
-              unreadCount: 0
-            });
-          }
+    const fragmentShaderSource = `
+      precision mediump float;
+      varying vec2 v_texCoord;
+      uniform sampler2D u_texture;
+      uniform float u_threshold;
+      void main() {
+        vec4 color = texture2D(u_texture, v_texCoord);
+        float maxColor = max(color.r, max(color.g, color.b));
+        float minColor = min(color.r, min(color.g, color.b));
+        float lightness = (maxColor + minColor) / 2.0;
+        float saturation = maxColor - minColor;
+        if (lightness > u_threshold && saturation < 0.3) {
+          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+        } else {
+          gl_FragColor = color;
         }
-
-        const chats = Array.from(convoMap.values());
-        chats.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
-
-        if (isMounted) {
-          setDynamicChats(chats);
-          await saveToDB(chats);
-        }
-      } catch (error) {
-        console.error('Error fetching conversations from Google Sheets:', error);
       }
-    };
+    `
 
-    fetchConversations();
-    const interval = setInterval(fetchConversations, 10000);
+    const compileShader = (type: number, source: string) => {
+      const shader = gl.createShader(type)
+      if (!shader) return null
+      gl.shaderSource(shader, source)
+      gl.compileShader(shader)
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        gl.deleteShader(shader)
+        return null
+      }
+      return shader
+    }
+
+    const vertexShader = compileShader(gl.VERTEX_SHADER, vertexShaderSource)
+    const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource)
+    if (!vertexShader || !fragmentShader) return
+
+    const program = gl.createProgram()
+    if (!program) return
+    gl.attachShader(program, vertexShader)
+    gl.attachShader(program, fragmentShader)
+    gl.linkProgram(program)
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return
+
+    gl.useProgram(program)
+
+    const positionBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
+
+    const positionLocation = gl.getAttribLocation(program, 'a_position')
+    gl.enableVertexAttribArray(positionLocation)
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
+
+    const texCoordBuffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]), gl.STATIC_DRAW)
+
+    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
+    gl.enableVertexAttribArray(texCoordLocation)
+    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
+
+    const texture = gl.createTexture()
+    gl.bindTexture(gl.TEXTURE_2D, texture)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+    image.onload = () => {
+      gl.bindTexture(gl.TEXTURE_2D, texture)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
+      const thresholdLocation = gl.getUniformLocation(program, 'u_threshold')
+      gl.uniform1f(thresholdLocation, threshold)
+      canvas.width = image.width
+      canvas.height = image.height
+      gl.viewport(0, 0, canvas.width, canvas.height)
+      gl.clearColor(0.0, 0.0, 0.0, 0.0)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
+      setIsLoaded(true)
+    }
+    image.src = imageSrc
 
     return () => {
-      isMounted = false;
-      clearInterval(interval);
+      gl.deleteProgram(program)
+      gl.deleteShader(vertexShader)
+      gl.deleteShader(fragmentShader)
+      gl.deleteBuffer(positionBuffer)
+      gl.deleteBuffer(texCoordBuffer)
+      gl.deleteTexture(texture)
+    }
+  }, [imageSrc, threshold])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      style={{
+        ...style,
+        opacity: isLoaded ? 1 : 0,
+        transition: 'opacity 0.3s ease-in-out'
+      }}
+    />
+  )
+}
+
+export default function MePage({ onLogout, onPublicProfileChange }: MePageProps) {
+  const [currentView, setCurrentView] = useState<'me' | 'settings' | 'public_profile' | 'customer_service' | 'language'>('me')
+  const [appLang, setAppLang] = useState<LanguageCode>('en')
+  
+  const [showFeedbackPage, setShowFeedbackPage] = useState(false)
+  const [showWallet, setShowWallet] = useState(false)
+  const [walletTab, setWalletTab] = useState<'coins' | 'diamond'>('coins')
+  const [showStore, setShowStore] = useState(false)
+  const [storeInitialView, setStoreInitialView] = useState<'store' | 'bag'>('store')
+  
+  const [showInviteFriends, setShowInviteFriends] = useState(false)
+  const [showFamily, setShowFamily] = useState(false)
+  const [showLevel, setShowLevel] = useState(false)
+  const [showMedal, setShowMedal] = useState(false)
+  const [showSellerCenter, setShowSellerCenter] = useState(false)
+  
+  // New state for FollowList
+  const [showFollowList, setShowFollowList] = useState(false)
+  const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors'>('followers')
+
+  useEffect(() => {
+    if (onPublicProfileChange) {
+      onPublicProfileChange(
+        currentView !== 'me' || 
+        showFeedbackPage || 
+        showWallet || 
+        showStore ||
+        showInviteFriends ||
+        showFamily ||
+        showLevel ||
+        showMedal ||
+        showSellerCenter ||
+        showFollowList
+      )
+    }
+  }, [showFeedbackPage, currentView, showWallet, showStore, showInviteFriends, showFamily, showLevel, showMedal, showSellerCenter, showFollowList])
+  
+  const [selectedType, setSelectedType] = useState<string>('')
+  const [problemDescription, setProblemDescription] = useState('')
+  const [contactInfo, setContactInfo] = useState('')
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false)
+  const [feedbackError, setFeedbackError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const savedLang = localStorage.getItem('appLanguage') as LanguageCode
+    if (savedLang) {
+      setAppLang(savedLang)
+    }
+
+    const handleLangChange = (e: CustomEvent) => {
+      if (e.detail && e.detail.lang) {
+        setAppLang(e.detail.lang)
+      }
+    }
+
+    window.addEventListener('languageChange', handleLangChange as EventListener)
+    return () => window.removeEventListener('languageChange', handleLangChange as EventListener)
+  }, [])
+
+  const t = getTranslation(appLang)
+
+  const [user, setUser] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { name: "", uid: "", accountNumber: "", displayAccountNumber: "", phone: "", photo: "" }
+    }
+    const uid = localStorage.getItem("userUID") || localStorage.getItem("userPhone") || localStorage.getItem("userId") || ""
+    const localName = localStorage.getItem("userName")
+    const validName = isValidName(localName) ? localName! : ""
+    const acc = localStorage.getItem("accountNumber") || (uid ? getOrCreateAccountNumber(uid).fullAccNum : "")
+    const photo = localStorage.getItem("userPhoto") || ""
+    const phone = localStorage.getItem("userPhone") || ""
+
+    return {
+      name: validName,
+      uid: uid,
+      accountNumber: acc,
+      displayAccountNumber: acc,
+      phone: phone,
+      photo: photo,
+    }
+  })
+
+  useEffect(() => {
+    const syncLocalInterval = setInterval(() => {
+      const currentStoredName = localStorage.getItem("userName") || "";
+      const currentStoredPhoto = localStorage.getItem("userPhoto") || "";
+      
+      setUser(prev => {
+        if (prev.name !== currentStoredName || prev.photo !== currentStoredPhoto) {
+          return {
+            ...prev,
+            name: isValidName(currentStoredName) ? currentStoredName : prev.name,
+            photo: currentStoredPhoto || prev.photo
+          };
+        }
+        return prev;
+      });
+    }, 500);
+
+    return () => clearInterval(syncLocalInterval);
+  }, []);
+
+  const switchView = (view: 'me' | 'settings' | 'public_profile' | 'customer_service' | 'language') => {
+    setCurrentView(view)
+    if (onPublicProfileChange) {
+      onPublicProfileChange(
+        view !== 'me' || 
+        showFeedbackPage || 
+        showWallet || 
+        showStore || 
+        showInviteFriends || 
+        showFamily || 
+        showLevel || 
+        showMedal ||
+        showSellerCenter ||
+        showFollowList
+      )
+    }
+  }
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFeedbackError(null);
+
+    if (!selectedType) {
+      setFeedbackError("Please select a type of issue");
+      return;
+    }
+    if (!problemDescription.trim()) {
+      setFeedbackError("Please describe your problem");
+      return;
+    }
+    if (!contactInfo.trim()) {
+      setFeedbackError("Please enter your contact information");
+      return;
+    }
+
+    setFeedbackSubmitting(true);
+
+    const feedbackData = {
+      type: selectedType,
+      typeLabel: FEEDBACK_TYPES.find(t => t.id === selectedType)?.label || selectedType,
+      description: problemDescription.trim(),
+      contactInfo: contactInfo.trim(),
+      createdAt: new Date().toISOString(),
+      timestamp: Date.now(),
+      status: 'pending'
     };
-  }, [currentUserUid]);
 
-  // ---------- Helpers ----------
-  const formatTime = (timestamp: number) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    if (days === 1) return 'Yesterday';
-    return date.toLocaleDateString();
-  };
-
-  const handleOpenFixedChat = (chat: FixedChat) => {
-    setActiveChat({ uid: chat.uid, name: chat.name, photo: chat.image });
-  };
-
-  const handleOpenDynamicChat = async (chat: ChatPreview) => {
-    setActiveChat({ uid: chat.otherUser.uid, name: chat.otherUser.name, photo: chat.otherUser.photo });
     try {
-      // Dummy logic update for unread if needed
+      await saveFeedback(feedbackData);
+      await saveFeedbackToDB(feedbackData);
+      
+      setFeedbackSuccess(true);
+      setSelectedType('');
+      setProblemDescription('');
+      setContactInfo('');
+      
+      setTimeout(() => {
+        setShowFeedbackPage(false);
+        setFeedbackSuccess(false);
+      }, 2000);
+
     } catch (error) {
-      console.error('Failed to reset unread count:', error);
+      console.error("Error submitting feedback to Google Sheets:", error);
+      try {
+        await saveFeedbackToDB(feedbackData);
+        setFeedbackSuccess(true);
+        setSelectedType('');
+        setProblemDescription('');
+        setContactInfo('');
+        
+        setTimeout(() => {
+          setShowFeedbackPage(false);
+          setFeedbackSuccess(false);
+        }, 2000);
+      } catch (dbError) {
+        setFeedbackError("Failed to submit feedback. Please try again.");
+      }
+    } finally {
+      setFeedbackSubmitting(false);
     }
   };
 
-  const handleCloseChat = () => {
-    setActiveChat(null);
-  };
-
-  // ---------- Notify parent about chat open state ----------
   useEffect(() => {
-    if (onChatOpen) onChatOpen(!!activeChat);
-  }, [activeChat, onChatOpen]);
+    const fetchUserData = async () => {
+      try {
+        const uid = localStorage.getItem("userUID") || 
+                    localStorage.getItem("userPhone") || 
+                    localStorage.getItem("userId") || 
+                    "";
 
-  return (
-    <div className="w-full min-h-screen bg-white">
-      {/* Header with Top Friends and pipe | */}
-      <div
-        className="px-4 pb-2 flex items-center justify-between sticky top-0 z-10 safe-top"
-        style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-          paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <h1 className="text-3xl font-bold text-gray-800">Message</h1>
-          <span className="text-xl font-medium text-gray-500">|</span>
-          <h2 className="text-xl font-semibold text-gray-700">Top Friends</h2>
+        if (!uid || uid === "N/A") return;
+
+        const cachedUser = await loadUserFromDB(uid);
+        if (cachedUser && (isValidName(cachedUser.name) || cachedUser.accountNumber || cachedUser.photo)) {
+          const localStoredName = localStorage.getItem("userName");
+          const finalName = isValidName(localStoredName) ? localStoredName! : (isValidName(cachedUser.name) ? cachedUser.name : "");
+          const finalPhoto = localStorage.getItem("userPhoto") || cachedUser.photo || "";
+
+          const lockedData = {
+            ...cachedUser,
+            name: finalName,
+            photo: finalPhoto,
+            accountNumber: cachedUser.accountNumber || localStorage.getItem("accountNumber") || getOrCreateAccountNumber(uid).fullAccNum,
+            displayAccountNumber: cachedUser.accountNumber || localStorage.getItem("accountNumber") || getOrCreateAccountNumber(uid).fullAccNum,
+          };
+          setUser(lockedData);
+          return;
+        }
+
+        try {
+          const res = await getUser(uid);
+          const sheetData = res && (res.user || res.data || res);
+          
+          let resolvedName = localStorage.getItem("userName") || "";
+          let photo = localStorage.getItem("userPhoto") || "";
+          let phone = localStorage.getItem("userPhone") || "";
+          let accNum = localStorage.getItem("accountNumber") || "";
+
+          if (sheetData && (sheetData.id || sheetData.AppLongId || sheetData['App long ID'] || sheetData.Name || sheetData.name)) {
+            const sName = sheetData.name || sheetData.Name;
+            const sPhoto = sheetData.photo || sheetData.avatar || sheetData.Avtar || sheetData.image;
+            const sAcc = sheetData.accountId || sheetData.accountNumber || sheetData['Account Number'];
+            if (isValidName(sName) && !isValidName(resolvedName)) resolvedName = sName;
+            if (sPhoto && !photo) photo = sPhoto;
+            if (sAcc && !accNum) accNum = String(sAcc);
+          }
+
+          if (!accNum) {
+            accNum = getOrCreateAccountNumber(uid).fullAccNum;
+          }
+
+          const finalLockedUser = {
+            name: isValidName(resolvedName) ? resolvedName : "",
+            uid: uid,
+            accountNumber: accNum,
+            displayAccountNumber: accNum,
+            phone: phone,
+            photo: photo,
+          };
+
+          await saveUserToDB(finalLockedUser);
+          if (isValidName(finalLockedUser.name)) localStorage.setItem("userName", finalLockedUser.name);
+          if (accNum) localStorage.setItem("accountNumber", accNum);
+          if (photo) localStorage.setItem("userPhoto", photo);
+
+          setUser(finalLockedUser);
+        } catch (sheetError) {
+          console.warn('Google Sheets user fetch error:', sheetError);
+        }
+      } catch (error) {
+        console.error('Error locking user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const handleCopyAccountNumber = () => {
+    if (user.displayAccountNumber) {
+      navigator.clipboard.writeText(user.displayAccountNumber)
+      alert("ID Copied to clipboard!")
+    }
+  }
+
+  const isSpecialUID = user.uid === 'HUSxSvQnabgU029dWYt1TUV04hd2' || user.uid === 'ADqW31RGBMaosOzy0HiqexKSD7h1'
+
+  // Early returns - FollowList check first
+  if (showFollowList) {
+    return <FollowList 
+      onBack={() => setShowFollowList(false)} 
+      type={followListType} 
+    />
+  }
+
+  if (showInviteFriends) return <InviteFriends onBack={() => setShowInviteFriends(false)} />
+  if (showFamily) return <Family onBack={() => setShowFamily(false)} />
+  if (showLevel) return <Level onBack={() => setShowLevel(false)} />
+  if (showMedal) return <Medal onBack={() => setShowMedal(false)} />
+  if (showWallet) return <Wallet onBack={() => setShowWallet(false)} initialTab={walletTab} />
+  if (showStore) return <StorePage onBack={() => setShowStore(false)} initialView={storeInitialView} />
+  if (showSellerCenter) return <SellerCenter onBack={() => setShowSellerCenter(false)} />
+
+  if (showFeedbackPage) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col pb-[8vh]">
+        <div
+          className="flex items-center p-4 bg-white safe-top"
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 16px) + 12px)' }}
+        >
+          <button
+            onClick={() => {
+              setShowFeedbackPage(false);
+              setFeedbackSuccess(false);
+              setFeedbackError(null);
+              setSelectedType('');
+              setProblemDescription('');
+              setContactInfo('');
+            }}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={24} className="text-gray-700" />
+          </button>
+          <h1 className="text-lg font-semibold text-gray-900 ml-3">{t.helpFeedback}</h1>
+        </div>
+
+        <div className="flex-1 p-4 overflow-y-auto">
+          <div className="max-w-md mx-auto">
+            {feedbackSuccess ? (
+              <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
+                <div className="text-4xl mb-4">✅</div>
+                <h2 className="text-xl font-bold text-green-700 mb-2">Thank You!</h2>
+                <p className="text-green-600">Your feedback has been submitted successfully.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleFeedbackSubmit} className="space-y-6">
+                <div>
+                  <h2 className="text-base font-semibold text-gray-800 mb-3">Type of Issue</h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {FEEDBACK_TYPES.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setSelectedType(type.id)}
+                        className={`p-4 rounded-md border-2 transition-all cursor-pointer ${
+                          selectedType === type.id
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className={`text-sm font-medium ${
+                          selectedType === type.id ? 'text-blue-700' : 'text-gray-700'
+                        }`}>
+                          {type.label}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-base font-semibold text-gray-800 mb-3">Problem Description</h2>
+                  <div className="relative">
+                    <textarea
+                      value={problemDescription}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 400) {
+                          setProblemDescription(e.target.value);
+                        }
+                      }}
+                      placeholder="Describe your issue or suggestion..."
+                      maxLength={400}
+                      rows={5}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white resize-none"
+                    />
+                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                      {problemDescription.length}/400
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-base font-semibold text-gray-800 mb-3">Contact Information</h2>
+                  <input
+                    type="text"
+                    value={contactInfo}
+                    onChange={(e) => setContactInfo(e.target.value)}
+                    placeholder="Enter your email, Gmail or App ID"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white"
+                  />
+                </div>
+
+                {feedbackError && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                    {feedbackError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={feedbackSubmitting}
+                  className="w-2/3 mx-auto block bg-blue-600 text-white font-semibold py-3.5 rounded-full transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-blue-600/20 text-base"
+                >
+                  {feedbackSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Submitting...
+                    </span>
+                  ) : (
+                    'Submit'
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Main content */}
-      <div className="pt-2 pb-24 flex flex-col gap-1">
-        
-        {/* SVIP Image Row (Gap-1.5 margin bottom applied) */}
-        <div className="px-3 mb-1.5">
-          <Image 
-            src="/file_00000000a25081fbb57574619596eed8.png" 
-            alt="SVIP Banner" 
-            width={800} 
-            height={150} 
-            className="w-full h-auto object-contain rounded-md"
-          />
-        </div>
+  if (currentView === 'language') return <LanguagePage onBack={() => switchView('me')} />
+  if (currentView === 'customer_service') return <HurrySupport onBack={() => switchView('me')} />
+  if (currentView === 'settings') return <SettingPage onBack={() => switchView('me')} onLogout={onLogout} />
+  if (currentView === 'public_profile') return <PublicProfile onBack={() => switchView('me')} />
 
-        {/* 1 Row with 2 images (Left and Right) with Gap-1.5 */}
-        <div className="px-3 flex gap-1.5 mb-1.5">
-          <div className="flex-1">
-            <Image 
-              src="/file_00000000f26c81f88083bc494a0f229b.png" 
-              alt="Left Banner" 
-              width={400} 
-              height={150} 
-              className="w-full h-auto object-cover rounded-md"
-            />
-          </div>
-          <div className="flex-1">
-            <Image 
-              src="/file_00000000fe848207abf557a118ff8a5b.png" 
-              alt="Right Banner" 
-              width={400} 
-              height={150} 
-              className="w-full h-auto object-cover rounded-md"
-            />
-          </div>
-        </div>
+  const lockedNameDisplay = isValidName(user.name) 
+    ? user.name 
+    : (user.displayAccountNumber ? user.displayAccountNumber : (user.uid ? user.uid.substring(0, 8) : ''));
 
-        {/* Fixed chats */}
-        {fixedChats.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => handleOpenFixedChat(chat)}
-            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-          >
-            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
-            </div>
-          </div>
-        ))}
+  const lockedAvatarLetter = lockedNameDisplay ? lockedNameDisplay.charAt(0).toUpperCase() : '';
 
-        {/* Dynamic chats from IndexedDB */}
-        {dynamicChats.map((chat) => (
-          <div
-            key={chat.chatId}
-            onClick={() => handleOpenDynamicChat(chat)}
-            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-          >
-            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image
-                src={chat.otherUser.photo || '/default-avatar.png'}
-                alt={chat.otherUser.name}
-                width={56}
-                height={56}
-                className="object-cover"
-              />
+  return (
+    <div className="w-full min-h-screen bg-white pb-24 overflow-y-auto">
+      <div
+        className="px-4 pb-4 relative safe-top"
+        style={{
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
+          paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px) + 24px)'
+        }}
+      >
+        <div className="flex items-start justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative w-20 h-20 ml-3 shrink-0">
+              {user.photo ? (
+                <img
+                  src={user.photo}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-white/60 shadow-sm"
+                  alt="Profile"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              
+              <div className={`w-20 h-20 bg-gray-600 rounded-full flex items-center justify-center text-4xl text-white font-bold border-2 border-white/60 shadow-sm ${user.photo ? 'hidden' : ''}`}>
+                {lockedAvatarLetter}
+              </div>
+              
+              <div className="absolute inset-0 pointer-events-none">
+                <WhiteColorRemovalShader
+                  imageSrc="/1786867564769.png"
+                  threshold={0.85}
+                  className="w-full h-full"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%) scale(1.5)',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                />
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
-              <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-xs text-gray-400">{formatTime(chat.lastTimestamp)}</span>
-              {chat.unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
-                  {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
-                </span>
+
+            <div className="flex flex-col">
+              <h2 className="text-2xl font-bold text-gray-900 mb-0.5">
+                {lockedNameDisplay}
+              </h2>
+
+              <div className="flex items-center gap-1 mt-1">
+                {isSpecialUID ? (
+                  <div className="relative inline-block w-22">
+                    <img
+                      src="/1785138451098~2.jpg"
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-contain rounded-md"
+                    />
+                    <p className="relative text-white font-bold px-3 py-1.5 z-10 text-xs" style={{ paddingLeft: '30px' }}>
+                      {user.accountNumber || user.displayAccountNumber}
+                    </p>
+                  </div>
+                ) : (
+                  (user.displayAccountNumber || user.accountNumber) && (
+                    <p className="text-gray-700 text-xs font-semibold">
+                      ID: {user.displayAccountNumber || user.accountNumber}
+                    </p>
+                  )
+                )}
+
+                {(user.accountNumber || user.displayAccountNumber) && (
+                  <button
+                    onClick={handleCopyAccountNumber}
+                    className="text-gray-600 hover:text-blue-900 transition-colors p-1 cursor-pointer"
+                    title="Copy ID"
+                  >
+                    <Copy size={14} />
+                  </button>
+                )}
+              </div>
+
+              {user.phone && (
+                <p className="text-gray-600 text-xs mt-0.5 font-semibold">
+                  {user.phone}
+                </p>
               )}
             </div>
           </div>
-        ))}
 
-        {/* Empty state */}
-        {!isLoading && dynamicChats.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-sm"></p>
+          <button
+            onClick={() => switchView('public_profile')}
+            className="p-2 hover:bg-white/20 rounded-full transition-colors mt-2 cursor-pointer"
+            title="View Public Profile"
+          >
+            <ChevronRight className="text-gray-700" size={24} />
+          </button>
+        </div>
+
+        {/* Followers, Following, Visitors & Top Friends - Modified slightly smaller with | */}
+        <div className="flex items-center justify-between mb-2 px-2">
+          <div 
+            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setFollowListType('followers');
+              setShowFollowList(true);
+            }}
+          >
+            <div className="text-xl font-bold text-gray-900">1</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.followers}</div>
           </div>
-        )}
+
+          <div className="text-gray-300 text-sm">|</div>
+
+          <div 
+            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setFollowListType('following');
+              setShowFollowList(true);
+            }}
+          >
+            <div className="text-xl font-bold text-gray-900">0</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.following}</div>
+          </div>
+
+          <div className="text-gray-300 text-sm">|</div>
+
+          <div 
+            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setFollowListType('visitors');
+              setShowFollowList(true);
+            }}
+          >
+            <div className="text-xl font-bold text-gray-900">1</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.visitors}</div>
+          </div>
+
+          <div className="text-gray-300 text-sm">|</div>
+
+          <div 
+            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
+          >
+            <div className="text-xl font-bold text-gray-900">0</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">Top Friends</div>
+          </div>
+        </div>
+
+        {/* New SVIP Image Added here with Gap 1.5 */}
+        <div className="mt-1.5 cursor-pointer active:scale-95 transition-transform">
+          <img
+            src="/file_00000000a25081fbb57574619596eed8.png"
+            alt="SVIP Banner"
+            className="w-full h-auto object-cover rounded-lg"
+          />
+        </div>
+
+        {/* New Coins Images with Gap 1.5 */}
+        <div className="flex gap-1.5 mt-1.5 mb-2">
+          <div 
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setWalletTab('coins');
+              setShowWallet(true);
+            }}
+          >
+            <img
+              src="/file_00000000f26c81f88083bc494a0f229b.png"
+              alt="Feature 1"
+              className="w-full h-14 object-cover"
+            />
+          </div>
+          <div 
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setWalletTab('diamond');
+              setShowWallet(true);
+            }}
+          >
+            <img
+              src="/file_00000000fe848207abf557a118ff8a5b.png"
+              alt="Feature 2"
+              className="w-full h-14 object-cover"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Chat Screen Overlay */}
-      {activeChat && (
-        <ChatScreen
-          currentUser={getCurrentUserData()}
-          targetUser={activeChat}
-          onClose={handleCloseChat}
-          onJoinRoom={onJoinRoom}
-          sharedRoomData={sharedRoomData}
-        />
-      )}
-    </div>
-  );
-}
+      {/* Top Menu Cards - bg-gray-50 kiya halka grey ke liye */}
+      <div className="px-4 mt-2">
+        <div className="bg-gray-50 rounded-md overflow-hidden border border-gray-100 shadow-sm">
+          {menuItems.map((item) => (
+            <div 
+              key={item.id}
+              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+              onClick={() => {
+                if (item.id === '1') setShowInviteFriends(true);
+                else if (item.id === '2') setShowFamily(true);
+                else if (item.id === '3') setShowLevel(true);
+                else if (item.id === '4') setShowMedal(true);
+                else if (item.id === '5') {
+                  setStoreInitialView('store');
+                  setShowStore(true);
+                }
+                else if (item.id === '6') {
+                  setStoreInitialView('bag');
+                  setShowStore(true);
+                }
+                else if (item.id === '11') {
+                  setShowSellerCenter(true);
+                }
+              }}
+            >
+              <div className={`flex items-center justify-center shrink-0 ${item.id === '11' ? 'w-10 h-10 -ml-1' : 'w-8 h-8'}`}>
+                <img
+                  src={item.src}
+                  alt={typeof item.labelKey === 'string' && t[item.labelKey as keyof typeof translations['en']] ? t[item.labelKey as keyof typeof translations['en']] : String(item.labelKey)}
+                  className={`w-full h-full object-cover ${item.id === '11' ? 'rounded-md' : ''}`}
+                />
+              </div>
 
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">
+                  {typeof item.labelKey === 'string' && t[item.labelKey as keyof typeof translations['en']] 
+                    ? t[item.labelKey as keyof typeof translations['en']] 
+                    : String(item.labelKey)}
+                </p>
+              </div>
+              {item.action && (
+                <span className="text-sm font-medium text-gray-500">{item.action}</span>
+              )}
+              {item.badge && (
+                <span className="bg-blue-300 text-xs font-bold px-2 py-1 rounded-full text-gray-900">
+                  {item.badge}
+                </span>
+              )}
+              <ChevronRight size={20} className="text-gray-400" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bottom Menu Cards - bg-gray-50 kiya halka grey ke liye */}
+      <div className="px-4 mt-4 mb-8">
+        <div className="bg-gray-50 rounded-md overflow-hidden border border-gray-100 shadow-sm">
+          {bottomMenuItems.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => {
+                if (item.id === '7') switchView('language')
+                if (item.id === '8') switchView('settings')
+                if (item.id === '9') switchView('customer_service')
+                if (item.id === '10') setShowFeedbackPage(true)
+              }}
+              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+            >
+              <div className="w-8 h-8 flex items-center justify-center shrink-0 text-gray-700">
+                {item.icon}
+              </div>
+
+              <div className="flex-1">
+                <p className="font-semibold text-gray-900">
+                  {typeof item.labelKey === 'string' && t[item.labelKey as keyof typeof translations['en']] 
+                    ? t[item.labelKey as keyof typeof translations['en']] 
+                    : String(item.labelKey)}
+                </p>
+              </div>
+              {item.action && (
+                <span className="text-sm font-medium text-gray-500">{item.action}</span>
+              )}
+              {item.badge && (
+                <span className="bg-blue-300 text-xs font-bold px-2 py-1 rounded-full text-gray-900">
+                  {item.badge}
+                </span>
+              )}
+              <ChevronRight size={20} className="text-gray-400" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+  )
+}
