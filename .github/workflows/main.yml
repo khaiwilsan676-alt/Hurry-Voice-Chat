@@ -46,6 +46,10 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 11479570
+          accept-android-sdk-licenses: 'false'
+
+      - name: Accept Android SDK licenses manually
+        run: yes | sdkmanager --licenses || true
 
       - name: Sync Capacitor
         run: |
