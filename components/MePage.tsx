@@ -910,9 +910,9 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        <div className="flex gap-1 mt-3 -mx-2">
+        <div className="flex gap-1 -mt-1 -mx-2">
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            className="flex-1 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
               setWalletTab('coins');
               setShowWallet(true);
@@ -925,7 +925,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             />
           </div>
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            className="flex-1 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
               setWalletTab('diamond');
               setShowWallet(true);
@@ -946,13 +946,13 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_00000000158082118e896234213c6673.png"
             alt="SVIP"
-            className="w-[90%] h-auto object-cover shadow-sm"
+            className="w-[96%] h-auto mx-auto block rounded-none object-cover shadow-sm"
           />
         </div>
         {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
 
       {/* Top Menu Cards */}
-      <div className="px-3 -mt-3">
+      <div className="px-3 -mt-5">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
