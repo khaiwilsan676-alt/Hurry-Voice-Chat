@@ -869,7 +869,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
           <button
             onClick={() => switchView('public_profile')}
-            className="p-2 hover:bg-white/20 rounded-full transition-colors mt-2 cursor-pointer"
+            className="p-2 hover:bg-white/20 rounded-full transition-colors mt-2 cursor-pointer -mr-3"
             title="View Public Profile"
           >
             <ChevronRight className="text-gray-700" size={24} />
@@ -946,7 +946,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_00000000158082118e896234213c6673.png"
             alt="SVIP"
-            className="w-[90%] mx-auto block h-auto object-cover"
+            className="w-[96%] mx-auto block h-auto object-cover"
           />
         </div>
         {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
