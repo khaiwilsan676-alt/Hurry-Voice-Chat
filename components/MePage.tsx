@@ -921,7 +921,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-full h-14 object-cover"
+              className="w-full h-14 object-contain"
             />
           </div>
           <div 
@@ -934,14 +934,24 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-full h-14 object-cover"
+              className="w-full h-14 object-contain"
             />
           </div>
         </div>
       </div>
+      {/*top SVIP Image */ }
+        <div className="mt-4 rounded-lg overflow-hidden">
+          <img
+            src="/file_0000000096208211a44a4d6da7035013.png"
+            alt="Promo Banner"
+            className="w-full h-auto object-cover"
+          />
+        </div>
+      
+
 
       {/* Top Menu Cards */}
-      <div className="px-4 mt-2">
+      <div className="px-3 mt-1">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
