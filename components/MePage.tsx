@@ -876,8 +876,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </button>
         </div>
 
-            {/* Followers, Following, Visitors - All Clickable */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        {/* Followers, Following, Visitors - All Clickable */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div 
             className="text-center cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -910,18 +910,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        {/* 👇 1. SVIP IMAGE YAHAN AA GAYI (Followers ke theek baad) 👇 */}
-        <div className="relative z-30 w-full mb-4">
-          <img
-            src="/file_00000000158082118e896234213c6673.png"
-            alt="SVIP"
-            className="w-[96%] h-auto mx-auto block rounded-lg object-cover shadow-sm"
-          />
-        </div>
-        {/* 👆 SVIP IMAGE YAHAN KHATAM 👆 */}
-
-        {/* 👇 2. COINS & DIAMONDS IMAGE YAHAN AA GAYI 👇 */}
-        <div className="flex gap-1 -mx-2 relative z-20">
+        <div className="flex gap-1 -mt-2 -mx-2">
           <div 
             className="flex-1 rounded-md overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -932,7 +921,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-full h-14 object-cover"
+              className="w-full h-13 object-cover"
             />
           </div>
           <div 
@@ -945,14 +934,25 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-full h-14 object-cover"
+              className="w-full h-13 object-cover"
             />
           </div>
         </div>
-        
-      </div> 
+      </div>
+              
+
+        {/* 👇 BASS YAHAN YEH NAYA CODE ADD KARNA HAI 👇 */}
+        <div className="-mt-14 relative z-30 rounded-none overflow-hidden w-full">
+          <img
+            src="/file_00000000158082118e896234213c6673.png"
+            alt="SVIP"
+            className="w-[96%] mx-auto block rounded-none h-auto object-cover shadow-sm"
+          />
+        </div>
+        {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
+
       {/* Top Menu Cards */}
-      <div className="px-3 -mt-5">
+      <div className="px-3 -mt-6">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
@@ -1047,3 +1047,6 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     </div>
   )
 }
+
+
+
