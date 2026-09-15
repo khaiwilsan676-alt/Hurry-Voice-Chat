@@ -16,7 +16,7 @@ import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
 import { saveFeedback, getUsers } from '../src/lib/googleSheet'
-import FollowList from './followlist' // <--- Import FollowList
+import FollowList from './followlist' 
 
 // ============ IndexedDB Functions for User Data ============
 const USER_DB_NAME = 'UserDataDB';
@@ -378,7 +378,6 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
   const [showMedal, setShowMedal] = useState(false)
   const [showSellerCenter, setShowSellerCenter] = useState(false)
   
-  // New state for FollowList
   const [showFollowList, setShowFollowList] = useState(false)
   const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors'>('followers')
 
@@ -779,11 +778,12 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
   const lockedAvatarLetter = lockedNameDisplay ? lockedNameDisplay.charAt(0).toUpperCase() : '';
 
   return (
-    <div className="w-full min-h-screen bg-white pb-24 overflow-y-auto">
+    <div className="w-full min-h-screen bg-gray-50 pb-24 overflow-y-auto">
+      {/* Profile Header without extra cards inside it */}
       <div
         className="px-4 pb-4 relative safe-top"
         style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #f9fafb 100%)',
           paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px) + 24px)'
         }}
       >
@@ -876,8 +876,15 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </button>
         </div>
 
-        {/* Followers, Following, Visitors & Top Friends - Modified slightly smaller with | */}
-        <div className="flex items-center justify-between mb-2 px-2">
+        {/* Stats Row - Friends | Followers | Following | Visitors */}
+        <div className="flex items-center justify-between mt-2 px-2">
+          <div className="flex-1 text-center cursor-pointer active:scale-95 transition-transform">
+            <div className="text-xl font-bold text-gray-900">0</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">Friends</div>
+          </div>
+          
+          <div className="text-gray-300 text-sm">|</div>
+
           <div 
             className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -886,7 +893,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             }}
           >
             <div className="text-xl font-bold text-gray-900">1</div>
-            <div className="text-[11px] text-gray-600 mt-0.5">{t.followers}</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.followers || 'Followers'}</div>
           </div>
 
           <div className="text-gray-300 text-sm">|</div>
@@ -899,7 +906,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             }}
           >
             <div className="text-xl font-bold text-gray-900">0</div>
-            <div className="text-[11px] text-gray-600 mt-0.5">{t.following}</div>
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.following || 'Following'}</div>
           </div>
 
           <div className="text-gray-300 text-sm">|</div>
@@ -912,66 +919,61 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             }}
           >
             <div className="text-xl font-bold text-gray-900">1</div>
-            <div className="text-[11px] text-gray-600 mt-0.5">{t.visitors}</div>
-          </div>
-
-          <div className="text-gray-300 text-sm">|</div>
-
-          <div 
-            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
-          >
-            <div className="text-xl font-bold text-gray-900">0</div>
-            <div className="text-[11px] text-gray-600 mt-0.5">Top Friends</div>
-          </div>
-        </div>
-
-        {/* New SVIP Image Added here with Gap 1.5 */}
-        <div className="mt-1.5 cursor-pointer active:scale-95 transition-transform">
-          <img
-            src="/file_00000000a25081fbb57574619596eed8.png"
-            alt="SVIP Banner"
-            className="w-full h-auto object-cover rounded-lg"
-          />
-        </div>
-
-        {/* New Coins Images with Gap 1.5 */}
-        <div className="flex gap-1.5 mt-1.5 mb-2">
-          <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
-            onClick={() => {
-              setWalletTab('coins');
-              setShowWallet(true);
-            }}
-          >
-            <img
-              src="/file_00000000f26c81f88083bc494a0f229b.png"
-              alt="Feature 1"
-              className="w-full h-14 object-cover"
-            />
-          </div>
-          <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
-            onClick={() => {
-              setWalletTab('diamond');
-              setShowWallet(true);
-            }}
-          >
-            <img
-              src="/file_00000000fe848207abf557a118ff8a5b.png"
-              alt="Feature 2"
-              className="w-full h-14 object-cover"
-            />
+            <div className="text-[11px] text-gray-600 mt-0.5">{t.visitors || 'Visitors'}</div>
           </div>
         </div>
       </div>
 
-      {/* Top Menu Cards - bg-gray-50 kiya halka grey ke liye */}
+      {/* --- IN IMAGES KO AB KISI BHI CARD KE ANDAR NAHI RAKHA HAI --- */}
+      
+      {/* SVIP Image Direct Body Par */}
+      <div className="px-4 mt-2 cursor-pointer active:scale-95 transition-transform">
+        <img
+          src="/file_00000000a25081fbb57574619596eed8.png"
+          alt="SVIP Banner"
+          className="w-full h-auto object-cover rounded-lg shadow-sm"
+        />
+      </div>
+
+      {/* Coins Images Direct Body Par */}
+      <div className="px-4 flex gap-1.5 mt-2 mb-2">
+        <div 
+          className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform shadow-sm"
+          onClick={() => {
+            setWalletTab('coins');
+            setShowWallet(true);
+          }}
+        >
+          <img
+            src="/file_00000000f26c81f88083bc494a0f229b.png"
+            alt="Feature 1"
+            className="w-full h-14 object-cover"
+          />
+        </div>
+        <div 
+          className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform shadow-sm"
+          onClick={() => {
+            setWalletTab('diamond');
+            setShowWallet(true);
+          }}
+        >
+          <img
+            src="/file_00000000fe848207abf557a118ff8a5b.png"
+            alt="Feature 2"
+            className="w-full h-14 object-cover"
+          />
+        </div>
+      </div>
+
+      {/* --- CARDS KA BACKGROUND WAPAS WHITE HAI --- */}
+
+      {/* Top Menu Cards */}
       <div className="px-4 mt-2">
-        <div className="bg-gray-50 rounded-md overflow-hidden border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
               key={item.id}
-              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => {
                 if (item.id === '1') setShowInviteFriends(true);
                 else if (item.id === '2') setShowFamily(true);
@@ -1019,9 +1021,9 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         </div>
       </div>
 
-      {/* Bottom Menu Cards - bg-gray-50 kiya halka grey ke liye */}
+      {/* Bottom Menu Cards */}
       <div className="px-4 mt-4 mb-8">
-        <div className="bg-gray-50 rounded-md overflow-hidden border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {bottomMenuItems.map((item) => (
             <div
               key={item.id}
@@ -1031,7 +1033,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                 if (item.id === '9') switchView('customer_service')
                 if (item.id === '10') setShowFeedbackPage(true)
               }}
-              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <div className="w-8 h-8 flex items-center justify-center shrink-0 text-gray-700">
                 {item.icon}
@@ -1061,3 +1063,4 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     </div>
   )
 }
+
