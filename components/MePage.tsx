@@ -957,7 +957,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
 
       {/* SVIP Image Direct Body Par (Ab Niche) */}
-      <div className="px-3 -mt-8 mb-6 cursor-pointer active:scale-95 transition-transform">
+      <div className="px-3 -mt-10 mb-6 cursor-pointer active:scale-95 transition-transform">
         <img
           src="/file_00000000a25081fbb57574619596eed8.png"
           alt="SVIP Banner"
