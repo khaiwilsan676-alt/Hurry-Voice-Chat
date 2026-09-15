@@ -122,13 +122,13 @@ interface MePageProps {
 }
 
 const menuItems: MenuItem[] = [
-  { id: '1', labelKey: 'inviteFriends', src: '/1784562849790.png' },
-  { id: '2', labelKey: 'family', src: '/IMG_20260720_142354.png' },
-  { id: '3', labelKey: 'level', src: '/IMG_20260720_211413.png' },
-  { id: '4', labelKey: 'medal', src: '/1784621763019.png' },
-  { id: '5', labelKey: 'store', src: '/IMG_20260720_142332.png' },
-  { id: '6', labelKey: 'bag', src: '/IMG_20260720_142227.png' },
-  { id: '11', labelKey: 'Seller Center', src: '/IMG_20260907_214725.jpg' }
+  { id: '1', labelKey: 'inviteFriends', src: '/IMG_20260915_225333.png' },
+  { id: '2', labelKey: 'family', src: '/IMG_20260915_225349.png' },
+  { id: '3', labelKey: 'level', src: '/IMG_20260915_225404.png' },
+  { id: '4', labelKey: 'medal', src: '/IMG_20260915_225426.png' },
+  { id: '5', labelKey: 'store', src: '/IMG_20260915_225447.png' },
+  { id: '6', labelKey: 'bag', src: '/IMG_20260915_225506.png' },
+  { id: '11', labelKey: 'Seller Center', src: '/IMG_20260915_225536.png' }
 ]
 
 const bottomMenuItems: MenuItem[] = [
