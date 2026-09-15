@@ -16,7 +16,7 @@ import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
 import { saveFeedback, getUsers } from '../src/lib/googleSheet'
-import FollowList from './followlist' // <--- Import FollowList
+import FollowList from './followlist'
 
 // ============ IndexedDB Functions for User Data ============
 const USER_DB_NAME = 'UserDataDB';
@@ -911,7 +911,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         </div>
 
         {/* 1 Row 2 Images Section */}
-        <div className="flex mt-4" style={{ paddingLeft: '1vh', paddingRight: '1vh', gap: '1vh' }}>
+        <div className="flex mt-4 px-3 gap-1">
           <div 
             className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
             onClick={() => {
@@ -942,11 +942,11 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
       
       {/*top SVIP Image - EDGE TO EDGE */}
-        <div className="-mt-5 w-full rounded-none overflow-hidden flex justify-center">
+        <div className="-mt-5 w-full rounded-none overflow-hidden flex justify-center z-30">
           <img
             src="/file_000000000b3881f4bbae79c3de4f068e.png"
             alt="Promo Banner"
-            className="w-full h-auto object-contain block"
+            className="w-full max-h-16 object-contain block"
           />
         </div>
       
