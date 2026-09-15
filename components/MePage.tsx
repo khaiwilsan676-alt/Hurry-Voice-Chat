@@ -927,7 +927,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- IN IMAGES KO KISI BHI CARD KE ANDAR NAHI RAKHA HAI, DIRECT RENDER KIYA HAI --- */}
       
       {/* Coins Images Direct Body Par (Ab Upar) */}
-      <div className="px-3 flex gap-1.5 -mt-10 mb-3">
+      <div className="px-3 flex gap-1.5 -mt-5 mb-3">
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
           onClick={() => {
