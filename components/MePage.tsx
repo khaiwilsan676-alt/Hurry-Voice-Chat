@@ -910,9 +910,10 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        <div className="flex gap-1 mt-4">
+        {/* 1 Row 2 Images Section */}
+        <div className="flex mt-4" style={{ paddingLeft: '1vh', paddingRight: '1vh', gap: '1vh' }}>
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
             onClick={() => {
               setWalletTab('coins');
               setShowWallet(true);
@@ -921,11 +922,11 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-110 h-14 object-contain"
+              className="w-full h-auto object-contain"
             />
           </div>
           <div 
-            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
+            className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
             onClick={() => {
               setWalletTab('diamond');
               setShowWallet(true);
@@ -934,17 +935,18 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-110 h-14 object-contain"
+              className="w-full h-auto object-contain"
             />
           </div>
         </div>
       </div>
-      {/*top SVIP Image */ }
-        <div className="-mt-5 rounded-none overflow-hidden">
+      
+      {/*top SVIP Image - EDGE TO EDGE */}
+        <div className="-mt-5 w-full rounded-none overflow-hidden flex justify-center">
           <img
-            src="/file_0000000096208211a44a4d6da7035013.png"
+            src="/file_000000000b3881f4bbae79c3de4f068e.png"
             alt="Promo Banner"
-            className="w-200 h-14 object-contain"
+            className="w-full h-auto object-contain block"
           />
         </div>
       
