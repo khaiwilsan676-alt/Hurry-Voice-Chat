@@ -877,7 +877,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         </div>
 
         {/* Stats Row - Friends | Followers | Following | Visitors - ab px-3 hai yahan */}
-        <div className="flex items-center justify-between mt-2 px-3">
+        <div className="flex items-center justify-between mt-2 px-0.5">
           <div className="flex-1 text-center cursor-pointer active:scale-95 transition-transform">
             <div className="text-xl font-bold text-gray-900">0</div>
             <div className="text-[11px] text-gray-600 mt-0.5">Friends</div>
@@ -927,7 +927,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- IN IMAGES KO KISI BHI CARD KE ANDAR NAHI RAKHA HAI, DIRECT RENDER KIYA HAI --- */}
       
       {/* SVIP Image Direct Body Par */}
-      <div className="px-4 mt-2 cursor-pointer active:scale-95 transition-transform">
+      <div className="px-3  -mt-10 cursor-pointer active:scale-95 transition-transform">
         <img
           src="/file_00000000a25081fbb57574619596eed8.png"
           alt="SVIP Banner"
@@ -936,7 +936,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
 
       {/* Coins Images Direct Body Par */}
-      <div className="px-4 flex gap-1.5 mt-2 mb-2">
+      <div className="px-3 flex gap-1.5 -mt-7 mb-2">
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
           onClick={() => {
@@ -968,7 +968,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- CARDS KA BACKGROUND WAPAS WHITE HAI (Menu Items) --- */}
 
       {/* Top Menu Cards */}
-      <div className="px-4 mt-2">
+      <div className="px-3 -mt-6">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
