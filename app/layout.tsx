@@ -5,10 +5,10 @@ import StatusBarController from './StatusBarController'
 import BackButtonController from './BackButtonController'
 
 export const metadata: Metadata = {
-  title: 'Hurry Party Voice Chat Rooms',
+  title: 'Hurry',
 
   description:
-    'Hurry Party Voice Chat Rooms – connect with friends, join voice chat rooms, share moments, and discover new people.',
+    'Hurry – connect with friends, join voice chat rooms, share moments, and discover new people.',
 
   robots: {
     index: false,
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: 'Hurry Party Voice Chat Rooms',
+    title: 'Hurry',
     description:
-      'Join Hurry Party Voice Chat Rooms, connect with friends, and discover new people.',
+      'Join Hurry, connect with friends, and discover new people.',
     url: 'https://jb-hm.vercel.app/HurryOfficial',
     siteName: 'Hurry',
     images: [
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
         url: 'https://jb-hm.vercel.app/logo.png',
         width: 550,
         height: 550,
-        alt: 'Hurry Party Voice Chat Rooms',
+        alt: 'Hurry',
       },
     ],
     locale: 'en_US',
@@ -40,9 +40,9 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Hurry Party Voice Chat Rooms',
+    title: 'Hurry',
     description:
-      'Join Hurry Party Voice Chat Rooms, connect with friends, and discover new people.',
+      'Join Hurry, connect with friends, and discover new people.',
     images: ['https://jb-hm.vercel.app/logo.png'],
   },
 }
@@ -73,7 +73,7 @@ export default function RootLayout({
 
         <meta
           name="apple-mobile-web-app-title"
-          content="Hurry Party Voice Chat Rooms"
+          content="Hurry"
         />
 
         <meta
