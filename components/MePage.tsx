@@ -938,7 +938,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_0000000061388211b79e6357da462e90.png"
             alt="Feature 1"
-            className="w-full h-14 object-contain"
+            className="w-full h-14 object-cover"
           />
         </div>
         <div 
@@ -951,7 +951,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_00000000c92482118ec028e0de928fa5.png"
             alt="Feature 2"
-            className="w-full h-14 object-contain"
+            className="w-full h-14 object-cover"
           />
         </div>
       </div>
