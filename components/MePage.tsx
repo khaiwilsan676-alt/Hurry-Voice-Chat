@@ -957,7 +957,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
 
       {/* SVIP Image Direct Body Par (Ab Niche) */}
-      <div className="px-3 -mt-3 mb-6 cursor-pointer active:scale-95 transition-transform">
+      <div className="px-3 -mt-6 mb-6 cursor-pointer active:scale-95 transition-transform">
         <img
           src="/file_00000000a25081fbb57574619596eed8.png"
           alt="SVIP Banner"
@@ -968,7 +968,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       {/* --- CARDS KA BACKGROUND WAPAS WHITE HAI (Menu Items) --- */}
 
       {/* Top Menu Cards */}
-      <div className="px-4 -mt-6">
+      <div className="px-4 -mt-7">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
