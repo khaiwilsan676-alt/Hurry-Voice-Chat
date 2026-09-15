@@ -2633,9 +2633,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
           }}
         >
           <img
-            src="/IMG_20260719_203213.png"
+            src="/IMG_20260916_002115.png"
             alt="Corner decoration"
-            className="rounded-2xl object-cover cursor-pointer hover:scale-105 transition-transform active:scale-95"
+            className="rounded-none object-contain cursor-pointer hover:scale-105 transition-transform active:scale-95"
             style={{
               width: '70px',
               height: '70px',
