@@ -910,7 +910,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           </div>
         </div>
 
-        <div className="flex gap-1.3 mt-3">
+        <div className="flex gap-0.5 mt-4">
           <div 
             className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
             onClick={() => {
@@ -942,7 +942,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               
 
         {/* 👇 BASS YAHAN YEH NAYA CODE ADD KARNA HAI 👇 */}
-        <div className="-mt-3 rounded-lg overflow-hidden w-full">
+        <div className="-mt-7 rounded-lg overflow-hidden w-full">
           <img
             src="/file_00000000158082118e896234213c6673.png"
             alt="SVIP"
@@ -952,7 +952,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
 
       {/* Top Menu Cards */}
-      <div className="px-3 mt-1">
+      <div className="px-3 -mt-1">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
