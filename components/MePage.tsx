@@ -921,7 +921,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-full h-13 object-cover"
+              className="w-full h-13 object-contain"
             />
           </div>
           <div 
@@ -934,7 +934,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-full h-13 object-cover"
+              className="w-full h-13 object-contain"
             />
           </div>
         </div>
@@ -942,7 +942,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               
 
         {/* 👇 BASS YAHAN YEH NAYA CODE ADD KARNA HAI 👇 */}
-        <div className="-mt-14 relative z-30 rounded-none overflow-hidden w-full">
+       <div className="-mt-12 relative z-30 w-full">
           <img
             src="/file_00000000158082118e896234213c6673.png"
             alt="SVIP"
@@ -952,7 +952,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         {/* 👆 NAYA CODE YAHAN KHATAM 👆 */}
 
       {/* Top Menu Cards */}
-      <div className="px-3 -mt-6">
+      <div className="px-3 -mt-4">
         <div className="bg-white rounded-md overflow-hidden shadow-sm">
           {menuItems.map((item) => (
             <div 
