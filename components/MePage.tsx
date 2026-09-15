@@ -911,7 +911,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         </div>
 
         {/* 1 Row 2 Images Section */}
-        <div className="flex mt-4 px-3 gap-1">
+        <div className="flex mt-4 px-3 gap-1.5">
           <div 
             className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform flex items-center justify-center"
             onClick={() => {
@@ -922,7 +922,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-full h-auto object-contain"
+              className="w-full h-14 object-cover"
             />
           </div>
           <div 
@@ -935,20 +935,21 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-full h-auto object-contain"
+              className="w-full h-14 object-cover"
             />
           </div>
         </div>
       </div>
       
-      {/*top SVIP Image - EDGE TO EDGE */}
-        <div className="-mt-5 w-full rounded-none overflow-hidden flex justify-center z-30">
+            {/*top SVIP Image - EDGE TO EDGE */}
+        <div className="-mt-4 w-full relative z-10">
           <img
             src="/file_000000000b3881f4bbae79c3de4f068e.png"
             alt="Promo Banner"
-            className="w-full max-h-16 object-contain block"
+            className="w-full h-14 object-cover object-center block"
           />
         </div>
+
       
 
 
