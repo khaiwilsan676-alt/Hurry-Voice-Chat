@@ -921,7 +921,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480382765~2.jpg"
               alt="Feature 1"
-              className="w-20 h-14 object-contain"
+              className="w-90 h-14 object-contain"
             />
           </div>
           <div 
@@ -934,7 +934,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
             <img
               src="/1784480368941~2.jpg"
               alt="Feature 2"
-              className="w-20 h-14 object-contain"
+              className="w-90 h-14 object-contain"
             />
           </div>
         </div>
@@ -944,7 +944,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
           <img
             src="/file_0000000096208211a44a4d6da7035013.png"
             alt="Promo Banner"
-            className="w-14 h-14 object-contain"
+            className="w-130 h-14 object-contain"
           />
         </div>
       
