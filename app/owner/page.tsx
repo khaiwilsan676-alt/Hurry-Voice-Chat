@@ -13,7 +13,6 @@ import {
   Menu,
   ChevronDown // Added this icon for the arrow
 } from 'lucide-react';
-import { getUser, updateUser, updateRoom, getRooms } from '../../src/lib/googleSheets';
 
 interface UserData {
   id: string;
@@ -81,6 +80,84 @@ const SidebarCategory = ({ icon, title, items, activeItem, setActiveItem, setIsS
   );
 };
 
+const getUserFromMongoDB = async (uid: string) => {
+  const response = await fetch(
+    `/api/users?uid=${encodeURIComponent(uid)}`
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result?.user || null;
+};
+
+const updateUserToMongoDB = async (userData: any) => {
+  const uid = userData.uid || userData.id || userData.appLongId;
+
+  if (!uid) {
+    throw new Error("Missing user uid");
+  }
+
+  const response = await fetch("/api/users", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...userData,
+      uid,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user update failed: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+const getRoomsFromMongoDB = async () => {
+  const response = await fetch("/api/rooms");
+
+  if (!response.ok) {
+    throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return Array.isArray(result?.rooms) ? result.rooms : [];
+};
+
+const updateRoomToMongoDB = async (roomData: any) => {
+  const roomId = roomData.roomId || roomData.id;
+
+  if (!roomId) {
+    throw new Error("Missing roomId");
+  }
+
+  const response = await fetch("/api/rooms", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...roomData,
+      roomId,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`MongoDB room update failed: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export default function OwnerPage() {
   const [activeTab, setActiveTab] = useState('manage_users');
   const [users, setUsers] = useState<UserData[]>([]);
@@ -106,7 +183,7 @@ export default function OwnerPage() {
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        const rawRooms = await getRooms();
+        const rawRooms = await getRoomsFromMongoDB();
         if (Array.isArray(rawRooms)) {
           const fetchedUsers: UserData[] = rawRooms.map((data: any) => {
             const roomId = String(data.ID || data.id || data.roomId || '');
@@ -179,7 +256,7 @@ export default function OwnerPage() {
     setIsTagModalOpen(true);
     setTagSuccess('');
     try {
-      const res = await getUser(user.id);
+      const res = await getUserFromMongoDB(user.id);
       const data = res?.user || res?.data || res;
       const existingTags = [];
       if (data?.adminTag) existingTags.push('adminTag');
@@ -201,8 +278,8 @@ export default function OwnerPage() {
         vipTag: selectedTags.includes('vipTag'),
         premiumTag: selectedTags.includes('premiumTag'),
       };
-      await updateUser(tagUpdate);
-      await updateRoom({ roomId: selectedTagUserData.id, id: selectedTagUserData.id, ...tagUpdate });
+      await updateUserToMongoDB(tagUpdate);
+        await updateRoomToMongoDB({ roomId: selectedTagUserData.id, ...tagUpdate });
       setTagSuccess('Tags updated successfully!');
       setTimeout(() => setIsTagModalOpen(false), 1500);
     } catch (err) {

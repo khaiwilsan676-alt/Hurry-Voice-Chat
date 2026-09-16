@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { updateSession } from "../src/lib/googleSheet"
 import { getTranslation, LanguageCode } from '../lib/translations'
 
 interface SettingPageProps {
@@ -56,10 +55,21 @@ export default function SettingPage({
     if (isOfficialOrAdmin && uid) {
       // Update session to false via Google Sheets API
       try {
-        await updateSession(uid, {
-          isLoggedIn: false,
-          forceLogoutTimestamp: Date.now()
-        });
+          const response = await fetch("/api/users", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              uid,
+              isLoggedIn: false,
+              forceLogoutTimestamp: Date.now(),
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`MongoDB logout update failed: ${response.status}`);
+          }
       } catch (error) {
         console.error("Error updating logout status:", error);
       }

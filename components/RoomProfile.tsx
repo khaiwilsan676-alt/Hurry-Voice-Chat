@@ -10,7 +10,6 @@ import {
   Mic
 } from 'lucide-react'
 import WhiteColorRemovalShader from './WhiteColorRemovalShader'
-import { getUser } from '../src/lib/googleSheets'
 
 // ============ Green Color Removal Shader Component ============
 const GreenColorRemovalShader = ({ 
@@ -254,72 +253,62 @@ export default function RoomProfile({
     premiumTag: false,
   })
 
-  // Fetch tags from Firestore
+  const hasAnyTag =
+    tags.adminTag ||
+    tags.officialTag ||
+    tags.vipTag ||
+    tags.premiumTag
+
+  // Fetch tags from MongoDB
   useEffect(() => {
     const uid = user.uid || user.id || user.accountId
+
     if (!uid || uid === 'N/A' || uid === 'User') return
 
-    let unsubscribe: (() => void) | undefined
+    let cancelled = false
 
     const fetchTags = async () => {
       try {
-        const userDocRef = doc(db, 'users', uid)
-        unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data()
-            setTags({
-              adminTag: data.adminTag || false,
-              officialTag: data.officialTag || false,
-              vipTag: data.vipTag || false,
-              premiumTag: data.premiumTag || false,
-            })
-          } else {
-            // Try globalRooms if not in users
-            const globalRoomRef = doc(db, 'globalRooms', uid)
-            const unsub2 = onSnapshot(globalRoomRef, (roomSnap) => {
-              if (roomSnap.exists()) {
-                const data = roomSnap.data()
-                setTags({
-                  adminTag: data.adminTag || false,
-                  officialTag: data.officialTag || false,
-                  vipTag: data.vipTag || false,
-                  premiumTag: data.premiumTag || false,
-                })
-              } else {
-                // Default to false
-                setTags({
-                  adminTag: false,
-                  officialTag: false,
-                  vipTag: false,
-                  premiumTag: false,
-                })
-              }
-            })
-            return () => unsub2()
-          }
-        })
+        const response = await fetch(
+          `/api/users?uid=${encodeURIComponent(uid)}`
+        )
+
+        if (!response.ok) {
+          throw new Error(`MongoDB user fetch failed: ${response.status}`)
+        }
+
+        const result = await response.json()
+        const data = result?.user
+
+        if (!cancelled && data) {
+          setTags({
+            adminTag: data.adminTag || false,
+            officialTag: data.officialTag || false,
+            vipTag: data.vipTag || false,
+            premiumTag: data.premiumTag || false,
+          })
+        }
       } catch (err) {
-        console.warn('Error fetching tags in RoomProfile:', err)
-        setTags({
-          adminTag: false,
-          officialTag: false,
-          vipTag: false,
-          premiumTag: false,
-        })
+        console.warn('Error fetching tags from MongoDB:', err)
+
+        if (!cancelled) {
+          setTags({
+            adminTag: false,
+            officialTag: false,
+            vipTag: false,
+            premiumTag: false,
+          })
+        }
       }
     }
 
     fetchTags()
 
     return () => {
-      if (unsubscribe) unsubscribe()
+      cancelled = true
     }
   }, [user.uid, user.id, user.accountId])
 
-  // Check if any tags are assigned
-  const hasAnyTag = tags.adminTag || tags.officialTag || tags.vipTag || tags.premiumTag
-
-  // Get user ID correctly
   const getUserId = () => {
     const possibleIds = [
       user.accountId,

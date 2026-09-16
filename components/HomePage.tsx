@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { getRooms, getRoom, createRoom, getMessages, saveUser } from "../src/lib/googleSheets"
 
 import MessagePage from './MessagePage'
 import MePage from './MePage';
@@ -12,6 +11,125 @@ import { generateStableId } from '../lib/hash'
 import { translations, getTranslation, LanguageCode } from '../lib/translations'
 import DailyCheckInModal from '../components/DailyCheckInModal'
 import InviteFriends from './InviteFriends'
+
+// ============ MONGODB / INDEXEDDB DATA HELPERS ============
+
+const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
+  const response = await fetch("/api/rooms");
+
+  if (!response.ok) {
+    throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return Array.isArray(result?.rooms) ? result.rooms : [];
+};
+
+const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
+  if (!roomId) return null;
+
+  const response = await fetch(
+    `/api/rooms?roomId=${encodeURIComponent(roomId)}`
+  );
+
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error(`MongoDB room fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result?.room || null;
+};
+
+const saveRoomToMongoDB = async (roomData: any) => {
+  const response = await fetch("/api/rooms", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(roomData),
+  });
+
+  if (!response.ok) {
+    throw new Error(`MongoDB room save failed: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+const saveUserToMongoDB = async (userData: any) => {
+  const uid = userData.uid || userData.id || userData.appLongId;
+
+  if (!uid) {
+    throw new Error("Missing user uid");
+  }
+
+  const response = await fetch("/api/users", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...userData,
+      uid,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user save failed: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+const loadHomeMessagesFromDB = async (userUID: string): Promise<any[]> => {
+  if (!userUID) return [];
+
+  try {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("ChatMessagesDB", 1);
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+
+      request.onupgradeneeded = () => {
+        const database = request.result;
+
+        if (!database.objectStoreNames.contains("messages")) {
+          const store = database.createObjectStore("messages", {
+            keyPath: "id",
+          });
+
+          store.createIndex("chatId", "chatId", {
+            unique: false,
+          });
+
+          store.createIndex("timestamp", "timestamp", {
+            unique: false,
+          });
+        }
+      };
+    });
+
+    const transaction = db.transaction(["messages"], "readonly");
+    const store = transaction.objectStore("messages");
+
+    const messages = await new Promise<any[]>((resolve, reject) => {
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+
+    db.close();
+
+    return messages;
+  } catch (error) {
+    console.error("❌ Home messages IndexedDB load error:", error);
+    return [];
+  }
+};
+
 
 // ============ INDEXEDDB FUNCTIONS ============
 const DB_NAME = 'HurryAppDB';
@@ -783,7 +901,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
     let isMounted = true;
     const fetchUnread = async () => {
-      const messages = await getMessages(userUID);
+      const messages = await loadHomeMessagesFromDB(userUID);
       if (!isMounted) return;
       if (Array.isArray(messages)) {
         let count = 0;
@@ -983,7 +1101,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     });
 
     const loadRooms = async () => {
-      const rawRooms = await getRooms();
+      const rawRooms = await fetchAllRoomsFromMongoDB();
       if (!isMounted) return;
       if (Array.isArray(rawRooms)) {
         const rooms: GlobalRoom[] = rawRooms.map((data: any) => {
@@ -1029,7 +1147,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     const fetchRoomsWithTimeout = async () => {
       try {
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
-        const res: any = await Promise.race([getRooms(), timeoutPromise]);
+        const res: any = await Promise.race([fetchAllRoomsFromMongoDB(), timeoutPromise]);
         if (res && res.rooms && Array.isArray(res.rooms)) {
           const validRooms = res.rooms.filter((room: any) =>
             room &&
@@ -1578,7 +1696,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     };
 
     try {
-      await createRoom({
+      await saveRoomToMongoDB({
         roomId: userUID,
         id: userUID,
         roomName: userName || defaultRoomName,
@@ -1589,7 +1707,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         theme: 'default'
       });
 
-      await saveUser({
+      await saveUserToMongoDB({
         id: userUID,
         appLongId: userUID,
         name: userName || defaultRoomName,
@@ -1627,8 +1745,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     const currentAccountId = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
 
     try {
-      const res = await getRoom(user.id || user.accountId || '');
-      const roomData = res && (res.room || res.data || res);
+      const roomData = await fetchRoomFromMongoDB(user.id || user.accountId || '');
       if (roomData) {
         if (roomData.isLocked && (roomData['Room Admin'] || roomData.accountId) !== currentAccountId) {
           setSelectedLockedRoom(user)
@@ -1661,8 +1778,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const handleRoomPasswordSubmit = async () => {
     if (!selectedLockedRoom) return;
     try {
-      const res = await getRoom(selectedLockedRoom.id || selectedLockedRoom.accountId || '');
-      const roomData = res && (res.room || res.data || res);
+      const roomData = await fetchRoomFromMongoDB(selectedLockedRoom.id || selectedLockedRoom.accountId || '');
       if (roomData) {
         if (roomData.isLocked && roomData.roomPassword === enteredRoomPassword) {
           setShowRoomPasswordCard(false)
@@ -1733,8 +1849,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   // ============ JOIN ROOM FROM CHAT ============
   const handleJoinRoomFromChat = async (roomId: string) => {
     try {
-      const res = await getRoom(roomId);
-      const roomData = res && (res.room || res.data || res);
+      const roomData = await fetchRoomFromMongoDB(roomId);
       if (roomData) {
         handleUserCardClick({
           id: roomData.ID || roomData.id || roomId,

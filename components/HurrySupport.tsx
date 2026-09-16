@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Send } from "lucide-react";
-import { saveAiChat, getAiChat } from "../src/lib/googleSheets";
 
 interface HurrySupportProps {
   onBack?: () => void;
@@ -38,61 +37,131 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
     }
   }, []);
 
-  // Load existing chat or create welcome message
+  // Load existing support chat from IndexedDB
   useEffect(() => {
     if (!userId || chatLoadedRef.current) return;
 
+    const DB_NAME = "HurrySupportDB";
+    const STORE_NAME = "supportChats";
+
+    const openSupportDB = (): Promise<IDBDatabase> => {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+
+        request.onupgradeneeded = () => {
+          const db = request.result;
+
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: "userId" });
+          }
+        };
+      });
+    };
+
     const loadOrCreateChat = async () => {
       try {
-        const res = await getAiChat(userId);
-        const data = res && (res.chat || res.data || res);
-        
-        if (data && data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
-          setMessages(data.messages);
+        const db = await openSupportDB();
+        const transaction = db.transaction([STORE_NAME], "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+
+        const cachedChat = await new Promise<any>((resolve, reject) => {
+          const request = store.get(userId);
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+
+        db.close();
+
+        if (
+          cachedChat &&
+          Array.isArray(cachedChat.messages) &&
+          cachedChat.messages.length > 0
+        ) {
+          setMessages(cachedChat.messages);
         } else {
           const welcomeMessage: MessageType = {
-            text: "Welcome to Hurry Support 👋\n\nI am Daisy, your Official Customer Support Assistant.\n\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
+            text: "Welcome to Hurry Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
             isBot: true,
             timestamp: Date.now()
           };
+
           setMessages([welcomeMessage]);
-          await saveAiChat({
+
+          const saveDB = await openSupportDB();
+          const writeTransaction = saveDB.transaction(
+            [STORE_NAME],
+            "readwrite"
+          );
+          const writeStore = writeTransaction.objectStore(STORE_NAME);
+
+          writeStore.put({
             userId,
             userName,
             userEmail,
             messages: [welcomeMessage],
             timestamp: Date.now()
           });
+
+          saveDB.close();
         }
+
         chatLoadedRef.current = true;
       } catch (error) {
-        console.error("Error loading/creating chat:", error);
+        console.error("Error loading support chat from IndexedDB:", error);
+
         const welcomeMessage: MessageType = {
-          text: "Welcome to Hurry Support 👋\n\nI am Daisy, your Official Customer Support Assistant.\n\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
+          text: "Welcome to Hurry Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
           isBot: true,
           timestamp: Date.now()
         };
+
         setMessages([welcomeMessage]);
+        chatLoadedRef.current = true;
       }
     };
 
     loadOrCreateChat();
   }, [userId, userName, userEmail]);
 
-  // Save messages to Google Sheets
-  const saveChatToGoogleSheets = async (updatedMessages: Array<MessageType>) => {
+  // Save support chat to IndexedDB
+  const saveChatToIndexedDB = async (updatedMessages: Array<MessageType>) => {
     if (!userId) return;
-    
+
     try {
-      await saveAiChat({
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open("HurrySupportDB", 1);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+
+        request.onupgradeneeded = () => {
+          const database = request.result;
+
+          if (!database.objectStoreNames.contains("supportChats")) {
+            database.createObjectStore("supportChats", {
+              keyPath: "userId"
+            });
+          }
+        };
+      });
+
+      const transaction = db.transaction(["supportChats"], "readwrite");
+      const store = transaction.objectStore("supportChats");
+
+      store.put({
         userId,
         userName,
         userEmail,
         messages: updatedMessages,
         timestamp: Date.now()
       });
+
+      db.close();
     } catch (error) {
-      console.error("Error saving AI chat:", error);
+      console.error("Error saving support chat to IndexedDB:", error);
     }
   };
 
@@ -414,7 +483,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
     setMessage("");
     setIsTyping(true);
 
-    saveChatToGoogleSheets(updatedMessages);
+    saveChatToIndexedDB(updatedMessages);
 
     setTimeout(() => {
       const botResponse = generateBotResponse(userMessage.text || "");
@@ -424,7 +493,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
       setMessages(finalMessages);
       setIsTyping(false);
       
-      saveChatToGoogleSheets(finalMessages);
+      saveChatToIndexedDB(finalMessages);
     }, 1000);
   };
 

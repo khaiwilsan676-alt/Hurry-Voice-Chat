@@ -13,7 +13,7 @@ import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import { generateStableId } from '../lib/hash';
-import { getRoom, updateRoom, getRoomMembers, joinRoom, leaveRoom, sendRoomMessage, getRoomMessages } from "../src/lib/googleSheets";
+import socket from "../src/lib/socket";
 
 // LiveKit imports for Voice Audio
 import { 
@@ -88,6 +88,36 @@ const THEME_BACKGROUNDS: { [key: string]: string } = {
   'forest-night': '/1784875884052~2.jpg',
   'mood-light': '/1784533036732~2.jpg',
 };
+
+const ROOM_MESSAGES_DB_NAME = "RoomMessagesDB";
+const ROOM_MESSAGES_STORE = "messages";
+
+const openRoomMessagesDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(ROOM_MESSAGES_DB_NAME, 1);
+
+    request.onerror = () => reject(request.error);
+
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+
+      if (!db.objectStoreNames.contains(ROOM_MESSAGES_STORE)) {
+        const store = db.createObjectStore(ROOM_MESSAGES_STORE, {
+          keyPath: "id",
+        });
+
+        store.createIndex("roomId", "roomId", {
+          unique: false,
+        });
+
+        store.createIndex("timestamp", "timestamp", {
+          unique: false,
+        });
+      }
+    };
+  });
 
 export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle }: RoomPageProps) {
   const [livekitToken, setLivekitToken] = useState<string>("");
@@ -356,39 +386,70 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
   useEffect(() => {
     const fetchRoomData = async () => {
-      if (roomId) {
-        try {
-          const res = await getRoom(roomId);
-          const data = res && (res.room || res.data || res);
-          if (data) {
-            setRoomName(data['Room Name'] || data.name || "");
-            setRoomAnnouncement(data.message || data.announcement || "");
-            setRoomImage(data['Room dp'] || data.image || roomOwner.image);
-            if (data['Mic Mode'] || data.micMode) {
-              setMicMode(Number(data['Mic Mode'] || data.micMode));
-            }
-            if (data.theme && THEME_BACKGROUNDS[data.theme]) {
-              setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
-            } else {
-              setBackgroundImage('/1784533036732~2.jpg');
-            }
+      if (!roomId) return;
+
+      try {
+        const res = await fetch(
+          `/api/rooms?roomId=${encodeURIComponent(roomId)}`
+        );
+
+        if (!res.ok) return;
+
+        const result = await res.json();
+        const data = result?.room;
+
+        if (data) {
+          setRoomName(data.roomName || data["Room Name"] || data.name || "");
+          setRoomAnnouncement(data.message || data.announcement || "");
+          setRoomImage(
+            data.roomDp || data["Room dp"] || data.image || roomOwner.image
+          );
+
+          if (data.micMode || data["Mic Mode"]) {
+            setMicMode(Number(data.micMode || data["Mic Mode"]));
           }
-        } catch (err) {
-          console.error("Error loading room data:", err);
+
+          if (data.theme && THEME_BACKGROUNDS[data.theme]) {
+            setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+          } else {
+            setBackgroundImage("/1784533036732~2.jpg");
+          }
+
+          if (data.isLocked !== undefined) {
+            setIsLocked(Boolean(data.isLocked));
+          }
+
+          if (data.roomPassword !== undefined) {
+            setRoomPassword(data.roomPassword || "");
+          }
         }
+      } catch (err) {
+        console.error("Error loading room data:", err);
       }
     };
+
     fetchRoomData();
   }, [roomId, roomOwner.image]);
 
   useEffect(() => {
     setSeats(prev => {
       const newSeats = getInitialSeats(micMode);
+
       return newSeats.map(newSeat => {
         const oldSeat = prev.find(s => s.number === newSeat.number);
+
         if (oldSeat && oldSeat.isOccupied) {
-          return { ...newSeat, isOccupied: oldSeat.isOccupied, user: oldSeat.user, isMuted: oldSeat.isMuted, isSpeaking: oldSeat.isSpeaking, isLocked: oldSeat.isLocked, gif: oldSeat.gif };
+          return {
+            ...newSeat,
+            isOccupied: oldSeat.isOccupied,
+            user: oldSeat.user,
+            isMuted: oldSeat.isMuted,
+            isSpeaking: oldSeat.isSpeaking,
+            isLocked: oldSeat.isLocked,
+            gif: oldSeat.gif,
+          };
         }
+
         return newSeat;
       });
     });
@@ -404,88 +465,230 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   useEffect(() => {
     if (!roomId) return;
 
-    let isMounted = true;
+    let cancelled = false;
 
-    const fetchRoomState = async () => {
-      try {
-        const membersData = await getRoomMembers(roomId);
-        if (isMounted && Array.isArray(membersData)) {
-          const users: RoomUser[] = membersData.map((m: any) => ({
-            accountId: m.userId || m.appLongId || m.accountId || '',
-            name: m.name || m.userName || 'User',
-            image: m.dp || m.avatar || m.image || '/default-avatar.png'
-          }));
-          setRoomUsers(users);
-        }
+        const openDB_UNUSED = (): Promise<IDBDatabase> =>
+      new Promise((resolve, reject) => {
+        const request = indexedDB.open(ROOM_MESSAGES_DB_NAME, 1);
 
-        const roomMsgs = await getRoomMessages(roomId);
-        if (isMounted && Array.isArray(roomMsgs)) {
-          const msgs = roomMsgs
-            .map((data: any) => ({
-              id: String(data.id || data.timestamp || Date.now()),
-              text: data.text || data.chat || '',
-              sender: data.senderName || data.name || 'Unknown',
-              senderImage: data.senderAvatar || data.dp || '/default-avatar.png',
-              senderAccountId: data.senderId || '',
-              timestamp: Number(data.createdAt || data.timestamp || Date.now()),
-              type: data.type || 'message',
-              imageUrl: data.imageUrl || undefined
-            } as Message))
-            .filter(msg => {
-              if (clearedAtRef.current && msg.timestamp <= clearedAtRef.current) return false;
-              if (msg.timestamp < joinedAtRef.current) return false;
-              return true;
+        request.onerror = () => reject(request.error);
+
+        request.onsuccess = () => resolve(request.result);
+
+        request.onupgradeneeded = () => {
+          const db = request.result;
+
+          if (!db.objectStoreNames.contains(ROOM_MESSAGES_STORE)) {
+            const store = db.createObjectStore(ROOM_MESSAGES_STORE, {
+              keyPath: "id",
             });
-          setMessages(msgs);
-        }
+
+            store.createIndex("roomId", "roomId", {
+              unique: false,
+            });
+
+            store.createIndex("timestamp", "timestamp", {
+              unique: false,
+            });
+          }
+        };
+      });
+
+    const loadMessages = async () => {
+      try {
+        const db = await openRoomMessagesDB();
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readonly");
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        const index = store.index("roomId");
+
+        const stored = await new Promise<any[]>((resolve, reject) => {
+          const request = index.getAll(roomId);
+
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error);
+        });
+
+        db.close();
+
+        if (cancelled) return;
+
+        const msgs = stored
+          .map(data => ({
+            id: String(data.id),
+            text: data.text || "",
+            sender: data.sender || "Unknown",
+            senderImage:
+              data.senderImage || "/default-avatar.png",
+            senderAccountId: data.senderAccountId || "",
+            timestamp: Number(data.timestamp || Date.now()),
+            type: data.type || "message",
+            imageUrl: data.imageUrl || undefined,
+          } as Message))
+          .filter(msg => {
+            if (
+              clearedAtRef.current &&
+              msg.timestamp <= clearedAtRef.current
+            ) {
+              return false;
+            }
+
+            return true;
+          })
+          .sort((a, b) => a.timestamp - b.timestamp);
+
+        setMessages(msgs);
       } catch (err) {
-        console.error("Error polling room state:", err);
+        console.error("IndexedDB room messages load error:", err);
       }
     };
 
-    fetchRoomState();
-    const interval = setInterval(fetchRoomState, 4000);
+    loadMessages();
 
     return () => {
-      isMounted = false;
-      clearInterval(interval);
+      cancelled = true;
     };
   }, [roomId]);
 
   useEffect(() => {
-    if (userAccountId === "guest" || !roomId) return;
+    if (!roomId || userAccountId === "guest") return;
 
-    joinRoom({
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    const currentRoomUser: RoomUser = {
+      accountId: userAccountId,
+      name: currentUser.name || "User",
+      image: currentUser.image || "/default-avatar.png",
+    };
+
+    const handleRoomUserOnline = (data: any) => {
+      if (!data || data.roomId !== roomId || !data.userId) return;
+
+      setRoomUsers(prev => {
+        if (prev.some(u => u.accountId === data.userId)) {
+          return prev;
+        }
+
+        if (data.user) {
+          return [...prev, data.user as RoomUser];
+        }
+
+        return prev;
+      });
+    };
+
+    const handleRoomUserOffline = (data: any) => {
+      if (!data || data.roomId !== roomId) return;
+
+      setRoomUsers(prev =>
+        prev.filter(u => u.accountId !== data.userId)
+      );
+    };
+
+    const handleRoomMessage = async (data: any) => {
+      if (!data || data.roomId !== roomId) return;
+
+      const incoming: Message = {
+        id: String(
+          data.id ||
+          `${data.senderId || "user"}-${data.createdAt || Date.now()}`
+        ),
+        text: data.text || "",
+        sender: data.senderName || "Unknown",
+        senderImage:
+          data.senderAvatar || "/default-avatar.png",
+        senderAccountId: data.senderId || "",
+        timestamp: Number(data.createdAt || Date.now()),
+        type: data.type || "message",
+        imageUrl: data.imageUrl || undefined,
+      };
+
+      setMessages(prev => {
+        if (prev.some(msg => msg.id === incoming.id)) {
+          return prev;
+        }
+
+        return [...prev, incoming];
+      });
+
+      try {
+        const db = await openRoomMessagesDB();
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+
+        store.put({
+          ...incoming,
+          roomId,
+        });
+
+        transaction.oncomplete = () => db.close();
+        transaction.onerror = () => db.close();
+      } catch (err) {
+        console.error("IndexedDB room message save error:", err);
+      }
+    };
+
+    socket.on("room_user_online", handleRoomUserOnline);
+    socket.on("room_user_offline", handleRoomUserOffline);
+    socket.on("room_message", handleRoomMessage);
+
+    socket.emit("room_join", {
       roomId,
       userId: userAccountId,
-      name: currentUser.name,
-      dp: currentUser.image,
-      membership: 'member'
+      name: currentRoomUser.name,
+      dp: currentRoomUser.image,
+    });
+
+    setRoomUsers(prev => {
+      if (prev.some(u => u.accountId === userAccountId)) {
+        return prev;
+      }
+
+      return [...prev, currentRoomUser];
     });
 
     return () => {
+      socket.off("room_user_online", handleRoomUserOnline);
+      socket.off("room_user_offline", handleRoomUserOffline);
+      socket.off("room_message", handleRoomMessage);
+
       if (!isKeepingRef.current) {
-        leaveRoom(roomId, userAccountId);
+        socket.emit("room_leave", {
+          roomId,
+          userId: userAccountId,
+        });
       }
     };
-  }, [userAccountId, currentUser.name, currentUser.image, roomId]);
+  }, [
+    roomId,
+    userAccountId,
+    currentUser.name,
+    currentUser.image,
+  ]);
 
-  const sendMessageToFirestore = async (text: string, imageUrl?: string, type: 'message' | 'join' | 'leave' = 'message') => {
-    if (!roomId) return;
-    try {
-      await sendRoomMessage({
-        roomId,
-        senderId: userAccountId,
-        senderName: currentUser.name,
-        senderAvatar: currentUser.image,
-        text,
-        type,
-        imageUrl: imageUrl || null,
-        createdAt: Date.now()
-      });
-    } catch (err) {
-      console.error("Error sending room message:", err);
-    }
+  const sendMessageToSocket = async (
+    text: string,
+    imageUrl?: string,
+    type: "message" | "join" | "leave" = "message"
+  ) => {
+    if (!roomId || userAccountId === "guest") return;
+
+    const message = {
+      id: `${userAccountId}-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`,
+      roomId,
+      senderId: userAccountId,
+      senderName: currentUser.name,
+      senderAvatar: currentUser.image,
+      text,
+      type,
+      imageUrl: imageUrl || null,
+      createdAt: Date.now(),
+    };
+
+    socket.emit("room_message", message);
   };
 
   const joinMessageSentRef = useRef(false);
@@ -495,7 +698,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   useEffect(() => {
     if (joinMessageSentRef.current || userAccountId === "guest" || !currentUser.name) return;
     joinMessageSentRef.current = true;
-    sendMessageToFirestore('Enter the Room', undefined, 'join');
+    sendMessageToSocket('Enter the Room', undefined, 'join');
   }, [userAccountId, currentUser.name, roomId]);
 
   useEffect(() => {
@@ -554,7 +757,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     const reader = new FileReader();
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
-      sendMessageToFirestore('', imageUrl);
+      sendMessageToSocket('', imageUrl);
     };
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -731,7 +934,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       return;
     }
     if (!message.trim()) return;
-    sendMessageToFirestore(message.trim());
+    sendMessageToSocket(message.trim());
     setMessage("");
     if (inputRef.current) inputRef.current.focus();
   };
@@ -787,17 +990,26 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword);
 
     if (roomId) {
-      await updateRoom({
-        roomId,
-        id: roomId,
-        roomName: data.roomName,
-        roomDp: data.roomImage,
-        message: data.announcement,
-        micMode: data.micMode,
-        theme: data.theme,
-        isLocked: data.isLocked,
-        roomPassword: data.roomPassword,
+      const response = await fetch("/api/rooms", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomId,
+          roomName: data.roomName,
+          roomDp: data.roomImage,
+          message: data.announcement,
+          micMode: data.micMode,
+          theme: data.theme,
+          isLocked: data.isLocked,
+          roomPassword: data.roomPassword,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error(`MongoDB room update failed: ${response.status}`);
+      }
     }
   };
 

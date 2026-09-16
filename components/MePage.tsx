@@ -7,7 +7,6 @@ import PublicProfile from './PublicProfile'
 import HurrySupport from './HurrySupport'
 import LanguagePage from './LanguagePage'
 import { translations, getTranslation, LanguageCode } from '../lib/translations'
-import { getUser, saveUser } from "../src/lib/googleSheets"
 import Wallet from './Wallet'
 import StorePage from './StorePage'
 import InviteFriends from './InviteFriends'
@@ -15,7 +14,6 @@ import Family from './Family'
 import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
-import { saveFeedback, getUsers } from '../src/lib/googleSheet'
 import FollowList from './followlist' 
 
 // ============ IndexedDB Functions for User Data ============
@@ -43,6 +41,25 @@ const openUserDB = (): Promise<IDBDatabase> => {
       }
     };
   });
+};
+
+const getUserFromMongoDB = async (uid: string) => {
+  if (!uid) return null;
+
+  const response = await fetch(
+    `/api/users?uid=${encodeURIComponent(uid)}`
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result?.user || null;
 };
 
 const saveUserToDB = async (userData: any) => {
@@ -512,7 +529,6 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     };
 
     try {
-      await saveFeedback(feedbackData);
       await saveFeedbackToDB(feedbackData);
       
       setFeedbackSuccess(true);
@@ -574,7 +590,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         }
 
         try {
-          const res = await getUser(uid);
+          const res = await getUserFromMongoDB(uid);
           const sheetData = res && (res.user || res.data || res);
           
           let resolvedName = localStorage.getItem("userName") || "";

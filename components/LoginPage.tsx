@@ -8,7 +8,6 @@ import {
   createUserWithEmailAndPassword 
 } from "firebase/auth";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import { getUser, saveUser, updateUser, saveFeedback } from "../src/lib/googleSheets";
 import { auth, googleProvider as provider } from "../src/lib/firebase";
 
 interface LoginPageProps {
@@ -27,13 +26,6 @@ const SPECIAL_ACCOUNTS: { [key: string]: string } = {
 const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005']
 const ADMIN_IDS = ['700001', '700002', '700003']
 
-// Feedback Types
-const FEEDBACK_TYPES = [
-  { id: 'app_bug', label: 'App Bug', icon: '' },
-  { id: 'suggestion', label: 'Suggestion', icon: '' },
-  { id: 'recharge', label: 'Recharge', icon: '' },
-  { id: 'others', label: 'Others', icon: '' }
-]
 
 // Country Options
 const COUNTRIES = [
@@ -90,8 +82,52 @@ export const getOrCreateAccountNumber = (uid: string) => {
   return String(10000000 + (positiveHash % 90000000))
 }
 
-// HELPER: Sync and Lock User Profile in Firestore
-const syncUserToGoogleSheet = async (uid: string, name: string, email: string, photo: string) => {
+const getUserFromMongoDB = async (uid: string) => {
+  if (!uid) return null;
+
+  const response = await fetch(
+    `/api/users?uid=${encodeURIComponent(uid)}`
+  );
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user fetch failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  return result?.user || null;
+};
+
+const saveUserToMongoDB = async (userData: any) => {
+  const uid = userData.uid || userData.id || userData.appLongId;
+
+  if (!uid) {
+    throw new Error("Missing user uid");
+  }
+
+  const response = await fetch("/api/users", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...userData,
+      uid,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`MongoDB user save failed: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+// HELPER: Sync and Lock User Profile in MongoDB
+const syncUserToMongoDB = async (uid: string, name: string, email: string, photo: string) => {
   try {
     let finalAccountId = ""
     let existingName = ""
@@ -99,7 +135,7 @@ const syncUserToGoogleSheet = async (uid: string, name: string, email: string, p
     let existingBio = ""
     let existingCountry = ""
 
-    const res = await getUser(uid)
+    const res = await getUserFromMongoDB(uid)
     const existingUser = res && (res.user || res.data || res)
 
     if (existingUser && (existingUser.id || existingUser.AppLongId || existingUser['App long ID'] || existingUser.email || existingUser.Name || existingUser.name)) {
@@ -133,14 +169,14 @@ const syncUserToGoogleSheet = async (uid: string, name: string, email: string, p
       bio: existingBio || ''
     }
 
-    await saveUser(userData)
+    await saveUserToMongoDB(userData)
 
     localStorage.setItem("accountNumber", finalAccountId)
     localStorage.setItem(`user_account_number_${uid}`, finalAccountId)
 
     return { accountId: finalAccountId, name: finalName, image: finalImage }
   } catch (err) {
-    console.error("Error syncing user to Google Sheets:", err)
+    console.error("Error syncing user to MongoDB:", err)
     return { accountId: getOrCreateAccountNumber(uid), name: name || email.split('@')[0] || 'User', image: photo || '/default-avatar.png' }
   }
 }
@@ -148,7 +184,7 @@ const syncUserToGoogleSheet = async (uid: string, name: string, email: string, p
 // HELPER: Check if user is new (hasn't selected gender yet)
 const checkIfNewUser = async (uid: string): Promise<boolean> => {
   try {
-    const res = await getUser(uid)
+    const res = await getUserFromMongoDB(uid)
     const userData = res && (res.user || res.data || res)
     if (userData && (userData.id || userData.AppLongId || userData['App long ID'] || userData.Name || userData.name)) {
       const gender = userData.gender || userData.Gender
@@ -336,7 +372,7 @@ function CountrySelectionPage({
           setupComplete: true
         }
 
-        await updateUser(userDocData)
+        await saveUserToMongoDB(userDocData)
 
         localStorage.setItem("userName", defaultData.name)
         localStorage.setItem("userPhoto", defaultData.image)
@@ -449,7 +485,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false)
   const [showLoginPage, setShowLoginPage] = useState(false)
   const [showSignUpPage, setShowSignUpPage] = useState(false)
-  const [showFeedbackPage, setShowFeedbackPage] = useState(false)
   const [showGenderPage, setShowGenderPage] = useState(false)
   const [showCountryPage, setShowCountryPage] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
@@ -457,13 +492,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [pendingGender, setPendingGender] = useState<string>('')
   const [checkingNewUser, setCheckingNewUser] = useState(false)
 
-  // Feedback States
-  const [selectedType, setSelectedType] = useState<string>('')
-  const [problemDescription, setProblemDescription] = useState('')
-  const [contactInfo, setContactInfo] = useState('')
-  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false)
-  const [feedbackSuccess, setFeedbackSuccess] = useState(false)
-  const [feedbackError, setFeedbackError] = useState<string | null>(null)
 
   // Preload video
   useEffect(() => {
@@ -502,7 +530,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         setPendingUserData(userData)
         setShowGenderPage(true)
       } else {
-        const res = await getUser(userId)
+        const res = await getUserFromMongoDB(userId)
         const existingData = res && (res.user || res.data || res)
         if (existingData) {
           const name = existingData.name || existingData.Name
@@ -553,7 +581,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       const userPhoto = user.photoUrl || "/default-avatar.png";
       const userUID = user.uid;
 
-      const syncResult = await syncUserToGoogleSheet(
+      const syncResult = await syncUserToMongoDB(
         userUID,
         userName,
         userEmail,
@@ -623,7 +651,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         const userName = `${officialCred.type.toUpperCase()} - ${officialCred.id}`
         const officialID = officialCred.id
 
-        const syncResult = await syncUserToGoogleSheet(officialID, userName, officialCred.email, "")
+        const syncResult = await syncUserToMongoDB(officialID, userName, officialCred.email, "")
 
         const userData = {
           id: officialID,
@@ -659,7 +687,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         const userPhoto = user.photoURL || "/default-avatar.png"
         const userUID = user.uid
 
-        const syncResult = await syncUserToGoogleSheet(userUID, userName, userEmail, userPhoto)
+        const syncResult = await syncUserToMongoDB(userUID, userName, userEmail, userPhoto)
 
         localStorage.setItem("userName", syncResult.name);
         localStorage.setItem("userEmail", userEmail);
@@ -734,7 +762,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      const syncResult = await syncUserToGoogleSheet(
+      const syncResult = await syncUserToMongoDB(
         user.uid,
         email.split('@')[0],
         email,
@@ -777,58 +805,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailStr);
   };
 
-  // Handle Feedback Submit
-  const handleFeedbackSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFeedbackError(null);
-
-    if (!selectedType) {
-      setFeedbackError("Please select a type of issue");
-      return;
-    }
-    if (!problemDescription.trim()) {
-      setFeedbackError("Please describe your problem");
-      return;
-    }
-    if (!contactInfo.trim()) {
-      setFeedbackError("Please enter your contact information");
-      return;
-    }
-
-    setFeedbackSubmitting(true);
-
-    try {
-      const feedbackData = {
-        userId: localStorage.getItem("userUID") || contactInfo.trim(),
-        name: localStorage.getItem("userName") || '',
-        type: selectedType,
-        typeLabel: FEEDBACK_TYPES.find(t => t.id === selectedType)?.label || selectedType,
-        description: problemDescription.trim(),
-        contactInfo: contactInfo.trim(),
-        createdAt: new Date().toISOString(),
-        timestamp: Date.now(),
-        status: 'pending'
-      };
-
-      await saveFeedback(feedbackData);
-      
-      setFeedbackSuccess(true);
-      setSelectedType('');
-      setProblemDescription('');
-      setContactInfo('');
-      
-      setTimeout(() => {
-        setShowFeedbackPage(false);
-        setFeedbackSuccess(false);
-      }, 2000);
-
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      setFeedbackError("Failed to submit feedback. Please try again.");
-    } finally {
-      setFeedbackSubmitting(false);
-    }
-  };
 
   // Loading state while checking if new user
   if (checkingNewUser) {
@@ -866,124 +842,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     );
   }
 
-  // Feedback Page
-  if (showFeedbackPage) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="flex items-center p-4 bg-white border-b border-gray-200">
-          <button
-            onClick={() => {
-              setShowFeedbackPage(false);
-              setFeedbackSuccess(false);
-              setFeedbackError(null);
-              setSelectedType('');
-              setProblemDescription('');
-              setContactInfo('');
-            }}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={24} className="text-gray-700" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900 ml-3">Feedback</h1>
-        </div>
-
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="max-w-md mx-auto">
-            {feedbackSuccess ? (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-                <div className="text-4xl mb-4">✅</div>
-                <h2 className="text-xl font-bold text-green-700 mb-2">Thank You!</h2>
-                <p className="text-green-600">Your feedback has been submitted successfully.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleFeedbackSubmit} className="space-y-6">
-                <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Type of Issue</h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    {FEEDBACK_TYPES.map((type) => (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => setSelectedType(type.id)}
-                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                          selectedType === type.id
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-200 bg-white hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="text-2xl mb-1">{type.icon}</div>
-                        <div className={`text-sm font-medium ${
-                          selectedType === type.id ? 'text-blue-700' : 'text-gray-700'
-                        }`}>
-                          {type.label}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Problem Description</h2>
-                  <div className="relative">
-                    <textarea
-                      value={problemDescription}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 400) {
-                          setProblemDescription(e.target.value);
-                        }
-                      }}
-                      placeholder="Describe your issue or suggestion..."
-                      maxLength={400}
-                      rows={5}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white resize-none"
-                    />
-                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                      {problemDescription.length}/400
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Contact Information</h2>
-                  <input
-                    type="text"
-                    value={contactInfo}
-                    onChange={(e) => setContactInfo(e.target.value)}
-                    placeholder="Enter your email, Gmail or App ID"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white"
-                  />
-                </div>
-
-                {feedbackError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
-                    {feedbackError}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={feedbackSubmitting}
-                  className="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-2xl transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-blue-600/20 text-base"
-                >
-                  {feedbackSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Submitting...
-                    </span>
-                  ) : (
-                    'Submit Feedback'
-                  )}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Privacy Policy Page
   if (showPrivacyPolicy) {
@@ -1336,14 +1194,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       <div className="relative z-10 w-full flex flex-col items-center justify-between min-h-screen">
         
-        <div className="w-full flex justify-end pt-8 pr-2">
-          <button 
-            onClick={() => setShowFeedbackPage(true)}
-            className="text-sm font-medium text-white/90 hover:text-white transition-all cursor-pointer"
-          >
-            Feedback
-          </button>
-        </div>
 
         <div className="flex flex-col items-center" style={{ marginTop: '10vh' }}>
           <div className="mb-0.5">

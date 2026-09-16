@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { getMessages, getUser } from '../src/lib/googleSheets';
 
 import ChatScreen from './ChatScreen';
 
@@ -142,70 +141,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     loadData();
   }, [currentUserUid]);
 
-  // Google Sheets fetching
-  useEffect(() => {
-    if (!currentUserUid || currentUserUid === 'N/A') return;
 
-    let isMounted = true;
-
-    const fetchConversations = async () => {
-      try {
-        const msgs = await getMessages(currentUserUid);
-        if (!isMounted || !Array.isArray(msgs)) return;
-
-        const convoMap = new Map<string, ChatPreview>();
-
-        for (const msg of msgs) {
-          const senderId = msg.senderId || msg.USER_A_ID || msg.userAId;
-          const receiverId = msg.receiverId || msg.USER_B_ID || msg.userBId;
-          const text = msg.chat || msg.text || '';
-          const time = Number(msg.createdAt || msg.timestamp || Date.now());
-
-          const otherUid = senderId === currentUserUid ? receiverId : senderId;
-          if (!otherUid || otherUid === currentUserUid) continue;
-
-          const ids = [currentUserUid, otherUid].sort();
-          const chatId = `${ids[0]}_${ids[1]}`;
-
-          const existing = convoMap.get(chatId);
-          if (!existing || time > existing.lastTimestamp) {
-            let otherName = msg.name || msg.senderName || 'User';
-            let otherDp = msg.dp || msg.avatar || '/default-avatar.png';
-
-            convoMap.set(chatId, {
-              chatId,
-              otherUser: {
-                uid: otherUid,
-                name: otherName,
-                photo: otherDp
-              },
-              lastMessage: text,
-              lastTimestamp: time,
-              unreadCount: 0
-            });
-          }
-        }
-
-        const chats = Array.from(convoMap.values());
-        chats.sort((a, b) => b.lastTimestamp - a.lastTimestamp);
-
-        if (isMounted) {
-          setDynamicChats(chats);
-          await saveToDB(chats);
-        }
-      } catch (error) {
-        console.error('Error fetching conversations from Google Sheets:', error);
-      }
-    };
-
-    fetchConversations();
-    const interval = setInterval(fetchConversations, 10000);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [currentUserUid]);
 
   // ---------- Helpers ----------
   const formatTime = (timestamp: number) => {
@@ -223,18 +159,12 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     setActiveChat({ uid: chat.uid, name: chat.name, photo: chat.image });
   };
 
-  const handleOpenDynamicChat = async (chat: ChatPreview) => {
-    setActiveChat({ uid: chat.otherUser.uid, name: chat.otherUser.name, photo: chat.otherUser.photo });
-    try {
-      // @ts-ignore
-      const convoRef = doc(db, 'conversations', chat.chatId);
-      // @ts-ignore
-      await updateDoc(convoRef, {
-        [`unreadCounts.${currentUserUid}`]: 0,
-      });
-    } catch (error) {
-      console.error('Failed to reset unread count:', error);
-    }
+  const handleOpenDynamicChat = (chat: ChatPreview) => {
+    setActiveChat({
+      uid: chat.otherUser.uid,
+      name: chat.otherUser.name,
+      photo: chat.otherUser.photo
+    });
   };
 
   const handleCloseChat = () => {

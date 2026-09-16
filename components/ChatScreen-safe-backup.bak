@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
-import socket from '../src/lib/socket';
+import { sendMessage, getMessages } from '../src/lib/googleSheets';
 
 // ============ IndexedDB Functions for Messages ============
 const MESSAGES_DB_NAME = 'ChatMessagesDB';
@@ -149,27 +149,25 @@ export default function ChatScreen({
   const chatId = [currentUser.uid, targetUser.uid].sort().join('_');
 
   // ========== Online status ==========
-useEffect(() => {
-  if (isFixedChat) {
-    setOnline(true);
-    return;
-  }
-
-  const handlePresence = (data: { userId: string; online: boolean }) => {
-    if (data.userId === targetUser.uid) {
-      setOnline(data.online);
+  useEffect(() => {
+    if (isFixedChat) {
+      setOnline(true);
+      return;
     }
-  };
 
-  socket.on('presence_status', handlePresence);
-  socket.emit('check_presence', targetUser.uid);
+    const presenceRef = doc(db, 'presence', targetUser.uid);
+    const unsubscribe = onSnapshot(presenceRef, (snap) => {
+      if (snap.exists()) {
+        setOnline(snap.data()?.online || false);
+      } else {
+        setOnline(false);
+      }
+    });
 
-  return () => {
-    socket.off('presence_status', handlePresence);
-  };
-}, [targetUser.uid, isFixedChat]);
+    return () => unsubscribe();
+  }, [targetUser.uid, isFixedChat]);
 
-// ========== Pehle IndexedDB se messages load karo ==========
+  // ========== Pehle IndexedDB se messages load karo ==========
   useEffect(() => {
     const loadCachedMessages = async () => {
       try {
@@ -188,73 +186,54 @@ useEffect(() => {
     loadCachedMessages();
   }, [chatId]);
 
-  // ========== Socket.IO private messages ==========
-useEffect(() => {
-  socket.connect();
+  // ========== Google Sheets messages polling ==========
+  useEffect(() => {
+    let isMounted = true;
 
-  const registerUser = () => {
-    socket.emit('register', currentUser.uid);
-    socket.emit('check_presence', targetUser.uid);
-  };
+    const fetchRemoteMessages = async () => {
+      try {
+        const rawMsgs = await getMessages(currentUser.uid, targetUser.uid);
+        if (!isMounted || !Array.isArray(rawMsgs)) return;
 
-  const handlePrivateMessage = async (data: any) => {
-    if (
-      data?.senderId !== targetUser.uid ||
-      data?.receiverId !== currentUser.uid
-    ) {
-      return;
-    }
+        const loadedMessages: Message[] = rawMsgs
+          .map((data: any) => {
+            const senderId = data.senderId || data.USER_A_ID || data.userAId;
+            const isMe = senderId === currentUser.uid;
+            return {
+              id: String(data.id || data.timestamp || data.createdAt || Date.now()),
+              text: data.chat || data.text || '',
+              sender: (isMe ? 'me' : 'other') as 'me' | 'other',
+              timestamp: Number(data.createdAt || data.timestamp || Date.now()),
+              type: data.type || 'message',
+              imageUrl: data.imageUrl || undefined,
+              roomData: data.roomData || undefined,
+              replyTo: data.replyTo || null,
+            };
+          });
 
-    const message: Message = {
-      id: String(data.id || `${data.senderId}_${data.timestamp || Date.now()}`),
-      text: data.text || '',
-      sender: 'other',
-      timestamp: Number(data.timestamp || Date.now()),
-      type: data.type || 'message',
-      imageUrl: data.imageUrl || undefined,
-      roomData: data.roomData || undefined,
-      replyTo: data.replyTo || null,
+        loadedMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        if (isMounted) {
+          setMessages(loadedMessages);
+          setConnected(true);
+          await saveMessagesToDB(chatId, loadedMessages);
+        }
+      } catch (error) {
+        console.error('Error fetching messages from Google Sheets:', error);
+        setConnected(false);
+      }
     };
 
-    setMessages((prev) => {
-      if (prev.some((m) => m.id === message.id)) return prev;
+    fetchRemoteMessages();
+    const interval = setInterval(fetchRemoteMessages, 4000);
 
-      const updated = [...prev, message].sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [chatId, currentUser.uid, targetUser.uid]);
 
-      saveMessagesToDB(chatId, updated);
-      return updated;
-    });
-
-    setConnected(true);
-  };
-
-  const handleConnect = () => {
-    setConnected(true);
-    registerUser();
-  };
-
-  const handleDisconnect = () => {
-    setConnected(false);
-  };
-
-  socket.on('connect', handleConnect);
-  socket.on('disconnect', handleDisconnect);
-  socket.on('private_message', handlePrivateMessage);
-
-  if (socket.connected) {
-    registerUser();
-  }
-
-  return () => {
-    socket.off('connect', handleConnect);
-    socket.off('disconnect', handleDisconnect);
-    socket.off('private_message', handlePrivateMessage);
-  };
-}, [chatId, currentUser.uid, targetUser.uid]);
-
-// ========== Auto-send room invite if sharedRoomData provided ==========
+  // ========== Auto-send room invite if sharedRoomData provided ==========
   useEffect(() => {
     if (sharedRoomData && lastSentInviteRoomIdRef.current !== sharedRoomData.roomId) {
       lastSentInviteRoomIdRef.current = sharedRoomData.roomId;
@@ -263,300 +242,200 @@ useEffect(() => {
   }, [sharedRoomData]);
 
   // ========== Send room invite ==========
-const sendRoomInvite = async (roomData: {
-  roomId: string;
-  roomName: string;
-  roomImage: string;
-}) => {
-  try {
-    const messageId = `${currentUser.uid}_${Date.now()}`;
-
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      text: `Joins our Party Room: ${roomData.roomName}`,
-      type: 'room_invite',
-      roomData,
-      timestamp: Date.now(),
-    };
-
-    socket.emit('private_message', outgoing);
-
-    const localMessage: Message = {
-      id: messageId,
-      text: outgoing.text,
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'room_invite',
-      roomData,
-    };
-
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      return updated;
-    });
-  } catch (error) {
-    console.error('Error sending room invite:', error);
-  }
-};
-
-// ========== Send text message ==========
-const handleSend = async () => {
-  if (!newMessage.trim()) return;
-
-  const messageText = newMessage.trim();
-  setNewMessage('');
-
-  try {
-    const messageId = `${currentUser.uid}_${Date.now()}`;
-
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      text: messageText,
-      type: 'message',
-      timestamp: Date.now(),
-      replyTo: replyTo
-        ? {
-            id: replyTo.id,
-            text: replyTo.text,
-            senderName:
-              replyTo.sender === 'me'
-                ? currentUser.name
-                : targetUser.name,
-          }
-        : null,
-    };
-
-    socket.emit('private_message', outgoing);
-
-    const localMessage: Message = {
-      id: messageId,
-      text: messageText,
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'message',
-      replyTo: outgoing.replyTo,
-    };
-
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      return updated;
-    });
-
-    setReplyTo(null);
-  } catch (error) {
-    console.error('Error sending message:', error);
-    setNewMessage(messageText);
-  }
-};
-
-// ========== Send image message ==========
-const handleImageUpload = async (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  if (file.size > 1.5 * 1024 * 1024) {
-    alert('Image size should be less than 1.5MB');
-    return;
-  }
-
-  setImageUploading(true);
-
-  try {
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    const messageId = `${currentUser.uid}_${Date.now()}`;
-
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      text: '',
-      type: 'image',
-      imageUrl: base64,
-      timestamp: Date.now(),
-      replyTo: replyTo
-        ? {
-            id: replyTo.id,
-            text: replyTo.text,
-            senderName:
-              replyTo.sender === 'me'
-                ? currentUser.name
-                : targetUser.name,
-          }
-        : null,
-    };
-
-    socket.emit('private_message', outgoing);
-
-    const localMessage: Message = {
-      id: messageId,
-      text: '',
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'image',
-      imageUrl: base64,
-      replyTo: outgoing.replyTo,
-    };
-
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      return updated;
-    });
-
-    setReplyTo(null);
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    alert('Failed to upload image. Please try again.');
-  } finally {
-    setImageUploading(false);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
-};
-
-// ========== Clear Chat ==========
-const handleClearChat = async () => {
-  try {
-    const db = await openMessagesDB();
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    const store = transaction.objectStore(MESSAGES_STORE);
-    const index = store.index('chatId');
-
-    const request = index.getAll(chatId);
-
-    request.onsuccess = () => {
-      request.result.forEach((msg: any) => {
-        store.delete(msg.id);
+  const sendRoomInvite = async (roomData: { roomId: string; roomName: string; roomImage: string }) => {
+    try {
+      await sendMessage({
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        chat: `Joins our Party Room: ${roomData.roomName}`,
+        dp: currentUser.photo,
+        name: currentUser.name,
+        type: 'room_invite',
+        roomData
       });
-      db.close();
-    };
+    } catch (error) {
+      console.error('Error sending room invite:', error);
+    }
+  };
 
-    setMessages([]);
-    setShowOptions(false);
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-  } catch (error) {
-    console.error('Error clearing chat:', error);
-  }
-};
+  // ========== Send text message ==========
+  const handleSend = async () => {
+    if (!newMessage.trim()) return;
+    const messageText = newMessage.trim();
+    setNewMessage('');
 
-// ========== Delete single message ==========
-const handleDeleteMessage = async (messageId: string) => {
-  try {
-    const db = await openMessagesDB();
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    transaction.objectStore(MESSAGES_STORE).delete(messageId);
-    db.close();
+    try {
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+      await addDoc(messagesRef, {
+        text: messageText,
+        senderUid: currentUser.uid,
+        timestamp: serverTimestamp(),
+        type: 'message',
+        replyTo: replyTo
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName: replyTo.sender === 'me' ? currentUser.name : targetUser.name,
+            }
+          : null,
+      });
 
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
-    setLongPressMsg(null);
-    setShowDeleteConfirm(false);
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-  } catch (error) {
-    console.error('Error deleting message:', error);
-  }
-};
+      await updateConversation(messageText);
 
-// ========== Delete selected messages (batch) ==========
-const handleDeleteSelectedMessages = async () => {
-  try {
-    const db = await openMessagesDB();
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    const store = transaction.objectStore(MESSAGES_STORE);
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setNewMessage(messageText);
+    }
+  };
 
-    selectedMessages.forEach((messageId) => {
-      store.delete(messageId);
-    });
+  // ========== Send image message ==========
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    db.close();
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
 
-    setMessages((prev) =>
-      prev.filter((message) => !selectedMessages.has(message.id))
-    );
+    setImageUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-    setShowDeleteSelectedConfirm(false);
-    setShowOptions(false);
-  } catch (error) {
-    console.error('Error deleting selected messages:', error);
-    alert('Failed to delete messages. Please try again.');
-  }
-};
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+      await addDoc(messagesRef, {
+        text: '',
+        senderUid: currentUser.uid,
+        timestamp: serverTimestamp(),
+        type: 'image',
+        imageUrl: base64,
+        replyTo: replyTo
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName: replyTo.sender === 'me' ? currentUser.name : targetUser.name,
+            }
+          : null,
+      });
 
-// ========== Block user ==========
-const handleBlockUser = async () => {
-  try {
-    const response = await fetch('/api/users/block', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+      await updateConversation('Image');
+
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setImageUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // ========== Clear Chat ==========
+  const handleClearChat = async () => {
+    try {
+      const timestamp = Date.now();
+
+      const chatDocRef = doc(db, 'chats', chatId);
+      await setDoc(
+        chatDocRef,
+        {
+          clearedAtRef: {
+            [currentUser.uid]: timestamp,
+          },
+        },
+        { merge: true }
+      );
+
+      setMessages([]);
+      setShowOptions(false);
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+    } catch (error) {
+      console.error('Error clearing chat:', error);
+    }
+  };
+
+  // ========== Delete single message ==========
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const messageRef = doc(db, 'chats', chatId, 'messages', messageId);
+      await deleteDoc(messageRef);
+      setLongPressMsg(null);
+      setShowDeleteConfirm(false);
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+    } catch (error) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
+  // ========== Delete selected messages (batch) ==========
+  const handleDeleteSelectedMessages = async () => {
+    try {
+      const batch = writeBatch(db);
+      selectedMessages.forEach((messageId) => {
+        const messageRef = doc(db, 'chats', chatId, 'messages', messageId);
+        batch.delete(messageRef);
+      });
+      await batch.commit();
+
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+      setShowDeleteSelectedConfirm(false);
+      setShowOptions(false);
+    } catch (error) {
+      console.error('Error deleting selected messages:', error);
+      alert('Failed to delete messages. Please try again.');
+    }
+  };
+
+  // ========== Block user ==========
+  const handleBlockUser = async () => {
+    try {
+      const blockRef = doc(db, 'blocks', `${currentUser.uid}_${targetUser.uid}`);
+      await setDoc(blockRef, {
         blockedBy: currentUser.uid,
         blockedUser: targetUser.uid,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to block user');
+        timestamp: serverTimestamp(),
+      });
+      setShowBlockConfirm(false);
+      setShowOptions(false);
+      onClose();
+    } catch (error) {
+      console.error('Error blocking user:', error);
     }
+  };
 
-    setShowBlockConfirm(false);
-    setShowOptions(false);
-    onClose();
-  } catch (error) {
-    console.error('Error blocking user:', error);
-  }
-};
-
-// ========== Report user ==========
-const handleReportUser = async () => {
-  try {
-    const response = await fetch('/api/users/report', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  // ========== Report user ==========
+  const handleReportUser = async () => {
+    try {
+      const reportRef = doc(db, 'reports', `${currentUser.uid}_${targetUser.uid}_${Date.now()}`);
+      await setDoc(reportRef, {
         reportedBy: currentUser.uid,
         reportedUser: targetUser.uid,
         reportedUserName: targetUser.name,
-        chatId,
-      }),
-    });
+        timestamp: serverTimestamp(),
+        chatId: chatId,
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to report user');
+      setShowReportConfirm(false);
+      setShowOptions(false);
+      alert('User reported successfully.');
+    } catch (error) {
+      console.error('Error reporting user:', error);
+      alert('Failed to report user. Please try again.');
     }
+  };
 
-    setShowReportConfirm(false);
-    setShowOptions(false);
-    alert('User reported successfully.');
-  } catch (error) {
-    console.error('Error reporting user:', error);
-    alert('Failed to report user. Please try again.');
-  }
-};
-
-// ========== Reply to message ==========
+  // ========== Reply to message ==========
   const handleReply = (msg: Message) => {
     setReplyTo(msg);
     setLongPressMsg(null);

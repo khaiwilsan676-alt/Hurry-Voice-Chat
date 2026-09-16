@@ -13,7 +13,6 @@ import {
   MessageCircle,
   MoreHorizontal,
 } from 'lucide-react'
-import { getUser, saveUser, updateUser, updateRoom } from '../src/lib/googleSheets'
 
 
 // Import the WebRTC ChatScreen component
@@ -611,33 +610,63 @@ export default function PublicProfile({
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
-  const saveToFirestore = async (updateData: Record<string, any>) => {
-    const currentUid =
-      user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone')
-    if (currentUid && currentUid !== 'N/A') {
-      try {
-        await updateUser({ id: currentUid, appLongId: currentUid, ...updateData })
+  const saveToMongoDB = async (updateData: Record<string, any>) => {
+  const currentUid =
+    user.uid ||
+    localStorage.getItem('userUID') ||
+    localStorage.getItem('userPhone')
 
-        const roomUpdateData = { ...updateData }
-        delete roomUpdateData.name
-        delete roomUpdateData.displayName
-        delete roomUpdateData.userName
-        delete roomUpdateData.image
-        delete roomUpdateData.photo
-        delete roomUpdateData.photoURL
-        delete roomUpdateData.coverPhoto
-        delete roomUpdateData.coverImage
+  if (!currentUid || currentUid === 'N/A') return
 
-        if (Object.keys(roomUpdateData).length > 0) {
-          await updateRoom({ roomId: currentUid, id: currentUid, ...roomUpdateData })
-        }
-      } catch (err) {
-        console.error('Error saving data to Google Sheets:', err)
+  try {
+    const response = await fetch('/api/users', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        uid: currentUid,
+        ...updateData,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`MongoDB user update failed: ${response.status}`)
+    }
+
+    const roomUpdateData = { ...updateData }
+
+    delete roomUpdateData.name
+    delete roomUpdateData.displayName
+    delete roomUpdateData.userName
+    delete roomUpdateData.image
+    delete roomUpdateData.photo
+    delete roomUpdateData.photoURL
+    delete roomUpdateData.coverPhoto
+    delete roomUpdateData.coverImage
+
+    if (Object.keys(roomUpdateData).length > 0) {
+      const roomResponse = await fetch('/api/rooms', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: currentUid,
+          ...roomUpdateData,
+        }),
+      })
+
+      if (!roomResponse.ok) {
+        throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
       }
     }
+  } catch (err) {
+    console.error('Error saving data to MongoDB:', err)
   }
+}
 
-  // Save current user data to IndexedDB
+// Save current user data to IndexedDB
   const saveCurrentUserToDB = async () => {
     const uid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone');
     if (uid && uid !== 'N/A') {
@@ -665,7 +694,7 @@ export default function PublicProfile({
   };
 
   useEffect(() => {
-    let unsubscribe: () => void
+    let unsubscribe: (() => void) | undefined
 
     const loadProfileData = async () => {
       if (isOtherUser && targetUser) {
@@ -719,7 +748,15 @@ export default function PublicProfile({
           }
 
           try {
-            const res = await getUser(targetUid);
+            const mongoResponse = await fetch(
+              `/api/users?uid=${encodeURIComponent(targetUid)}`
+            );
+
+            if (!mongoResponse.ok) {
+              throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`);
+            }
+
+            const res = await mongoResponse.json();
             const data = res && (res.user || res.data || res);
 
             if (data && (data.id || data.AppLongId || data['App long ID'] || data.Name || data.name)) {
@@ -784,7 +821,7 @@ export default function PublicProfile({
               await saveProfileToDB(profileData);
             }
           } catch (err) {
-            console.warn('Google Sheets fetch error for Target User:', err);
+            console.warn('MongoDB fetch error for Target User:', err);
           }
         }
         return
@@ -851,119 +888,140 @@ export default function PublicProfile({
 
       if (uid && uid !== 'N/A') {
         try {
-          const userDocRef = doc(db, 'users', uid)
+      const mongoResponse = await fetch(
+        `/api/users?uid=${encodeURIComponent(uid)}`
+      )
 
-          unsubscribe = onSnapshot(userDocRef, async (docSnap) => {
-            if (docSnap.exists()) {
-              const data = docSnap.data()
-              if (data.accountId) {
-                displayAccNum = String(data.accountId)
-                localStorage.setItem('accountNumber', displayAccNum)
-              }
-              const docName = data.name || data.displayName || data.userName
-              if (isValidName(docName)) {
-                storedName = docName
-                localStorage.setItem('userName', storedName)
-              }
-              if (data.photo || data.photoURL || data.image) {
-                photo = data.photo || data.photoURL || data.image || photo
-                localStorage.setItem('userPhoto', photo)
-              }
-              if (data.coverPhoto || data.coverImage) {
-                coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
-                localStorage.setItem('userCoverPhoto', coverPhoto)
-              }
-              if (data.bio) {
-                storedBio = data.bio
-                localStorage.setItem('userBio', storedBio)
-              }
-              if (data.country || data.location) {
-                storedCountry = data.country || data.location
-                localStorage.setItem('userCountry', storedCountry)
-              }
-              if (data.countryCode) {
-                storedCountryCode = data.countryCode
-                localStorage.setItem('userCountryCode', storedCountryCode)
-              }
-              if (data.countryLocked !== undefined) {
-                isCountryLockedInStorage = data.countryLocked
-                if (data.countryLocked) localStorage.setItem('userCountryLocked', 'true')
-              }
-              if (data.setupComplete) {
-                isCountryLockedInStorage = true
-                localStorage.setItem('userCountryLocked', 'true')
-              }
-              if (data.gender) {
-                storedGender = data.gender
-                localStorage.setItem('userGender', storedGender)
-              }
-              if (data.age) {
-                storedAge = String(data.age)
-                localStorage.setItem('userAge', storedAge)
-              }
-              if (data.albumImages && Array.isArray(data.albumImages)) {
-                setAlbumImages(data.albumImages)
-                localStorage.setItem(
-                  'userAlbumImages',
-                  JSON.stringify(data.albumImages)
-                )
-              }
+      if (!mongoResponse.ok) {
+        throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
+      }
 
-              if (!displayAccNum) {
-                displayAccNum = getOrCreateAccountNumber(uid)
-              }
+      const result = await mongoResponse.json()
+      const data = result?.user
 
-              if (!isValidName(storedName)) {
-                storedName = displayAccNum
-              }
+      if (data) {
+        if (data.accountId) {
+          displayAccNum = String(data.accountId)
+          localStorage.setItem('accountNumber', displayAccNum)
+        }
 
-              const matchedCountry = COUNTRIES.find(
-                (c) =>
-                  c.code === storedCountryCode ||
-                  c.flag === storedCountry ||
-                  c.name === storedCountry
-              ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+        const docName = data.name || data.displayName || data.userName
+        if (isValidName(docName)) {
+          storedName = docName
+          localStorage.setItem('userName', storedName)
+        }
 
-              const profileData = {
-                uid: uid,
-                name: storedName,
-                displayAccountNumber: displayAccNum,
-                photo,
-                coverPhoto,
-                bio: storedBio,
-                location: matchedCountry.name,
-                flag: matchedCountry.flag,
-                countryCode: matchedCountry.code,
-                gender: storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
-                age: storedAge ? parseInt(storedAge) : 24,
-                followers: data.followers || 0,
-                albumImages: data.albumImages || [],
-                officialTag: data.officialTag || false,
-                adminTag: data.adminTag || false,
-                vipTag: data.vipTag || false,
-                premiumTag: data.premiumTag || false,
-              };
+        if (data.photo || data.photoURL || data.image) {
+          photo = data.photo || data.photoURL || data.image || photo
+          localStorage.setItem('userPhoto', photo)
+        }
 
-              setUser(profileData);
-              await saveProfileToDB(profileData);
+        if (data.coverPhoto || data.coverImage) {
+          coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
+          localStorage.setItem('userCoverPhoto', coverPhoto)
+        }
 
-              setEditName(storedName)
-              setEditAge(storedAge || '24')
-              setEditBio(storedBio || '')
-              setEditCountry(matchedCountry.name)
-              setEditCountryCode(matchedCountry.code)
-              setCountryLocked(isCountryLockedInStorage)
+        if (data.bio) {
+          storedBio = data.bio
+          localStorage.setItem('userBio', storedBio)
+        }
 
-              if (storedGender) {
-                setEditGender(
-                  storedGender === 'female' || storedGender === '♀' ? 'female' : 'male'
-                )
-                setGenderLocked(true)
-              }
-            }
-          })
+        if (data.country || data.location) {
+          storedCountry = data.country || data.location
+          localStorage.setItem('userCountry', storedCountry)
+        }
+
+        if (data.countryCode) {
+          storedCountryCode = data.countryCode
+          localStorage.setItem('userCountryCode', storedCountryCode)
+        }
+
+        if (data.countryLocked !== undefined) {
+          isCountryLockedInStorage = data.countryLocked
+          if (data.countryLocked) {
+            localStorage.setItem('userCountryLocked', 'true')
+          }
+        }
+
+        if (data.setupComplete) {
+          isCountryLockedInStorage = true
+          localStorage.setItem('userCountryLocked', 'true')
+        }
+
+        if (data.gender) {
+          storedGender = data.gender
+          localStorage.setItem('userGender', storedGender)
+        }
+
+        if (data.age) {
+          storedAge = String(data.age)
+          localStorage.setItem('userAge', storedAge)
+        }
+
+        if (data.albumImages && Array.isArray(data.albumImages)) {
+          setAlbumImages(data.albumImages)
+          localStorage.setItem(
+            'userAlbumImages',
+            JSON.stringify(data.albumImages)
+          )
+        }
+
+        if (!displayAccNum) {
+          displayAccNum = getOrCreateAccountNumber(uid)
+        }
+
+        if (!isValidName(storedName)) {
+          storedName = displayAccNum
+        }
+
+        const matchedCountry = COUNTRIES.find(
+          (c) =>
+            c.code === storedCountryCode ||
+            c.flag === storedCountry ||
+            c.name === storedCountry
+        ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+
+        const profileData = {
+          uid: uid,
+          name: storedName,
+          displayAccountNumber: displayAccNum,
+          photo,
+          coverPhoto,
+          bio: storedBio,
+          location: matchedCountry.name,
+          flag: matchedCountry.flag,
+          countryCode: matchedCountry.code,
+          gender:
+            storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
+          age: storedAge ? parseInt(storedAge) : 24,
+          followers: data.followers || 0,
+          albumImages: data.albumImages || [],
+          officialTag: data.officialTag || false,
+          adminTag: data.adminTag || false,
+          vipTag: data.vipTag || false,
+          premiumTag: data.premiumTag || false,
+        }
+
+        setUser(profileData)
+        await saveProfileToDB(profileData)
+        setEditName(storedName)
+        setEditAge(storedAge || '24')
+        setEditBio(storedBio || '')
+        setEditCountry(matchedCountry.name)
+        setEditCountryCode(matchedCountry.code)
+        setCountryLocked(isCountryLockedInStorage)
+
+        if (storedGender) {
+          setEditGender(
+            storedGender === 'female' || storedGender === '♀'
+              ? 'female'
+              : 'male'
+          )
+          setGenderLocked(true)
+        }
+          }
         } catch (err) {
-          console.warn('Firestore fetch error in PublicProfile:', err)
+          console.warn('MongoDB fetch error in PublicProfile:', err)
         }
       }
     }
@@ -974,7 +1032,6 @@ export default function PublicProfile({
       if (unsubscribe) unsubscribe()
     }
   }, [isOtherUser, targetUser])
-
   // Save to IndexedDB whenever user data changes
   useEffect(() => {
     if (user.uid && user.uid !== 'N/A') {
@@ -1013,7 +1070,7 @@ export default function PublicProfile({
     localStorage.setItem('userGenderLocked', gender)
     setUser((prev) => ({ ...prev, gender: formattedGender }))
 
-    await saveToFirestore({ gender: formattedGender })
+    await saveToMongoDB({ gender: formattedGender })
   }
 
   const handleCountrySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -1034,7 +1091,7 @@ export default function PublicProfile({
         localStorage.setItem('userPhoto', compressedBase64)
         setUser((prev) => ({ ...prev, photo: compressedBase64 }))
 
-        await saveToFirestore({
+        await saveToMongoDB({
           photo: compressedBase64,
           image: compressedBase64,
           photoURL: compressedBase64,
@@ -1053,7 +1110,7 @@ export default function PublicProfile({
         localStorage.setItem('userCoverPhoto', compressedBase64)
         setUser((prev) => ({ ...prev, coverPhoto: compressedBase64 }))
 
-        await saveToFirestore({
+        await saveToMongoDB({
           coverPhoto: compressedBase64,
           coverImage: compressedBase64,
         })
@@ -1066,7 +1123,7 @@ export default function PublicProfile({
   const handleRemoveCoverPhoto = async () => {
     localStorage.removeItem('userCoverPhoto')
     setUser((prev) => ({ ...prev, coverPhoto: '' }))
-    await saveToFirestore({ coverPhoto: '', coverImage: '' })
+    await saveToMongoDB({ coverPhoto: '', coverImage: '' })
   }
 
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1082,7 +1139,7 @@ export default function PublicProfile({
         setAlbumImages(updatedAlbum)
         localStorage.setItem('userAlbumImages', JSON.stringify(updatedAlbum))
 
-        await saveToFirestore({ albumImages: updatedAlbum, album: updatedAlbum })
+        await saveToMongoDB({ albumImages: updatedAlbum, album: updatedAlbum })
       } catch (err) {
         console.error('Album image compression error:', err)
       }
@@ -1093,7 +1150,7 @@ export default function PublicProfile({
     const updated = albumImages.filter((_, index) => index !== indexToRemove)
     setAlbumImages(updated)
     localStorage.setItem('userAlbumImages', JSON.stringify(updated))
-    await saveToFirestore({ albumImages: updated, album: updated })
+    await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
   const handleSaveEdit = async () => {
@@ -1125,7 +1182,7 @@ export default function PublicProfile({
 
     setUser(updatedUser);
 
-    await saveToFirestore({
+    await saveToMongoDB({
       name: finalNewName,
       displayName: finalNewName,
       userName: finalNewName,
@@ -1152,7 +1209,7 @@ export default function PublicProfile({
     const updatedUser = { ...user, bio: editBio };
     setUser(updatedUser);
     setShowBioInput(false);
-    await saveToFirestore({ bio: editBio, about: editBio });
+    await saveToMongoDB({ bio: editBio, about: editBio });
 
     await saveProfileToDB({
       ...updatedUser,
