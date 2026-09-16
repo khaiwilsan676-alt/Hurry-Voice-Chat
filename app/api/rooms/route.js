@@ -35,8 +35,6 @@ export async function GET(request) {
   }
 }
 
-import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
 
 export async function PUT(request) {
   const body = await request.json();
