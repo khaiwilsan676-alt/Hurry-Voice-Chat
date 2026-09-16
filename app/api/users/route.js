@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
 export async function GET(request) {
-  const uid = new URL(request.url).searchParams.get("uid");
+  const params = new URL(request.url).searchParams;
+  const uid = params.get("uid");
+  const accountId = params.get("accountId");
 
-  if (!uid) {
-    return NextResponse.json({ error: "Missing uid" }, { status: 400 });
+  if (!uid && !accountId) {
+    return NextResponse.json({ error: "Missing uid or accountId" }, { status: 400 });
   }
 
   const client = new MongoClient(process.env.MONGODB_URI);
@@ -14,8 +16,17 @@ export async function GET(request) {
     await client.connect();
     const db = client.db("hurry");
 
+    const searchValue = accountId || uid;
+
     const user = await db.collection("users").findOne(
-      { $or: [{ uid }, { id: uid }, { appLongId: uid }] },
+      {
+        $or: [
+          { accountId: searchValue },
+          { uid: searchValue },
+          { id: searchValue },
+          { appLongId: searchValue },
+        ],
+      },
       { projection: { _id: 0 } }
     );
 

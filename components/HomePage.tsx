@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-
+import { socket } from '../src/lib/socket'
 import MessagePage from './MessagePage'
-import MePage from './MePage';
+import MePage from './MePage'
 import { getOrCreateAccountNumber } from './MePage'
 import RoomPage from './RoomPage'
 import PublicProfile from './PublicProfile'
@@ -755,6 +755,57 @@ async function fetchSearchResults(queryRaw: string, globalRooms: GlobalRoom[]): 
   const foundList: GlobalRoom[] = []
   const addedIds = new Set<string>()
 
+  // MongoDB user search by account ID.
+  // Online/offline status is handled separately by Socket.IO.
+  try {
+    const response = await fetch(
+      `/api/users?accountId=${encodeURIComponent(queryRaw)}`
+    )
+
+    if (response.ok) {
+      const data = await response.json()
+      const user = data?.user
+
+      if (user) {
+        const accountId = String(
+          user.accountId ||
+          user.displayAccountNumber ||
+          user.id ||
+          user.uid ||
+          ''
+        )
+
+        const userId = String(
+          user.id ||
+          user.uid ||
+          user.appLongId ||
+          accountId
+        )
+
+        if (accountId) {
+          foundList.push({
+            id: userId,
+            name: user.name || user.displayName || 'User',
+            country: user.country || '🇮🇳',
+            image:
+              user.image ||
+              user.photo ||
+              user.photoURL ||
+              '/default-avatar.png',
+            accountId,
+            createdAt: user.createdAt || Date.now(),
+            isLocked: Boolean(user.isLocked),
+          })
+
+          addedIds.add(userId)
+          addedIds.add(accountId)
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('MongoDB user ID search failed:', error)
+  }
+
   const addResult = (docId: string, uData: any, isGlobalRoom: boolean = false) => {
     const accId = String(uData.accountId || uData.id || generateStableId(docId))
     if (!addedIds.has(docId) && !addedIds.has(accId)) {
@@ -848,6 +899,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const [userName, setUserName] = useState('')
   const [userPhoto, setUserPhoto] = useState('')
   const [userUID, setUserUID] = useState('')
+  const [userPresence, setUserPresence] = useState<Record<string, boolean>>({})
   const [totalUnreadCount, setTotalUnreadCount] = useState(0)
 
   const [globalRooms, setGlobalRooms] = useState<GlobalRoom[]>([])
@@ -1167,7 +1219,156 @@ export default function HomePage({ onLogout }: HomePageProps) {
     fetchRoomsWithTimeout();
   }, []);
 
-  // ============ DRAG CIRCLE INITIAL POSITION ============
+  
+
+// ============ LIVE USER ONLINE OFFLINE PRESENCE ============
+useEffect(() => {
+  const handlePresenceStatus = ({
+    userId,
+    accountId,
+    online,
+  }: {
+    userId?: string;
+    accountId?: string;
+    online?: boolean;
+  }) => {
+    const key = String(accountId || userId || '');
+    if (!key) return;
+
+    setUserPresence((prev) => ({
+      ...prev,
+      [key]: Boolean(online),
+    }));
+  };
+
+  const handleUserOnline = (presenceId: string) => {
+    const key = String(presenceId || '');
+    if (!key) return;
+
+    setUserPresence((prev) => ({
+      ...prev,
+      [key]: true,
+    }));
+  };
+
+  const handleUserOffline = (presenceId: string) => {
+    const key = String(presenceId || '');
+    if (!key) return;
+
+    setUserPresence((prev) => ({
+      ...prev,
+      [key]: false,
+    }));
+  };
+
+  socket.on('presence_status', handlePresenceStatus);
+  socket.on('user_online', handleUserOnline);
+  socket.on('user_offline', handleUserOffline);
+
+  return () => {
+    socket.off('presence_status', handlePresenceStatus);
+    socket.off('user_online', handleUserOnline);
+    socket.off('user_offline', handleUserOffline);
+  };
+}, []);
+
+// ============ GLOBAL SOCKET.IO ROOM PRESENCE ============
+useEffect(() => {
+  if (!userUID || userUID === 'N/A') return;
+
+  const applyGlobalPresence = ({
+    rooms,
+  }: {
+    rooms?: Array<{
+      roomId: string;
+      users?: string[];
+      activeUserCount?: number;
+    }>;
+  }) => {
+    if (!Array.isArray(rooms)) return;
+
+    const presenceMap = new Map<string, number>();
+
+    rooms.forEach((room) => {
+      const roomId = String(room.roomId || '');
+      const count = Number(room.activeUserCount || 0);
+
+      if (roomId) {
+        presenceMap.set(roomId, count);
+      }
+    });
+
+    setGlobalRooms((prev) =>
+      prev.map((room) => {
+        const roomId = String(room.id || '');
+        const accountId = String(room.accountId || '');
+
+        let activeUserCount = 0;
+
+        if (presenceMap.has(roomId)) {
+          activeUserCount = presenceMap.get(roomId) || 0;
+        } else if (presenceMap.has(accountId)) {
+          activeUserCount = presenceMap.get(accountId) || 0;
+        }
+
+        return {
+          ...room,
+          activeUserCount,
+        };
+      })
+    );
+
+    setSearchResults((prev) =>
+      prev.map((room) => {
+        const roomId = String(room.id || '');
+        const accountId = String(room.accountId || '');
+
+        let activeUserCount = 0;
+
+        if (presenceMap.has(roomId)) {
+          activeUserCount = presenceMap.get(roomId) || 0;
+        } else if (presenceMap.has(accountId)) {
+          activeUserCount = presenceMap.get(accountId) || 0;
+        }
+
+        return {
+          ...room,
+          activeUserCount,
+        };
+      })
+    );
+  };
+
+  const handleSocketConnect = () => {
+    const accountId =
+      localStorage.getItem('accountNumber') || '';
+
+    socket.emit('register', {
+      userId: String(userUID),
+      accountId: String(accountId),
+    });
+
+    socket.emit('global_room_presence_request');
+  };
+
+  if (!socket.connected) {
+    socket.connect();
+  }
+
+  socket.on('connect', handleSocketConnect);
+  socket.on('global_room_presence', applyGlobalPresence);
+
+  if (socket.connected) {
+    handleSocketConnect();
+  }
+
+  return () => {
+    socket.off('connect', handleSocketConnect);
+    socket.off('global_room_presence', applyGlobalPresence);
+  };
+}, [userUID]);
+
+// ============ DRAG CIRCLE INITIAL POSITION ============
   useEffect(() => {
     if (typeof window !== 'undefined') {
       circleStartPos.current = {
