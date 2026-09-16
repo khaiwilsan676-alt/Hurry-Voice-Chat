@@ -6,8 +6,7 @@ on:
       - main
 
   workflow_dispatch:
-      
-      
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,15 +46,17 @@ jobs:
         with:
           cmdline-tools-version: 11479570
 
+      - name: Accept Android SDK Licenses
+        run: yes | sdkmanager --licenses
+
       - name: Sync Capacitor
         run: |
           npx cap sync android
-          
 
       - name: Copy google-services.json
         run: |
           mkdir -p android/app
-          cat << 'EOF' > android/app/google-services.json
+          cat << 'JSONEOF' > android/app/google-services.json
           {
             "project_info": {
               "project_number": "164837688319",
@@ -95,15 +96,15 @@ jobs:
             ],
             "configuration_version": "1"
           }
-          EOF
+          JSONEOF
 
       - name: Fix Duplicate Kotlin Dependencies
         run: |
           mkdir -p android/gradle
           echo "android.useAndroidX=true" >> android/gradle.properties
           echo "android.enableJetifier=true" >> android/gradle.properties
-          
-          cat << 'EOF' >> android/build.gradle
+
+          cat << 'GRADLEEOF' >> android/build.gradle
 
           allprojects {
               configurations.all {
@@ -111,7 +112,7 @@ jobs:
                   exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
               }
           }
-          EOF
+          GRADLEEOF
 
       - name: Build Debug APK
         run: |
@@ -124,4 +125,3 @@ jobs:
         with:
           name: app-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
