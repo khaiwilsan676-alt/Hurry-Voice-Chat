@@ -20,7 +20,9 @@ const io = new Server(server, {
   maxHttpBufferSize: 2 * 1024 * 1024,
 });
 
-const mongoClient = new MongoClient(process.env.MONGODB_URI);
+const mongoClient = process.env.MONGODB_URI
+  ? new MongoClient(process.env.MONGODB_URI)
+  : null;
 
 let db = null;
 
@@ -33,13 +35,18 @@ const roomUsers = new Map();
 
 function getRoomUsers(roomId) {
   const users = roomUsers.get(String(roomId));
-
   if (!users) return [];
 
-  return Array.from(users.keys());
+  return Array.from(users.entries()).map(([userId, data]) => ({
+    accountId: String(data?.accountId || userId),
+    userId: String(data?.userId || userId),
+    name: data?.name || "User",
+    image: data?.image || "/default-avatar.png",
+    email: data?.email || "",
+  }));
 }
 
-function addUserToRoom(roomId, userId) {
+function addUserToRoom(roomId, userId, userData = {}) {
   if (!roomId || !userId) return;
 
   const room = String(roomId);
@@ -50,7 +57,26 @@ function addUserToRoom(roomId, userId) {
   }
 
   const users = roomUsers.get(room);
-  users.set(id, (users.get(id) || 0) + 1);
+  const existing = users.get(id);
+
+  if (existing) {
+    existing.count += 1;
+    existing.name = userData.name || existing.name || "User";
+    existing.image =
+      userData.image ||
+      existing.image ||
+      "/default-avatar.png";
+    existing.email = userData.email || existing.email || "";
+  } else {
+    users.set(id, {
+      count: 1,
+      userId: id,
+      accountId: id,
+      name: userData.name || "User",
+      image: userData.image || "/default-avatar.png",
+      email: userData.email || "",
+    });
+  }
 }
 
 function removeUserFromRoom(roomId, userId) {
@@ -60,15 +86,16 @@ function removeUserFromRoom(roomId, userId) {
   const id = String(userId);
 
   const users = roomUsers.get(room);
-
   if (!users) return;
 
-  const count = users.get(id) || 0;
+  const existing = users.get(id);
+  if (!existing) return;
 
-  if (count <= 1) {
+  if (Number(existing.count || 0) <= 1) {
     users.delete(id);
   } else {
-    users.set(id, count - 1);
+    existing.count -= 1;
+    users.set(id, existing);
   }
 
   if (users.size === 0) {
@@ -90,13 +117,7 @@ function emitRoomPresence(roomId) {
 }
 
 function emitGlobalRoomPresence() {
-  const rooms = Array.from(roomUsers.entries()).map(
-    ([roomId, users]) => ({
-      roomId: String(roomId),
-      users: Array.from(users.keys()),
-      activeUserCount: users.size,
-    })
-  );
+  const rooms = getGlobalRoomPresence();
 
   io.emit("global_room_presence", {
     rooms,
@@ -180,7 +201,7 @@ function getGlobalRoomPresence() {
   return Array.from(roomUsers.entries()).map(
     ([roomId, users]) => ({
       roomId: String(roomId),
-      users: Array.from(users.keys()),
+      users: getRoomUsers(roomId),
       activeUserCount: users.size,
     })
   );
@@ -270,29 +291,51 @@ io.on("connection", (socket) => {
 
   socket.on(
     "room_join",
-    ({ roomId, userId } = {}) => {
+    ({ roomId, userId, name, dp, email } = {}) => {
       if (!roomId || !userId) return;
 
       const room = String(roomId);
       const id = String(userId);
 
+      // Prevent duplicate joins from increasing the live count.
       if (
-        socket.roomId &&
-        socket.roomId !== room
+        socket.roomId === room &&
+        socket.roomUserId === id
       ) {
+        const users = getRoomUsers(room);
+
+        socket.emit("room_presence", {
+          roomId: room,
+          users,
+          activeUserCount: users.length,
+        });
+
+        return;
+      }
+
+      if (socket.roomId) {
         const oldRoom = String(socket.roomId);
         const oldUser =
           socket.roomUserId ||
           socket.userId;
 
-        socket.leave(`room:${oldRoom}`);
+        if (oldRoom !== room) {
+          socket.leave(`room:${oldRoom}`);
 
-        removeUserFromRoom(
-          oldRoom,
-          oldUser
-        );
+          removeUserFromRoom(
+            oldRoom,
+            oldUser
+          );
 
-        emitRoomPresence(oldRoom);
+          socket
+            .to(`room:${oldRoom}`)
+            .emit("room_user_offline", {
+              roomId: oldRoom,
+              userId: String(oldUser || ""),
+            });
+
+          emitRoomPresence(oldRoom);
+        }
       }
 
       socket.join(`room:${room}`);
@@ -300,7 +343,13 @@ io.on("connection", (socket) => {
       socket.roomId = room;
       socket.roomUserId = id;
 
-      addUserToRoom(room, id);
+      addUserToRoom(room, id, {
+        name: name || "User",
+        image:
+          dp ||
+          "/default-avatar.png",
+        email: email || "",
+      });
 
       const users = getRoomUsers(room);
 
@@ -315,6 +364,15 @@ io.on("connection", (socket) => {
         .emit("room_user_online", {
           roomId: room,
           userId: id,
+          user: {
+            accountId: id,
+            userId: id,
+            name: name || "User",
+            image:
+              dp ||
+              "/default-avatar.png",
+            email: email || "",
+          },
         });
 
       emitRoomPresence(room);
@@ -427,9 +485,15 @@ const PORT = process.env.PORT || 10000;
 
 async function startServer() {
   try {
-    await mongoClient.connect();
+    if (mongoClient) {
+      await mongoClient.connect();
 
-    db = mongoClient.db("hurry");
+      db = mongoClient.db("hurry");
+
+      console.log("MongoDB connected");
+    } else {
+      console.log("MongoDB URI not configured - starting Socket.IO without MongoDB");
+    }
 
     console.log("MongoDB connected");
 

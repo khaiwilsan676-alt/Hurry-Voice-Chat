@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import socket from "../../src/lib/socket";
 import {
   Loader2,
   Search,
@@ -20,6 +21,8 @@ interface UserData {
   username?: string;
   hurryId: string;
   emailPhone: string;
+  email?: string;
+  userId?: string;
   role: 'NORMAL' | 'HOST' | 'AGENCY' | 'ADMIN';
   gender?: string;
   country?: string;
@@ -179,42 +182,95 @@ export default function OwnerPage() {
   const [tagAssigning, setTagAssigning] = useState(false);
   const [tagSuccess, setTagSuccess] = useState('');
 
-  // Fetch Users
+  // Fetch live room users from Socket.IO.
+  // Room users are NOT loaded from MongoDB here.
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const rawRooms = await getRoomsFromMongoDB();
-        if (Array.isArray(rawRooms)) {
-          const fetchedUsers: UserData[] = rawRooms.map((data: any) => {
-            const roomId = String(data.ID || data.id || data.roomId || '');
-            const accId = String(data['Room Admin'] || data.accountId || '—');
-            let userRole: 'NORMAL' | 'HOST' | 'AGENCY' | 'ADMIN' = 'NORMAL';
-            if (data.type === 'admin' || data.isOfficial) userRole = 'ADMIN';
-            else if (data.role === 'HOST' || data.type === 'host') userRole = 'HOST';
-            else if (data.role === 'AGENCY' || data.type === 'agency') userRole = 'AGENCY';
+    const handleGlobalRoomPresence = ({
+      rooms,
+    }: {
+      rooms?: Array<{
+        roomId: string;
+        users?: Array<{
+          accountId?: string;
+          userId?: string;
+          name?: string;
+          image?: string;
+          email?: string;
+        }>;
+        activeUserCount?: number;
+      }>;
+    }) => {
+      if (!Array.isArray(rooms)) return;
 
-            return {
-              id: roomId,
-              name: data['Room Name'] || data.name || 'User',
-              username: data.username || `user_${accId.substring(0,4)}`,
-              hurryId: accId !== '—' ? accId : Math.floor(Math.random() * 900000000 + 100000000).toString(),
-              emailPhone: data.email || data.phone || '—',
-              role: userRole,
-              gender: data.gender || '',
-              country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || data.image || ''
-            };
+      const liveUsers: UserData[] = [];
+      const seen = new Set<string>();
+
+      rooms.forEach((room) => {
+        if (!Array.isArray(room.users)) return;
+
+        room.users.forEach((user) => {
+          const userId = String(
+            user.userId ||
+            user.accountId ||
+            ""
+          );
+
+          if (!userId || seen.has(userId)) return;
+
+          seen.add(userId);
+
+          const email = String(user.email || "");
+
+          liveUsers.push({
+            id: userId,
+            userId,
+            name: user.name || "User",
+            username: `user_${userId.slice(0, 4)}`,
+            hurryId: user.accountId || userId,
+            emailPhone: email || "—",
+            email,
+            role: "NORMAL",
+            gender: "",
+            country: "🇮🇳",
+            image:
+              user.image ||
+              "/default-avatar.png",
           });
-          setUsers(fetchedUsers);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+        });
+      });
+
+      setUsers(liveUsers);
+      setLoading(false);
     };
-    loadUsers();
+
+    socket.on(
+      "global_room_presence",
+      handleGlobalRoomPresence
+    );
+
+    const requestPresence = () => {
+      socket.emit("global_room_presence_request");
+    };
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    socket.on("connect", requestPresence);
+
+    if (socket.connected) {
+      requestPresence();
+    }
+
+    return () => {
+      socket.off(
+        "global_room_presence",
+        handleGlobalRoomPresence
+      );
+      socket.off("connect", requestPresence);
+    };
   }, []);
+
 
   // Fruit Party Live Predictor Logic
   useEffect(() => {
@@ -419,7 +475,7 @@ export default function OwnerPage() {
                     <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       <th className="py-4 pl-4 pr-2 w-1/3">User</th>
                       <th className="py-4 px-2">Hurry ID</th>
-                      <th className="py-4 px-2">Phone / Email</th>
+                      <th className="py-4 px-2">Email</th>
                       <th className="py-4 px-2">Role</th>
                       <th className="py-4 pr-4 text-right"></th>
                     </tr>

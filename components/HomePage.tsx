@@ -751,15 +751,37 @@ const CATEGORY_CARDS = [
 
 // ============ SEARCH FUNCTION ============
 async function fetchSearchResults(queryRaw: string, globalRooms: GlobalRoom[]): Promise<GlobalRoom[]> {
-  const queryLower = queryRaw.toLowerCase()
+  const query = queryRaw.trim()
+  if (!query) return []
+
+  const queryLower = query.toLowerCase()
   const foundList: GlobalRoom[] = []
   const addedIds = new Set<string>()
 
-  // MongoDB user search by account ID.
-  // Online/offline status is handled separately by Socket.IO.
+  // 1. Search already-loaded Socket.IO/HomePage rooms immediately.
+  for (const room of globalRooms) {
+    const roomId = String(room.id || "")
+    const accountId = String(room.accountId || "")
+
+    if (
+      roomId.toLowerCase() === queryLower ||
+      accountId.toLowerCase() === queryLower ||
+      String(room.name || "").toLowerCase().includes(queryLower)
+    ) {
+      const key = accountId || roomId
+
+      if (key && !addedIds.has(key)) {
+        addedIds.add(key)
+        foundList.push(room)
+      }
+    }
+  }
+
+  // 2. Query Mongo only when the local result is not enough.
   try {
     const response = await fetch(
-      `/api/users?accountId=${encodeURIComponent(queryRaw)}`
+      `/api/users?accountId=${encodeURIComponent(query)}`,
+      { cache: "no-store" }
     )
 
     if (response.ok) {
@@ -772,7 +794,7 @@ async function fetchSearchResults(queryRaw: string, globalRooms: GlobalRoom[]): 
           user.displayAccountNumber ||
           user.id ||
           user.uid ||
-          ''
+          ""
         )
 
         const userId = String(
@@ -783,74 +805,39 @@ async function fetchSearchResults(queryRaw: string, globalRooms: GlobalRoom[]): 
         )
 
         if (accountId) {
-          foundList.push({
-            id: userId,
-            name: user.name || user.displayName || 'User',
-            country: user.country || '🇮🇳',
-            image:
-              user.image ||
-              user.photo ||
-              user.photoURL ||
-              '/default-avatar.png',
-            accountId,
-            createdAt: user.createdAt || Date.now(),
-            isLocked: Boolean(user.isLocked),
-          })
+          const key = accountId || userId
 
-          addedIds.add(userId)
-          addedIds.add(accountId)
+          if (!addedIds.has(key)) {
+            addedIds.add(key)
+
+            foundList.push({
+              id: userId,
+              name:
+                user.name ||
+                user.displayName ||
+                "User",
+              country: user.country || "🇮🇳",
+              image:
+                user.image ||
+                user.photo ||
+                user.photoURL ||
+                "/default-avatar.png",
+              accountId,
+              createdAt:
+                user.createdAt ||
+                Date.now(),
+              isLocked: Boolean(user.isLocked),
+              activeUserCount: 0,
+            })
+          }
         }
       }
     }
   } catch (error) {
-    console.warn('MongoDB user ID search failed:', error)
+    console.error("Fast user search error:", error)
   }
 
-  const addResult = (docId: string, uData: any, isGlobalRoom: boolean = false) => {
-    const accId = String(uData.accountId || uData.id || generateStableId(docId))
-    if (!addedIds.has(docId) && !addedIds.has(accId)) {
-      addedIds.add(docId)
-      addedIds.add(accId)
-      foundList.push({
-        id: docId,
-        name: uData.name || 'User',
-        country: uData.country || '🇮🇳',
-        image: uData.image || uData.photo || '/default-avatar.png',
-        accountId: accId,
-        createdAt: uData.createdAt || Date.now(),
-        isLocked: uData.isLocked
-      })
-    }
-  }
-
-  globalRooms.forEach((r) => {
-    const accId = String(r.accountId || r.id || '')
-    const rName = String(r.name || '')
-    if (
-      accId.toLowerCase().includes(queryLower) ||
-      rName.toLowerCase().includes(queryLower)
-    ) {
-      if (!addedIds.has(accId)) {
-        addedIds.add(accId)
-        foundList.push(r)
-      }
-    }
-  })
-
-  globalRooms.forEach((r) => {
-    if (String(r.id).toLowerCase().includes(queryLower)) {
-      addResult(r.id, r)
-    }
-  })
-  foundList.sort((a, b) => {
-    const aExact = String(a.accountId).toLowerCase() === queryLower || a.id.toLowerCase() === queryLower
-    const bExact = String(b.accountId).toLowerCase() === queryLower || b.id.toLowerCase() === queryLower
-    if (aExact && !bExact) return -1
-    if (!aExact && bExact) return 1
-    return (b.createdAt || 0) - (a.createdAt || 0)
-  })
-
-  return foundList.slice(0, 20)
+  return foundList
 }
 
 // ============ MAIN COMPONENT ============
@@ -1148,7 +1135,22 @@ export default function HomePage({ onLogout }: HomePageProps) {
           room.accountId !== null &&
           room.name !== 'User'
         );
-        setGlobalRooms(validRooms);
+        setGlobalRooms(prev => {
+          const liveCounts = new Map(
+            prev.map(room => [
+              String(room.id || room.accountId || ''),
+              Number(room.activeUserCount || 0)
+            ])
+          );
+
+          return validRooms.map(room => ({
+            ...room,
+            activeUserCount:
+              liveCounts.get(
+                String(room.id || room.accountId || '')
+              ) ?? Number(room.activeUserCount || 0)
+          }));
+        });
       }
     });
 
@@ -1183,7 +1185,23 @@ export default function HomePage({ onLogout }: HomePageProps) {
           room.name !== 'User'
         );
 
-        setGlobalRooms(validRooms);
+        setGlobalRooms(prev => {
+          const liveCounts = new Map(
+            prev.map(room => [
+              String(room.id || room.accountId || ''),
+              Number(room.activeUserCount || 0)
+            ])
+          );
+
+          return validRooms.map(room => ({
+            ...room,
+            activeUserCount:
+              liveCounts.get(
+                String(room.id || room.accountId || '')
+              ) ?? Number(room.activeUserCount || 0)
+          }));
+        });
+
         saveGlobalRoomsToDB(validRooms);
       }
     };
@@ -1281,59 +1299,114 @@ useEffect(() => {
   }: {
     rooms?: Array<{
       roomId: string;
-      users?: string[];
+      users?: Array<{
+        accountId?: string;
+        userId?: string;
+        name?: string;
+        image?: string;
+        email?: string;
+      }>;
       activeUserCount?: number;
     }>;
   }) => {
     if (!Array.isArray(rooms)) return;
 
-    const presenceMap = new Map<string, number>();
-
-    rooms.forEach((room) => {
-      const roomId = String(room.roomId || '');
-      const count = Number(room.activeUserCount || 0);
-
-      if (roomId) {
-        presenceMap.set(roomId, count);
-      }
-    });
-
-    setGlobalRooms((prev) =>
-      prev.map((room) => {
-        const roomId = String(room.id || '');
-        const accountId = String(room.accountId || '');
-
-        let activeUserCount = 0;
-
-        if (presenceMap.has(roomId)) {
-          activeUserCount = presenceMap.get(roomId) || 0;
-        } else if (presenceMap.has(accountId)) {
-          activeUserCount = presenceMap.get(accountId) || 0;
-        }
-
-        return {
-          ...room,
-          activeUserCount,
-        };
-      })
+    const activeRooms = rooms.filter(
+      (room) =>
+        room &&
+        String(room.roomId || "") &&
+        Number(room.activeUserCount || 0) > 0
     );
+
+    setGlobalRooms((prev) => {
+      const prevMap = new Map(
+        prev.map((room) => [
+          String(room.id || room.accountId || ""),
+          room,
+        ])
+      );
+
+      const merged = [...prev];
+
+      activeRooms.forEach((liveRoom) => {
+        const roomId = String(liveRoom.roomId || "");
+        if (!roomId) return;
+
+        const liveUsers = Array.isArray(liveRoom.users)
+          ? liveRoom.users
+          : [];
+
+        const firstUser = liveUsers[0];
+
+        const existing =
+          prevMap.get(roomId) ||
+          prev.find(
+            (room) =>
+              String(room.accountId || "") === roomId
+          );
+
+        if (existing) {
+          const updated = {
+            ...existing,
+            activeUserCount: Number(
+              liveRoom.activeUserCount || liveUsers.length || 0
+            ),
+          };
+
+          const index = merged.findIndex(
+            (room) =>
+              String(room.id || room.accountId || "") ===
+              String(existing.id || existing.accountId || "")
+          );
+
+          if (index >= 0) {
+            merged[index] = updated;
+          }
+        } else {
+          merged.push({
+            id: roomId,
+            accountId: roomId,
+            name: firstUser?.name || "Room",
+            country: "🇮🇳",
+            image:
+              firstUser?.image ||
+              "/default-avatar.png",
+            createdAt: Date.now(),
+            isLocked: false,
+            roomPassword: undefined,
+            isExplicitlyCreated: true,
+            activeUserCount: Number(
+              liveRoom.activeUserCount || liveUsers.length || 0
+            ),
+          });
+        }
+      });
+
+      return merged;
+    });
 
     setSearchResults((prev) =>
       prev.map((room) => {
-        const roomId = String(room.id || '');
-        const accountId = String(room.accountId || '');
+        const roomId = String(room.id || "");
+        const accountId = String(room.accountId || "");
 
-        let activeUserCount = 0;
-
-        if (presenceMap.has(roomId)) {
-          activeUserCount = presenceMap.get(roomId) || 0;
-        } else if (presenceMap.has(accountId)) {
-          activeUserCount = presenceMap.get(accountId) || 0;
-        }
+        const liveRoom = activeRooms.find(
+          (item) => {
+            const liveId = String(item.roomId || "");
+            return liveId === roomId || liveId === accountId;
+          }
+        );
 
         return {
           ...room,
-          activeUserCount,
+          activeUserCount: liveRoom
+            ? Number(
+                liveRoom.activeUserCount ||
+                (Array.isArray(liveRoom.users)
+                  ? liveRoom.users.length
+                  : 0)
+              )
+            : 0,
         };
       })
     );
@@ -1942,24 +2015,104 @@ useEffect(() => {
 
   // ============ USER CARD CLICK ============
   const handleUserCardClick = async (user: UserCard) => {
-    const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
-    const currentAccountId = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
+    const rawAccNum =
+      localStorage.getItem('accountNumber') ||
+      getOrCreateAccountNumber(userUID)
+
+    const currentAccountId =
+      typeof rawAccNum === 'string'
+        ? rawAccNum
+        : (rawAccNum as any).fullAccNum
+
+    // Always resolve the actual room from the known global room list.
+    // Room accountId is NOT the Socket.IO roomId.
+    const foundRoom = globalRooms.find(
+      (r) =>
+        String(r.id || '') === String(user.id || '') ||
+        String(r.accountId || '') === String(user.accountId || '')
+    )
+
+    const canonicalRoomId = String(
+      foundRoom?.id ||
+      user.id ||
+      user.accountId ||
+      ''
+    )
+
+    if (!canonicalRoomId) {
+      console.error('Room ID missing')
+      return
+    }
+
+    const roomUser: UserCard = {
+      ...user,
+      id: canonicalRoomId,
+      accountId: String(
+        foundRoom?.accountId ||
+        user.accountId ||
+        canonicalRoomId
+      ),
+      name:
+        foundRoom?.name ||
+        user.name ||
+        'Room',
+      image:
+        foundRoom?.image ||
+        user.image ||
+        '/default-avatar.png',
+      isLocked:
+        foundRoom?.isLocked ??
+        user.isLocked,
+    }
 
     try {
-      const roomData = await fetchRoomFromMongoDB(user.id || user.accountId || '');
+      const roomData =
+        await fetchRoomFromMongoDB(canonicalRoomId)
+
       if (roomData) {
-        if (roomData.isLocked && (roomData['Room Admin'] || roomData.accountId) !== currentAccountId) {
-          setSelectedLockedRoom(user)
+        if (
+          roomData.isLocked &&
+          String(
+            roomData['Room Admin'] ||
+            roomData.accountId ||
+            ''
+          ) !== String(currentAccountId)
+        ) {
+          setSelectedLockedRoom(roomUser)
           setShowRoomPasswordCard(true)
           setEnteredRoomPassword('')
           return
         }
+
+        // MongoDB is the source of truth for room name and DP.
+        roomUser.name =
+          roomData['Room Name'] ||
+          roomData.roomName ||
+          roomData.name ||
+          roomUser.name
+
+        roomUser.image =
+          roomData['Room dp'] ||
+          roomData.roomDp ||
+          roomData.image ||
+          roomUser.image
+
+        roomUser.isLocked =
+          Boolean(roomData.isLocked)
       }
     } catch (e) {
-      console.warn("Failed to fetch lock status:", e);
-      const foundRoom = globalRooms.find(r => (r.accountId && r.accountId === user.accountId) || r.id === user.id || r.id === user.accountId);
-      if (foundRoom && foundRoom.isLocked && foundRoom.accountId !== currentAccountId) {
-        setSelectedLockedRoom(user)
+      console.warn(
+        'Failed to fetch room data:',
+        e
+      )
+
+      if (
+        foundRoom &&
+        foundRoom.isLocked &&
+        String(foundRoom.accountId) !==
+          String(currentAccountId)
+      ) {
+        setSelectedLockedRoom(roomUser)
         setShowRoomPasswordCard(true)
         setEnteredRoomPassword('')
         return
@@ -1967,13 +2120,23 @@ useEffect(() => {
     }
 
     setEnteredFromKept(false)
-    addToRecent({ name: user.name, image: user.image, accountId: user.accountId || user.id, isLocked: user.isLocked })
-    setSelectedUser(user)
+
+    addToRecent({
+      name: roomUser.name,
+      image: roomUser.image,
+      accountId:
+        roomUser.accountId ||
+        roomUser.id,
+      isLocked: roomUser.isLocked
+    })
+
+    setSelectedUser(roomUser)
     setCurrentPage('room')
+
     if (isSearchOpen) {
       setIsSearchOpen(false)
     }
-  }
+  };
 
   // ============ ROOM PASSWORD SUBMIT ============
   const handleRoomPasswordSubmit = async () => {
