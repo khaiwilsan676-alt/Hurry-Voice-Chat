@@ -45,7 +45,7 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
         muted 
         playsInline 
         className="w-full h-full object-cover scale-150" 
-        style={{ mixBlendMode: 'screen' }} 
+        style={{ mixBlendMode: 'screen', WebkitMixBlendMode: 'screen' }} 
       />
     </div>
     <div className="flex gap-[1px] mt-1.5">
@@ -286,7 +286,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* TOP 3 REWARD (Updated with Top 3 video) */}
+        {/* TOP 3 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
@@ -323,13 +323,13 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL */}
+        {/* UNIFIED CENTER VIDEO MODAL - UPDATED: Square layout and fully transparent background */}
         {activeVideoModal && (
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="relative w-full max-w-xs aspect-square flex items-center justify-center bg-transparent">
               <button 
                 onClick={() => setActiveVideoModal(null)} 
-                className="absolute -top-12 right-0 text-white p-2.5 cursor-pointer bg-black/60 rounded-full hover:bg-black z-10"
+                className="absolute -top-12 right-0 text-white p-2.5 cursor-pointer bg-white/20 border border-white/30 rounded-full hover:bg-white/30 z-50 transition-colors"
               >
                 <X size={24} />
               </button>
@@ -339,8 +339,12 @@ export default function Family({ onBack }: FamilyProps) {
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-contain scale-125" 
-                style={{ mixBlendMode: 'screen' }} 
+                className="w-full h-full object-cover" 
+                style={{ 
+                  mixBlendMode: 'screen', 
+                  WebkitMixBlendMode: 'screen',
+                  backgroundColor: 'transparent'
+                }} 
               />
             </div>
           </div>
