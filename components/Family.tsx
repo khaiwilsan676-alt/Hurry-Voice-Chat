@@ -323,9 +323,9 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL - UPDATED: Removed blur, changed to bg-black/20 to let the blend work properly */}
+        {/* UNIFIED CENTER VIDEO MODAL - UPDATED WITH BLACK DROP-SHADOW & FILTER TO COMPLETELY REMOVE BLACK BACKGROUND */}
         {activeVideoModal && (
-          <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
             <div className="relative w-full max-w-xs aspect-square flex items-center justify-center bg-transparent">
               <button 
                 onClick={() => setActiveVideoModal(null)} 
@@ -339,10 +339,12 @@ export default function Family({ onBack }: FamilyProps) {
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-cover" 
+                className="w-full h-full object-cover scale-125" 
                 style={{ 
                   mixBlendMode: 'screen', 
                   WebkitMixBlendMode: 'screen',
+                  filter: 'contrast(150%) brightness(120%) drop-shadow(0px 0px 0px black)',
+                  backgroundColor: 'transparent'
                 }} 
               />
             </div>
