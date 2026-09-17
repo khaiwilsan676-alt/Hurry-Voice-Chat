@@ -1304,16 +1304,53 @@ useEffect(() => {
     }));
   };
 
+  const handleGlobalPrivateMessage = async (data: any) => {
+    if (data?.receiverId === String(userUID)) {
+      const senderId = data.senderId;
+      const chatId = [String(userUID), senderId].sort().join('_');
+
+      window.dispatchEvent(new CustomEvent('new_private_message', { detail: data }));
+
+      try {
+        const request = indexedDB.open('ChatMessagesDB', 1);
+        request.onsuccess = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('messages')) return;
+          const tx = db.transaction('messages', 'readwrite');
+          const store = tx.objectStore('messages');
+
+          const msg = {
+            id: String(data.id || `${data.senderId}_${data.timestamp || Date.now()}`),
+            text: data.text || '',
+            sender: 'other',
+            timestamp: Number(data.timestamp || Date.now()),
+            type: data.type || 'message',
+            imageUrl: data.imageUrl || undefined,
+            roomData: data.roomData || undefined,
+            replyTo: data.replyTo || null,
+            chatId: chatId
+          };
+
+          store.put(msg);
+        };
+      } catch (e) {
+        console.error('Error saving global private message:', e);
+      }
+    }
+  };
+
   socket.on('presence_status', handlePresenceStatus);
   socket.on('user_online', handleUserOnline);
   socket.on('user_offline', handleUserOffline);
+  socket.on('private_message', handleGlobalPrivateMessage);
 
   return () => {
     socket.off('presence_status', handlePresenceStatus);
     socket.off('user_online', handleUserOnline);
     socket.off('user_offline', handleUserOffline);
+    socket.off('private_message', handleGlobalPrivateMessage);
   };
-}, []);
+}, [userUID]);
 
 // ============ GLOBAL SOCKET.IO ROOM PRESENCE ============
 useEffect(() => {
@@ -1391,7 +1428,7 @@ useEffect(() => {
           merged.push({
             id: roomId,
             accountId: roomId,
-            name: firstUser?.name || "Room",
+            name: firstUser?.name && firstUser.name !== 'User' ? firstUser.name : "Live Room",
             country: "🇮🇳",
             image:
               firstUser?.image ||

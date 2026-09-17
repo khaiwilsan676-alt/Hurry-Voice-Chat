@@ -629,16 +629,23 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       }
     };
 
+    const joinRoom = () => {
+      socket.emit("room_join", {
+        roomId,
+        userId: userAccountId,
+        name: currentRoomUser.name,
+        dp: currentRoomUser.image,
+      });
+    };
+
+    socket.on("connect", joinRoom);
     socket.on("room_user_online", handleRoomUserOnline);
     socket.on("room_user_offline", handleRoomUserOffline);
     socket.on("room_message", handleRoomMessage);
 
-    socket.emit("room_join", {
-      roomId,
-      userId: userAccountId,
-      name: currentRoomUser.name,
-      dp: currentRoomUser.image,
-    });
+    if (socket.connected) {
+      joinRoom();
+    }
 
     setRoomUsers(prev => {
       if (prev.some(u => u.accountId === userAccountId)) {
@@ -649,6 +656,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     });
 
     return () => {
+      socket.off("connect", joinRoom);
       socket.off("room_user_online", handleRoomUserOnline);
       socket.off("room_user_offline", handleRoomUserOffline);
       socket.off("room_message", handleRoomMessage);
