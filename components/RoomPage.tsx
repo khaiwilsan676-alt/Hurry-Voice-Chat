@@ -16,14 +16,14 @@ import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 
 // LiveKit imports for Voice Audio
-import { 
-  LiveKitRoom, 
-  RoomAudioRenderer, 
-  useLocalParticipant, 
-  useRemoteParticipants 
+import {
+  LiveKitRoom,
+  RoomAudioRenderer,
+  useLocalParticipant,
+  useRemoteParticipants
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { 
+import {
   Track as LKTrack
 } from "livekit-client";
 
@@ -87,6 +87,103 @@ interface MusicTrack {
 const THEME_BACKGROUNDS: { [key: string]: string } = {
   'forest-night': '/1784875884052~2.jpg',
   'mood-light': '/1784533036732~2.jpg',
+};
+
+
+const ROOM_SETTINGS_DB_NAME = "HurryRoomSettingsDB";
+const ROOM_SETTINGS_STORE = "roomSettings";
+
+interface RoomSettingsCache {
+  roomId: string;
+  roomName: string;
+  roomDp: string;
+  announcement: string;
+  micMode: number;
+  theme: string;
+  isLocked: boolean;
+  roomPassword: string;
+  updatedAt: number;
+}
+
+const openRoomSettingsDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(
+      ROOM_SETTINGS_DB_NAME,
+      1
+    );
+
+    request.onerror = () =>
+      reject(request.error);
+
+    request.onsuccess = () =>
+      resolve(request.result);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+
+      if (
+        !db.objectStoreNames.contains(
+          ROOM_SETTINGS_STORE
+        )
+      ) {
+        db.createObjectStore(
+          ROOM_SETTINGS_STORE,
+          { keyPath: "roomId" }
+        );
+      }
+    };
+  });
+
+const saveRoomSettingsToIndexedDB = async (
+  data: RoomSettingsCache
+) => {
+  const db = await openRoomSettingsDB();
+
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(
+      ROOM_SETTINGS_STORE,
+      "readwrite"
+    );
+
+    tx.objectStore(
+      ROOM_SETTINGS_STORE
+    ).put(data);
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+
+  db.close();
+};
+
+const loadRoomSettingsFromIndexedDB = async (
+  roomId: string
+): Promise<RoomSettingsCache | null> => {
+  if (!roomId) return null;
+
+  const db = await openRoomSettingsDB();
+
+  const result = await new Promise<RoomSettingsCache | null>(
+    (resolve, reject) => {
+      const tx = db.transaction(
+        ROOM_SETTINGS_STORE,
+        "readonly"
+      );
+
+      const request = tx
+        .objectStore(ROOM_SETTINGS_STORE)
+        .get(roomId);
+
+      request.onsuccess = () =>
+        resolve(request.result || null);
+
+      request.onerror = () =>
+        reject(request.error);
+    }
+  );
+
+  db.close();
+  return result;
 };
 
 const ROOM_MESSAGES_DB_NAME = "RoomMessagesDB";
@@ -352,20 +449,20 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
   useEffect(() => {
     if (!remoteParticipants || remoteParticipants.length === 0) return;
-    
+
     const updateSeatsWithRemoteParticipants = async () => {
       const updatedSeats = [...seats];
       let hasChanges = false;
-      
+
       for (const participant of remoteParticipants) {
-        const seatIndex = updatedSeats.findIndex(s => 
+        const seatIndex = updatedSeats.findIndex(s =>
           s.isOccupied && s.user?.accountId === participant.identity
         );
-        
+
         if (seatIndex !== -1) {
           const audioPublication = participant.getTrackPublication(LKTrack.Source.Microphone);
           const isMuted = audioPublication ? audioPublication.isMuted : true;
-          
+
           if (updatedSeats[seatIndex].isMuted !== isMuted) {
             updatedSeats[seatIndex] = {
               ...updatedSeats[seatIndex],
@@ -375,61 +472,104 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           }
         }
       }
-      
+
       if (hasChanges) {
         setSeats(updatedSeats);
       }
     };
-    
+
     updateSeatsWithRemoteParticipants();
   }, [remoteParticipants, seats]);
 
   useEffect(() => {
-    const fetchRoomData = async () => {
+    let mounted = true;
+
+    const loadRoomSettings = async () => {
       if (!roomId) return;
 
-      try {
-        const res = await fetch(
-          `/api/rooms?roomId=${encodeURIComponent(roomId)}`
+      // First show Google account Name/DP immediately.
+      if (mounted) {
+        setRoomName(
+          currentUser.name ||
+          roomOwner.name ||
+          "Room"
         );
 
-        if (!res.ok) return;
+        setRoomImage(
+          currentUser.image ||
+          roomOwner.image ||
+          "/default-avatar.png"
+        );
+      }
 
-        const result = await res.json();
-        const data = result?.room;
-
-        if (data) {
-          setRoomName(data.roomName || data["Room Name"] || data.name || "");
-          setRoomAnnouncement(data.message || data.announcement || "");
-          setRoomImage(
-            data.roomDp || data["Room dp"] || data.image || roomOwner.image
+      try {
+        const cached =
+          await loadRoomSettingsFromIndexedDB(
+            String(roomId)
           );
 
-          if (data.micMode || data["Mic Mode"]) {
-            setMicMode(Number(data.micMode || data["Mic Mode"]));
+        if (!mounted) return;
+
+        if (cached) {
+          setRoomName(
+            cached.roomName ||
+            currentUser.name ||
+            roomOwner.name ||
+            "Room"
+          );
+
+          setRoomImage(
+            cached.roomDp ||
+            currentUser.image ||
+            roomOwner.image ||
+            "/default-avatar.png"
+          );
+
+          setRoomAnnouncement(
+            cached.announcement || ""
+          );
+
+          setMicMode(
+            Number(cached.micMode || 0)
+          );
+
+          if (
+            cached.theme &&
+            THEME_BACKGROUNDS[cached.theme]
+          ) {
+            setBackgroundImage(
+              THEME_BACKGROUNDS[cached.theme]
+            );
           }
 
-          if (data.theme && THEME_BACKGROUNDS[data.theme]) {
-            setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
-          } else {
-            setBackgroundImage("/1784533036732~2.jpg");
-          }
+          setIsLocked(
+            Boolean(cached.isLocked)
+          );
 
-          if (data.isLocked !== undefined) {
-            setIsLocked(Boolean(data.isLocked));
-          }
-
-          if (data.roomPassword !== undefined) {
-            setRoomPassword(data.roomPassword || "");
-          }
+          setRoomPassword(
+            cached.roomPassword || ""
+          );
         }
       } catch (err) {
-        console.error("Error loading room data:", err);
+        console.error(
+          "Room settings IndexedDB load error:",
+          err
+        );
       }
     };
 
-    fetchRoomData();
-  }, [roomId, roomOwner.image]);
+    loadRoomSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [
+    roomId,
+    currentUser.name,
+    currentUser.image,
+    roomOwner.name,
+    roomOwner.image
+  ]);
 
   useEffect(() => {
     setSeats(prev => {
@@ -552,42 +692,124 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   useEffect(() => {
     if (!roomId || userAccountId === "guest") return;
 
-    if (!socket.connected) {
-      socket.connect();
-    }
-
     const currentRoomUser: RoomUser = {
-      accountId: userAccountId,
+      accountId: String(userAccountId),
       name: currentUser.name || "User",
-      image: currentUser.image || "/default-avatar.png",
+      image:
+        currentUser.image ||
+        "/default-avatar.png",
+    };
+
+    const handleRoomPresence = (data: any) => {
+      if (
+        !data ||
+        String(data.roomId) !== String(roomId)
+      ) {
+        return;
+      }
+
+      if (!Array.isArray(data.users)) {
+        return;
+      }
+
+      const users: RoomUser[] = data.users
+        .map((user: any) => ({
+          accountId: String(
+            user?.accountId ||
+            user?.userId ||
+            user?.id ||
+            ""
+          ),
+          name: user?.name || "User",
+          image:
+            user?.image ||
+            user?.dp ||
+            "/default-avatar.png",
+        }))
+        .filter(
+          (user: RoomUser) =>
+            Boolean(user.accountId)
+        );
+
+      setRoomUsers(users);
     };
 
     const handleRoomUserOnline = (data: any) => {
-      if (!data || data.roomId !== roomId || !data.userId) return;
+      if (
+        !data ||
+        String(data.roomId) !== String(roomId) ||
+        !data.userId
+      ) {
+        return;
+      }
+
+      const userId = String(data.userId);
 
       setRoomUsers(prev => {
-        if (prev.some(u => u.accountId === data.userId)) {
-          return prev;
+        const existing = prev.find(
+          user =>
+            String(user.accountId) === userId
+        );
+
+        if (existing) {
+          return prev.map(user =>
+            String(user.accountId) === userId
+              ? {
+                  ...user,
+                  name:
+                    data.user?.name ||
+                    user.name ||
+                    "User",
+                  image:
+                    data.user?.image ||
+                    user.image ||
+                    "/default-avatar.png",
+                }
+              : user
+          );
         }
 
-        if (data.user) {
-          return [...prev, data.user as RoomUser];
-        }
-
-        return prev;
+        return [
+          ...prev,
+          {
+            accountId: userId,
+            name:
+              data.user?.name ||
+              "User",
+            image:
+              data.user?.image ||
+              "/default-avatar.png",
+          },
+        ];
       });
     };
 
     const handleRoomUserOffline = (data: any) => {
-      if (!data || data.roomId !== roomId) return;
+      if (
+        !data ||
+        String(data.roomId) !== String(roomId) ||
+        !data.userId
+      ) {
+        return;
+      }
+
+      const userId = String(data.userId);
 
       setRoomUsers(prev =>
-        prev.filter(u => u.accountId !== data.userId)
+        prev.filter(
+          user =>
+            String(user.accountId) !== userId
+        )
       );
     };
 
     const handleRoomMessage = async (data: any) => {
-      if (!data || data.roomId !== roomId) return;
+      if (
+        !data ||
+        String(data.roomId) !== String(roomId)
+      ) {
+        return;
+      }
 
       const incoming: Message = {
         id: String(
@@ -595,17 +817,28 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           `${data.senderId || "user"}-${data.createdAt || Date.now()}`
         ),
         text: data.text || "",
-        sender: data.senderName || "Unknown",
+        sender:
+          data.senderName || "Unknown",
         senderImage:
-          data.senderAvatar || "/default-avatar.png",
-        senderAccountId: data.senderId || "",
-        timestamp: Number(data.createdAt || Date.now()),
-        type: data.type || "message",
-        imageUrl: data.imageUrl || undefined,
+          data.senderAvatar ||
+          "/default-avatar.png",
+        senderAccountId:
+          data.senderId || "",
+        timestamp: Number(
+          data.createdAt || Date.now()
+        ),
+        type:
+          data.type || "message",
+        imageUrl:
+          data.imageUrl || undefined,
       };
 
       setMessages(prev => {
-        if (prev.some(msg => msg.id === incoming.id)) {
+        if (
+          prev.some(
+            msg => msg.id === incoming.id
+          )
+        ) {
           return prev;
         }
 
@@ -614,44 +847,210 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
       try {
         const db = await openRoomMessagesDB();
-        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
-        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        const transaction = db.transaction(
+          [ROOM_MESSAGES_STORE],
+          "readwrite"
+        );
+        const store =
+          transaction.objectStore(
+            ROOM_MESSAGES_STORE
+          );
 
         store.put({
           ...incoming,
           roomId,
         });
 
-        transaction.oncomplete = () => db.close();
-        transaction.onerror = () => db.close();
+        transaction.oncomplete = () =>
+          db.close();
+
+        transaction.onerror = () =>
+          db.close();
       } catch (err) {
-        console.error("IndexedDB room message save error:", err);
+        console.error(
+          "IndexedDB room message save error:",
+          err
+        );
       }
     };
 
-    socket.on("room_user_online", handleRoomUserOnline);
-    socket.on("room_user_offline", handleRoomUserOffline);
-    socket.on("room_message", handleRoomMessage);
-
+    const joinRoom = () => {
     socket.emit("room_join", {
       roomId,
       userId: userAccountId,
       name: currentRoomUser.name,
       dp: currentRoomUser.image,
+      email:
+        (currentUser as any)?.email ||
+        (currentUser as any)?.emailPhone ||
+        "",
+      });
+
+  };
+    socket.emit("room_presence_request", {
+      roomId,
     });
 
-    setRoomUsers(prev => {
-      if (prev.some(u => u.accountId === userAccountId)) {
+
+  socket.on(
+      "room_settings_updated",
+      async (data: any) => {
+        if (
+          !data ||
+          String(data.roomId) !== String(roomId)
+        ) {
+          return;
+        }
+
+        const updatedName =
+          data.roomName ||
+          currentUser.name ||
+          roomOwner.name ||
+          "Room";
+
+        const updatedDp =
+          data.roomDp ||
+          currentUser.image ||
+          roomOwner.image ||
+          "/default-avatar.png";
+
+        setRoomName(updatedName);
+        setRoomImage(updatedDp);
+        setRoomAnnouncement(
+          data.announcement || ""
+        );
+
+        if (
+          data.micMode !== undefined
+        ) {
+          setMicMode(
+            Number(data.micMode)
+          );
+        }
+
+        if (
+          data.theme &&
+          THEME_BACKGROUNDS[data.theme]
+        ) {
+          setBackgroundImage(
+            THEME_BACKGROUNDS[data.theme]
+          );
+        }
+
+        if (
+          data.isLocked !== undefined
+        ) {
+          setIsLocked(
+            Boolean(data.isLocked)
+          );
+        }
+
+        if (
+          data.roomPassword !== undefined
+        ) {
+          setRoomPassword(
+            data.roomPassword || ""
+          );
+        }
+
+        try {
+          await saveRoomSettingsToIndexedDB({
+            roomId: String(roomId),
+            roomName: updatedName,
+            roomDp: updatedDp,
+            announcement:
+              data.announcement || "",
+            micMode: Number(
+              data.micMode || 0
+            ),
+            theme:
+              data.theme ||
+              "mood-light",
+            isLocked: Boolean(
+              data.isLocked
+            ),
+            roomPassword:
+              data.roomPassword || "",
+            updatedAt:
+              Number(
+                data.updatedAt ||
+                Date.now()
+              ),
+          });
+        } catch (err) {
+          console.error(
+            "Realtime room settings IndexedDB save error:",
+            err
+          );
+        }
+      }
+    );
+
+    socket.on(
+      "room_presence",
+      handleRoomPresence
+    );
+
+    socket.on(
+      "room_user_online",
+      handleRoomUserOnline
+    );
+
+    socket.on(
+      "room_user_offline",
+      handleRoomUserOffline
+    );
+
+    socket.on(
+      "room_message",
+      handleRoomMessage
+    );
+
+      setRoomUsers(prev => {
+      const exists = prev.some(
+        user =>
+          String(user.accountId) ===
+          String(userAccountId)
+      );
+
+      if (exists) {
         return prev;
       }
 
-      return [...prev, currentRoomUser];
+      return [
+        ...prev,
+        currentRoomUser,
+      ];
     });
 
-    return () => {
-      socket.off("room_user_online", handleRoomUserOnline);
-      socket.off("room_user_offline", handleRoomUserOffline);
-      socket.off("room_message", handleRoomMessage);
+    if (socket.connected) {
+    joinRoom();
+  } else {
+    socket.once("connect", joinRoom);
+    socket.connect();
+  }
+
+  return () => {
+    socket.off("connect", joinRoom);
+      socket.off(
+        "room_presence",
+        handleRoomPresence
+      );
+
+      socket.off(
+        "room_user_online",
+        handleRoomUserOnline
+      );
+
+      socket.off(
+        "room_user_offline",
+        handleRoomUserOffline
+      );
+
+      socket.off(
+        "room_message",
+        handleRoomMessage
+      );
 
       if (!isKeepingRef.current) {
         socket.emit("room_leave", {
@@ -659,7 +1058,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           userId: userAccountId,
         });
       }
-    };
+
+  };
+
   }, [
     roomId,
     userAccountId,
@@ -680,15 +1081,32 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         .slice(2, 8)}`,
       roomId,
       senderId: userAccountId,
-      senderName: currentUser.name,
-      senderAvatar: currentUser.image,
+      senderName: currentUser.name || "User",
+      senderAvatar:
+        currentUser.image || "/default-avatar.png",
       text,
       type,
       imageUrl: imageUrl || null,
       createdAt: Date.now(),
     };
 
-    socket.emit("room_message", message);
+    // Make sure Socket.IO is connected before sending.
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    if (socket.connected) {
+      socket.emit("room_message", message);
+      return;
+    }
+
+    // If connection is still being established, send once it connects.
+    const sendAfterConnect = () => {
+      socket.emit("room_message", message);
+      socket.off("connect", sendAfterConnect);
+    };
+
+    socket.once("connect", sendAfterConnect);
   };
 
   const joinMessageSentRef = useRef(false);
@@ -788,16 +1206,16 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       e.stopPropagation();
     }
     if (selectedSeat === null) return;
-    
+
     try {
       const targetSeat = seats.find(s => s.number === selectedSeat);
-      if (targetSeat?.isLocked && !targetSeat.isOccupied) { 
-        alert("This seat is locked!"); 
-        return; 
+      if (targetSeat?.isLocked && !targetSeat.isOccupied) {
+        alert("This seat is locked!");
+        return;
       }
-      if (targetSeat?.isOccupied && targetSeat.user?.accountId !== userAccountId) { 
-        alert("This seat is already taken!"); 
-        return; 
+      if (targetSeat?.isOccupied && targetSeat.user?.accountId !== userAccountId) {
+        alert("This seat is already taken!");
+        return;
       }
 
       const updatedSeats = seats.map(s => {
@@ -831,7 +1249,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       e.stopPropagation();
     }
     if (selectedSeat === null) return;
-    
+
     try {
       const updatedSeats = seats.map(s => {
         if (s.number === selectedSeat && s.user?.accountId === userAccountId) {
@@ -839,7 +1257,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         }
         return s;
       });
-      
+
       setSeats(updatedSeats);
       setShowSeatSheet(false);
       setSelectedSeat(null);
@@ -865,12 +1283,12 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     if (!currentUserSeat) return;
 
     const newMuteState = !currentUserSeat.isMuted;
-    const updatedSeats = seats.map(seat => 
-      seat.number === currentUserSeat.number 
-        ? { ...seat, isMuted: newMuteState } 
+    const updatedSeats = seats.map(seat =>
+      seat.number === currentUserSeat.number
+        ? { ...seat, isMuted: newMuteState }
         : seat
     );
-    
+
     setSeats(updatedSeats);
   };
 
@@ -880,7 +1298,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       e.stopPropagation();
     }
     if (selectedSeat === null) return;
-    
+
     const target = seats.find(s => s.number === selectedSeat);
     if (!target) return;
 
@@ -978,39 +1396,97 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
   const closeSettings = () => setShowSettingPage(false);
 
-  const handleSaveSettings = async (data: Partial<RoomSettingsData>) => {
-    if (data.roomName) setRoomName(data.roomName);
-    if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
-    if (data.roomImage) setRoomImage(data.roomImage);
-    if (data.micMode) setMicMode(data.micMode);
-    if (data.theme && THEME_BACKGROUNDS[data.theme]) {
-      setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
-    }
-    if (data.isLocked !== undefined) setIsLocked(data.isLocked);
-    if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword);
+  const handleSaveSettings = async (
+    data: Partial<RoomSettingsData>
+  ) => {
+    const nextRoomName =
+      data.roomName !== undefined
+        ? data.roomName
+        : roomName;
 
-    if (roomId) {
-      const response = await fetch("/api/rooms", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          roomId,
-          roomName: data.roomName,
-          roomDp: data.roomImage,
-          message: data.announcement,
-          micMode: data.micMode,
-          theme: data.theme,
-          isLocked: data.isLocked,
-          roomPassword: data.roomPassword,
-        }),
-      });
+    const nextRoomImage =
+      data.roomImage !== undefined
+        ? data.roomImage
+        : roomImage;
 
-      if (!response.ok) {
-        throw new Error(`MongoDB room update failed: ${response.status}`);
-      }
+    const nextAnnouncement =
+      data.announcement !== undefined
+        ? data.announcement
+        : roomAnnouncement;
+
+    const nextMicMode =
+      data.micMode !== undefined
+        ? data.micMode
+        : micMode;
+
+    const nextTheme =
+      data.theme !== undefined
+        ? data.theme
+        : Object.keys(THEME_BACKGROUNDS).find(
+            key =>
+              THEME_BACKGROUNDS[key] === backgroundImage
+          );
+
+    const nextLocked =
+      data.isLocked !== undefined
+        ? data.isLocked
+        : isLocked;
+
+    const nextPassword =
+      data.roomPassword !== undefined
+        ? data.roomPassword
+        : roomPassword;
+
+    // Update local state with the complete current values.
+    setRoomName(nextRoomName);
+    setRoomAnnouncement(nextAnnouncement);
+    setRoomImage(nextRoomImage);
+    setMicMode(nextMicMode);
+
+    if (
+      nextTheme &&
+      THEME_BACKGROUNDS[nextTheme]
+    ) {
+      setBackgroundImage(
+        THEME_BACKGROUNDS[nextTheme]
+      );
     }
+
+    setIsLocked(nextLocked);
+    setRoomPassword(nextPassword);
+
+    if (!roomId) return;
+
+    const roomSettings: RoomSettingsCache = {
+      roomId: String(roomId),
+      roomName:
+        nextRoomName ||
+        currentUser.name ||
+        roomOwner.name ||
+        "Room",
+      roomDp:
+        nextRoomImage ||
+        currentUser.image ||
+        roomOwner.image ||
+        "/default-avatar.png",
+      announcement: nextAnnouncement || "",
+      micMode: Number(nextMicMode || 0),
+      theme: nextTheme || "mood-light",
+      isLocked: Boolean(nextLocked),
+      roomPassword: nextPassword || "",
+      updatedAt: Date.now(),
+    };
+
+    // Local source/cache.
+    await saveRoomSettingsToIndexedDB(
+      roomSettings
+    );
+
+    // Realtime source for users currently inside the room.
+    socket.emit(
+      "room_settings_update",
+      roomSettings
+    );
   };
 
   const handleExit = (e?: React.MouseEvent) => {
@@ -1019,7 +1495,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     setShowExitMenu(false);
     localStorage.removeItem('keptRoom');
     setMessages([]);
-    
+
     if (onBack) onBack();
     if (onClose) onClose();
   };
@@ -1027,8 +1503,23 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const handleKeep = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     isKeepingRef.current = true;
-    const keptAccId = roomOwner.accountId || (roomOwner.id ? generateStableId(roomOwner.id) : '');
-    const roomData = { name: roomOwner.name, image: roomOwner.image, accountId: keptAccId };
+    const keptAccId =
+      roomOwner.accountId ||
+      (roomId ? generateStableId(roomId) : "");
+
+    const roomData = {
+      name:
+        roomName ||
+        roomOwner.name ||
+        "Room",
+      image:
+        roomImage ||
+        roomOwner.image ||
+        "/default-avatar.png",
+      accountId: keptAccId,
+      id: roomId,
+      roomId,
+    };
     localStorage.setItem('keptRoom', JSON.stringify(roomData));
     setShowExitMenu(false);
     if (onKeepRoom) onKeepRoom(roomData);
@@ -1037,7 +1528,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
   const handleSeatEmoji = async (emojiData: any) => {
     if (!hasSeat || !currentUserSeat) return;
-    
+
     const sendTimestamp = Date.now();
     const seatNum = currentUserSeat.number;
 
@@ -1134,7 +1625,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       audio.volume = musicVolume;
       musicAudioRef.current = audio;
       audio.play();
-      
+
       audio.addEventListener('timeupdate', () => {
         setMusicCurrentTime(audio.currentTime);
       });
@@ -1145,7 +1636,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         handleNextTrack();
       });
     }
-    
+
     setCurrentTrack(track);
     setIsMusicPlaying(true);
     setMusicControllerState('full');
@@ -1184,13 +1675,13 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     if (musicPlaylist.length === 0) return;
     const nextIndex = (currentTrackIndex + 1) % musicPlaylist.length;
     const nextTrack = musicPlaylist[nextIndex];
-    
+
     if (musicAudioRef.current) {
       musicAudioRef.current.src = nextTrack.url;
       musicAudioRef.current.volume = musicVolume;
       musicAudioRef.current.play();
     }
-    
+
     setCurrentTrackIndex(nextIndex);
     setCurrentTrack(nextTrack);
     setIsMusicPlaying(true);
@@ -1202,13 +1693,13 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     if (musicPlaylist.length === 0) return;
     const prevIndex = (currentTrackIndex - 1 + musicPlaylist.length) % musicPlaylist.length;
     const prevTrack = musicPlaylist[prevIndex];
-    
+
     if (musicAudioRef.current) {
       musicAudioRef.current.src = prevTrack.url;
       musicAudioRef.current.volume = musicVolume;
       musicAudioRef.current.play();
     }
-    
+
     setCurrentTrackIndex(prevIndex);
     setCurrentTrack(prevTrack);
     setIsMusicPlaying(true);
@@ -1312,7 +1803,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 bg-black flex flex-col"
       style={{
         paddingBottom: 'env(safe-area-inset-bottom)',
@@ -1352,8 +1843,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                       if (onFollowToggle) onFollowToggle(roomId, newFollow);
                     }}
                     className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600"
-                    style={{ 
-                      width: 'var(--header-follow-btn-size)', 
+                    style={{
+                      width: 'var(--header-follow-btn-size)',
                       height: 'var(--header-follow-btn-size)',
                       border: 'none',
                     }}
@@ -1411,26 +1902,26 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                   imageSrc="/1788258883971~2.jpg"
                   threshold={0.5}
                   className="w-full h-full"
-                  style={{ 
-                    width: '115%', 
-                    height: '115%', 
-                    objectFit: 'contain', 
-                    maxWidth: 'none', 
-                    maxHeight: 'none', 
-                    pointerEvents: 'none' 
+                  style={{
+                    width: '115%',
+                    height: '115%',
+                    objectFit: 'contain',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    pointerEvents: 'none'
                   }}
                 />
               </div>
-              <span 
-                className="font-bold text-[13px] leading-none tracking-tight" 
+              <span
+                className="font-bold text-[13px] leading-none tracking-tight"
                 style={{ color: '#eef3a3' }}
               >
                 0
               </span>
-              <svg 
-                viewBox="0 0 24 24" 
-                className="fill-none stroke-[3] ml-1 opacity-90" 
-                stroke="#eef3a3" 
+              <svg
+                viewBox="0 0 24 24"
+                className="fill-none stroke-[3] ml-1 opacity-90"
+                stroke="#eef3a3"
                 style={{ width: '10px', height: '10px' }}
               >
                 <polyline points="9 18 15 12 9 6" />
@@ -1448,28 +1939,28 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
             {/* Announcement Box */}
             <div className="mx-1 mb-3 flex justify-start">
-              <div 
+              <div
                 className="max-w-[75%] bg-black/30 border border-none shadow-sm"
-                style={{ 
-                  padding: '12px 14px', 
+                style={{
+                  padding: '12px 14px',
                   borderRadius: '8px',
                 }}
               >
-                <p 
+                <p
                   className="leading-snug font-medium"
-                  style={{ 
+                  style={{
                     fontSize: 'var(--announcement-text-size)',
                     color: '#e2c67d',
                   }}
                 >
                   Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
                 </p>
-                
+
                 {roomAnnouncement && (
                   <div className="mt-2 pt-2 border-t border-white/10">
-                    <p 
+                    <p
                       className="leading-snug font-medium"
-                      style={{ 
+                      style={{
                         fontSize: 'var(--announcement-text-size)',
                         color: '#e2c67d',
                       }}
@@ -1556,9 +2047,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
             <div className="flex items-center gap-0.8">
               {hasSeat && (
-                <button 
-                  onClick={handleBottomMicToggle} 
-                  className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible" 
+                <button
+                  onClick={handleBottomMicToggle}
+                  className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible"
                   style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
                 >
                   {currentUserSeat?.isMuted ? (
@@ -1609,11 +2100,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                   <path d="M3 7l7.53 5.54a3 3 0 0 0 2.94 0L21 7" />
                 </svg>
               </button>
-                
+
               <button onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} aria-label="Gift" className="bg-white/10 backdrop-blur-md rounded-full border-none hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 overflow-hidden cursor-pointer shadow-sm p-0" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
                 <img src="/file_000000008e508208b1353ae33e2abef9.png" alt="Gift" className="w-full h-full object-cover rounded-full" draggable={false} />
               </button>
-              
+
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
                 aria-label="Apps Menu"
@@ -1630,8 +2121,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
         {/* Input container */}
         {showChatInput && (
-          <div 
-            ref={inputContainerRef} 
+          <div
+            ref={inputContainerRef}
             className="fixed bottom-0 left-0 right-0 z-[10000] flex items-center w-full"
             style={{
               paddingBottom: 'env(safe-area-inset-bottom)'
@@ -1696,7 +2187,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       )}
 
       {/* RIGHT SIDE FLOATING STACK */}
-      <div 
+      <div
         className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
         style={{
           top: 'calc(100lvh - 310px)',
@@ -1708,7 +2199,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         <RoomSideBanner />
 
         {/* 2. Room Task Click */}
-        <div 
+        <div
           onClick={() => setShowRoomTask(true)}
           className="relative cursor-pointer transition-transform hover:scale-105 mt-2 flex items-center justify-center"
           style={{
@@ -1730,7 +2221,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         </div>
 
         {/* 3. Game Image */}
-        <div 
+        <div
           className="relative cursor-pointer transition-transform hover:scale-105 mt-1"
           style={{
             width: 'calc(var(--footer-btn-size) * 1.2)',
@@ -1863,9 +2354,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
       {showUserProfile && profileUser && (
         <RoomProfile
-          user={{ 
-            name: profileUser.name, 
-            image: profileUser.image, 
+          user={{
+            name: profileUser.name,
+            image: profileUser.image,
             accountId: profileUser.accountId,
             isInSeat: profileUser.isInSeat,
             isMuted: seats.find(s => s.user?.accountId === profileUser.accountId)?.isMuted || false,
@@ -1949,18 +2440,18 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                 <button onClick={handleTakeSeat} disabled={selectedSeatData?.isLocked && !selectedSeatData?.isOccupied} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">Take Mic</button>
               )}
               {isSelectedSeatMySeat && <button onClick={handleLeaveSeat} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">Leave Seat</button>}
-              
+
               <button onClick={handleToggleMute} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
                 {selectedSeatData?.isMuted ? 'Unmute Seat' : 'Mute Seat'}
               </button>
-              
+
               <button onClick={handleToggleLock} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">{selectedSeatData?.isLocked ? 'Unlock Mic' : 'Lock Mic'}</button>
               <button onClick={handleInvite} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">Invite</button>
             </div>
           </div>
         </div>
       )}
-      
+
       {fullImageModal && (
         <div className="fixed inset-0 z-[10000] bg-black/90 flex items-center justify-center p-4 cursor-pointer" onClick={() => setFullImageModal(null)}>
           <div className="relative max-w-full max-h-full">
@@ -2008,7 +2499,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                 .transaction('music', 'readonly')
                 .objectStore('music')
                 .getAll();
-              
+
               request.onsuccess = () => {
                 const allTracks = request.result.map((item: any) => ({
                   id: item.id,
@@ -2042,11 +2533,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
             <div className="grid grid-cols-4 gap-4">
               <div className="flex flex-col items-center">
-                <button 
+                <button
                   onClick={() => {
                     setShowGameSheet(false);
                     setShowWildParty(true);
-                  }} 
+                  }}
                   className="transition-transform hover:scale-105 -mt-1"
                 >
                   <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild party" className="w-14 h-14 object-contain" />
@@ -2055,11 +2546,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
               </div>
 
               <div className="flex flex-col items-center">
-                <button 
+                <button
                   onClick={() => {
                     setShowGameSheet(false);
                     setShowFruitParty(true);
-                  }} 
+                  }}
                   className="transition-transform hover:scale-105"
                 >
                   <img src="/fruit-party-logo.jpg" alt="Fruit party" className="w-12 h-12 object-contain rounded-md" />
@@ -2080,7 +2571,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       )}
 
     {/* Minimized Game Icons - Positioned right above the side banner */}
-<div 
+<div
   className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
   style={{
     bottom: 'calc(100lvh - (100lvh - 310px) + 6px)', // Banner ke theek upar rahega
@@ -2095,10 +2586,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       onClick={() => setShowWildParty(true)}
       className="w-15 h-15 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
     >
-      <img 
-        src="/file_000000009d808211b8ffb7c2183b4ef5.png" 
-        alt="Wild Party" 
-        className="w-full h-full object-contain" 
+      <img
+        src="/file_000000009d808211b8ffb7c2183b4ef5.png"
+        alt="Wild Party"
+        className="w-full h-full object-contain"
         draggable={false}
       />
     </button>
@@ -2110,10 +2601,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       onClick={() => setShowFruitParty(true)}
       className="w-10 h-10 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
     >
-      <img 
-        src="/fruit-party-logo.jpg" 
-        alt="Fruit Party" 
-        className="w-full h-full object-contain rounded-md" 
+      <img
+        src="/fruit-party-logo.jpg"
+        alt="Fruit Party"
+        className="w-full h-full object-contain rounded-md"
         draggable={false}
       />
     </button>
@@ -2129,14 +2620,14 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
       {/* FULL MUSIC CONTROLLER */}
       {musicControllerState === 'full' && currentTrack && !showFourGride && (
-        <div 
+        <div
           className="fixed left-1/2 transform -translate-x-1/2 z-[45] w-full max-w-sm px-3"
-          style={{ 
+          style={{
             bottom: 'var(--music-controller-bottom)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div 
+          <div
             className="relative rounded-2xl overflow-hidden bg-black/90 backdrop-blur-md border border-white/10"
             style={{
               padding: 'var(--music-padding)',
@@ -2367,7 +2858,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
   return (
     <div className="relative flex flex-col items-center cursor-pointer select-none" onClick={onClick}>
       {seatNumber === 1 && (
-        <div 
+        <div
           className="absolute pointer-events-none hidden sm:flex bg-black/40 backdrop-blur-md border border-white/20 px-2 py-1 rounded-full shadow-lg"
           style={{
             left: '-100px',
@@ -2378,7 +2869,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
             gap: '6px',
           }}
         >
-          <div 
+          <div
             className="relative overflow-visible"
             style={{
               width: 'calc(var(--seat-size) * 0.33)',
@@ -2400,8 +2891,8 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               }}
             />
           </div>
-          
-          <span 
+
+          <span
             className="font-bold whitespace-nowrap"
             style={{
               color: '#FFD700',
@@ -2455,7 +2946,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               </div>
 
               {gif && (
-                <div 
+                <div
                   className="absolute pointer-events-none overflow-visible flex items-center justify-center"
                   style={{
                     top: '50%',
@@ -2479,7 +2970,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 </div>
               )}
 
-              <div 
+              <div
                 className="absolute pointer-events-none"
                 style={{
                   top: '52%',
@@ -2510,8 +3001,8 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               </div>
 
               {isMuted && (
-  <div 
-    className="absolute right-0.5 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30" 
+  <div
+    className="absolute right-0.5 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
     style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
   >
     <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
@@ -2532,8 +3023,8 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 draggable={false}
               />
               {isMuted && (
-                <div 
-                  className="absolute right-1 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30" 
+                <div
+                  className="absolute right-1 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
                   style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
                 >
                   <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
@@ -2547,10 +3038,10 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
           )}
         </div>
       </div>
-      
+
       {/* SEAT NUMBER / USER NAME */}
-      <span 
-        className="font-medium text-white/90 pointer-events-none flex items-center justify-center gap-1 leading-tight text-center max-w-[var(--seat-size)] truncate mt-0.5" 
+      <span
+        className="font-medium text-white/90 pointer-events-none flex items-center justify-center gap-1 leading-tight text-center max-w-[var(--seat-size)] truncate mt-0.5"
         style={{ fontSize: 'calc(var(--seat-size) * 0.16)' }}
       >
         {isRoomOwnerSeat && (
@@ -2586,7 +3077,7 @@ function RoomSideBanner() {
 
   return (
     <div className="flex flex-col items-center select-none">
-      <div 
+      <div
         className="relative overflow-hidden shadow-lg"
         style={{
           width: '60px',
@@ -2594,15 +3085,15 @@ function RoomSideBanner() {
           borderRadius: '8px',
         }}
       >
-        <div 
+        <div
           className="flex h-full transition-transform duration-500 ease-out"
           style={{ transform: `translateX(-${currentIndex * 100}%)` }}
         >
           {bannerImages.map((src, i) => (
-            <img 
-              key={i} 
-              src={src} 
-              alt={`Banner ${i + 1}`} 
+            <img
+              key={i}
+              src={src}
+              alt={`Banner ${i + 1}`}
               className="w-full h-full object-cover flex-shrink-0 select-none pointer-events-none"
               draggable={false}
             />
@@ -2615,8 +3106,8 @@ function RoomSideBanner() {
           <div
             key={i}
             className={`transition-all duration-300 rounded-full ${
-              currentIndex === i 
-                ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]' 
+              currentIndex === i
+                ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
                 : 'w-1 h-1 bg-white/40'
             }`}
           />
@@ -2644,17 +3135,17 @@ function GreenColorRemovalShader({ imageSrc, threshold = 0.5, className = "", st
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
-      
+
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
-      
+
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
-        
+
         if (g > r * 1.2 && g > b * 1.2 && g > 70) {
-          data[i + 3] = 0; 
+          data[i + 3] = 0;
         }
       }
       ctx.putImageData(imageData, 0, 0);

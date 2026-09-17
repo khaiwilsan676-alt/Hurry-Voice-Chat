@@ -1,11 +1,18 @@
 import { io, Socket } from "socket.io-client";
 
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:10000";
+const SOCKET_URL =
+  typeof window !== "undefined"
+    ? window.location.origin
+    : "";
 
-export const socket: Socket = io(BACKEND_URL, {
-  transports: ["websocket", "polling"],
+export const socket: Socket = io(SOCKET_URL, {
+  path: "/api/socket",
+  transports: ["websocket"],
   autoConnect: false,
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
 });
 
 export default socket;

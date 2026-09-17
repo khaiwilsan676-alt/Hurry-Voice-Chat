@@ -185,6 +185,8 @@ export default function OwnerPage() {
   // Fetch live room users from Socket.IO.
   // Room users are NOT loaded from MongoDB here.
   useEffect(() => {
+    let mounted = true;
+
     const handleGlobalRoomPresence = ({
       rooms,
     }: {
@@ -200,77 +202,119 @@ export default function OwnerPage() {
         activeUserCount?: number;
       }>;
     }) => {
-      if (!Array.isArray(rooms)) return;
+      if (!mounted) return;
 
       const liveUsers: UserData[] = [];
       const seen = new Set<string>();
 
-      rooms.forEach((room) => {
-        if (!Array.isArray(room.users)) return;
+      if (Array.isArray(rooms)) {
+        rooms.forEach((room) => {
+          if (!Array.isArray(room.users)) return;
 
-        room.users.forEach((user) => {
-          const userId = String(
-            user.userId ||
-            user.accountId ||
-            ""
-          );
+          room.users.forEach((user) => {
+            const userId = String(
+              user.userId ||
+              user.accountId ||
+              ""
+            );
 
-          if (!userId || seen.has(userId)) return;
+            if (!userId || seen.has(userId)) return;
 
-          seen.add(userId);
+            seen.add(userId);
 
-          const email = String(user.email || "");
+            const email = String(user.email || "");
 
-          liveUsers.push({
-            id: userId,
-            userId,
-            name: user.name || "User",
-            username: `user_${userId.slice(0, 4)}`,
-            hurryId: user.accountId || userId,
-            emailPhone: email || "—",
-            email,
-            role: "NORMAL",
-            gender: "",
-            country: "🇮🇳",
-            image:
-              user.image ||
-              "/default-avatar.png",
+            liveUsers.push({
+              id: userId,
+              userId,
+              name: user.name || "User",
+              username: `user_${userId.slice(0, 4)}`,
+              hurryId: String(
+                user.accountId || userId
+              ),
+              emailPhone: email || "—",
+              email,
+              role: "NORMAL",
+              gender: "",
+              country: "🇮🇳",
+              image:
+                user.image ||
+                "/default-avatar.png",
+            });
           });
         });
-      });
+      }
 
       setUsers(liveUsers);
       setLoading(false);
     };
 
+    const requestPresence = () => {
+      if (!socket.connected) return;
+
+      socket.emit("global_room_presence_request");
+    };
+
+    const handleConnect = () => {
+      requestPresence();
+    };
+
+    const handleConnectError = (error: any) => {
+      console.error(
+        "Owner Panel Socket connection error:",
+        error
+      );
+
+      if (mounted) {
+        setLoading(false);
+      }
+    };
+
+    // LISTENERS FIRST — connection race fix
     socket.on(
       "global_room_presence",
       handleGlobalRoomPresence
     );
 
-    const requestPresence = () => {
-      socket.emit("global_room_presence_request");
-    };
+    socket.on("connect", handleConnect);
 
-    if (!socket.connected) {
+    socket.on(
+      "connect_error",
+      handleConnectError
+    );
+
+    // CONNECT AFTER LISTENERS ARE READY
+    if (socket.connected) {
+      requestPresence();
+    } else {
       socket.connect();
     }
 
-    socket.on("connect", requestPresence);
-
-    if (socket.connected) {
-      requestPresence();
-    }
+    // Prevent infinite Loading if server does not respond
+    const loadingTimeout = window.setTimeout(() => {
+      if (mounted) {
+        setLoading(false);
+      }
+    }, 5000);
 
     return () => {
+      mounted = false;
+
+      window.clearTimeout(loadingTimeout);
+
       socket.off(
         "global_room_presence",
         handleGlobalRoomPresence
       );
-      socket.off("connect", requestPresence);
+
+      socket.off("connect", handleConnect);
+
+      socket.off(
+        "connect_error",
+        handleConnectError
+      );
     };
   }, []);
-
 
   // Fruit Party Live Predictor Logic
   useEffect(() => {
