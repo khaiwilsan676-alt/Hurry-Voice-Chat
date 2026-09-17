@@ -159,6 +159,7 @@ const tiersList: TierData[] = [
   },
 ]
 
+// Coin badges ke liye Shader abhi bhi rakha hai (kyunki unme white bg remove karna hota hai)
 function ShaderImageBadge({
   src,
   isWhiteBg,
@@ -325,10 +326,11 @@ export default function Level({ onBack }: LevelProps) {
                   KāziR Khān
                 </span>
 
-                <ShaderImageBadge
-                  src="/1785137410522.png"
-                  isWhiteBg={true}
-                  className="w-6 h-6 object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+                {/* Profile level tag updated size and removed shader logic */}
+                <img
+                  src={tiersList[0].medalBadgeSrc}
+                  alt="User Level"
+                  className="h-7 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
                 />
               </div>
 
@@ -427,7 +429,7 @@ export default function Level({ onBack }: LevelProps) {
                   <img
                     src={tier.rightGraphic}
                     alt={tier.range}
-                    className="w-[60px] h-[60px] object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
+                    className="w-[100px] h-[100px] object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
                   />
                 </div>
               </div>
@@ -480,10 +482,11 @@ export default function Level({ onBack }: LevelProps) {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 z-10">
-                    <ShaderImageBadge
+                    {/* BADA ICON + GREEN REMOVING HATA DIYA */}
+                    <img
                       src={tier.medalBadgeSrc}
-                      isWhiteBg={tier.isWhiteBg}
-                      className="w-9 h-6 object-contain"
+                      alt="Level Badge"
+                      className="h-10 w-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
                     />
                   </div>
                 </div>
