@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ArrowLeft, HelpCircle, Plus, ChevronRight, X } from 'lucide-react'
+import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
 
 // ==========================================
 // MAIN COMPONENT LOGIC (UNTOUCHED)
@@ -323,27 +323,23 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL - UPDATED WITH BLACK DROP-SHADOW & FILTER TO COMPLETELY REMOVE BLACK BACKGROUND */}
+        {/* UNIFIED CENTER VIDEO MODAL - CROSS ICON REMOVED & SHADER-LIKE BLEND APPLIED TO REMOVE BLACK BACKGROUND */}
         {activeVideoModal && (
-          <div className="fixed inset-0 bg-transparent z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-transparent z-50 flex items-center justify-center cursor-pointer"
+            onClick={() => setActiveVideoModal(null)}
+          >
             <div className="relative w-full max-w-xs aspect-square flex items-center justify-center bg-transparent">
-              <button 
-                onClick={() => setActiveVideoModal(null)} 
-                className="absolute -top-12 right-0 text-white p-2.5 cursor-pointer bg-white/20 border border-white/30 rounded-full hover:bg-white/30 z-50 transition-colors"
-              >
-                <X size={24} />
-              </button>
               <video 
                 src={activeVideoModal} 
                 autoPlay 
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-cover scale-125" 
+                className="w-full h-full object-cover scale-150" 
                 style={{ 
                   mixBlendMode: 'screen', 
                   WebkitMixBlendMode: 'screen',
-                  filter: 'contrast(150%) brightness(120%) drop-shadow(0px 0px 0px black)',
                   backgroundColor: 'transparent'
                 }} 
               />
