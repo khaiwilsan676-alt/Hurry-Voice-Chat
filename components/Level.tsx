@@ -235,7 +235,7 @@ img.onload = () => {
 return (
 <canvas
 ref={canvasRef}
-className={${className} drop-shadow-[0_6px_14px_rgba(0,0,0,0.6)] filter transition-transform duration-200}
+className={`${className} drop-shadow-[0_6px_14px_rgba(0,0,0,0.6)] filter transition-transform duration-200`}
 />
 )
 }
