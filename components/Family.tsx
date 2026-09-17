@@ -35,7 +35,7 @@ const RewardItem = ({ title }: { title: string }) => (
   </div>
 );
 
-// VIDEO REWARD ITEM: Card size same, video size increased inside using scale-125
+// VIDEO REWARD ITEM: Card same size, video size increased inside using scale-150
 const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
@@ -44,7 +44,7 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
         preload="metadata" 
         muted 
         playsInline 
-        className="w-full h-full object-cover scale-125" 
+        className="w-full h-full object-cover scale-150" 
         style={{ mixBlendMode: 'screen' }} 
       />
     </div>
@@ -242,7 +242,7 @@ export default function Family({ onBack }: FamilyProps) {
           />
         </div>
 
-        {/* TOP 1 REWARD (Video swapped: 1000196572 video added here) */}
+        {/* TOP 1 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-8">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
@@ -264,7 +264,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* TOP 2 REWARD (Video swapped: 1000196573 video added here) */}
+        {/* TOP 2 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
@@ -286,7 +286,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* TOP 3 REWARD */}
+        {/* TOP 3 REWARD (Updated with Top 3 video) */}
         <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
@@ -294,7 +294,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
-              <RewardItem title="Medal *7 days" />
+              <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" onClick={() => setActiveVideoModal('/1000196574-background (1).mp4')} />
               <RewardItem title="Top3 Tag *7 days" />
               <RewardItem title="Vehicle *7 days" />
             </div>
@@ -323,13 +323,13 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED VIDEO CENTER MODAL (Completely Transparent Black Background) */}
+        {/* UNIFIED CENTER VIDEO MODAL */}
         {activeVideoModal && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="relative w-full max-w-xs aspect-square flex items-center justify-center">
+            <div className="relative w-full max-w-sm aspect-square flex items-center justify-center">
               <button 
                 onClick={() => setActiveVideoModal(null)} 
-                className="absolute -top-10 right-0 text-white p-2 cursor-pointer bg-black/50 rounded-full hover:bg-black"
+                className="absolute -top-12 right-0 text-white p-2.5 cursor-pointer bg-black/60 rounded-full hover:bg-black z-10"
               >
                 <X size={24} />
               </button>
@@ -339,7 +339,7 @@ export default function Family({ onBack }: FamilyProps) {
                 loop 
                 muted 
                 playsInline 
-                className="w-full h-full object-contain" 
+                className="w-full h-full object-contain scale-125" 
                 style={{ mixBlendMode: 'screen' }} 
               />
             </div>
