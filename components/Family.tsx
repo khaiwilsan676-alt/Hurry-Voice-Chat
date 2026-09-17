@@ -323,9 +323,9 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL - UPDATED: Square layout and fully transparent background */}
+        {/* UNIFIED CENTER VIDEO MODAL - UPDATED: Removed blur, changed to bg-black/20 to let the blend work properly */}
         {activeVideoModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4">
             <div className="relative w-full max-w-xs aspect-square flex items-center justify-center bg-transparent">
               <button 
                 onClick={() => setActiveVideoModal(null)} 
@@ -343,7 +343,6 @@ export default function Family({ onBack }: FamilyProps) {
                 style={{ 
                   mixBlendMode: 'screen', 
                   WebkitMixBlendMode: 'screen',
-                  backgroundColor: 'transparent'
                 }} 
               />
             </div>
