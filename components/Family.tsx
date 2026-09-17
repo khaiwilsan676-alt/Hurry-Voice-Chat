@@ -35,6 +35,23 @@ const RewardItem = ({ title }: { title: string }) => (
   </div>
 );
 
+// NAYA COMPONENT: 3rd Row mein lambe card aur image ke liye
+const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
+  <div className="flex flex-col items-center w-[45%]">
+    <div className="w-full h-32 bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50 overflow-hidden">
+      <img src={imageSrc} alt={title} className="w-full h-full object-cover rounded-md" />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-3.5 h-3.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[12px] text-center mt-1 leading-tight font-bold opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -42,14 +59,14 @@ export default function Family({ onBack }: FamilyProps) {
   const [newMemberRelation, setNewMemberRelation] = useState('')
   const [familyCode, setFamilyCode] = useState('')
 
-  // Removed 'join' state from currentView
   const [currentView, setCurrentView] = useState<'main' | 'create' | 'topRankings'>('main')
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 })
 
   const [showApplyMode, setShowApplyMode] = useState(false)
   const [applyModeState, setApplyModeState] = useState<'free' | 'admin'>('free')
 
-  const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>(null)
+  // LEFT tab default active ho jayega null ki jagah 'left' rakhne se
+  const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
 
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
@@ -199,72 +216,82 @@ export default function Family({ onBack }: FamilyProps) {
           />
         </div>
 
+        {/* TOP 1 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-8">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
             <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 1 Reward</span>
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards */}
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *7 days" />
               <RewardItem title="Top1 Tag *7 days" />
               <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-evenly w-full px-2">
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
               <RewardItem title="Frames *7 days" />
               <RewardItem title="Family Frame *7 d" />
-              <RewardItem title="Room Theme *7 d" />
             </div>
+            {/* Row 3 - 1 Tall Card with Image */}
             <div className="flex justify-center w-full px-2">
-              <RewardItem title="Page Effect *7 days" />
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0043.jpg" />
             </div>
           </div>
         </div>
 
+        {/* TOP 2 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
             <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 2 Reward</span>
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards */}
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *7 days" />
               <RewardItem title="Top2 Tag *7 days" />
               <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-evenly w-full px-2">
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
               <RewardItem title="Frames *7 days" />
               <RewardItem title="Family Frame *7 d" />
-              <RewardItem title="Room Theme *7 d" />
             </div>
+            {/* Row 3 - 1 Tall Card with Image */}
             <div className="flex justify-center w-full px-2">
-              <RewardItem title="Page Effect *7 days" />
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0045.jpg" />
             </div>
           </div>
         </div>
 
+        {/* TOP 3 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-12">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
             <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 3 Reward</span>
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards */}
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *7 days" />
               <RewardItem title="Top3 Tag *7 days" />
               <RewardItem title="Vehicle *7 days" />
             </div>
-            <div className="flex justify-evenly w-full px-2">
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
               <RewardItem title="Frames *7 days" />
               <RewardItem title="Family Frame *7 d" />
-              <RewardItem title="Room Theme *7 d" />
             </div>
+            {/* Row 3 - 1 Tall Card with Image */}
             <div className="flex justify-center w-full px-2">
-              <RewardItem title="Page Effect *7 days" />
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" />
             </div>
           </div>
         </div>
 
+        {/* TOP 4 TO 10 REWARD */}
         <div className="w-full flex flex-col relative px-2 mt-12 mb-10">
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
             <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
@@ -454,7 +481,6 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* NEW DARK BROWN CARD FOR BOTTOM BUTTONS - Edge to Edge, Bottom aligned, Center Single Button */}
       <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
         <button onClick={() => setCurrentView('create')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
           <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
@@ -463,4 +489,3 @@ export default function Family({ onBack }: FamilyProps) {
     </div>
   )
 }
-
