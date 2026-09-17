@@ -20,7 +20,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-1',
     range: 'Lv.1 - Lv.10',
-    rightGraphic: '/IMG_20260911_230430.png',
+    rightGraphic: '/IMG_20260917_220530.png',
     medalBadgeSrc: '/1785137410522.png',
     isWhiteBg: true,
     rewards: [
@@ -34,7 +34,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-2',
     range: 'Lv.11 - Lv.20',
-    rightGraphic: '/IMG_20260911_230448.png',
+    rightGraphic: '/IMG_20260917_220613.png',
     medalBadgeSrc: '/1787573593167~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -48,7 +48,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-3',
     range: 'Lv.21 - Lv.30',
-    rightGraphic: '/IMG_20260911_230538.png',
+    rightGraphic: '/IMG_20260917_220641.png',
     medalBadgeSrc: '/1787573599045~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -62,7 +62,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-4',
     range: 'Lv.31 - Lv.40',
-    rightGraphic: '/IMG_20260911_230602.png',
+    rightGraphic: '/IMG_20260917_220710.png',
     medalBadgeSrc: '/1787573616413~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -76,7 +76,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-5',
     range: 'Lv.41 - Lv.50',
-    rightGraphic: '/IMG_20260911_230631.png',
+    rightGraphic: '/IMG_20260917_220733.png',
     medalBadgeSrc: '/1787586493548~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -90,7 +90,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-6',
     range: 'Lv.51 - Lv.60',
-    rightGraphic: '/IMG_20260911_230722.png',
+    rightGraphic: '/IMG_20260917_220753.png',
     medalBadgeSrc: '/1787573621768~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -104,7 +104,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-7',
     range: 'Lv.61 - Lv.70',
-    rightGraphic: '/IMG_20260911_230739.png',
+    rightGraphic: '/IMG_20260917_220815.png',
     medalBadgeSrc: '/1787586465659~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -118,7 +118,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-8',
     range: 'Lv.71 - Lv.80',
-    rightGraphic: '/IMG_20260911_230808.png',
+    rightGraphic: '/IMG_20260917_220839.png',
     medalBadgeSrc: '/1787573604873~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -132,7 +132,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-9',
     range: 'Lv.81 - Lv.90',
-    rightGraphic: '/IMG_20260911_230826.png',
+    rightGraphic: '/IMG_20260917_220900.png',
     medalBadgeSrc: '/1787573627153~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -146,7 +146,7 @@ const tiersList: TierData[] = [
   {
     id: 'tier-10',
     range: 'Lv.91 - Lv.100',
-    rightGraphic: '/file_00000000b06081fabde2d7eac02ce8c2.png',
+    rightGraphic: '/IMG_20260917_220922.png',
     medalBadgeSrc: '/1787573633612~2.jpg',
     isWhiteBg: false,
     rewards: [
@@ -602,4 +602,3 @@ export default function Level({ onBack }: LevelProps) {
     </div>
   )
 }
-
