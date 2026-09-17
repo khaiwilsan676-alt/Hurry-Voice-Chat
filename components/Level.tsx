@@ -1,606 +1,563 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, HelpCircle } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { ArrowLeft, HelpCircle, Plus, ChevronRight, X } from 'lucide-react'
 
-interface LevelProps {
-  onBack?: () => void
-}
-
-interface TierData {
+// ==========================================
+// MAIN COMPONENT LOGIC (UNTOUCHED)
+// ==========================================
+interface FamilyMember {
   id: string
-  range: string
-  rightGraphic: string
-  medalBadgeSrc: string
-  isWhiteBg: boolean
-  rewards: { level: number; coins: string }[]
+  name: string
+  relation: string
+  avatar?: string
+  isAdmin?: boolean
 }
 
-const tiersList: TierData[] = [
-  {
-    id: 'tier-1',
-    range: 'Lv.1 - Lv.10',
-    rightGraphic: '/IMG_20260911_230430.png',
-    medalBadgeSrc: '/IMG_20260917_220530.png',
-    isWhiteBg: true,
-    rewards: [
-      { level: 2, coins: '16,000' },
-      { level: 4, coins: '25,000' },
-      { level: 6, coins: '35,000' },
-      { level: 8, coins: '46,000' },
-      { level: 10, coins: '58,000' },
-    ],
-  },
-  {
-    id: 'tier-2',
-    range: 'Lv.11 - Lv.20',
-    rightGraphic: '/IMG_20260911_230448.png',
-    medalBadgeSrc: '/IMG_20260917_220613.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 12, coins: '70,000' },
-      { level: 14, coins: '84,000' },
-      { level: 16, coins: '98,000' },
-      { level: 18, coins: '114,000' },
-      { level: 20, coins: '130,000' },
-    ],
-  },
-  {
-    id: 'tier-3',
-    range: 'Lv.21 - Lv.30',
-    rightGraphic: '/IMG_20260911_230538.png',
-    medalBadgeSrc: '/IMG_20260917_220641.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 22, coins: '146,000' },
-      { level: 24, coins: '164,000' },
-      { level: 26, coins: '280,000' },
-      { level: 28, coins: '430,000' },
-      { level: 30, coins: '676,000' },
-    ],
-  },
-  {
-    id: 'tier-4',
-    range: 'Lv.31 - Lv.40',
-    rightGraphic: '/IMG_20260911_230602.png',
-    medalBadgeSrc: '/IMG_20260917_220710.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 32, coins: '1,000,000' },
-      { level: 34, coins: '1,600,000' },
-      { level: 36, coins: '11,200,000' },
-      { level: 38, coins: '11,400,000' },
-      { level: 40, coins: '16,000,000' },
-    ],
-  },
-  {
-    id: 'tier-5',
-    range: 'Lv.41 - Lv.50',
-    rightGraphic: '/IMG_20260911_230631.png',
-    medalBadgeSrc: '/IMG_20260917_220733.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 42, coins: '22,000,000' },
-      { level: 44, coins: '29,000,000' },
-      { level: 46, coins: '37,000,000' },
-      { level: 48, coins: '47,000,000' },
-      { level: 50, coins: '58,000,000' },
-    ],
-  },
-  {
-    id: 'tier-6',
-    range: 'Lv.51 - Lv.60',
-    rightGraphic: '/IMG_20260911_230722.png',
-    medalBadgeSrc: '/IMG_20260917_220753.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 52, coins: '70,000,000' },
-      { level: 54, coins: '84,000,000' },
-      { level: 56, coins: '100,000,000' },
-      { level: 58, coins: '120,000,000' },
-      { level: 60, coins: '140,000,000' },
-    ],
-  },
-  {
-    id: 'tier-7',
-    range: 'Lv.61 - Lv.70',
-    rightGraphic: '/IMG_20260911_230739.png',
-    medalBadgeSrc: '/IMG_20260917_220815.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 62, coins: '160,000,000' },
-      { level: 64, coins: '180,000,000' },
-      { level: 66, coins: '200,000,000' },
-      { level: 68, coins: '230,000,000' },
-      { level: 70, coins: '260,000,000' },
-    ],
-  },
-  {
-    id: 'tier-8',
-    range: 'Lv.71 - Lv.80',
-    rightGraphic: '/IMG_20260911_230808.png',
-    medalBadgeSrc: '/IMG_20260917_220839.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 72, coins: '290,000,000' },
-      { level: 74, coins: '320,000,000' },
-      { level: 76, coins: '360,000,000' },
-      { level: 78, coins: '400,000,000' },
-      { level: 80, coins: '440,000,000' },
-    ],
-  },
-  {
-    id: 'tier-9',
-    range: 'Lv.81 - Lv.90',
-    rightGraphic: '/IMG_20260911_230826.png',
-    medalBadgeSrc: '/IMG_20260917_220900.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 82, coins: '480,000,000' },
-      { level: 84, coins: '520,000,000' },
-      { level: 86, coins: '570,000,000' },
-      { level: 88, coins: '620,000,000' },
-      { level: 90, coins: '680,000,000' },
-    ],
-  },
-  {
-    id: 'tier-10',
-    range: 'Lv.91 - Lv.100',
-    rightGraphic: '/file_00000000b06081fabde2d7eac02ce8c2.png',
-    medalBadgeSrc: '/IMG_20260917_220922.png',
-    isWhiteBg: false,
-    rewards: [
-      { level: 92, coins: '740,000,000' },
-      { level: 94, coins: '800,000,000' },
-      { level: 96, coins: '860,000,000' },
-      { level: 98, coins: '930,000,000' },
-      { level: 100, coins: '1,000,000,000' },
-    ],
-  },
-]
+interface FamilyProps {
+  onBack: () => void
+}
 
-// Coin badges ke liye Shader abhi bhi rakha hai (kyunki unme white bg remove karna hota hai)
-function ShaderImageBadge({
-  src,
-  isWhiteBg,
-  className = 'w-16 h-8 object-contain',
-}: {
-  src: string
-  isWhiteBg: boolean
-  className?: string
-}) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+// Helper Component for Reward Items
+const RewardItem = ({ title }: { title: string }) => (
+  <div className="flex flex-col items-center w-[28%]">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
+      {/* Andar ki image hata di hai jaisa tune bola */}
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
+// NAYA COMPONENT: Top 1 Medal k liye jisme video paused aur square rahegi (black transparent)
+const Top1MedalRewardItem = ({ title, videoSrc }: { title: string, videoSrc: string }) => (
+  <div className="flex flex-col items-center w-[28%]">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+      <video 
+        src={videoSrc} 
+        preload="metadata" 
+        muted 
+        playsInline 
+        className="w-full h-full object-cover" 
+        style={{ mixBlendMode: 'screen' }} 
+      />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
+// NAYA COMPONENT: Top 2 Medal k liye jisme click karne par modal open ho
+const Top2MedalRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
+  <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+      <video 
+        src={videoSrc} 
+        preload="metadata" 
+        muted 
+        playsInline 
+        className="w-full h-full object-cover" 
+        style={{ mixBlendMode: 'screen' }} 
+      />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
+// NAYA COMPONENT: 3rd Row mein lambe card aur image ke liye
+const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
+  <div className="flex flex-col items-center w-[45%]">
+    <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
+      <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md" />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-3.5 h-3.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[12px] text-center mt-1 leading-tight font-bold opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
+export default function Family({ onBack }: FamilyProps) {
+  const [members, setMembers] = useState<FamilyMember[]>([])
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [newMemberName, setNewMemberName] = useState('')
+  const [newMemberRelation, setNewMemberRelation] = useState('')
+  const [familyCode, setFamilyCode] = useState('')
+
+  const [currentView, setCurrentView] = useState<'main' | 'create' | 'topRankings'>('main')
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 })
+
+  const [showApplyMode, setShowApplyMode] = useState(false)
+  const [applyModeState, setApplyModeState] = useState<'free' | 'admin'>('free')
+
+  const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
+  
+  // Modal state for Top 2 Medal Video
+  const [showTop2Modal, setShowTop2Modal] = useState(false)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })
-    if (!ctx) return
-
-    const img = new Image()
-    img.src = src
-
-    img.onload = () => {
-      const w = img.naturalWidth || 120
-      const h = img.naturalHeight || 60
-      canvas.width = w
-      canvas.height = h
-
-      ctx.clearRect(0, 0, w, h)
-      ctx.drawImage(img, 0, 0, w, h)
-
-      try {
-        const imgData = ctx.getImageData(0, 0, w, h)
-        const d = imgData.data
-
-        for (let i = 0; i < d.length; i += 4) {
-          const r = d[i]
-          const g = d[i + 1]
-          const b = d[i + 2]
-
-          if (isWhiteBg) {
-            const minVal = Math.min(r, g, b)
-            const maxVal = Math.max(r, g, b)
-            const isNeutral = maxVal - minVal < 30
-
-            if (r > 200 && g > 200 && b > 200 && isNeutral) {
-              if (r > 235 && g > 235 && b > 235) {
-                d[i + 3] = 0
-              } else {
-                const factor = (255 - Math.max(r, g, b)) / 55
-                d[i + 3] = Math.floor(d[i + 3] * Math.max(0, Math.min(1, factor)))
-              }
-            }
-          } else {
-            const maxRB = Math.max(r, b)
-            const greenDiff = g - maxRB
-
-            if (g > 70 && greenDiff > 25) {
-              d[i + 3] = 0
-            } else if (g > 60 && greenDiff > 10) {
-              const alphaRatio = 1 - (greenDiff - 10) / 15
-              d[i + 3] = Math.floor(d[i + 3] * Math.max(0, Math.min(1, alphaRatio)))
-              d[i + 1] = Math.min(g, maxRB + 5)
-            }
-          }
-        }
-
-        ctx.putImageData(imgData, 0, 0)
-      } catch (e) {
-        ctx.drawImage(img, 0, 0, w, h)
-      }
+    const savedMembers = localStorage.getItem('familyMembers')
+    if (savedMembers) {
+      setMembers(JSON.parse(savedMembers))
     }
-  }, [src, isWhiteBg])
+    
+    const savedCode = localStorage.getItem('familyCode')
+    if (savedCode) {
+      setFamilyCode(savedCode)
+    }
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className={`${className} drop-shadow-[0_6px_14px_rgba(0,0,0,0.6)] filter transition-transform duration-200`}
-    />
-  )
-}
+    const timer = setInterval(() => {
+      const now = new Date()
+      const daysUntilSunday = now.getDay() === 0 ? 0 : 7 - now.getDay()
+      const endOfWeek = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + daysUntilSunday
+      )
+      endOfWeek.setHours(23, 59, 59, 999)
+      
+      const diff = endOfWeek.getTime() - now.getTime()
+      
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        mins: Math.floor((diff / 1000 / 60) % 60),
+        secs: Math.floor((diff / 1000) % 60)
+      })
+    }, 1000)
 
-export default function Level({ onBack }: LevelProps) {
-  const [activeTierIdx, setActiveTierIdx] = useState(0)
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
-  const tierSectionRefs = useRef<(HTMLDivElement | null)[]>([])
+    return () => clearInterval(timer)
+  }, [])
 
-  const currentTier = tiersList[activeTierIdx] || tiersList[0]
+  const handleAddMember = () => {
+    if (!newMemberName.trim() || !newMemberRelation.trim()) {
+      alert('Please fill in all fields')
+      return
+    }
 
-  const handleScroll = () => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    const newMember: FamilyMember = {
+      id: Date.now().toString(),
+      name: newMemberName,
+      relation: newMemberRelation,
+      isAdmin: members.length === 0
+    }
 
-    const containerTop = container.getBoundingClientRect().top
-    const triggerPoint = containerTop + 140
-
-    let active = 0
-    tierSectionRefs.current.forEach((ref, index) => {
-      if (ref) {
-        const rect = ref.getBoundingClientRect()
-        if (rect.top <= triggerPoint) {
-          active = index
-        }
-      }
-    })
-    setActiveTierIdx(active)
+    const updatedMembers = [...members, newMember]
+    setMembers(updatedMembers)
+    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers))
+    
+    setNewMemberName('')
+    setNewMemberRelation('')
+    setShowAddMember(false)
   }
 
-  return (
-    <div className="relative w-full max-w-[440px] mx-auto h-screen bg-[#04060a] text-white flex flex-col font-sans select-none overflow-hidden">
-      {/* 1. TOP BACKGROUND IMAGE */}
-      <div className="absolute top-0 left-0 w-full h-[280px] pointer-events-none z-0 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-top bg-cover bg-no-repeat"
-          style={{ backgroundImage: "url('/file_00000000e02481f4bb2153e2714aca47.png')" }}
-        />
-        <div className="absolute -top-10 -left-10 w-[260px] h-[260px] bg-[#1d4ed8]/30 blur-[90px] rounded-full" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#04060a]/40 to-[#04060a]" />
-      </div>
+  // ==========================================
+  // VIEW 4: TOP RANKINGS PAGE
+  // ==========================================
+  if (currentView === 'topRankings') {
+    return (
+      <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white pb-6">
+        <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+          <filter id="remove-green" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              1.5 -2.5 1.5 1 0
+            " />
+          </filter>
+        </svg>
 
-      {/* 2. FIXED / PINNED TOP CONTAINER */}
-      <div className="relative z-30 flex flex-col shrink-0 px-4">
-        {/* Top App Bar */}
+        <div 
+          className="absolute top-0 left-0 w-full h-[50vh] z-0"
+          style={{
+            backgroundImage: "url('/IMG_20260901_160704.png')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)'
+          }}
+        />
+
         <div
-          className="flex items-center justify-center w-full px-2 pb-2 pt-2 bg-transparent relative"
-          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 8px))' }}
+          className="flex flex-row items-center w-full px-2 relative z-30"
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
         >
           <button
-            onClick={onBack}
-            className="absolute left-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer"
+            type="button"
+            onClick={() => setCurrentView('main')}
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
           >
-            <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
-          </button>
-
-          <h1 className="text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
-            Level
-          </h1>
-
-          <button className="absolute right-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer">
-            <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
+            <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
 
-        {/* Top Image Card Frame */}
-        <div className="relative -mt-10 -mx-4">
-          <img
-            src="/file_000000007044820ea729df406d1dc320.png"
-            alt="Top Card Frame"
-            className="w-full h-auto block"
-          />
+        <div className="flex flex-col w-full mt-2 relative z-20">
+          <div className="flex justify-center w-full relative z-20 -mt-16">
+            <img 
+              src="/IMG_20260901_161023.png" 
+              alt="Middle Rank" 
+              className="w-68 h-68 object-contain drop-shadow-2xl" 
+              style={{ filter: 'url(#remove-green)' }}
+            />
+          </div>
+          <div className="absolute top-27 w-full flex justify-between z-10 px-0">
+            <img 
+              src="/1788258909655~2.jpg" 
+              alt="Left Rank" 
+              className="w-40 h-40 object-contain -ml-4 drop-shadow-xl"
+              style={{ filter: 'url(#remove-green)' }} 
+            />
+            <img 
+              src="/1788258915366~2.jpg" 
+              alt="Right Rank" 
+              className="w-40 h-40 object-contain -mr-4 drop-shadow-xl"
+              style={{ filter: 'url(#remove-green)' }} 
+            />
+          </div>
+        </div>
 
-          <div className="absolute inset-0 z-10 flex items-center px-6 gap-3.5">
-            {/* User Avatar */}
-            <div className="relative shrink-0">
-              <img
-                src="/IMG-20260905-WA0078.jpg"
-                alt="User"
-                className="w-12 h-12 rounded-full object-cover shadow-lg ring-2 ring-[#e0b76e]/70"
+        <div className="w-full h-[13vh]"></div>
+
+        <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20 mb-2">
+          <img 
+            src="/IMG_20260901_230303.jpg" 
+            alt="Left New" 
+            onClick={() => { setActiveRow('left'); setCurrentView('main'); }}
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300" 
+            style={{ filter: activeRow === 'left' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+          <img 
+            src="/IMG_20260901_230319.jpg" 
+            alt="Middle New" 
+            onClick={() => { setActiveRow('mid'); setCurrentView('main'); }} 
+            className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10 cursor-pointer transition-all duration-300" 
+            style={{ filter: activeRow === 'mid' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+          <img 
+            src="/IMG_20260901_230330.jpg" 
+            alt="Right New" 
+            onClick={() => setActiveRow('right')} 
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300 hover:scale-105" 
+            style={{ filter: activeRow === 'right' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+        </div>
+
+        {/* TOP 1 REWARD */}
+        <div className="w-full flex flex-col relative px-2 mt-8">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 1 Reward</span>
+          </div>
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards (Top 1 Medal with video) */}
+            <div className="flex justify-evenly w-full px-2">
+              <Top1MedalRewardItem title="Medal *7 days" videoSrc="/1000196573-background (1).mp4" />
+              <RewardItem title="Top1 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
+            </div>
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+            </div>
+            {/* Row 3 - 1 Tall Card with Image */}
+            <div className="flex justify-center w-full px-2">
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0043.jpg" />
+            </div>
+          </div>
+        </div>
+
+        {/* TOP 2 REWARD */}
+        <div className="w-full flex flex-col relative px-2 mt-12">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 2 Reward</span>
+          </div>
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards (Top 2 Medal with clickable modal video) */}
+            <div className="flex justify-evenly w-full px-2">
+              <Top2MedalRewardItem title="Medal *7 days" videoSrc="/1000196572-background (1).mp4" onClick={() => setShowTop2Modal(true)} />
+              <RewardItem title="Top2 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
+            </div>
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+            </div>
+            {/* Row 3 - 1 Tall Card with Image */}
+            <div className="flex justify-center w-full px-2">
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0045.jpg" />
+            </div>
+          </div>
+        </div>
+
+        {/* TOP 3 REWARD */}
+        <div className="w-full flex flex-col relative px-2 mt-12">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-sm tracking-widest mt-0.5 drop-shadow-md">TOP 3 Reward</span>
+          </div>
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            {/* Row 1 - 3 cards */}
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *7 days" />
+              <RewardItem title="Top3 Tag *7 days" />
+              <RewardItem title="Vehicle *7 days" />
+            </div>
+            {/* Row 2 - 2 cards */}
+            <div className="flex justify-center gap-8 w-full px-2">
+              <RewardItem title="Frames *7 days" />
+              <RewardItem title="Family Frame *7 d" />
+            </div>
+            {/* Row 3 - 1 Tall Card with Image */}
+            <div className="flex justify-center w-full px-2">
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" />
+            </div>
+          </div>
+        </div>
+
+        {/* TOP 4 TO 10 REWARD */}
+        <div className="w-full flex flex-col relative px-2 mt-12 mb-10">
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20 flex justify-center items-center">
+            <img src="/file_00000000b9048207a6cb463144ef26f4.png" alt="Header" className="w-56 h-auto object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+            <span className="absolute text-white font-black text-[11px] tracking-widest mt-0.5 text-center leading-tight drop-shadow-md">TOP 4 TO 10<br/>Reward</span>
+          </div>
+          <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
+            <div className="flex justify-evenly w-full px-2">
+              <RewardItem title="Medal *3 days" />
+              <RewardItem title="Frames *3 days" />
+              <RewardItem title="Vehicle *3 days" />
+            </div>
+          </div>
+        </div>
+
+        {/* TOP 2 MEDAL VIDEO CENTER MODAL */}
+        {showTop2Modal && (
+          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div className="relative w-full max-w-xs aspect-square flex items-center justify-center">
+              <button 
+                onClick={() => setShowTop2Modal(false)} 
+                className="absolute -top-10 right-0 text-white p-2 cursor-pointer bg-black/50 rounded-full hover:bg-black"
+              >
+                <X size={24} />
+              </button>
+              <video 
+                src="/1000196572-background (1).mp4" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                className="w-full h-full object-contain" 
+                style={{ mixBlendMode: 'screen' }} 
               />
             </div>
+          </div>
+        )}
 
-            {/* Profile Info Details */}
-            <div className="flex-1 flex flex-col justify-center min-w-0 pr-2">
-              <div className="flex items-center gap-2">
-                <span className="text-white font-serif font-black text-[17px] tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
-                  KāziR Khān
-                </span>
+      </div>
+    )
+  }
 
-                {/* Profile level tag updated size and removed shader logic */}
-                <img
-                  src={tiersList[0].medalBadgeSrc}
-                  alt="User Level"
-                  className="h-7 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
-                />
-              </div>
+  // ==========================================
+  // VIEW 3: CREATE FAMILY PAGE
+  // ==========================================
+  if (currentView === 'create') {
+    return (
+      <div className="min-h-screen bg-white flex flex-col font-sans text-black relative overflow-y-auto overflow-x-hidden">
+        <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+          <filter id="remove-white" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              -1 -1 -1 3 0
+            " />
+          </filter>
+        </svg>
 
-              {/* Progress Bar with Thumb Indicator */}
-              <div className="relative w-full h-[6px] bg-white/25 rounded-full mt-2 overflow-visible">
-                <div
-                  className="h-full bg-gradient-to-r from-[#ffe072] to-[#f4b63f] rounded-full relative"
-                  style={{ width: '38%' }}
-                >
-                  <span className="absolute -right-1.5 -top-[3px] w-3 h-3 bg-white rounded-full border-2 border-[#f4b63f] shadow-md" />
-                </div>
-              </div>
+        <div className="flex items-center justify-between p-4 flex-shrink-0" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
+          <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
+            <ArrowLeft size={28} className="text-black" />
+          </button>
+          <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
+          <button className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
+        </div>
 
-              {/* Remaining Points Text */}
-              <div className="flex items-center justify-between mt-1.5">
-                <span className="text-[10.5px] text-white/90 font-medium tracking-wide drop-shadow-sm">
-                  4.5k/20.2k remaining to reach Level 5 &gt;
-                </span>
-              </div>
+        <div className="flex-1 w-full pb-36">
+          <div className="flex flex-col items-center mt-8">
+            <div className="w-24 h-24 border-2 border-[#FFD700] rounded-lg flex items-center justify-center cursor-pointer bg-gray-50/50">
+              <Plus size={36} className="text-gray-400" />
+            </div>
+            <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
+          </div>
+          <div className="px-5 mt-8">
+            <label className="block text-sm font-bold text-black mb-2">Family name</label>
+            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+          </div>
+          <div className="px-5 mt-5">
+            <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
+            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+          </div>
+          <div className="px-5 mt-8">
+            <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
+            <div onClick={() => setShowApplyMode(true)} className="flex items-center justify-between bg-[#F3F4F6] p-4 rounded-xl cursor-pointer">
+              <span className="font-bold text-black">Apply Mode</span>
+              <ChevronRight className="text-gray-400" size={20} />
             </div>
           </div>
         </div>
 
-        {/* Dynamic Sticky Header */}
-        <div className="relative flex items-center justify-between w-full -mt-10 pb-1 min-h-[85px]">
-          <div className="absolute -top-3.5 -left-4 pointer-events-none z-20">
-            <img
-              src="/file_000000006688821197edc482e295d3fd.png"
-              alt="Corner Tag"
-              className="h-7 object-contain drop-shadow-md"
-            />
-          </div>
+        <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
+          <button className="w-[90%] max-w-md bg-[#3b82f6] shadow-[0_5px_0_#2563eb] active:shadow-[0_0px_0_#2563eb] active:translate-y-1 rounded-full transition-all cursor-pointer flex flex-row items-center justify-center py-3.5 gap-2 pointer-events-auto">
+            <span className="text-white font-bold text-lg tracking-wide">Create</span>
+            <img src="/file_00000000e56882119c217d508b6733dc.png" alt="Coin" className="w-5 h-5 object-contain" style={{ filter: 'url(#remove-white)' }} />
+            <span className="font-bold text-white/90 text-sm tracking-wider mt-0.5">1500000</span>
+          </button>
+        </div>
 
-          <div className="flex items-center gap-2 -mt-4 z-10">
-            <div className="flex flex-col items-center justify-center">
-              <svg
-                className="w-4 h-4 text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 3L4 11h5v9h6v-9h5L12 3z" />
-              </svg>
-              <div className="flex flex-col gap-0.5 mt-0.5">
-                <div className="w-3.5 h-[1.5px] bg-white rounded-full" />
-                <div className="w-2 h-[1.5px] bg-white rounded-full mx-auto" />
+        {showApplyMode && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+            <div className="bg-white w-full h-[22vh] rounded-t-3xl p-6 flex flex-col shadow-2xl relative">
+              <div onClick={() => { setApplyModeState('free'); setTimeout(() => setShowApplyMode(false), 200) }} className="flex items-center justify-between py-4 border-b border-gray-100 cursor-pointer">
+                <span className="font-bold text-black text-sm">Free mode</span>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${applyModeState === 'free' ? 'border-[#3b82f6]' : 'border-gray-300'}`}>
+                  {applyModeState === 'free' && <div className="w-2.5 h-2.5 bg-[#3b82f6] rounded-full"></div>}
+                </div>
+              </div>
+              <div onClick={() => { setApplyModeState('admin'); setTimeout(() => setShowApplyMode(false), 200) }} className="flex items-center justify-between py-4 cursor-pointer">
+                <span className="font-bold text-black text-sm">Apply Mode / Admin & Owner</span>
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${applyModeState === 'admin' ? 'border-[#3b82f6]' : 'border-gray-300'}`}>
+                  {applyModeState === 'admin' && <div className="w-2.5 h-2.5 bg-[#3b82f6] rounded-full"></div>}
+                </div>
               </div>
             </div>
-
-            <h2 className="text-white font-bold text-[14px] whitespace-nowrap tracking-wide drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
-              Update level to {currentTier.range}
-            </h2>
           </div>
+        )}
+      </div>
+    )
+  }
 
-          <div className="shrink-0 -mr-2 -mt-6 z-10 transition-all duration-300">
-            <img
-              key={currentTier.rightGraphic}
-              src={currentTier.rightGraphic}
-              alt="Tier Graphic"
-              className="w-[100px] h-[100px] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200"
-            />
+  // ==========================================
+  // VIEW 1: MAIN FAMILY PAGE
+  // ==========================================
+  return (
+    <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white">
+      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+        <filter id="remove-green" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values="
+            1 0 0 0 0
+            0 1 0 0 0
+            0 0 1 0 0
+            1.5 -2.5 1.5 1 0
+          " />
+        </filter>
+      </svg>
+
+      <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
+
+      <div className="relative z-20 flex flex-col w-full">
+        <div className="flex flex-row items-center w-full px-3 relative z-30" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
+          <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
+            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+          </button>
+        </div>
+
+        <div className="flex flex-col w-full mt-2 relative">
+          <div className="flex justify-center w-full relative z-20 -mt-16">
+            <img src="/IMG_20260901_161023.png" alt="Middle Rank" className="w-68 h-68 object-contain drop-shadow-2xl" style={{ filter: 'url(#remove-green)' }} />
+          </div>
+          <div className="absolute top-27 w-full flex justify-between z-10 px-0">
+            <img src="/1788258909655~2.jpg" alt="Left Rank" className="w-40 h-40 object-contain -ml-4 drop-shadow-xl" style={{ filter: 'url(#remove-green)' }} />
+            <img src="/1788258915366~2.jpg" alt="Right Rank" className="w-40 h-40 object-contain -mr-4 drop-shadow-xl" style={{ filter: 'url(#remove-green)' }} />
+          </div>
+        </div>
+
+        <div className="w-full h-[13vh]"></div>
+
+        <div className="flex flex-row items-end justify-center gap-2 w-full px-4 relative z-20">
+          <img 
+            src="/IMG_20260901_230303.jpg" 
+            alt="Left New" 
+            onClick={() => setActiveRow('left')}
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300" 
+            style={{ filter: activeRow === 'left' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+          <img 
+            src="/IMG_20260901_230319.jpg" 
+            alt="Middle New" 
+            onClick={() => setActiveRow('mid')}
+            className="w-[35%] max-w-[130px] h-auto object-contain drop-shadow-2xl z-10 cursor-pointer transition-all duration-300" 
+            style={{ filter: activeRow === 'mid' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+          <img 
+            src="/IMG_20260901_230330.jpg" 
+            alt="Right New" 
+            onClick={() => { setActiveRow('right'); setCurrentView('topRankings'); }}
+            className="w-[35%] max-w-[110px] h-auto object-contain drop-shadow-xl cursor-pointer transition-all duration-300 hover:scale-105" 
+            style={{ filter: activeRow === 'right' ? 'url(#remove-green)' : 'url(#remove-green) grayscale(100%)' }}
+          />
+        </div>
+
+        <div className="relative w-full py-2.5 mt-4 flex items-center justify-center bg-gradient-to-r from-transparent via-[#ffd700]/10 to-transparent shadow-[0_0_15px_rgba(255,215,0,0.05)_inset]">
+          <div className="absolute top-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#ffd700]/40 to-transparent shadow-[0_0_8px_rgba(255,215,0,0.8)]"></div>
+          <div className="absolute bottom-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#ffd700]/40 to-transparent shadow-[0_0_8px_rgba(255,215,0,0.8)]"></div>
+          <div className="relative z-10 flex items-center justify-center space-x-2 text-white font-medium px-4 w-full">
+            <span className="text-[15px] mr-2 tracking-wide text-[#fdf6e3]">Countdown</span>
+            <div className="bg-[#1a0f02] border border-[#a67c00] rounded-md px-1.5 py-0.5 text-sm font-bold min-w-[34px] text-center shadow-inner">{String(timeLeft.days).padStart(2, '0')}</div>
+            <span className="text-[14px] text-[#fdf6e3]">Days</span>
+            <div className="bg-[#1a0f02] border border-[#a67c00] rounded-md px-1.5 py-0.5 text-sm font-bold min-w-[34px] text-center shadow-inner">{String(timeLeft.hours).padStart(2, '0')}</div>
+            <span className="text-[14px] text-[#fdf6e3]">:</span>
+            <div className="bg-[#1a0f02] border border-[#a67c00] rounded-md px-1.5 py-0.5 text-sm font-bold min-w-[34px] text-center shadow-inner">{String(timeLeft.mins).padStart(2, '0')}</div>
+            <span className="text-[14px] text-[#fdf6e3]">:</span>
+            <div className="bg-[#1a0f02] border border-[#a67c00] rounded-md px-1.5 py-0.5 text-sm font-bold min-w-[34px] text-center shadow-inner">{String(timeLeft.secs).padStart(2, '0')}</div>
           </div>
         </div>
       </div>
 
-      {/* 3. SCROLLABLE SET SECTION */}
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 px-4 overflow-y-auto z-20 pb-24 pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-      >
-        <div className="flex flex-col gap-9">
-          {tiersList.map((tier, tIdx) => (
-            <div
-              key={tier.id}
-              ref={(el) => {
-                tierSectionRefs.current[tIdx] = el
-              }}
-              className="w-full flex flex-col pt-1"
-            >
-              {/* Section Header */}
-              <div className="flex items-center justify-between w-full min-h-[60px] mb-2 px-1">
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="w-4 h-4 text-white drop-shadow-md shrink-0"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12 4l-8 8h5v8h6v-8h5z" />
-                  </svg>
-                  <h3 className="text-white font-bold text-[14px] tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                    Upgrade to level {tier.range}
-                  </h3>
-                </div>
-
-                <div className="shrink-0 -mr-1">
-                  <img
-                    src={tier.rightGraphic}
-                    alt={tier.range}
-                    className="w-[100px] h-[100px] object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
-                  />
-                </div>
-              </div>
-
-              {/* 3 Square Cards Row at the top of each section (No Borders) */}
-              <div className="grid grid-cols-3 gap-2 w-full mb-4 px-0.5">
-                {/* 1. First Coins Card of this specific section */}
-                <div className="relative bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                  {/* Top Left Level Tag */}
-                  <span className="absolute top-1 left-1.5 text-[9px] font-bold text-white/70">
-                    Lv.{tier.rewards[0].level}
-                  </span>
-                  
-                  <ShaderImageBadge
-                    src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
-                    isWhiteBg={true}
-                    className="w-8 h-8 object-contain mb-1.5 drop-shadow-md"
-                  />
-                  <span className="text-[11px] font-semibold text-white/90">
-                    {tier.rewards[0].coins}
-                  </span>
-                </div>
-
-                {/* 2. Entry Card */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                  <div className="px-2 py-0.5 rounded-md bg-gradient-to-r from-[#177488] to-[#1ea3b3] text-white font-bold text-[9px] mb-1.5 shadow-sm">
-                    Entry Tag
-                  </div>
-                  <span className="text-[11px] font-semibold text-white/90">Entry</span>
-                </div>
-
-                {/* 3. Empty Frame Card */}
-                <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                  <div className="w-8 h-8 mb-1.5"></div> {/* Empty space for frame */}
-                  <span className="text-[11px] font-semibold text-white/90">Frame</span>
-                </div>
-              </div>
-
-              {/* Lambe Lambe Level Reward Cards */}
-              <div className="flex flex-col gap-2.5 w-full">
-                
-                {/* Frame wali image (Level Badge Upgraded) */}
-                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-                  <div className="flex flex-col justify-center z-10">
-                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                      Level {tier.range.replace(/Lv\./g, '')}
-                    </span>
-                    <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
-                      Level badge upgraded
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 z-10">
-                    {/* BADA ICON + GREEN REMOVING HATA DIYA */}
-                    <img
-                      src={tier.medalBadgeSrc}
-                      alt="Level Badge"
-                      className="h-10 w-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.6)]"
-                    />
-                  </div>
-                </div>
-
-                {/* Room Send Image ki wapsi - Level Badge ke theek niche */}
-                <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-                  <div className="flex flex-col justify-center z-10">
-                    <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                      Room Send image
-                    </span>
-                    {/* Lv.5 sirf first section (tier 1-10) mein show hoga */}
-                    {tIdx === 0 && (
-                      <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
-                        Lv.5
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 z-10">
-                    <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-blue-300"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <polyline points="21 15 16 10 5 21" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Background Image Card (Tier 3 / Lv 21 aur uske baad aayega) */}
-                {tIdx >= 2 && (
-                  <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-                    <div className="flex flex-col justify-center z-10">
-                      <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                        Background Image
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 z-10">
-                      <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                        <svg
-                          className="w-4 h-4 text-emerald-300"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <path d="M21 15l-5-5L5 21" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Room Theme Card (Tier 8 / Lv 71 aur uske baad aayega) */}
-                {tIdx >= 7 && (
-                  <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
-                    <div className="flex flex-col justify-center z-10">
-                      <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                        Room Theme
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 z-10">
-                      <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                        <svg 
-                          className="w-4 h-4 text-fuchsia-300" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2"
-                        >
-                          <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                          <path d="M2 12h20" />
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Baki bache hue Coin Rewards (Index 1 se shuru, sabse end mein) */}
-                {tier.rewards.slice(1).map((reward, rIdx) => (
-                  <div
-                    key={rIdx}
-                    className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]"
-                  >
-                    <div className="flex flex-col justify-center z-10">
-                      <span className="text-[13.5px] font-semibold text-white tracking-wide">
-                        Level {reward.level} Reward
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 z-10">
-                      <ShaderImageBadge
-                        src="/file_00000000b2d481fd8cd233482dbeb9ef.png"
-                        isWhiteBg={true}
-                        className="w-6 h-6 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
-                      />
-                      <span className="text-[13px] font-extrabold text-[#fcd34d] tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                        {reward.coins}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-
-              </div>
-            </div>
-          ))}
+      <div className="relative z-10 w-full pt-4 space-y-1.5 pb-36">
+        <div className="relative w-full">
+          <img src="/1788258921361~2.jpg" alt="Top 1, 2, 3" className="w-full h-auto object-contain" style={{ filter: 'url(#remove-green)' }} />
         </div>
+        {Array.from({ length: 47 }, (_, i) => {
+          const rank = i + 4;
+          return (
+            <div key={rank} className="relative w-full h-16 flex items-center overflow-hidden">
+              <img src="/1788259008478~2.jpg" alt={`Rank ${rank}`} className="absolute inset-0 w-full h-full object-fill" style={{ filter: 'url(#remove-green)' }} />
+              <div className="relative z-10 pl-6"><span className="text-xl font-black text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{rank}</span></div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
+        <button onClick={() => setCurrentView('create')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
+          <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
+        </button>
       </div>
     </div>
   )
