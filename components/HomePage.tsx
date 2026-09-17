@@ -750,94 +750,119 @@ const CATEGORY_CARDS = [
 ];
 
 // ============ SEARCH FUNCTION ============
-async function fetchSearchResults(queryRaw: string, globalRooms: GlobalRoom[]): Promise<GlobalRoom[]> {
-  const query = queryRaw.trim()
-  if (!query) return []
+async function fetchSearchResults(
+  queryRaw: string,
+  globalRooms: GlobalRoom[]
+): Promise<GlobalRoom[]> {
+  const query = queryRaw.trim();
+  if (!query) return [];
 
-  const queryLower = query.toLowerCase()
-  const foundList: GlobalRoom[] = []
-  const addedIds = new Set<string>()
+  const queryLower = query.toLowerCase();
+  const foundList: GlobalRoom[] = [];
+  const addedIds = new Set<string>();
 
-  // 1. Search already-loaded Socket.IO/HomePage rooms immediately.
+  // FIRST: search already-loaded live/local rooms.
   for (const room of globalRooms) {
-    const roomId = String(room.id || "")
-    const accountId = String(room.accountId || "")
+    const roomId = String(room.id || "");
+    const accountId = String(room.accountId || "");
+    const name = String(room.name || "");
 
-    if (
+    const exactMatch =
       roomId.toLowerCase() === queryLower ||
-      accountId.toLowerCase() === queryLower ||
-      String(room.name || "").toLowerCase().includes(queryLower)
-    ) {
-      const key = accountId || roomId
+      accountId.toLowerCase() === queryLower;
+
+    const nameMatch =
+      name.toLowerCase().includes(queryLower);
+
+    if (exactMatch || nameMatch) {
+      const key = accountId || roomId;
 
       if (key && !addedIds.has(key)) {
-        addedIds.add(key)
-        foundList.push(room)
+        addedIds.add(key);
+        foundList.push(room);
       }
     }
   }
 
-  // 2. Query Mongo only when the local result is not enough.
+  // LOCAL RESULT MIL GAYA = RETURN INSTANTLY.
+  // No unnecessary Mongo/API wait.
+  if (foundList.length > 0) {
+    return foundList;
+  }
+
+  // FALLBACK: Mongo user search only when local search found nothing.
   try {
+    const controller = new AbortController();
+
+    const timeout = window.setTimeout(
+      () => controller.abort(),
+      3000
+    );
+
     const response = await fetch(
       `/api/users?accountId=${encodeURIComponent(query)}`,
-      { cache: "no-store" }
-    )
+      {
+        cache: "no-store",
+        signal: controller.signal,
+      }
+    );
+
+    window.clearTimeout(timeout);
 
     if (response.ok) {
-      const data = await response.json()
-      const user = data?.user
+      const data = await response.json();
+      const user = data?.user;
 
       if (user) {
         const accountId = String(
           user.accountId ||
-          user.displayAccountNumber ||
+          user.displayUserNumber ||
           user.id ||
           user.uid ||
           ""
-        )
+        );
 
         const userId = String(
           user.id ||
           user.uid ||
           user.appLongId ||
           accountId
-        )
+        );
 
-        if (accountId) {
-          const key = accountId || userId
-
-          if (!addedIds.has(key)) {
-            addedIds.add(key)
-
-            foundList.push({
-              id: userId,
-              name:
-                user.name ||
-                user.displayName ||
-                "User",
-              country: user.country || "🇮🇳",
-              image:
-                user.image ||
-                user.photo ||
-                user.photoURL ||
-                "/default-avatar.png",
-              accountId,
-              createdAt:
-                user.createdAt ||
-                Date.now(),
-              isLocked: Boolean(user.isLocked),
-              activeUserCount: 0,
-            })
-          }
+        if (accountId && !addedIds.has(accountId)) {
+          foundList.push({
+            id: userId,
+            name:
+              user.name ||
+              user.displayName ||
+              "User",
+            country:
+              user.country || "🇮🇳",
+            image:
+              user.image ||
+              user.photo ||
+              user.photoURL ||
+              "/default-avatar.png",
+            accountId,
+            createdAt:
+              user.createdAt || Date.now(),
+            isLocked: Boolean(user.isLocked),
+            roomPassword:
+              user.roomPassword || null,
+            isExplicitlyCreated: true,
+            activeUserCount: 0,
+          });
         }
       }
     }
   } catch (error) {
-    console.error("Fast user search error:", error)
+    console.error(
+      "Fast user search error:",
+      error
+    );
   }
 
-  return foundList
+  return foundList;
 }
 
 // ============ MAIN COMPONENT ============
@@ -1424,20 +1449,30 @@ useEffect(() => {
     socket.emit('global_room_presence_request');
   };
 
-  if (!socket.connected) {
+  // LISTENERS FIRST — prevent Socket.IO connection race.
+  socket.on('connect', handleSocketConnect);
+  socket.on(
+    'global_room_presence',
+    applyGlobalPresence
+  );
+
+  // CONNECT ONLY AFTER LISTENERS ARE READY.
+  if (socket.connected) {
+    handleSocketConnect();
+  } else {
     socket.connect();
   }
 
-  socket.on('connect', handleSocketConnect);
-  socket.on('global_room_presence', applyGlobalPresence);
-
-  if (socket.connected) {
-    handleSocketConnect();
-  }
-
   return () => {
-    socket.off('connect', handleSocketConnect);
-    socket.off('global_room_presence', applyGlobalPresence);
+    socket.off(
+      'connect',
+      handleSocketConnect
+    );
+
+    socket.off(
+      'global_room_presence',
+      applyGlobalPresence
+    );
   };
 }, [userUID]);
 
@@ -2212,35 +2247,70 @@ useEffect(() => {
 
   // ============ JOIN ROOM FROM CHAT ============
   const handleJoinRoomFromChat = async (roomId: string) => {
-    try {
-      const roomData = await fetchRoomFromMongoDB(roomId);
-      if (roomData) {
-        handleUserCardClick({
-          id: roomData.ID || roomData.id || roomId,
-          accountId: roomData['Room Admin'] || roomData.accountId || roomId,
-          name: roomData['Room Name'] || roomData.name || 'User',
-          country: roomData.Country || roomData.country || '🇮🇳',
-          image: roomData['Room dp'] || roomData.image || '/default-avatar.png'
-        });
-        return;
-      }
-    } catch (error) {
-      console.error('Error fetching room data:', error);
-    }
+  try {
+    const id = String(roomId || "");
 
-    const foundRoom = globalRooms.find(r => r.id === roomId || r.accountId === roomId);
+    // FIRST: use already-loaded live/local room.
+    // This makes entering a room instant.
+    const foundRoom = globalRooms.find(
+      (r) =>
+        String(r.id || "") === id ||
+        String(r.accountId || "") === id
+    );
+
     if (foundRoom) {
       handleUserCardClick({
-        id: foundRoom.id || roomId,
-        accountId: foundRoom.accountId || roomId,
-        name: foundRoom.name,
-        country: foundRoom.country || '🇮🇳',
-        image: foundRoom.image || '/default-avatar.png'
+        id: foundRoom.id || id,
+        accountId:
+          foundRoom.accountId || id,
+        name: foundRoom.name || "User",
+        country:
+          foundRoom.country || "🇮🇳",
+        image:
+          foundRoom.image ||
+          "/default-avatar.png",
       });
-    } else {
-      console.error('Room not found');
+      return;
     }
-  };
+
+    // FALLBACK: Mongo only when local room is unavailable.
+    const roomData = await fetchRoomFromMongoDB(id);
+
+    if (roomData) {
+      handleUserCardClick({
+        id:
+          roomData.ID ||
+          roomData.id ||
+          roomData.roomId ||
+          id,
+        accountId:
+          roomData["Room Admin"] ||
+          roomData.accountId ||
+          id,
+        name:
+          roomData["Room Name"] ||
+          roomData.name ||
+          "User",
+        country:
+          roomData.Country ||
+          roomData.country ||
+          "🇮🇳",
+        image:
+          roomData["Room dp"] ||
+          roomData.image ||
+          "/default-avatar.png",
+      });
+      return;
+    }
+
+    console.error("Room not found:", id);
+  } catch (error) {
+    console.error(
+      "Error joining room:",
+      error
+    );
+  }
+};
 
   // ============ SEARCH ============
   const handlePerformSearch = async () => {
