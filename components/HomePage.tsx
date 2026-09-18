@@ -2669,7 +2669,7 @@ useEffect(() => {
                   <div 
                     className="relative w-full text-center font-black uppercase tracking-wider select-none z-50 pointer-events-none"
                     style={{
-                      paddingTop: '15px',
+                      paddingTop: '16px',
                       fontSize: '11px',
                       lineHeight: '1.2',
                       background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF8B5 35%, #FFD700 70%, #F5B000 100%)',
