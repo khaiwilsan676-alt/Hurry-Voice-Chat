@@ -2693,7 +2693,7 @@ useEffect(() => {
                   />
 
                   {/* 3. FRAME & ANIMATION */}
-                  <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-3">
+                  <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-2">
                     <style dangerouslySetInnerHTML={{ __html: `
                       @keyframes shrinkAndFade {
                         0%, 80% { transform: scale(1); opacity: 1; }
