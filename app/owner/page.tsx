@@ -16,7 +16,7 @@ const mockUsers = [
   { id: '7', name: 'Luna Star', username: 'luna_star', hurryId: '821004571', email: '—', role: 'HOST' },
   { id: '8', name: 'Agent Boss', username: 'agent_boss', hurryId: '320919038', email: '—', role: 'AGENCY' },
   { id: '9', name: 'Marco', username: 'marco_talks', hurryId: '486052034', email: '—', role: 'HOST' },
-  { id: '10', name: 'Zara Beats', username: 'zara_beats', hurryId: '927199637', email: '—', role: 'HOST' },
+  { id: '10', name: 'Zara Beats', username: 'zara_beats', hurryId: '927199637', email: '—', role: 'HOST' }, 
 ];
 
 const AVAILABLE_TAGS = [
