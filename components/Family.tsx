@@ -344,9 +344,9 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Vehicle *7 days" />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
-              {/* Yahan naya video reward item add kiya hai requested video ke sath */}
-              <VideoRewardItem title="Frame *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black'})} />
+              {/* GREEN HATA DIYA -> AB BLACK LAGA DIYA */}
+              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black'})} />
+              <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
               <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" />
@@ -376,12 +376,13 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setActiveVideoModal(null)}
           >
             {activeVideoModal.type === 'vehicle' ? (
+              // ITEMS-END laga diya hai taaki vehicle video bottom pe aaye aur pb-8 se thoda space
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
-                  playsInline 
+                  playsInline // Muted hata hua hai (sound on)
                   className="w-full h-auto max-h-[70vh] object-cover" 
                   style={{
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
@@ -391,6 +392,7 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+                {/* SQUARE FRAME FIX: w-[85vw] h-[85vw] */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -602,5 +604,4 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
     </div>
   )
-}
-
+    }
