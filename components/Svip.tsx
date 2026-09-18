@@ -110,7 +110,10 @@ export default function Svip({ onBack }: SvipProps) {
           {/* Center: SVIP */}
           <span
             className="absolute left-1/2 -translate-x-1/2 font-black text-white text-[20px] tracking-wider"
-            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
+            style={{
+              top:
+                'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)',
+            }}
           >
             SVIP
           </span>
@@ -132,7 +135,7 @@ export default function Svip({ onBack }: SvipProps) {
           </div>
         </header>
 
-        {/* ============ VIDEO (Square, Green removed) ============ */}
+        {/* ============ VIDEO (Bigger size, Green removed) ============ */}
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
           <video
             ref={videoRef}
@@ -147,28 +150,40 @@ export default function Svip({ onBack }: SvipProps) {
             ref={canvasRef}
             className="object-contain"
             style={{
-              width: '55vw',
-              height: '55vw',
+              width: '80vw',
+              height: '80vw',
             }}
           />
         </div>
       </div>
 
-      {/* ============ MIDDLE IMAGE (edge to edge) ============ */}
-      <img
-        src="/file_00000000e5d881faa59ce174257e208e.png"
-        alt=""
-        className="w-full block z-10 relative"
-        draggable="false"
-      />
+      {/* ============ BOTTOM SECTION — Bottom + Middle image joined, text overlay ============ */}
+      <div className="relative w-full z-10">
+        {/* Bottom image (base) */}
+        <img
+          src="/file_0000000067948207b83480dddf2ecee9.png"
+          alt=""
+          className="w-full block"
+          draggable="false"
+        />
 
-      {/* ============ BOTTOM IMAGE ============ */}
-      <img
-        src="/file_0000000067948207b83480dddf2ecee9.png"
-        alt=""
-        className="w-full block z-10 relative"
-        draggable="false"
-      />
+        {/* Middle image overlaid on top of bottom image (edge to edge, joined) */}
+        <img
+          src="/file_00000000e5d881faa59ce174257e208e.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
+          draggable="false"
+        />
+
+        {/* SVIP COMING SOON — centered, inside a Black/10 card */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/10 backdrop-blur-sm px-6 py-3 rounded-2xl">
+            <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
+              SVIP COMING SOON
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   )
-          }
+        }
