@@ -2934,7 +2934,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 className="absolute inset-0 w-full h-full object-contain pointer-events-none z-0"
                 draggable={false}
               />
-              <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center z-10">
+              <div className="relative w-70 h-70 rounded-full overflow-hidden flex items-center justify-center z-10">
                 <img
                   src={user.image || "/default-avatar.png"}
                   alt={user.name}
