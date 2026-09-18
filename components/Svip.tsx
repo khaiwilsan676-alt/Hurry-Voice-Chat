@@ -68,113 +68,117 @@ export default function Svip({ onBack }: SvipProps) {
 
   return (
     <div className="fixed inset-0 bg-black overflow-y-auto overflow-x-hidden select-none">
-      {/* ============ TOP SECTION (40vh) ============ */}
-      <div className="relative w-full" style={{ height: '40vh' }}>
-        {/* BG image */}
-        <img
-          src="/file_00000000bd448211892548a9f0469619.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover z-0"
-          draggable="false"
-        />
+      {/* ===== Relative wrapper so we can overlay middle image on top of both sections ===== */}
+      <div className="relative w-full">
+        {/* ============ TOP SECTION (40vh) ============ */}
+        <div className="relative w-full" style={{ height: '40vh' }}>
+          {/* BG image */}
+          <img
+            src="/file_00000000bd448211892548a9f0469619.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover z-0"
+            draggable="false"
+          />
 
-        {/* Header (safe area) */}
-        <header
-          className="relative z-30 flex items-center justify-between w-full px-3 py-2"
-          style={{
-            paddingTop:
-              'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 6px)',
-          }}
-        >
-          {/* Left: Back arrow */}
-          <button
-            onClick={onBack}
-            aria-label="Back"
-            className="flex items-center justify-center p-1 active:opacity-70 transition-opacity"
-          >
-            <svg
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#FFFFFF"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
-
-          {/* Center: SVIP */}
-          <span
-            className="absolute left-1/2 -translate-x-1/2 font-black text-white text-[20px] tracking-wider"
+          {/* Header (safe area) */}
+          <header
+            className="relative z-30 flex items-center justify-between w-full px-3 py-2"
             style={{
-              top:
-                'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)',
+              paddingTop:
+                'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 6px)',
             }}
           >
-            SVIP
-          </span>
+            {/* Left: Back arrow */}
+            <button
+              onClick={onBack}
+              aria-label="Back"
+              className="flex items-center justify-center p-1 active:opacity-70 transition-opacity"
+            >
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
+              </svg>
+            </button>
 
-          {/* Right: images corner to corner */}
-          <div className="flex items-center gap-2">
-            <img
-              src="/IMG_20260918_170725.png"
-              alt=""
-              className="w-7 h-7 object-contain"
-              draggable="false"
+            {/* Center: SVIP */}
+            <span
+              className="absolute left-1/2 -translate-x-1/2 font-black text-white text-[20px] tracking-wider"
+              style={{
+                top:
+                  'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)',
+              }}
+            >
+              SVIP
+            </span>
+
+            {/* Right: images corner to corner */}
+            <div className="flex items-center gap-2">
+              <img
+                src="/IMG_20260918_170725.png"
+                alt=""
+                className="w-7 h-7 object-contain"
+                draggable="false"
+              />
+              <img
+                src="/IMG_20260918_170736.png"
+                alt="Crown"
+                className="w-7 h-7 object-contain"
+                draggable="false"
+              />
+            </div>
+          </header>
+
+          {/* ============ VIDEO (Bigger + slightly up, Green removed) ============ */}
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+            <video
+              ref={videoRef}
+              src="/1000197130-background (1).mp4"
+              muted
+              loop
+              playsInline
+              autoPlay
+              className="hidden"
             />
-            <img
-              src="/IMG_20260918_170736.png"
-              alt="Crown"
-              className="w-7 h-7 object-contain"
-              draggable="false"
+            <canvas
+              ref={canvasRef}
+              className="object-contain"
+              style={{
+                width: '125vw',
+                height: '125vw',
+                transform: 'translateY(0px)',
+              }}
             />
           </div>
-        </header>
-
-        {/* ============ VIDEO (Bigger + slightly up, Green removed) ============ */}
-        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <video
-            ref={videoRef}
-            src="/1000197130-background (1).mp4"
-            muted
-            loop
-            playsInline
-            autoPlay
-            className="hidden"
-          />
-          <canvas
-            ref={canvasRef}
-            className="object-contain"
-            style={{
-              width: '125vw',
-              height: '125vw',
-              transform: 'translateY(0px)',
-            }}
-          />
         </div>
-      </div>
 
-      {/* ============ MIDDLE IMAGE (right at the end of top image — no gap) ============ */}
-      <img
-        src="/file_00000000e5d881faa59ce174257e208e.png"
-        alt=""
-        className="w-full block relative z-20 leading-none align-top"
-        draggable="false"
-      />
+        {/* ============ BOTTOM SECTION — Darker Brown Background + Text only ============ */}
+        <div
+          className="relative w-full z-10 min-h-[60vh] flex items-center justify-center leading-normal"
+          style={{ backgroundColor: '#150C07' }}
+        >
+          <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
+            SVIP COMING SOON
+          </span>
+        </div>
 
-      {/* ============ BOTTOM SECTION — Dark Brown Background + Text only ============ */}
-      <div
-        className="relative w-full z-10 min-h-[60vh] flex items-center justify-center leading-normal"
-        style={{ backgroundColor: '#2B1A12' }}
-      >
-        <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
-          SVIP COMING SOON
-        </span>
+        {/* ============ MIDDLE IMAGE — Overlay on top of both sections ============ */}
+        <img
+          src="/file_00000000e5d881faa59ce174257e208e.png"
+          alt=""
+          className="absolute left-0 w-full block z-20 leading-none align-top pointer-events-none"
+          style={{ top: '40vh' }}
+          draggable="false"
+        />
       </div>
     </div>
   )
-}
+            }
