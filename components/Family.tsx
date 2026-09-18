@@ -322,7 +322,7 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -344,7 +344,7 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Vehicle *7 days" />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -366,7 +366,7 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Vehicle *7 days" />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -384,7 +384,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
-              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Vehicle *3 days" />
             </div>
           </div>
@@ -393,7 +393,7 @@ export default function Family({ onBack }: FamilyProps) {
         {/* UNIFIED CENTER VIDEO MODAL - FIXED FOR FULL SCREEN & FADING */}
         {activeVideoModal && (
           <div 
-            className="fixed inset-0 bg-transparent z-50 flex items-center justify-center cursor-pointer"
+            className="fixed inset-0 w-full h-full bg-transparent z-50 flex items-center justify-center cursor-pointer"
             onClick={() => setActiveVideoModal(null)}
           >
             {activeVideoModal.type === 'vehicle' ? (
@@ -402,24 +402,26 @@ export default function Family({ onBack }: FamilyProps) {
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
-                  muted 
+                  // muted hata diya gaya hai jaisa tumne kaha tha
                   playsInline 
                   className="w-full h-auto max-h-[70vh] object-cover" 
                   style={{
-                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)',
-                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)'
+                    // Bottom se aur zyada fade (transparent 85%) taaki Gemini watermark pura chhip jaye
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
                   }} 
                 />
               </div>
             ) : (
-              <div className="relative w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+                {/* Frame Full Screen Fix - object-cover aur full stretch kar diya hai */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
                   muted 
                   playsInline 
-                  className="w-full h-full object-contain scale-110" 
+                  className="w-full h-full object-cover" 
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
                     WebkitMixBlendMode: 'screen',
@@ -626,3 +628,4 @@ export default function Family({ onBack }: FamilyProps) {
     </div>
   )
 }
+
