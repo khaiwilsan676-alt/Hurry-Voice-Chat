@@ -135,7 +135,7 @@ export default function Svip({ onBack }: SvipProps) {
           </div>
         </header>
 
-        {/* ============ VIDEO (Extra Bigger + pushed down a bit, Green removed) ============ */}
+        {/* ============ VIDEO (Bigger + slightly up, Green removed) ============ */}
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
           <video
             ref={videoRef}
@@ -150,24 +150,27 @@ export default function Svip({ onBack }: SvipProps) {
             ref={canvasRef}
             className="object-contain"
             style={{
-              width: '115vw',
-              height: '115vw',
-              transform: 'translateY(20px)',
+              width: '125vw',
+              height: '125vw',
+              transform: 'translateY(0px)',
             }}
           />
         </div>
       </div>
 
-      {/* ============ MIDDLE IMAGE (right at the end of top image) ============ */}
+      {/* ============ MIDDLE IMAGE (right at the end of top image — no gap) ============ */}
       <img
         src="/file_00000000e5d881faa59ce174257e208e.png"
         alt=""
-        className="w-full block relative z-20"
+        className="w-full block relative z-20 leading-none align-top"
         draggable="false"
       />
 
-      {/* ============ BOTTOM SECTION — Chocolate background + Text only ============ */}
-      <div className="relative w-full z-10 bg-[#3E2723] min-h-[60vh] flex items-center justify-center">
+      {/* ============ BOTTOM SECTION — Dark Brown Background + Text only ============ */}
+      <div
+        className="relative w-full z-10 min-h-[60vh] flex items-center justify-center leading-normal"
+        style={{ backgroundColor: '#2B1A12' }}
+      >
         <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
           SVIP COMING SOON
         </span>
