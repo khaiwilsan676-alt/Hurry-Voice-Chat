@@ -2660,7 +2660,9 @@ useEffect(() => {
                     animation: mounted ? 'cardIn 560ms cubic-bezier(0.22,1,0.36,1) both' : 'none',
                     animationDelay: `${i * 100}ms`,
                     position: 'relative', 
-                    overflow: 'hidden'    
+                    overflow: 'hidden', 
+                    zIndex: 30
+                    
                   }}
                 >
                   {/* 1. TOP GOLDEN HEADING (Aur neeche shift kar di) */}
@@ -3292,70 +3294,67 @@ useEffect(() => {
               {/* --- HEADER END --- */}
 
               {activeTab === 'popular' && (
-                <>
-                  <div
-                    ref={bannerRef}
-                    className="rounded-md relative overflow-hidden cursor-pointer select-none"
-                    style={{
-                      height: '100px',
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-                      transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
-                    }}
-                    onClick={() => {
-                      if (Math.abs(swipeOffset) < 10) {
-                        if (currentBanner === 0 || BANNERS[currentBanner]?.image.includes('file_00000000a8b08211bd12c4102d0f9d77')) {
-                          setIsInviteFriendsOpen(true)
-                        }
-                      }
-                    }}
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                    onMouseDown={handleMouseDown}
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <div
-                      key={currentBanner}
-                      className="w-full h-full"
-                      style={{
-                        animation: isSwiping ? 'none' : 'fadeInBanner 400ms ease-out',
-                      }}
-                    >
-                      <img
-                        src={BANNERS[currentBanner].image}
-                        alt="Banner"
-                        className="w-full h-full object-cover rounded-md pointer-events-none"
-                        draggable="false"
-                      />
-                    </div>
-                  </div>
+  <>
+    <div className="relative">
+      <div
+        ref={bannerRef}
+        className="rounded-md relative overflow-hidden cursor-pointer select-none"
+        style={{
+          height: '100px',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+        }}
+        onClick={() => {
+          if (Math.abs(swipeOffset) < 10) {
+            if (currentBanner === 0 || BANNERS[currentBanner]?.image.includes('file_00000000a8b08211bd12c4102d0f9d77')) {
+              setIsInviteFriendsOpen(true)
+            }
+          }
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div
+          key={currentBanner}
+          className="w-full h-full"
+          style={{ animation: isSwiping ? 'none' : 'fadeInBanner 400ms ease-out' }}
+        >
+          <img
+            src={BANNERS[currentBanner].image}
+            alt="Banner"
+            className="w-full h-full object-cover rounded-md pointer-events-none"
+            draggable="false"
+          />
+        </div>
+      </div>
 
-                  <div 
-                    ref={bannerDotsRef}
-                    className="flex justify-center gap-1.5" 
-                    style={{ 
-                      marginTop: '2px', 
-                      marginBottom: '0px',
-                      minHeight: '6px'
-                    }}
-                  >
-                    {BANNERS.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${
-                          index === currentBanner ? 'bg-black w-3' : 'bg-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
+      {/* Dots ab banner ke UPAR overlap karenge, bottom pe */}
+      <div
+        ref={bannerDotsRef}
+        className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
+        style={{ bottom: '6px', minHeight: '6px' }}
+      >
+        {BANNERS.map((_, index) => (
+          <div
+            key={index}
+            className={`w-1.5 h-1.5 rounded-full transition-all ${
+              index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  </>
+)}
             </div>
 
             {activeTab === 'mine' ? renderMineTab() : renderPopularTab()}
