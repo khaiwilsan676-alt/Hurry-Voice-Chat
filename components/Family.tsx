@@ -89,6 +89,31 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
   </div>
 );
 
+// NEW COMPONENT: Vehicle image with blended borders
+const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
+  <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+      <img 
+        src={imageSrc} 
+        alt={title} 
+        className="w-full h-full object-cover scale-110" 
+        style={{
+          maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)'
+        }}
+      />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
 // NAYA COMPONENT: 3rd Row mein lambe card aur image ke liye
 const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
   <div className="flex flex-col items-center w-[45%]">
@@ -121,8 +146,8 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos
-  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green'} | null>(null)
+  // Modal states for videos, added 'vehicle' type
+  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle'} | null>(null)
 
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
@@ -290,7 +315,11 @@ export default function Family({ onBack }: FamilyProps) {
             <div className="flex justify-evenly w-full px-2">
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196572-background (1).mp4" onClick={() => setActiveVideoModal({src: '/1000196572-background (1).mp4', type: 'black'})} />
               <RewardItem title="Top1 Tag *7 days" />
-              <RewardItem title="Vehicle *7 days" />
+              <VehicleRewardItem 
+                title="Vehicle *7 days" 
+                imageSrc="/IMG_20260918_141104.jpg" 
+                onClick={() => setActiveVideoModal({src: '/gemini_generated_video_e407ad86~2.mp4', type: 'vehicle'})} 
+              />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
@@ -361,31 +390,48 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL */}
+        {/* UNIFIED CENTER VIDEO MODAL - FIXED FOR FULL SCREEN & FADING */}
         {activeVideoModal && (
           <div 
             className="fixed inset-0 bg-transparent z-50 flex items-center justify-center cursor-pointer"
             onClick={() => setActiveVideoModal(null)}
           >
-            <div className="relative w-full max-w-xs aspect-square flex items-center justify-center bg-transparent">
-              <video 
-                src={activeVideoModal.src} 
-                autoPlay 
-                loop 
-                muted 
-                playsInline 
-                className="w-full h-full object-cover scale-150" 
-                style={activeVideoModal.type === 'black' ? { 
-                  mixBlendMode: 'screen', 
-                  WebkitMixBlendMode: 'screen',
-                  backgroundColor: 'transparent',
-                  filter: 'url(#remove-black)' 
-                } : {
-                  backgroundColor: 'transparent',
-                  filter: 'url(#remove-green)'
-                }} 
-              />
-            </div>
+            {activeVideoModal.type === 'vehicle' ? (
+              <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+                <video 
+                  src={activeVideoModal.src} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="w-full h-auto max-h-[70vh] object-cover" 
+                  style={{
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)'
+                  }} 
+                />
+              </div>
+            ) : (
+              <div className="relative w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+                <video 
+                  src={activeVideoModal.src} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="w-full h-full object-contain scale-110" 
+                  style={activeVideoModal.type === 'black' ? { 
+                    mixBlendMode: 'screen', 
+                    WebkitMixBlendMode: 'screen',
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  } : {
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-green)'
+                  }} 
+                />
+              </div>
+            )}
           </div>
         )}
 
