@@ -12,7 +12,7 @@ import {
   MoreVertical,
   X,
   Menu,
-  ChevronDown // Added this icon for the arrow
+  ChevronDown
 } from 'lucide-react';
 
 interface UserData {
@@ -53,13 +53,11 @@ const SidebarCategory = ({ icon, title, items, activeItem, setActiveItem, setIsS
       >
         <span className="text-[16px] drop-shadow-md">{icon}</span>
         <span>{title}</span>
-        {/* Emoji arrow removed, using Lucide ChevronDown instead */}
         <ChevronDown 
           className={`w-4 h-4 ml-auto opacity-70 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
         />
       </div>
       
-      {/* Dropdown Items */}
       {isExpanded && (
         <div className="flex flex-col mt-1 animate-in slide-in-from-top-2 duration-200">
           {items.map((item: any) => (
@@ -98,6 +96,20 @@ const getUserFromMongoDB = async (uid: string) => {
 
   const result = await response.json();
   return result?.user || null;
+};
+
+// Email ab Firebase se aayegi (agar endpoint available hai)
+const getUserEmailFromFirebase = async (uid: string) => {
+  try {
+    const response = await fetch(
+      `/api/firebase-user?uid=${encodeURIComponent(uid)}`
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data?.email || data?.user?.email || null;
+  } catch {
+    return null;
+  }
 };
 
 const updateUserToMongoDB = async (userData: any) => {
@@ -163,12 +175,22 @@ const updateRoomToMongoDB = async (roomData: any) => {
 
 export default function OwnerPage() {
   const [activeTab, setActiveTab] = useState('manage_users');
+  // Game Management ke andar sub-tab: fruit_party | wild_party
+  const [gameSubTab, setGameSubTab] = useState<'fruit_party' | 'wild_party'>('fruit_party');
   const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Live Game Prediction State
+  // Live Game Prediction State (Fruit Party)
   const [livePrediction, setLivePrediction] = useState({
+    round: 0,
+    winnerImg: '',
+    countdown: 0,
+    phase: 'betting'
+  });
+
+  // Live Game Prediction State (Wild Party)
+  const [wildPrediction, setWildPrediction] = useState({
     round: 0,
     winnerImg: '',
     countdown: 0,
@@ -182,10 +204,46 @@ export default function OwnerPage() {
   const [tagAssigning, setTagAssigning] = useState(false);
   const [tagSuccess, setTagSuccess] = useState('');
 
-  // Fetch live room users from Socket.IO.
-  // Room users are NOT loaded from MongoDB here.
+  // ============================================================
+  // Live room users fetch from Socket.IO
+  // USER ID, NAME, AVATAR => MongoDB se enrich honge
+  // EMAIL => Firebase se fetch hoga
+  // ============================================================
   useEffect(() => {
     let mounted = true;
+
+    const enrichUsersWithMongoAndFirebase = async (liveUsers: UserData[]) => {
+      const enriched = await Promise.all(
+        liveUsers.map(async (u) => {
+          let mongoData: any = null;
+          let firebaseEmail: string | null = null;
+
+          try {
+            mongoData = await getUserFromMongoDB(u.id);
+          } catch (e) {
+            // silently ignore
+          }
+
+          try {
+            firebaseEmail = await getUserEmailFromFirebase(u.id);
+          } catch (e) {
+            // silently ignore
+          }
+
+          return {
+            ...u,
+            name: mongoData?.name || u.name,
+            image: mongoData?.image || u.image,
+            hurryId: mongoData?.hurryId || u.hurryId,
+            username: mongoData?.username || u.username,
+            // Email: Firebase se mile to wahi, warna MongoDB, warna socket ka
+            email: firebaseEmail || mongoData?.email || u.email,
+            emailPhone: firebaseEmail || mongoData?.email || u.emailPhone,
+          };
+        })
+      );
+      return enriched;
+    };
 
     const handleGlobalRoomPresence = ({
       rooms,
@@ -229,29 +287,28 @@ export default function OwnerPage() {
               userId,
               name: user.name || "User",
               username: `user_${userId.slice(0, 4)}`,
-              hurryId: String(
-                user.accountId || userId
-              ),
+              hurryId: String(user.accountId || userId),
               emailPhone: email || "—",
               email,
               role: "NORMAL",
               gender: "",
               country: "🇮🇳",
-              image:
-                user.image ||
-                "/default-avatar.png",
+              image: user.image || "/default-avatar.png",
             });
           });
         });
       }
 
-      setUsers(liveUsers);
-      setLoading(false);
+      // Socket se basic data mila, ab MongoDB + Firebase se enrich karte hain
+      enrichUsersWithMongoAndFirebase(liveUsers).then((enriched) => {
+        if (!mounted) return;
+        setUsers(enriched);
+        setLoading(false);
+      });
     };
 
     const requestPresence = () => {
       if (!socket.connected) return;
-
       socket.emit("global_room_presence_request");
     };
 
@@ -260,63 +317,36 @@ export default function OwnerPage() {
     };
 
     const handleConnectError = (error: any) => {
-      console.error(
-        "Owner Panel Socket connection error:",
-        error
-      );
-
-      if (mounted) {
-        setLoading(false);
-      }
+      console.error("Owner Panel Socket connection error:", error);
+      if (mounted) setLoading(false);
     };
 
-    // LISTENERS FIRST — connection race fix
-    socket.on(
-      "global_room_presence",
-      handleGlobalRoomPresence
-    );
-
+    socket.on("global_room_presence", handleGlobalRoomPresence);
     socket.on("connect", handleConnect);
+    socket.on("connect_error", handleConnectError);
 
-    socket.on(
-      "connect_error",
-      handleConnectError
-    );
-
-    // CONNECT AFTER LISTENERS ARE READY
     if (socket.connected) {
       requestPresence();
     } else {
       socket.connect();
     }
 
-    // Prevent infinite Loading if server does not respond
     const loadingTimeout = window.setTimeout(() => {
-      if (mounted) {
-        setLoading(false);
-      }
+      if (mounted) setLoading(false);
     }, 5000);
 
     return () => {
       mounted = false;
-
       window.clearTimeout(loadingTimeout);
-
-      socket.off(
-        "global_room_presence",
-        handleGlobalRoomPresence
-      );
-
+      socket.off("global_room_presence", handleGlobalRoomPresence);
       socket.off("connect", handleConnect);
-
-      socket.off(
-        "connect_error",
-        handleConnectError
-      );
+      socket.off("connect_error", handleConnectError);
     };
   }, []);
 
+  // ============================================================
   // Fruit Party Live Predictor Logic
+  // ============================================================
   useEffect(() => {
     const IMAGE_MAP: Record<number, string> = {
       0: '/IMG_20260908_192143.png', 1: '/IMG_20260908_192120.png',
@@ -351,6 +381,44 @@ export default function OwnerPage() {
     return () => clearInterval(clock);
   }, []);
 
+  // ============================================================
+  // Wild Party Live Predictor Logic
+  // ============================================================
+  useEffect(() => {
+    // Wild Party ke liye thoda different cycle aur images
+    const WILD_IMAGE_MAP: Record<number, string> = {
+      0: '/IMG_20260908_192143.png', 1: '/IMG_20260908_192120.png',
+      2: '/IMG_20260908_191941.png', 3: '/IMG_20260908_192013.png',
+      5: '/IMG_20260908_192050.png', 6: '/IMG_20260908_191930.png',
+      7: '/IMG_20260908_191906.png', 8: '/IMG_20260908_192203.png',
+      10: '/IMG_20260910_114515.png', 11: '/IMG_20260910_114613.png'
+    };
+
+    const clock = setInterval(() => {
+      const CYCLE_MS = 45000;
+      const now = Date.now();
+      const roundNumber = (Math.floor(now / CYCLE_MS) % 10000) + 5000;
+      const elapsed = now % CYCLE_MS;
+      const seed = Math.cos(roundNumber) * 10000;
+      const randomVal = seed - Math.floor(seed);
+
+      let winnerIdx = 0;
+      if (randomVal < 0.05) winnerIdx = 10;
+      else if (randomVal < 0.08) winnerIdx = 11;
+      else if (randomVal < 0.75) winnerIdx = [1, 3, 6, 8][Math.floor(randomVal * 100) % 4];
+      else winnerIdx = [0, 2, 5, 7][Math.floor(randomVal * 100) % 4];
+
+      let currentPhase = 'Betting', currentCountdown = 0;
+      if (elapsed < 35000) { currentPhase = 'Betting'; currentCountdown = 35 - Math.floor(elapsed / 1000); }
+      else if (elapsed < 40000) { currentPhase = 'Spinning'; currentCountdown = 5 - Math.floor((elapsed - 35000) / 1000); }
+      else { currentPhase = 'Result'; currentCountdown = 5 - Math.floor((elapsed - 40000) / 1000); }
+
+      setWildPrediction({ round: roundNumber, winnerImg: WILD_IMAGE_MAP[winnerIdx] || '', countdown: currentCountdown, phase: currentPhase });
+    }, 100);
+
+    return () => clearInterval(clock);
+  }, []);
+
   const openTagModal = async (user: UserData) => {
     setSelectedTagUserData(user);
     setIsTagModalOpen(true);
@@ -379,7 +447,7 @@ export default function OwnerPage() {
         premiumTag: selectedTags.includes('premiumTag'),
       };
       await updateUserToMongoDB(tagUpdate);
-        await updateRoomToMongoDB({ roomId: selectedTagUserData.id, ...tagUpdate });
+      await updateRoomToMongoDB({ roomId: selectedTagUserData.id, ...tagUpdate });
       setTagSuccess('Tags updated successfully!');
       setTimeout(() => setIsTagModalOpen(false), 1500);
     } catch (err) {
@@ -392,9 +460,7 @@ export default function OwnerPage() {
   return (
     <div className="flex h-screen bg-white font-sans overflow-hidden">
       
-      {/* ============================================================== */}
-      {/* MOBILE OVERLAY (Click outside to close) */}
-      {/* ============================================================== */}
+      {/* MOBILE OVERLAY */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden" 
@@ -407,7 +473,6 @@ export default function OwnerPage() {
       {/* ============================================================== */}
       <aside className={`fixed md:static inset-y-0 left-0 z-50 w-[260px] bg-[#1a1c29] flex flex-col flex-shrink-0 h-full overflow-y-auto border-r border-[#2a2d3e] transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         
-        {/* Brand Header */}
         <div className="p-6 pb-4 flex items-center justify-between">
           <div>
             <h1 className="text-white text-[19px] font-extrabold tracking-wide drop-shadow-md">Hurry</h1>
@@ -448,11 +513,31 @@ export default function OwnerPage() {
             icon="🛡️" title="Moderation" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
             items={[ { id: 'bans', label: 'Reports & Bans', icon: '🚫' }, { id: 'tickets', label: 'Support Tickets', icon: '🎫' } ]}
           />
+
+          {/* Platform: game_management ab yahan se hata diya */}
           <SidebarCategory 
             icon="⚙️" title="Platform" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
-            items={[ { id: 'analytics', label: 'Analytics', icon: '📊' }, { id: 'agency', label: 'Agency Mgmt', icon: '🏢' }, { id: 'game_management', label: 'Game Mgmt', icon: '🎮' } ]}
+            items={[ { id: 'analytics', label: 'Analytics', icon: '📊' }, { id: 'agency', label: 'Agency Mgmt', icon: '🏢' } ]}
           />
-          
+
+          {/* ============================================================ */}
+          {/* GAME MANAGEMENT — Alag Top Level Section */}
+          {/* ============================================================ */}
+          <div className="mt-2">
+            <div
+              onClick={() => {
+                setActiveTab('game_management');
+                if (window.innerWidth < 768) setIsSidebarOpen(false);
+              }}
+              className={`flex items-center gap-3 px-6 py-3 text-[14px] font-bold cursor-pointer transition-colors
+                ${activeTab === 'game_management' ? 'text-white bg-[#8a92ff]/20 border-l-[3px] border-[#8a92ff]' : 'text-white hover:bg-white/5'}
+              `}
+            >
+              <span className="text-[16px] drop-shadow-md">🎮</span>
+              <span>Game Management</span>
+            </div>
+          </div>
+
           <div className="flex items-center gap-3 px-6 py-3 text-[14px] font-bold text-white hover:bg-white/5 cursor-pointer transition-colors mt-2">
             <span className="text-[16px] drop-shadow-md">🛠️</span>
             <span>System</span>
@@ -465,17 +550,13 @@ export default function OwnerPage() {
       {/* ============================================================== */}
       <main 
         className="flex-1 flex flex-col h-full bg-[#f8f9fa] overflow-hidden"
-        // onClick yaha lagaya hai, jab bhi right side tap hoga sidebar close ho jayega
         onClick={() => { if (isSidebarOpen) setIsSidebarOpen(false); }}
       >
         
-        {/* ============================================================== */}
-        {/* MOBILE HEADER (3 Lines Hamburger Menu) */}
-        {/* ============================================================== */}
         <header className="md:hidden bg-white p-4 border-b border-slate-200 flex items-center gap-4 sticky top-0 z-30 shadow-sm">
           <button 
             onClick={(e) => { 
-              e.stopPropagation(); // Event bubble na kare
+              e.stopPropagation();
               setIsSidebarOpen(true); 
             }} 
             className="p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg active:scale-95 transition-transform"
@@ -575,43 +656,113 @@ export default function OwnerPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB: GAME MANAGEMENT (Admin Predictor) */}
+        {/* TAB: GAME MANAGEMENT (Fruit Party + Wild Party sub-tabs) */}
         {/* ============================================================== */}
         {activeTab === 'game_management' && (
-          <div className="p-8 max-w-4xl mx-auto w-full h-full">
+          <div className="p-8 max-w-5xl mx-auto w-full h-full overflow-y-auto">
             <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
               <span>🎮</span> Game Management
             </h2>
-            
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
-                <Gamepad2 className="w-6 h-6 text-indigo-600" />
-                <h3 className="text-xl font-bold text-slate-800">Live Fruit Prediction <span className='text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2 align-middle'>Admin Only</span></h3>
-              </div>
 
-              <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-[#f8f9fa] border border-slate-200 p-8 rounded-2xl">
-                <div className="flex flex-col items-center md:items-start gap-2">
-                  <span className="text-sm text-slate-500 font-bold uppercase tracking-wider">Current Game Round</span>
-                  <span className="text-4xl font-black text-slate-800">{livePrediction.round}</span>
-                  <div className="flex items-center gap-2 mt-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
-                    <Timer className="w-5 h-5 text-indigo-500" />
-                    <span className="text-sm font-bold text-indigo-600 uppercase tracking-wide">{livePrediction.phase} - {livePrediction.countdown}s</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-xs text-green-600 font-bold uppercase tracking-widest animate-pulse">Predicted Winner</span>
-                  <div className="w-32 h-32 bg-white border-4 border-indigo-100 shadow-xl rounded-2xl flex items-center justify-center p-4 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent z-0"></div>
-                    {livePrediction.winnerImg ? (
-                      <img src={livePrediction.winnerImg} alt="Predicted Winner" className="w-full h-full object-contain relative z-10 drop-shadow-lg scale-110" />
-                    ) : (
-                      <Loader2 className="w-8 h-8 animate-spin text-slate-300 relative z-10" />
-                    )}
-                  </div>
-                </div>
-              </div>
+            {/* Sub Tabs: Fruit Party / Wild Party */}
+            <div className="flex items-center gap-2 mb-6 border-b border-slate-200">
+              <button
+                onClick={() => setGameSubTab('fruit_party')}
+                className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px flex items-center gap-2
+                  ${gameSubTab === 'fruit_party'
+                    ? 'text-indigo-600 border-indigo-600'
+                    : 'text-slate-500 border-transparent hover:text-slate-700'}
+                `}
+              >
+                <span>🍓</span> Fruit Party
+              </button>
+              <button
+                onClick={() => setGameSubTab('wild_party')}
+                className={`px-5 py-3 text-sm font-bold transition-colors border-b-2 -mb-px flex items-center gap-2
+                  ${gameSubTab === 'wild_party'
+                    ? 'text-indigo-600 border-indigo-600'
+                    : 'text-slate-500 border-transparent hover:text-slate-700'}
+                `}
+              >
+                <span>🦁</span> Wild Party
+              </button>
             </div>
+
+            {/* FRUIT PARTY */}
+            {gameSubTab === 'fruit_party' && (
+              <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <Gamepad2 className="w-6 h-6 text-indigo-600" />
+                  <h3 className="text-xl font-bold text-slate-800">
+                    Live Fruit Prediction
+                    <span className='text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2 align-middle'>Admin Only</span>
+                  </h3>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-[#f8f9fa] border border-slate-200 p-8 rounded-2xl">
+                  <div className="flex flex-col items-center md:items-start gap-2">
+                    <span className="text-sm text-slate-500 font-bold uppercase tracking-wider">Current Game Round</span>
+                    <span className="text-4xl font-black text-slate-800">{livePrediction.round}</span>
+                    <div className="flex items-center gap-2 mt-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                      <Timer className="w-5 h-5 text-indigo-500" />
+                      <span className="text-sm font-bold text-indigo-600 uppercase tracking-wide">
+                        {livePrediction.phase} - {livePrediction.countdown}s
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-xs text-green-600 font-bold uppercase tracking-widest animate-pulse">Predicted Winner</span>
+                    <div className="w-32 h-32 bg-white border-4 border-indigo-100 shadow-xl rounded-2xl flex items-center justify-center p-4 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-transparent z-0"></div>
+                      {livePrediction.winnerImg ? (
+                        <img src={livePrediction.winnerImg} alt="Predicted Winner" className="w-full h-full object-contain relative z-10 drop-shadow-lg scale-110" />
+                      ) : (
+                        <Loader2 className="w-8 h-8 animate-spin text-slate-300 relative z-10" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* WILD PARTY */}
+            {gameSubTab === 'wild_party' && (
+              <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <Gamepad2 className="w-6 h-6 text-orange-600" />
+                  <h3 className="text-xl font-bold text-slate-800">
+                    Live Wild Prediction
+                    <span className='text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-2 align-middle'>Admin Only</span>
+                  </h3>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-[#f8f9fa] border border-slate-200 p-8 rounded-2xl">
+                  <div className="flex flex-col items-center md:items-start gap-2">
+                    <span className="text-sm text-slate-500 font-bold uppercase tracking-wider">Current Game Round</span>
+                    <span className="text-4xl font-black text-slate-800">{wildPrediction.round}</span>
+                    <div className="flex items-center gap-2 mt-2 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+                      <Timer className="w-5 h-5 text-orange-500" />
+                      <span className="text-sm font-bold text-orange-600 uppercase tracking-wide">
+                        {wildPrediction.phase} - {wildPrediction.countdown}s
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-3">
+                    <span className="text-xs text-green-600 font-bold uppercase tracking-widest animate-pulse">Predicted Winner</span>
+                    <div className="w-32 h-32 bg-white border-4 border-orange-100 shadow-xl rounded-2xl flex items-center justify-center p-4 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-transparent z-0"></div>
+                      {wildPrediction.winnerImg ? (
+                        <img src={wildPrediction.winnerImg} alt="Predicted Winner" className="w-full h-full object-contain relative z-10 drop-shadow-lg scale-110" />
+                      ) : (
+                        <Loader2 className="w-8 h-8 animate-spin text-slate-300 relative z-10" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -650,5 +801,4 @@ export default function OwnerPage() {
       )}
     </div>
   );
-}
-
+    }
