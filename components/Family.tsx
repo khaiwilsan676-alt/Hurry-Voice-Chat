@@ -345,7 +345,11 @@ export default function Family({ onBack }: FamilyProps) {
             <div className="flex justify-evenly w-full px-2">
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196573-background (1).mp4" onClick={() => setActiveVideoModal({src: '/1000196573-background (1).mp4', type: 'black'})} />
               <RewardItem title="Top2 Tag *7 days" />
-              <RewardItem title="Vehicle *7 days" />
+              <VehicleRewardItem 
+                title="Vehicle *7 days" 
+                imageSrc="/IMG_20260919_010054.jpg" 
+                onClick={() => setActiveVideoModal({src: '/VID_20260919_010017.mp4', type: 'vehicle'})} 
+              />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
@@ -640,5 +644,4 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
     </div>
   )
-}
-
+    }
