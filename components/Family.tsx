@@ -35,24 +35,34 @@ const RewardItem = ({ title }: { title: string }) => (
   </div>
 );
 
-// BLACK BACKGROUND VIDEO REWARD ITEM
-const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
+// BLACK BACKGROUND VIDEO REWARD ITEM (PAUSED)
+const VideoRewardItem = ({ 
+  title, 
+  videoSrc, 
+  onClick, 
+  scaleClass = "scale-150", 
+  blendScreen = true 
+}: { 
+  title: string, 
+  videoSrc: string, 
+  onClick: () => void, 
+  scaleClass?: string, 
+  blendScreen?: boolean 
+}) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
       <video 
         src={videoSrc} 
-        preload="metadata"
-        autoPlay
-        loop
+        preload="auto"
         muted 
         playsInline 
         controls={false}
         disablePictureInPicture
         disableRemotePlayback
-        className="w-full h-full object-cover scale-150" 
+        className={`w-full h-full object-cover pointer-events-none ${scaleClass}`} 
         style={{ 
-          mixBlendMode: 'screen', 
-          WebkitMixBlendMode: 'screen',
+          mixBlendMode: blendScreen ? 'screen' : 'normal', 
+          WebkitMixBlendMode: blendScreen ? 'screen' : 'normal',
           filter: 'url(#remove-black)' 
         }} 
       />
@@ -68,15 +78,13 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
   </div>
 );
 
-// GREEN BACKGROUND VIDEO REWARD ITEM
+// GREEN BACKGROUND VIDEO REWARD ITEM (PAUSED)
 const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
       <video 
         src={videoSrc} 
-        preload="metadata"
-        autoPlay
-        loop
+        preload="auto"
         muted 
         playsInline 
         controls={false}
@@ -106,7 +114,7 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
       <img 
         src={imageSrc} 
         alt={title} 
-        className="w-full h-full object-cover scale-110" 
+        className="w-full h-full object-cover scale-110 pointer-events-none" 
         style={{
           maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
           WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)'
@@ -128,7 +136,7 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
 const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
   <div className="flex flex-col items-center w-[45%]">
     <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
-      <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md" />
+      <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md pointer-events-none" />
     </div>
     <div className="flex gap-[1px] mt-1.5">
       {[...Array(5)].map((_, i) => (
@@ -157,7 +165,7 @@ export default function Family({ onBack }: FamilyProps) {
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
   // Modal states for videos
-  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle'} | null>(null)
+  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend'} | null>(null)
 
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
@@ -199,6 +207,14 @@ export default function Family({ onBack }: FamilyProps) {
   if (currentView === 'topRankings') {
     return (
       <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white pb-6">
+        
+        {/* CSS FORCING NO MEDIA CONTROLS ON ANDROID CHROME/WEBVIEW */}
+        <style dangerouslySetInnerHTML={{__html: `
+          video::-webkit-media-controls { display: none !important; }
+          video::-webkit-media-controls-enclosure { display: none !important; }
+          video::-webkit-media-controls-start-playback-button { display: none !important; opacity: 0; }
+        `}} />
+
         <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
           <filter id="remove-green" colorInterpolationFilters="sRGB">
             <feColorMatrix type="matrix" values="
@@ -230,7 +246,7 @@ export default function Family({ onBack }: FamilyProps) {
         />
 
         <div
-          className="flex flex-row items-center w-full px-3 relative z-30"
+          className="flex flex-row items-center w-full px-2 relative z-30"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
         >
           <button
@@ -349,13 +365,14 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
-              <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black'})} />
+              {/* No Blend applied to maintain pure blue color for Medal */}
+              <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" blendScreen={false} onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black-noblend'})} />
               <RewardItem title="Top3 Tag *7 days" />
               <RewardItem title="Vehicle *7 days" />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* GREEN HATA DIYA -> AB BLACK LAGA DIYA */}
-              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black'})} />
+              {/* No Blend applied to maintain pure blue color for Frame, and scale reduced to 100 */}
+              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -386,13 +403,12 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setActiveVideoModal(null)}
           >
             {activeVideoModal.type === 'vehicle' ? (
-              // ITEMS-END laga diya hai taaki vehicle video bottom pe aaye aur pb-8 se thoda space
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
-                  playsInline // Muted hata hua hai (sound on)
+                  playsInline 
                   controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
@@ -405,7 +421,6 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
-                {/* SQUARE FRAME FIX: w-[85vw] h-[85vw] */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -419,6 +434,11 @@ export default function Family({ onBack }: FamilyProps) {
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
                     WebkitMixBlendMode: 'screen',
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  } : activeVideoModal.type === 'black-noblend' ? {
+                    mixBlendMode: 'normal',
+                    WebkitMixBlendMode: 'normal',
                     backgroundColor: 'transparent',
                     filter: 'url(#remove-black)' 
                   } : {
@@ -451,7 +471,7 @@ export default function Family({ onBack }: FamilyProps) {
           </filter>
         </svg>
 
-        <div className="flex items-center justify-between p-4 flex-shrink-0" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
+        <div className="flex items-center justify-between px-2 py-4 flex-shrink-0" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
           <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
             <ArrowLeft size={28} className="text-black" />
           </button>
@@ -540,7 +560,7 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
 
       <div className="relative z-20 flex flex-col w-full">
-        <div className="flex flex-row items-center w-full px-3 relative z-30" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
+        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
