@@ -135,7 +135,7 @@ export default function Svip({ onBack }: SvipProps) {
           </div>
         </header>
 
-        {/* ============ VIDEO (Bigger size, Green removed) ============ */}
+        {/* ============ VIDEO (Extra Bigger + pushed down a bit, Green removed) ============ */}
         <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
           <video
             ref={videoRef}
@@ -150,40 +150,28 @@ export default function Svip({ onBack }: SvipProps) {
             ref={canvasRef}
             className="object-contain"
             style={{
-              width: '80vw',
-              height: '80vw',
+              width: '115vw',
+              height: '115vw',
+              transform: 'translateY(20px)',
             }}
           />
         </div>
       </div>
 
-      {/* ============ BOTTOM SECTION — Bottom + Middle image joined, text overlay ============ */}
-      <div className="relative w-full z-10">
-        {/* Bottom image (base) */}
-        <img
-          src="/file_0000000067948207b83480dddf2ecee9.png"
-          alt=""
-          className="w-full block"
-          draggable="false"
-        />
+      {/* ============ MIDDLE IMAGE (right at the end of top image) ============ */}
+      <img
+        src="/file_00000000e5d881faa59ce174257e208e.png"
+        alt=""
+        className="w-full block relative z-20"
+        draggable="false"
+      />
 
-        {/* Middle image overlaid on top of bottom image (edge to edge, joined) */}
-        <img
-          src="/file_00000000e5d881faa59ce174257e208e.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover z-10 pointer-events-none"
-          draggable="false"
-        />
-
-        {/* SVIP COMING SOON — centered, inside a Black/10 card */}
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-          <div className="bg-black/10 backdrop-blur-sm px-6 py-3 rounded-2xl">
-            <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
-              SVIP COMING SOON
-            </span>
-          </div>
-        </div>
+      {/* ============ BOTTOM SECTION — Chocolate background + Text only ============ */}
+      <div className="relative w-full z-10 bg-[#3E2723] min-h-[60vh] flex items-center justify-center">
+        <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
+          SVIP COMING SOON
+        </span>
       </div>
     </div>
   )
-        }
+}
