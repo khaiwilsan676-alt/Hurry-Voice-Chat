@@ -1,0 +1,174 @@
+'use client'
+
+import { useEffect, useRef } from 'react'
+
+interface SvipProps {
+  onBack?: () => void
+}
+
+export default function Svip({ onBack }: SvipProps) {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const rafRef = useRef<number | null>(null)
+
+  // Realtime green screen removal from video via canvas
+  useEffect(() => {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
+    if (!ctx) return
+
+    let stopped = false
+
+    const render = () => {
+      if (stopped) return
+
+      if (video.readyState >= 2 && video.videoWidth) {
+        const w = video.videoWidth
+        const h = video.videoHeight
+
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w
+          canvas.height = h
+        }
+
+        ctx.clearRect(0, 0, w, h)
+        ctx.drawImage(video, 0, 0, w, h)
+
+        const frame = ctx.getImageData(0, 0, w, h)
+        const d = frame.data
+
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i]
+          const g = d[i + 1]
+          const b = d[i + 2]
+
+          // green screen remove
+          if (g > 60 && g > r * 1.15 && g > b * 1.15) {
+            d[i + 3] = 0
+          }
+        }
+
+        ctx.putImageData(frame, 0, 0)
+      }
+
+      rafRef.current = requestAnimationFrame(render)
+    }
+
+    video.play().catch(() => {})
+    rafRef.current = requestAnimationFrame(render)
+
+    return () => {
+      stopped = true
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [])
+
+  return (
+    <div className="fixed inset-0 bg-black overflow-y-auto overflow-x-hidden select-none">
+      {/* ============ TOP SECTION (40vh) ============ */}
+      <div className="relative w-full" style={{ height: '40vh' }}>
+        {/* BG image */}
+        <img
+          src="/file_00000000bd448211892548a9f0469619.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          draggable="false"
+        />
+
+        {/* Header (safe area) */}
+        <header
+          className="relative z-30 flex items-center justify-between w-full px-3 py-2"
+          style={{
+            paddingTop:
+              'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 6px)',
+          }}
+        >
+          {/* Left: Back arrow */}
+          <button
+            onClick={onBack}
+            aria-label="Back"
+            className="flex items-center justify-center p-1 active:opacity-70 transition-opacity"
+          >
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </button>
+
+          {/* Center: SVIP */}
+          <span
+            className="absolute left-1/2 -translate-x-1/2 font-black text-white text-[20px] tracking-wider"
+            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
+          >
+            SVIP
+          </span>
+
+          {/* Right: images corner to corner */}
+          <div className="flex items-center gap-2">
+            <img
+              src="/IMG_20260918_170725.png"
+              alt=""
+              className="w-7 h-7 object-contain"
+              draggable="false"
+            />
+            <img
+              src="/IMG_20260918_170736.png"
+              alt="Crown"
+              className="w-7 h-7 object-contain"
+              draggable="false"
+            />
+          </div>
+        </header>
+
+        {/* ============ VIDEO (Square, Green removed) ============ */}
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <video
+            ref={videoRef}
+            src="/1000197130-background (1).mp4"
+            muted
+            loop
+            playsInline
+            autoPlay
+            className="hidden"
+          />
+          <canvas
+            ref={canvasRef}
+            className="object-contain"
+            style={{
+              width: '55vw',
+              height: '55vw',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ============ MIDDLE IMAGE (edge to edge) ============ */}
+      <img
+        src="/file_00000000e5d881faa59ce174257e208e.png"
+        alt=""
+        className="w-full block z-10 relative"
+        draggable="false"
+      />
+
+      {/* ============ BOTTOM IMAGE ============ */}
+      <img
+        src="/file_0000000067948207b83480dddf2ecee9.png"
+        alt=""
+        className="w-full block z-10 relative"
+        draggable="false"
+      />
+    </div>
+  )
+          }
