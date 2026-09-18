@@ -63,17 +63,16 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
   </div>
 );
 
-// GREEN BACKGROUND VIDEO REWARD ITEM (NAYA COMPONENT FOR FRAMES)
+// GREEN BACKGROUND VIDEO REWARD ITEM (FIXED PRELOAD & DISPLAY)
 const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
       <video 
         src={videoSrc} 
-        preload="auto" 
+        preload="metadata" 
         muted 
         playsInline 
-        // No autoPlay here, explicitly kept paused on card
-        className="w-full h-full object-cover scale-150" 
+        className="w-full h-full object-cover scale-150 pointer-events-none" 
         style={{ 
           filter: 'url(#remove-green)' 
         }} 
@@ -122,7 +121,7 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos (now handles both black and green videos)
+  // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green'} | null>(null)
 
   useEffect(() => {
@@ -294,7 +293,6 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Vehicle *7 days" />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* YAHAN TERA NAYA GREEN VIDEO LAG GAYA */}
               <GreenVideoRewardItem title="Frames *7 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
@@ -363,7 +361,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL - UPDATED FOR BOTH VIDEO TYPES */}
+        {/* UNIFIED CENTER VIDEO MODAL */}
         {activeVideoModal && (
           <div 
             className="fixed inset-0 bg-transparent z-50 flex items-center justify-center cursor-pointer"
@@ -582,4 +580,3 @@ export default function Family({ onBack }: FamilyProps) {
     </div>
   )
 }
-
