@@ -71,7 +71,8 @@ export default function Svip({ onBack }: SvipProps) {
       {/* ===== Relative wrapper so we can overlay middle image on top of both sections ===== */}
       <div className="relative w-full">
         {/* ============ TOP SECTION (40vh) ============ */}
-        <div className="relative w-full" style={{ height: '40vh' }}>
+        {/* z-30 => top image bottom background ke upar rahega */}
+        <div className="relative w-full z-30" style={{ height: '40vh' }}>
           {/* BG image */}
           <img
             src="/file_00000000bd448211892548a9f0469619.png"
@@ -160,25 +161,61 @@ export default function Svip({ onBack }: SvipProps) {
           </div>
         </div>
 
-        {/* ============ BOTTOM SECTION — Darker Brown Background + Text only ============ */}
+        {/* ============ BOTTOM SECTION — Darker Brown + Shining Glow ============ */}
+        {/* z-10 => top section ke niche rahega, taaki top image bottom bg ke upar dikhe */}
         <div
-          className="relative w-full z-10 min-h-[60vh] flex items-center justify-center leading-normal"
+          className="relative w-full z-10 min-h-[60vh] flex items-center justify-center leading-normal overflow-hidden"
           style={{ backgroundColor: '#150C07' }}
         >
-          <span className="text-white font-black text-2xl tracking-widest whitespace-nowrap">
+          {/* Shining overlay — golden glow */}
+          <div
+            className="absolute inset-0 pointer-events-none svip-shine"
+            aria-hidden="true"
+          />
+
+          <span className="relative z-10 text-white font-black text-2xl tracking-widest whitespace-nowrap">
             SVIP COMING SOON
           </span>
         </div>
 
-        {/* ============ MIDDLE IMAGE — Overlay on top of both sections ============ */}
+        {/* ============ MIDDLE IMAGE — Exactly at connection line (40vh) ============ */}
         <img
           src="/file_00000000e5d881faa59ce174257e208e.png"
           alt=""
-          className="absolute left-0 w-full block z-20 leading-none align-top pointer-events-none"
-          style={{ top: '40vh' }}
+          className="absolute left-0 w-full block z-40 leading-none align-top pointer-events-none"
+          style={{ top: '40vh', transform: 'translateY(-50%)' }}
           draggable="false"
         />
       </div>
+
+      {/* Shining keyframes */}
+      <style jsx>{`
+        .svip-shine {
+          background:
+            radial-gradient(
+              120% 60% at 50% 0%,
+              rgba(255, 215, 120, 0.18) 0%,
+              rgba(255, 215, 120, 0.06) 35%,
+              transparent 70%
+            ),
+            linear-gradient(
+              180deg,
+              rgba(255, 200, 90, 0.08) 0%,
+              transparent 40%
+            );
+          animation: svipShine 4s ease-in-out infinite;
+        }
+
+        @keyframes svipShine {
+          0%,
+          100% {
+            opacity: 0.7;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   )
-            }
+}
