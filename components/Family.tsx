@@ -355,7 +355,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
-              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/Gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/Gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <RewardItem title="Vehicle *3 days" />
             </div>
           </div>
