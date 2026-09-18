@@ -5,7 +5,8 @@ import android.graphics.Color;
 import android.view.Window;
 import android.view.WindowManager;
 import android.os.Build;
-import android.view.View;
+
+import androidx.activity.OnBackPressedCallback;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -13,11 +14,14 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
 
         Window window = getWindow();
 
+        // Keep screen awake while the app is open
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        // Existing edge-to-edge setup
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false);
         }
@@ -33,5 +37,24 @@ public class MainActivity extends BridgeActivity {
             window.setStatusBarContrastEnforced(false);
             window.setNavigationBarContrastEnforced(false);
         }
+
+        // Android Back handling
+        getOnBackPressedDispatcher().addCallback(
+            this,
+            new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    if (bridge != null && bridge.getWebView() != null) {
+                        if (bridge.getWebView().canGoBack()) {
+                            bridge.getWebView().goBack();
+                        } else {
+                            moveTaskToBack(true);
+                        }
+                    } else {
+                        moveTaskToBack(true);
+                    }
+                }
+            }
+        );
     }
 }
