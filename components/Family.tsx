@@ -41,9 +41,14 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
       <video 
         src={videoSrc} 
-        preload="metadata" 
+        preload="metadata"
+        autoPlay
+        loop
         muted 
         playsInline 
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
         className="w-full h-full object-cover scale-150" 
         style={{ 
           mixBlendMode: 'screen', 
@@ -69,9 +74,14 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
       <video 
         src={videoSrc} 
-        preload="metadata" 
+        preload="metadata"
+        autoPlay
+        loop
         muted 
         playsInline 
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
         className="w-full h-full object-cover scale-150 pointer-events-none" 
         style={{ 
           filter: 'url(#remove-green)' 
@@ -220,7 +230,7 @@ export default function Family({ onBack }: FamilyProps) {
         />
 
         <div
-          className="flex flex-row items-center w-full px-2 relative z-30"
+          className="flex flex-row items-center w-full px-3 relative z-30"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
         >
           <button
@@ -383,6 +393,9 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop 
                   playsInline // Muted hata hua hai (sound on)
+                  controls={false}
+                  disablePictureInPicture
+                  disableRemotePlayback
                   className="w-full h-auto max-h-[70vh] object-cover" 
                   style={{
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
@@ -399,6 +412,9 @@ export default function Family({ onBack }: FamilyProps) {
                   loop 
                   muted 
                   playsInline 
+                  controls={false}
+                  disablePictureInPicture
+                  disableRemotePlayback
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
@@ -604,4 +620,5 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
     </div>
   )
-    }
+}
+
