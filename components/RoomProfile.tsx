@@ -357,21 +357,30 @@ export default function RoomProfile({
   const showActions = !isCurrentUser // Show actions for all other users
 
   // Determine sheet height based on content
+  // Agar tag hai → jitna original height tha wahi
+  // Agar tag nahi hai → 4vh kam
   const getSheetHeight = () => {
+    // Base height nikal pehle (original logic)
+    let baseHeight = 27 // default
+
     // If both actions and moderation are shown
     if (showActions && showModerationRow) {
-      return '40vh'
+      baseHeight = 40
     }
     // If only actions (follow, chat, image) without moderation
-    if (showActions && !showModerationRow) {
-      return '32vh'
+    else if (showActions && !showModerationRow) {
+      baseHeight = 32
     }
     // If only leave seat button
-    if (showLeaveSeat) {
-      return '34vh'
+    else if (showLeaveSeat) {
+      baseHeight = 34
     }
-    // If no options at all
-    return '27vh'
+
+    // Agar tag hai → wahi height
+    // Agar tag nahi hai → 4vh kam
+    const finalHeight = hasAnyTag ? baseHeight : baseHeight - 4
+
+    return `${finalHeight}vh`
   }
 
   return (
@@ -656,4 +665,4 @@ export default function RoomProfile({
       `}</style>
     </div>
   )
-    }
+        }
