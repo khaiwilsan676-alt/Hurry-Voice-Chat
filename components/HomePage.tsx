@@ -2669,7 +2669,7 @@ useEffect(() => {
                   <div 
                     className="relative w-full text-center font-black uppercase tracking-wider select-none z-50 pointer-events-none"
                     style={{
-                      paddingTop: '8px',
+                      paddingTop: '11px',
                       fontSize: '11px',
                       lineHeight: '1.2',
                       background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF8B5 35%, #FFD700 70%, #F5B000 100%)',
@@ -2686,14 +2686,14 @@ useEffect(() => {
                   <img 
                     src={card.bgImage} 
                     alt={card.label} 
-                    className={`absolute inset-0 w-full h-full object-contain z-0 pointer-events-none translate-y-1 ${
+                    className={`absolute inset-0 w-full h-full object-contain z-0 pointer-events-none translate-y-0 ${
                       isHonour ? 'scale-[1.08]' : 'scale-102'
                     }`}
                     draggable="false"
                   />
 
                   {/* 3. FRAME & ANIMATION */}
-                  <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block -translate-y-1.5">
+                  <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-1.5">
                     <style dangerouslySetInnerHTML={{ __html: `
                       @keyframes shrinkAndFade {
                         0%, 80% { transform: scale(1); opacity: 1; }
