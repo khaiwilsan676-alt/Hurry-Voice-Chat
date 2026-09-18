@@ -14,7 +14,8 @@ import Family from './Family'
 import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
-import FollowList from './followlist' 
+import FollowList from './followlist'
+import Svip from './Svip'
 
 // ============ IndexedDB Functions for User Data ============
 const USER_DB_NAME = 'UserDataDB';
@@ -394,6 +395,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
   const [showLevel, setShowLevel] = useState(false)
   const [showMedal, setShowMedal] = useState(false)
   const [showSellerCenter, setShowSellerCenter] = useState(false)
+  const [showSvip, setShowSvip] = useState(false)
   
   const [showFollowList, setShowFollowList] = useState(false)
   const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors'>('followers')
@@ -410,10 +412,11 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         showLevel ||
         showMedal ||
         showSellerCenter ||
-        showFollowList
+        showFollowList ||
+        showSvip
       )
     }
-  }, [showFeedbackPage, currentView, showWallet, showStore, showInviteFriends, showFamily, showLevel, showMedal, showSellerCenter, showFollowList])
+  }, [showFeedbackPage, currentView, showWallet, showStore, showInviteFriends, showFamily, showLevel, showMedal, showSellerCenter, showFollowList, showSvip])
   
   const [selectedType, setSelectedType] = useState<string>('')
   const [problemDescription, setProblemDescription] = useState('')
@@ -494,7 +497,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         showLevel || 
         showMedal ||
         showSellerCenter ||
-        showFollowList
+        showFollowList ||
+        showSvip
       )
     }
   }
@@ -654,6 +658,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     />
   }
 
+  if (showSvip) return <Svip onBack={() => setShowSvip(false)} />
   if (showInviteFriends) return <InviteFriends onBack={() => setShowInviteFriends(false)} />
   if (showFamily) return <Family onBack={() => setShowFamily(false)} />
   if (showLevel) return <Level onBack={() => setShowLevel(false)} />
@@ -973,7 +978,10 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       </div>
 
       {/* SVIP Image Direct Body Par (Ab Niche) */}
-      <div className="px-3 -mt-10 mb-6 cursor-pointer active:scale-95 transition-transform">
+      <div 
+        className="px-3 -mt-10 mb-6 cursor-pointer active:scale-95 transition-transform"
+        onClick={() => setShowSvip(true)}
+      >
         <img
           src="/file_00000000a25081fbb57574619596eed8.png"
           alt="SVIP Banner"
@@ -1078,5 +1086,4 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
     </div>
   )
-}
-
+                                            }
