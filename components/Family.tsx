@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
 
 // ==========================================
-// MAIN COMPONENT LOGIC (UNTOUCHED)
+// MAIN COMPONENT LOGIC
 // ==========================================
 interface FamilyMember {
   id: string
@@ -22,7 +22,7 @@ interface FamilyProps {
 const RewardItem = ({ title }: { title: string }) => (
   <div className="flex flex-col items-center w-[28%]">
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
-      {/* Andar ki image hata di hai jaisa tune bola */}
+      {/* Andar ki image hata di hai */}
     </div>
     <div className="flex gap-[1px] mt-1.5">
       {[...Array(5)].map((_, i) => (
@@ -63,7 +63,7 @@ const VideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc
   </div>
 );
 
-// GREEN BACKGROUND VIDEO REWARD ITEM (FIXED PRELOAD & DISPLAY)
+// GREEN BACKGROUND VIDEO REWARD ITEM
 const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
@@ -89,7 +89,7 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
   </div>
 );
 
-// NEW COMPONENT: Vehicle image with blended borders
+// VEHICLE REWARD ITEM
 const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
@@ -114,7 +114,7 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
   </div>
 );
 
-// NAYA COMPONENT: 3rd Row mein lambe card aur image ke liye
+// TALL REWARD ITEM
 const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
   <div className="flex flex-col items-center w-[45%]">
     <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
@@ -146,7 +146,7 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos, added 'vehicle' type
+  // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle'} | null>(null)
 
   useEffect(() => {
@@ -182,28 +182,6 @@ export default function Family({ onBack }: FamilyProps) {
 
     return () => clearInterval(timer)
   }, [])
-
-  const handleAddMember = () => {
-    if (!newMemberName.trim() || !newMemberRelation.trim()) {
-      alert('Please fill in all fields')
-      return
-    }
-
-    const newMember: FamilyMember = {
-      id: Date.now().toString(),
-      name: newMemberName,
-      relation: newMemberRelation,
-      isAdmin: members.length === 0
-    }
-
-    const updatedMembers = [...members, newMember]
-    setMembers(updatedMembers)
-    localStorage.setItem('familyMembers', JSON.stringify(updatedMembers))
-    
-    setNewMemberName('')
-    setNewMemberRelation('')
-    setShowAddMember(false)
-  }
 
   // ==========================================
   // VIEW 4: TOP RANKINGS PAGE
@@ -390,23 +368,22 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL - FIXED FOR FULL SCREEN & FADING */}
+        {/* UNIFIED CENTER VIDEO MODAL */}
         {activeVideoModal && (
           <div 
-            className="fixed inset-0 w-full h-full bg-transparent z-50 flex items-center justify-center cursor-pointer"
+            className="fixed inset-0 w-full h-full bg-transparent z-50 flex cursor-pointer"
             onClick={() => setActiveVideoModal(null)}
           >
             {activeVideoModal.type === 'vehicle' ? (
-              <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
+              // ITEMS-END laga diya hai taaki vehicle video bottom pe aaye aur pb-8 se thoda space
+              <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
-                  // muted hata diya gaya hai jaisa tumne kaha tha
-                  playsInline 
+                  playsInline // Muted hata hua hai (sound on)
                   className="w-full h-auto max-h-[70vh] object-cover" 
                   style={{
-                    // Bottom se aur zyada fade (transparent 85%) taaki Gemini watermark pura chhip jaye
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
                   }} 
@@ -414,14 +391,14 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
-                {/* Frame Full Screen Fix - object-cover aur full stretch kar diya hai */}
+                {/* SQUARE FRAME FIX: w-[85vw] h-[85vw] */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
                   loop 
                   muted 
                   playsInline 
-                  className="w-full h-full object-cover" 
+                  className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
                     WebkitMixBlendMode: 'screen',
@@ -436,7 +413,6 @@ export default function Family({ onBack }: FamilyProps) {
             )}
           </div>
         )}
-
       </div>
     )
   }
@@ -628,4 +604,3 @@ export default function Family({ onBack }: FamilyProps) {
     </div>
   )
 }
-
