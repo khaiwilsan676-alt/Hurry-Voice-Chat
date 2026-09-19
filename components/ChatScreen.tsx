@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
 import socket from '../src/lib/socket';
 
@@ -765,7 +765,6 @@ export default function ChatScreen({
         throw new Error('Failed to block user');
       }
 
-      // Block API success ke baad input disable karne ke liye isBlocked true kiya
       setIsBlocked(true);
       setShowBlockConfirm(false);
       setShowOptions(false);
@@ -906,9 +905,20 @@ export default function ChatScreen({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // ========== Format timestamp ==========
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // ========== Date Formatting (WhatsApp style) ==========
+  const formatDateHeader = (timestamp: number) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
+    }
   };
 
   // ========================= RENDER =========================
@@ -918,7 +928,7 @@ export default function ChatScreen({
       <div
         className="px-4 pb-3 flex items-center gap-3 sticky top-0 z-10"
         style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         }}
       >
@@ -937,7 +947,7 @@ export default function ChatScreen({
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-bold text-gray-800 truncate">{targetUser.name}</h2>
           {!isFixedChat && (
-            <span className={`text-xs ${online ? 'text-green-500' : 'text-gray-400'}`}>
+            <span className={`text-xs ${online ? 'text-green-500' : 'text-gray-600'}`}>
               {online ? 'Online' : 'Offline'}
             </span>
           )}
@@ -983,40 +993,51 @@ export default function ChatScreen({
       {showOptions && !isFixedChat && (
         <>
           <div className="fixed inset-0 z-[60] bg-black/50 transition-opacity" onClick={() => setShowOptions(false)} />
-          <div className="fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-md z-[70] flex flex-col justify-around py-2 shadow-2xl animate-in slide-in-from-bottom duration-200">
+          <div className="fixed bottom-0 left-0 right-0 h-[35vh] bg-black rounded-t-2xl z-[70] flex flex-col py-4 shadow-2xl animate-in slide-in-from-bottom duration-200 px-4">
+            
+            <div className="flex-1 flex flex-col bg-[#1a1a1a] rounded-xl overflow-hidden mb-3">
+              <button
+                onClick={() => {
+                  setShowOptions(false);
+                  setShowReportConfirm(true);
+                }}
+                className="w-full flex-1 text-center text-white font-medium border-b border-gray-800 hover:bg-gray-800 transition-colors"
+              >
+                Report
+              </button>
+              <button
+                onClick={handleClearChat}
+                className="w-full flex-1 text-center text-white font-medium border-b border-gray-800 hover:bg-gray-800 transition-colors"
+              >
+                Clear Chat
+              </button>
+              <button
+                onClick={() => {
+                  setShowOptions(false);
+                  setDeleteMode(true);
+                }}
+                className="w-full flex-1 text-center text-white font-medium border-b border-gray-800 hover:bg-gray-800 transition-colors"
+              >
+                Delete Messages
+              </button>
+              <button
+                onClick={() => {
+                  setShowOptions(false);
+                  setShowBlockConfirm(true);
+                }}
+                className="w-full flex-1 text-center text-white font-medium hover:bg-gray-800 transition-colors"
+              >
+                Block User
+              </button>
+            </div>
+
             <button
-              onClick={() => {
-                setShowOptions(false);
-                setShowReportConfirm(true);
-              }}
-              className="w-full flex-1 text-center text-black font-medium border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              onClick={() => setShowOptions(false)}
+              className="w-full py-3.5 bg-blue-500 text-white font-bold rounded-xl transition-colors"
             >
-              Report
+              Cancel
             </button>
-            <button
-              onClick={handleClearChat}
-              className="w-full flex-1 text-center text-black font-medium border-b border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              Clear Chat
-            </button>
-            <button
-              onClick={() => {
-                setShowOptions(false);
-                setDeleteMode(true);
-              }}
-              className="w-full flex-1 text-center text-red-500 font-medium border-b border-gray-100 hover:bg-red-50 transition-colors"
-            >
-              Delete Messages
-            </button>
-            <button
-              onClick={() => {
-                setShowOptions(false);
-                setShowBlockConfirm(true);
-              }}
-              className="w-full flex-1 text-center text-red-500 font-medium hover:bg-red-50 transition-colors"
-            >
-              Block User
-            </button>
+
           </div>
         </>
       )}
@@ -1037,190 +1058,194 @@ export default function ChatScreen({
           </p>
         )}
         
-        {messages.map((msg) => {
-          const isMine = msg.sender === 'me';
-          const isSelected = selectedMessages.has(msg.id);
+        {(() => {
+          let lastDateString = '';
 
-          // ---- Room invite ----
-          if (msg.type === 'room_invite' && msg.roomData) {
-            return (
-              <div
-                key={msg.id}
-                className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
-                  deleteMode ? 'cursor-pointer' : ''
-                }`}
-                onClick={() => deleteMode && toggleMessageSelection(msg.id)}
-                onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
-                onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
-              >
-                <div
-                  className={`max-w-[80%] overflow-hidden rounded-2xl shadow-md ${
-                    isMine ? 'rounded-br-md' : 'rounded-bl-md'
-                  } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-                >
-                  <div className="relative h-40 bg-gray-200">
-                    <img
-                      src={msg.roomData.roomImage || '/default-avatar.png'}
-                      alt={msg.roomData.roomName}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-3 right-3">
-                      <p className="text-white font-bold text-sm truncate">{msg.roomData.roomName}</p>
-                    </div>
-                  </div>
-                  <div className="bg-white p-3">
-                    <p className="text-sm text-gray-700 mb-2">Joins our Party Room</p>
-                    <button
-                      onClick={() => handleJoinRoom(msg.roomData!.roomId)}
-                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
-                    >
-                      <LogIn size={18} />
-                      Enter
-                    </button>
-                    <p className="text-[10px] text-gray-400 mt-1 text-center">
-                      {formatTime(msg.timestamp)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          }
+          return messages.map((msg) => {
+            const isMine = msg.sender === 'me';
+            const isSelected = selectedMessages.has(msg.id);
 
-          // ---- Image message ----
-          if (msg.type === 'image' && msg.imageUrl) {
+            // Date heading logic WhatsApp style
+            const msgDate = new Date(msg.timestamp).toDateString();
+            const showDateHeader = msgDate !== lastDateString;
+            lastDateString = msgDate;
+
             return (
-              <div
-                key={msg.id}
-                className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
-                  deleteMode ? 'cursor-pointer' : ''
-                }`}
-                onClick={() => deleteMode && toggleMessageSelection(msg.id)}
-                onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
-                onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
-              >
-                {!isMine && (
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
-                    <img
-                      src={targetUser.photo || '/default-avatar.png'}
-                      alt={targetUser.name}
-                      className="w-full h-full object-cover"
-                    />
+              <React.Fragment key={msg.id}>
+                
+                {/* Date Header */}
+                {showDateHeader && (
+                  <div className="flex justify-center my-4">
+                    <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
+                      {formatDateHeader(msg.timestamp)}
+                    </span>
                   </div>
                 )}
-                <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
+
+                {/* ---- Room invite ---- */}
+                {msg.type === 'room_invite' && msg.roomData ? (
                   <div
-                    className={`rounded-2xl overflow-hidden relative ${
-                      isMine ? 'rounded-br-md' : 'rounded-bl-md'
-                    } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                    className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
+                      deleteMode ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                    onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
+                    onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
                   >
-                    {msg.replyTo && (
-                      <div className="px-3 pt-2 bg-white/95">
-                        <div className="border-l-4 border-blue-400 pl-2 bg-black/5 rounded p-1">
-                          <p className="text-[10px] font-semibold text-blue-600">
-                            {msg.replyTo.senderName}
-                          </p>
-                          <p className="text-[11px] text-gray-600 truncate">{msg.replyTo.text}</p>
+                    <div
+                      className={`max-w-[80%] overflow-hidden rounded-2xl shadow-md ${
+                        isMine ? 'rounded-br-md' : 'rounded-bl-md'
+                      } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                    >
+                      <div className="relative h-40 bg-gray-200">
+                        <img
+                          src={msg.roomData.roomImage || '/default-avatar.png'}
+                          alt={msg.roomData.roomName}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-2 left-3 right-3">
+                          <p className="text-white font-bold text-sm truncate">{msg.roomData.roomName}</p>
                         </div>
                       </div>
-                    )}
-                    <img
-                      src={msg.imageUrl}
-                      alt="Shared image"
-                      className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
-                      onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
-                    />
-                    <div className={`px-2 py-1 ${isMine ? 'bg-[#374151]' : 'bg-white'}`}>
-                      <p className={`text-[10px] text-right ${isMine ? 'text-gray-300' : 'text-gray-400'}`}>
-                        {formatTime(msg.timestamp)}
-                      </p>
+                      <div className="bg-white p-3">
+                        <p className="text-sm text-gray-700 mb-2">Joins our Party Room</p>
+                        <button
+                          onClick={() => handleJoinRoom(msg.roomData!.roomId)}
+                          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        >
+                          <LogIn size={18} />
+                          Enter
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {isMine && (
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
-                    <img
-                      src={currentUser.photo || '/default-avatar.png'}
-                      alt={currentUser.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          }
 
-          // ---- Regular text message ----
-          return (
-            <div
-              key={msg.id}
-              className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
-                deleteMode ? 'cursor-pointer' : ''
-              }`}
-              onClick={() => deleteMode && toggleMessageSelection(msg.id)}
-              onTouchStart={(e) => {
-                if (!deleteMode) {
-                  handleTouchStart(msg);
-                  handleSwipeStart(e, msg);
-                }
-              }}
-              onTouchEnd={(e) => {
-                if (!deleteMode) {
-                  handleTouchEnd();
-                  handleSwipeEnd(e);
-                }
-              }}
-              onMouseDown={() => !deleteMode && handleMouseDown(msg)}
-              onMouseUp={() => !deleteMode && handleMouseUp()}
-            >
-              {!isMine && (
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
-                  <img
-                    src={targetUser.photo || '/default-avatar.png'}
-                    alt={targetUser.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                <div
-                  className={`px-3 py-2 rounded-2xl break-words relative ${
-                    isMine
-                      ? 'bg-[#374151] text-white rounded-br-md' // Halka Black Grey for own msgs
-                      : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
-                  } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-                >
-                  {msg.replyTo && (
-                    <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
-                      <p className="text-[10px] font-semibold text-blue-400">
-                        {msg.replyTo.senderName}
-                      </p>
-                      <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>
-                        {msg.replyTo.text}
-                      </p>
+                // ---- Image message ----
+                ) : msg.type === 'image' && msg.imageUrl ? (
+                  <div
+                    className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
+                      deleteMode ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                    onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
+                    onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
+                  >
+                    {!isMine && (
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
+                        <img
+                          src={targetUser.photo || '/default-avatar.png'}
+                          alt={targetUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                      <div
+                        className={`rounded-2xl overflow-hidden relative ${
+                          isMine ? 'rounded-br-md' : 'rounded-bl-md'
+                        } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                      >
+                        {msg.replyTo && (
+                          <div className="px-3 pt-2 bg-white/95">
+                            <div className="border-l-4 border-blue-400 pl-2 bg-black/5 rounded p-1">
+                              <p className="text-[10px] font-semibold text-blue-600">
+                                {msg.replyTo.senderName}
+                              </p>
+                              <p className="text-[11px] text-gray-600 truncate">{msg.replyTo.text}</p>
+                            </div>
+                          </div>
+                        )}
+                        <img
+                          src={msg.imageUrl}
+                          alt="Shared image"
+                          className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
+                          onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
+                        />
+                      </div>
                     </div>
-                  )}
-                  <p className="text-sm">{msg.text}</p>
-                  <p className={`text-[10px] mt-1 ${isMine ? 'text-gray-300' : 'text-gray-400'}`}>
-                    {formatTime(msg.timestamp)}
-                  </p>
-                </div>
-                {copiedMessage === msg.id && (
-                  <span className="text-[10px] text-green-600 mt-0.5">Copied!</span>
+                    {isMine && (
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
+                        <img
+                          src={currentUser.photo || '/default-avatar.png'}
+                          alt={currentUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                // ---- Regular text message ----
+                ) : (
+                  <div
+                    className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
+                      deleteMode ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                    onTouchStart={(e) => {
+                      if (!deleteMode) {
+                        handleTouchStart(msg);
+                        handleSwipeStart(e, msg);
+                      }
+                    }}
+                    onTouchEnd={(e) => {
+                      if (!deleteMode) {
+                        handleTouchEnd();
+                        handleSwipeEnd(e);
+                      }
+                    }}
+                    onMouseDown={() => !deleteMode && handleMouseDown(msg)}
+                    onMouseUp={() => !deleteMode && handleMouseUp()}
+                  >
+                    {!isMine && (
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
+                        <img
+                          src={targetUser.photo || '/default-avatar.png'}
+                          alt={targetUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                      <div
+                        className={`px-3 py-2 rounded-2xl break-words relative ${
+                          isMine
+                            ? 'bg-[#374151] text-white rounded-br-md' 
+                            : 'bg-white text-gray-800 rounded-bl-md' 
+                        } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                      >
+                        {msg.replyTo && (
+                          <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
+                            <p className="text-[10px] font-semibold text-blue-400">
+                              {msg.replyTo.senderName}
+                            </p>
+                            <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>
+                              {msg.replyTo.text}
+                            </p>
+                          </div>
+                        )}
+                        <p className="text-sm">{msg.text}</p>
+                      </div>
+                      {copiedMessage === msg.id && (
+                        <span className="text-[10px] text-green-600 mt-0.5">Copied!</span>
+                      )}
+                    </div>
+                    {isMine && (
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
+                        <img
+                          src={currentUser.photo || '/default-avatar.png'}
+                          alt={currentUser.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
                 )}
-              </div>
-              {isMine && (
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
-                  <img
-                    src={currentUser.photo || '/default-avatar.png'}
-                    alt={currentUser.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
+              </React.Fragment>
+            );
+          });
+        })()}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -1265,7 +1290,6 @@ export default function ChatScreen({
           <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
         </div>
       ) : !deleteMode && (
-        // UI color pehle jaisa (white/gray), bas fields disabled rahengi block hone pe
         <div className="px-4 py-3 bg-white flex items-center gap-2 pb-5">
           <input
             type="file"
@@ -1312,22 +1336,21 @@ export default function ChatScreen({
           onClick={() => setShowBlockConfirm(false)}
         >
           <div
-            className="bg-white rounded-2xl px-6 py-5 shadow-xl max-w-xs w-full text-center"
+            className="bg-white rounded-2xl px-6 py-6 shadow-xl max-w-xs w-full text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-4xl mb-3"></div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Block {targetUser.name}?</h3>
-            <p className="text-sm text-gray-500 mb-4">You won't receive messages from this user.</p>
-            <div className="flex gap-2">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Block {targetUser.name}?</h3>
+            <p className="text-sm text-gray-500 mb-6">You won't receive messages from this user.</p>
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowBlockConfirm(false)}
-                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleBlockUser}
-                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-black hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Block
               </button>
@@ -1343,22 +1366,21 @@ export default function ChatScreen({
           onClick={() => setShowReportConfirm(false)}
         >
           <div
-            className="bg-white rounded-2xl px-6 py-5 shadow-xl max-w-xs w-full text-center"
+            className="bg-white rounded-2xl px-6 py-6 shadow-xl max-w-xs w-full text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-4xl mb-3"></div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">Report {targetUser.name}?</h3>
-            <p className="text-sm text-gray-500 mb-4">This user will be reviewed by our team.</p>
-            <div className="flex gap-2">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Report {targetUser.name}?</h3>
+            <p className="text-sm text-gray-500 mb-6">This user will be reviewed by our team.</p>
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowReportConfirm(false)}
-                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleReportUser}
-                className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-black hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Report
               </button>
@@ -1374,24 +1396,23 @@ export default function ChatScreen({
           onClick={() => setShowDeleteSelectedConfirm(false)}
         >
           <div
-            className="bg-white rounded-2xl px-6 py-5 shadow-xl max-w-xs w-full text-center"
+            className="bg-white rounded-2xl px-6 py-6 shadow-xl max-w-xs w-full text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-4xl mb-3">🗑️</div>
-            <h3 className="text-lg font-bold text-gray-800 mb-1">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">
               Delete {selectedMessages.size} Message{selectedMessages.size > 1 ? 's' : ''}?
             </h3>
-            <p className="text-sm text-gray-500 mb-4">This action cannot be undone.</p>
-            <div className="flex gap-2">
+            <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+            <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteSelectedConfirm(false)}
-                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteSelectedMessages}
-                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-black hover:bg-gray-800 text-white font-semibold rounded-xl transition-colors cursor-pointer"
               >
                 Delete
               </button>
