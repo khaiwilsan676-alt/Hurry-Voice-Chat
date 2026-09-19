@@ -1,7 +1,7 @@
-
 'use client';
 
 import React from 'react';
+import { getNumericAccountId } from '../lib/utils';
 
 interface RoomInfoProps {
   isOpen: boolean;
@@ -107,9 +107,9 @@ export default function RoomInfo({
                     {roomData.roomName || 'Room'}
                   </h3>
                   <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <span>ID: {roomOwner.accountId}</span>
+                    <span>ID: {getNumericAccountId(roomOwner.accountId, roomOwner.id || roomOwner.uid)}</span>
                     <button 
-                      onClick={(e) => onCopyId(roomOwner.accountId || '', e)} 
+                      onClick={(e) => onCopyId(getNumericAccountId(roomOwner.accountId, roomOwner.id || roomOwner.uid), e)}
                       className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer" 
                       title="Copy ID"
                     >
@@ -148,7 +148,7 @@ export default function RoomInfo({
                   onClick={() => onOpenProfile({ 
                     name: roomOwner.name, 
                     image: roomOwner.image, 
-                    accountId: roomOwner.accountId || roomOwner.id || '' 
+                    accountId: getNumericAccountId(roomOwner.accountId, roomOwner.id || roomOwner.uid)
                   })}
                 >
                   <img 
@@ -170,33 +170,36 @@ export default function RoomInfo({
                 </div>
               </div>
 
-              {roomFollowers.map(follower => (
-                <div 
-                  key={follower.accountId} 
-                  className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2.5"
-                >
+              {roomFollowers.map(follower => {
+                const followerNumericId = getNumericAccountId(follower.accountId);
+                return (
                   <div 
-                    className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 cursor-pointer" 
-                    onClick={() => onOpenProfile({ 
-                      name: follower.name, 
-                      image: follower.image || "/default-avatar.png", 
-                      accountId: follower.accountId 
-                    })}
+                    key={followerNumericId}
+                    className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2.5"
                   >
-                    <img 
-                      src={follower.image || "/default-avatar.png"} 
-                      alt={follower.name} 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} 
-                    />
+                    <div
+                      className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                      onClick={() => onOpenProfile({
+                        name: follower.name,
+                        image: follower.image || "/default-avatar.png",
+                        accountId: followerNumericId
+                      })}
+                    >
+                      <img
+                        src={follower.image || "/default-avatar.png"}
+                        alt={follower.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-gray-800 truncate">
+                        {follower.name}
+                      </h4>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-gray-800 truncate">
-                      {follower.name}
-                    </h4>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
 
               {roomFollowers.length === 0 && (
                 <p className="text-center text-gray-400 text-sm py-8">

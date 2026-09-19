@@ -13,6 +13,7 @@ import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import { generateStableId } from '../lib/hash';
+import { getNumericAccountId } from '../lib/utils';
 import socket from "../src/lib/socket";
 
 // LiveKit imports for Voice Audio
@@ -329,8 +330,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     isInSeat?: boolean;
   } | null>(null);
 
-  const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
-  const roomOwnerId = roomOwner.accountId || roomOwner.uid || roomOwner.id || "";
+  const userAccountId = getNumericAccountId(currentUser.accountId, currentUser.uid || currentUser.id);
+  const roomOwnerId = getNumericAccountId(roomOwner.accountId, roomOwner.uid || roomOwner.id);
   const isRoomOwner = userAccountId === roomOwnerId;
 
   const [message, setMessage] = useState("");
@@ -2030,7 +2031,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                 )}
               </div>
               <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>
-              ID:{roomOwner.accountId || ''}
+              ID:{getNumericAccountId(roomOwner.accountId, roomOwner.id || roomOwner.uid)}
             </p>
             </div>
           </div>

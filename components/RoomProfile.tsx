@@ -12,6 +12,7 @@ import {
   Mic
 } from 'lucide-react'
 import WhiteColorRemovalShader from './WhiteColorRemovalShader'
+import { getNumericAccountId } from '../lib/utils'
 
 // ============ Green Color Removal Shader Component ============
 const GreenColorRemovalShader = ({ 
@@ -312,15 +313,10 @@ export default function RoomProfile({
   }, [user.uid, user.id, user.accountId])
 
   const getUserId = () => {
-    const possibleIds = [
+    return getNumericAccountId(
       user.accountId,
-      user.id,
-      user.uid,
-    ]
-
-    const id = possibleIds.find(val => val && val.trim() !== '')
-
-    return id || 'User'
+      user.id || user.uid
+    )
   }
 
   const accountId = getUserId()
