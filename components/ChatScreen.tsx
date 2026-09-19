@@ -4,7 +4,38 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
 import socket from '../src/lib/socket';
 
-// ============ IndexedDB Functions for Messages ============
+// ============ IndexedDB Functions for Conversations & Messages ============
+const CONVERSATIONS_DB_NAME = 'MessagesDB';
+const CONVERSATIONS_STORE = 'conversations';
+
+const saveConversationToDB = async (conversation: {
+  chatId: string;
+  otherUser: { uid: string; name: string; photo: string };
+  lastMessage: string;
+  lastTimestamp: number;
+  unreadCount: number;
+}) => {
+  try {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(CONVERSATIONS_DB_NAME, 2);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = () => {
+        const database = request.result;
+        if (!database.objectStoreNames.contains(CONVERSATIONS_STORE)) {
+          database.createObjectStore(CONVERSATIONS_STORE, { keyPath: 'chatId' });
+        }
+      };
+    });
+    const transaction = db.transaction([CONVERSATIONS_STORE], 'readwrite');
+    const store = transaction.objectStore(CONVERSATIONS_STORE);
+    store.put(conversation);
+    db.close();
+  } catch (error) {
+    console.error('Conversation save error:', error);
+  }
+};
+
 const MESSAGES_DB_NAME = 'ChatMessagesDB';
 const MESSAGES_STORE = 'messages';
 
@@ -224,6 +255,17 @@ useEffect(() => {
       );
 
       saveMessagesToDB(chatId, updated);
+      saveConversationToDB({
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: message.type === 'image' ? '📷 Image' : message.text,
+        lastTimestamp: message.timestamp,
+        unreadCount: 0,
+      });
       return updated;
     });
 
@@ -283,8 +325,12 @@ const sendRoomInvite = async (roomData: {
 
     socket.emit('private_message', outgoing);
 
-    const localMessage: Message = {
+    const localMessage: any = {
       id: messageId,
+      senderId: currentUser.uid,
+      receiverId: targetUser.uid,
+      targetUserName: targetUser.name,
+      targetUserPhoto: targetUser.photo,
       text: outgoing.text,
       sender: 'me',
       timestamp: outgoing.timestamp,
@@ -295,6 +341,17 @@ const sendRoomInvite = async (roomData: {
     setMessages((prev) => {
       const updated = [...prev, localMessage];
       saveMessagesToDB(chatId, updated);
+      saveConversationToDB({
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: localMessage.text,
+        lastTimestamp: localMessage.timestamp,
+        unreadCount: 0,
+      });
       return updated;
     });
   } catch (error) {
@@ -333,8 +390,12 @@ const handleSend = async () => {
 
     socket.emit('private_message', outgoing);
 
-    const localMessage: Message = {
+    const localMessage: any = {
       id: messageId,
+      senderId: currentUser.uid,
+      receiverId: targetUser.uid,
+      targetUserName: targetUser.name,
+      targetUserPhoto: targetUser.photo,
       text: messageText,
       sender: 'me',
       timestamp: outgoing.timestamp,
@@ -345,6 +406,17 @@ const handleSend = async () => {
     setMessages((prev) => {
       const updated = [...prev, localMessage];
       saveMessagesToDB(chatId, updated);
+      saveConversationToDB({
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: messageText,
+        lastTimestamp: localMessage.timestamp,
+        unreadCount: 0,
+      });
       return updated;
     });
 
@@ -401,8 +473,12 @@ const handleImageUpload = async (
 
     socket.emit('private_message', outgoing);
 
-    const localMessage: Message = {
+    const localMessage: any = {
       id: messageId,
+      senderId: currentUser.uid,
+      receiverId: targetUser.uid,
+      targetUserName: targetUser.name,
+      targetUserPhoto: targetUser.photo,
       text: '',
       sender: 'me',
       timestamp: outgoing.timestamp,
@@ -414,6 +490,17 @@ const handleImageUpload = async (
     setMessages((prev) => {
       const updated = [...prev, localMessage];
       saveMessagesToDB(chatId, updated);
+      saveConversationToDB({
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: '📷 Image',
+        lastTimestamp: localMessage.timestamp,
+        unreadCount: 0,
+      });
       return updated;
     });
 

@@ -12,7 +12,7 @@ const STORE_NAME = 'conversations';
 // IndexedDB kholo
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, 2);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -69,6 +69,33 @@ const loadFromDB = async (): Promise<ChatPreview[]> => {
   }
 };
 
+// Fallback: load messages from ChatMessagesDB to build missing conversation entries
+const loadAllChatMessagesDB = async (): Promise<any[]> => {
+  try {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('ChatMessagesDB', 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+    });
+    if (!db.objectStoreNames.contains('messages')) {
+      db.close();
+      return [];
+    }
+    const transaction = db.transaction(['messages'], 'readonly');
+    const store = transaction.objectStore('messages');
+    const messages = await new Promise<any[]>((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    return messages;
+  } catch (error) {
+    console.error('Load ChatMessagesDB error:', error);
+    return [];
+  }
+};
+
 // ============ Types ============
 interface ChatPreview {
   chatId: string;
@@ -119,26 +146,91 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
   const currentUserUid = getCurrentUserData().uid;
 
-  // Sirf IndexedDB se load karo
+  // Sirf IndexedDB se load karo & polling for live updates
   useEffect(() => {
+    let isMounted = true;
+
     const loadData = async () => {
       if (currentUserUid === 'N/A') {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
         return;
       }
 
       // IndexedDB se data load karo
       const cachedChats = await loadFromDB();
+      const allMessages = await loadAllChatMessagesDB();
+
+      const chatMap = new Map<string, ChatPreview>();
+      cachedChats.forEach((chat) => {
+        if (chat && chat.chatId) {
+          chatMap.set(chat.chatId, chat);
+        }
+      });
+
+      // Group messages from ChatMessagesDB for any chatId not in chatMap or needing updated info
+      allMessages.forEach((msg) => {
+        if (!msg || !msg.chatId) return;
+        const existing = chatMap.get(msg.chatId);
+        const msgTime = Number(msg.timestamp || Date.now());
+        const isMe = msg.senderId === currentUserUid || msg.sender === 'me';
+
+        const otherUid = isMe ? (msg.receiverId || msg.targetUid) : (msg.senderId || msg.otherUid);
+        const otherName = isMe ? (msg.targetUserName || msg.receiverName || msg.otherUserName || 'User') : (msg.senderName || msg.otherUserName || 'User');
+        const otherPhoto = isMe ? (msg.targetUserPhoto || msg.receiverPhoto || msg.otherUserPhoto || '/default-avatar.png') : (msg.senderPhoto || msg.otherUserPhoto || '/default-avatar.png');
+
+        if (!existing) {
+          if (otherUid) {
+            chatMap.set(msg.chatId, {
+              chatId: msg.chatId,
+              otherUser: {
+                uid: otherUid,
+                name: otherName,
+                photo: otherPhoto,
+              },
+              lastMessage: msg.type === 'image' ? '📷 Image' : (msg.text || ''),
+              lastTimestamp: msgTime,
+              unreadCount: 0,
+            });
+          }
+        } else {
+          if (msgTime > (existing.lastTimestamp || 0)) {
+            existing.lastMessage = msg.type === 'image' ? '📷 Image' : (msg.text || existing.lastMessage);
+            existing.lastTimestamp = msgTime;
+          }
+          if ((!existing.otherUser.name || existing.otherUser.name === 'User') && otherName && otherName !== 'User') {
+            existing.otherUser.name = otherName;
+          }
+          if ((!existing.otherUser.photo || existing.otherUser.photo === '/default-avatar.png') && otherPhoto && otherPhoto !== '/default-avatar.png') {
+            existing.otherUser.photo = otherPhoto;
+          }
+        }
+      });
+
+      const mergedChats = Array.from(chatMap.values());
       
-      if (cachedChats.length > 0) {
-        setDynamicChats(cachedChats);
-        console.log('IndexedDB se data load hua:', cachedChats.length);
+      if (isMounted) {
+        // Sort conversations by lastTimestamp descending
+        const sorted = mergedChats.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
+        setDynamicChats((prev) => {
+          if (JSON.stringify(prev) === JSON.stringify(sorted)) {
+            return prev;
+          }
+          saveToDB(sorted);
+          return sorted;
+        });
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     loadData();
+
+    // Poll IndexedDB every 2 seconds to capture newly sent/received messages
+    const interval = setInterval(loadData, 2000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [currentUserUid]);
 
 
