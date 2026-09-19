@@ -1,6 +1,7 @@
 'use client'
 
 import { apiUrl } from "../src/lib/api";
+import { socket } from "../src/lib/socket";
 
 import React, { useEffect, useState, useRef } from 'react'
 import { ChevronRight, Copy, ArrowLeft } from 'lucide-react'
@@ -525,6 +526,11 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     setFeedbackSubmitting(true);
 
     const feedbackData = {
+      id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      userId: user.uid || '',
+      userName: user.name || 'User',
+      userAccountId: user.displayAccountNumber || user.accountNumber || '',
+      userPhoto: user.photo || '',
       type: selectedType,
       typeLabel: FEEDBACK_TYPES.find(t => t.id === selectedType)?.label || selectedType,
       description: problemDescription.trim(),
@@ -536,6 +542,13 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
     try {
       await saveFeedbackToDB(feedbackData);
+
+      if (typeof window !== 'undefined') {
+        if (!socket.connected) {
+          socket.connect();
+        }
+        socket.emit("user_feedback", feedbackData);
+      }
       
       setFeedbackSuccess(true);
       setSelectedType('');

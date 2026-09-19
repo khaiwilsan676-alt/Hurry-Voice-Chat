@@ -1187,6 +1187,60 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("user_feedback", async (data = {}) => {
+    const feedbackId = String(data.id || `fb_${Date.now()}`);
+
+    const payload = {
+      id: feedbackId,
+      userId: String(data.userId || ""),
+      userName: String(data.userName || "User"),
+      userAccountId: String(data.userAccountId || ""),
+      userPhoto: String(data.userPhoto || ""),
+      type: String(data.type || ""),
+      typeLabel: String(data.typeLabel || "Feedback"),
+      description: String(data.description || ""),
+      contactInfo: String(data.contactInfo || ""),
+      createdAt: data.createdAt || new Date().toISOString(),
+      timestamp: Number(data.timestamp || Date.now()),
+      status: String(data.status || "pending")
+    };
+
+    try {
+      if (db) {
+        await db.collection("userFeedbacks").updateOne(
+          { id: feedbackId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("User feedback save failed:", error.message);
+    }
+
+    // Broadcast user feedback real-time update to all listeners (including owner panel)
+    io.emit("user_feedback", payload);
+  });
+
+  socket.on("user_feedback_history_request", async () => {
+    try {
+      if (db) {
+        const feedbacks = await db
+          .collection("userFeedbacks")
+          .find({})
+          .sort({ timestamp: -1 })
+          .limit(200)
+          .toArray();
+
+        socket.emit("user_feedback_history_response", { feedbacks });
+      } else {
+        socket.emit("user_feedback_history_response", { feedbacks: [] });
+      }
+    } catch (error) {
+      console.error("User feedback history fetch failed:", error.message);
+      socket.emit("user_feedback_history_response", { feedbacks: [] });
+    }
+  });
+
   socket.on("disconnect", () => {
     const room = socket.roomId;
     const userId =

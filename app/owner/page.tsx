@@ -9,8 +9,68 @@ import { socket } from '@/src/lib/socket';
 import { apiUrl } from "@/src/lib/api";
 
 // ==============================================================
-// INDEXEDDB HELPERS FOR AI SUPPORT CHATS
+// INDEXEDDB HELPERS FOR USER FEEDBACKS & AI SUPPORT CHATS
 // ==============================================================
+const loadAllFeedbacksFromIndexedDB = async (): Promise<any[]> => {
+  if (typeof window === 'undefined') return [];
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open("HurryFeedbackDB", 1);
+      request.onerror = () => resolve([]);
+      request.onupgradeneeded = (e: any) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("userFeedbacks")) {
+          db.createObjectStore("userFeedbacks", { keyPath: "id" });
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("userFeedbacks")) {
+          db.close();
+          resolve([]);
+          return;
+        }
+        const transaction = db.transaction(["userFeedbacks"], "readonly");
+        const store = transaction.objectStore("userFeedbacks");
+        const getAllReq = store.getAll();
+        getAllReq.onsuccess = () => {
+          db.close();
+          resolve(getAllReq.result || []);
+        };
+        getAllReq.onerror = () => {
+          db.close();
+          resolve([]);
+        };
+      };
+    } catch (err) {
+      resolve([]);
+    }
+  });
+};
+
+const saveFeedbackToIndexedDB = async (feedbackData: any) => {
+  if (typeof window === 'undefined' || !feedbackData?.id) return;
+  try {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("HurryFeedbackDB", 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (e: any) => {
+        const database = e.target.result;
+        if (!database.objectStoreNames.contains("userFeedbacks")) {
+          database.createObjectStore("userFeedbacks", { keyPath: "id" });
+        }
+      };
+    });
+    const transaction = db.transaction(["userFeedbacks"], "readwrite");
+    const store = transaction.objectStore("userFeedbacks");
+    store.put(feedbackData);
+    db.close();
+  } catch (err) {
+    console.error("Error saving user feedback to IndexedDB in Owner panel:", err);
+  }
+};
+
 const loadAllSupportChatsFromIndexedDB = async (): Promise<any[]> => {
   if (typeof window === 'undefined') return [];
   return new Promise((resolve) => {
@@ -250,6 +310,12 @@ export default function StaffPanel() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSuccess, setTagSuccess] = useState('');
 
+  // User Feedbacks State
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [selectedFeedback, setSelectedFeedback] = useState<any | null>(null);
+  const [feedbackSearchQuery, setFeedbackSearchQuery] = useState('');
+  const [selectedFeedbackTypeFilter, setSelectedFeedbackTypeFilter] = useState('All');
+
   // AI Support Live Chats State (Reports & Bans tab)
   const [supportChats, setSupportChats] = useState<any[]>([]);
   const [selectedSupportUserId, setSelectedSupportUserId] = useState<string | null>(null);
@@ -257,25 +323,57 @@ export default function StaffPanel() {
   const [supportSubTab, setSupportSubTab] = useState<'ai_chats' | 'reports'>('ai_chats');
   const supportChatEndRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Support Chats from IndexedDB & Socket.IO
+  // Initialize User Feedbacks & Support Chats from IndexedDB & Socket.IO
   useEffect(() => {
     let isMounted = true;
 
-    const initSupportChats = async () => {
+    const initData = async () => {
+      const localFeedbacks = await loadAllFeedbacksFromIndexedDB();
+      if (isMounted && localFeedbacks.length > 0) {
+        setFeedbacks(localFeedbacks.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
+      }
+
       const localChats = await loadAllSupportChatsFromIndexedDB();
       if (isMounted && localChats.length > 0) {
         setSupportChats(localChats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
       }
     };
 
-    initSupportChats();
+    initData();
 
     if (typeof window !== 'undefined') {
       if (!socket.connected) {
         socket.connect();
       }
 
+      socket.emit("user_feedback_history_request");
       socket.emit("ai_support_history_request");
+
+      const handleFeedbackHistoryResponse = (data: any) => {
+        if (!isMounted || !Array.isArray(data?.feedbacks)) return;
+        setFeedbacks(prev => {
+          const map = new Map<string, any>();
+          prev.forEach(item => map.set(item.id, item));
+          data.feedbacks.forEach((item: any) => {
+            if (item.id) {
+              map.set(item.id, { ...map.get(item.id), ...item });
+              saveFeedbackToIndexedDB(item);
+            }
+          });
+          return Array.from(map.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        });
+      };
+
+      const handleUserFeedback = (data: any) => {
+        if (!isMounted || !data?.id) return;
+        setFeedbacks(prev => {
+          const map = new Map<string, any>();
+          prev.forEach(item => map.set(item.id, item));
+          map.set(data.id, data);
+          saveFeedbackToIndexedDB(data);
+          return Array.from(map.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        });
+      };
 
       const handleHistoryResponse = (data: any) => {
         if (!isMounted || !Array.isArray(data?.chats)) return;
@@ -303,11 +401,15 @@ export default function StaffPanel() {
         });
       };
 
+      socket.on("user_feedback_history_response", handleFeedbackHistoryResponse);
+      socket.on("user_feedback", handleUserFeedback);
       socket.on("ai_support_history_response", handleHistoryResponse);
       socket.on("ai_support_message", handleAiSupportMessage);
 
       return () => {
         isMounted = false;
+        socket.off("user_feedback_history_response", handleFeedbackHistoryResponse);
+        socket.off("user_feedback", handleUserFeedback);
         socket.off("ai_support_history_response", handleHistoryResponse);
         socket.off("ai_support_message", handleAiSupportMessage);
       };
@@ -613,7 +715,7 @@ export default function StaffPanel() {
           />
           <SidebarCategory
             icon="🛡️" title="Moderation" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
-            items={[{ id: 'bans', label: 'Reports & Bans', icon: '🚫' }, { id: 'tickets', label: 'Support Tickets', icon: '🎫' }]}
+            items={[{ id: 'feedback', label: 'User Feedback', icon: '💬' }, { id: 'bans', label: 'Reports & Bans', icon: '🚫' }, { id: 'tickets', label: 'Support Tickets', icon: '🎫' }]}
           />
           <SidebarCategory
             icon="⚙️" title="Platform" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
@@ -1295,8 +1397,214 @@ export default function StaffPanel() {
           </div>
         )}
 
+        {/* ============================================================== */}
+        {/* TAB: USER FEEDBACK (REAL-TIME SOCKET.IO) */}
+        {/* ============================================================== */}
+        {activeTab === 'feedback' && (
+          <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
+            <div className="px-8 py-6 pb-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-6 h-6 text-indigo-600" />
+                  <h2 className="text-xl font-extrabold text-slate-800">User Feedback</h2>
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 ml-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    Socket.IO Real-Time
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">Live feedback submitted from user Me page & Help section</p>
+              </div>
+
+              <span className="text-xs font-bold px-3.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-100">
+                Total Submissions: {feedbacks.length}
+              </span>
+            </div>
+
+            <div className="p-8 flex-1 overflow-y-auto">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center justify-between">
+                <div className="relative w-full max-w-xl">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    value={feedbackSearchQuery}
+                    onChange={(e) => setFeedbackSearchQuery(e.target.value)}
+                    placeholder="Search feedback by user name, ID, contact info or description..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-indigo-500 shadow-sm"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1">
+                  {['All', 'bug', 'account', 'recharge', 'other'].map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedFeedbackTypeFilter(type)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all shrink-0 ${
+                        selectedFeedbackTypeFilter === type
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {type === 'All' ? 'All Types' : (type === 'bug' ? 'Bug' : type === 'account' ? 'Account Issue' : type === 'recharge' ? 'Recharge' : 'Other Suggestion')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {feedbacks
+                  .filter((fb) => {
+                    const q = feedbackSearchQuery.toLowerCase();
+                    const matchesSearch =
+                      (fb.userName || '').toLowerCase().includes(q) ||
+                      (fb.userAccountId || '').toLowerCase().includes(q) ||
+                      (fb.userId || '').toLowerCase().includes(q) ||
+                      (fb.contactInfo || '').toLowerCase().includes(q) ||
+                      (fb.description || '').toLowerCase().includes(q) ||
+                      (fb.typeLabel || '').toLowerCase().includes(q);
+
+                    const matchesType =
+                      selectedFeedbackTypeFilter === 'All' ||
+                      fb.type === selectedFeedbackTypeFilter;
+
+                    return matchesSearch && matchesType;
+                  })
+                  .map((fb) => (
+                    <div
+                      key={fb.id}
+                      onClick={() => setSelectedFeedback(fb)}
+                      className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center shrink-0 shadow-sm overflow-hidden border border-indigo-100">
+                              {fb.userPhoto ? (
+                                <img src={fb.userPhoto} alt={fb.userName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-sm">{(fb.userName || 'U').charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-sm text-slate-800 leading-snug">{fb.userName || 'User'}</h3>
+                              <span className="text-xs text-indigo-600 font-bold">
+                                ID: {fb.userAccountId || fb.userId || 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide border shrink-0 ${
+                            fb.type === 'bug' ? 'bg-red-50 text-red-600 border-red-100' :
+                            fb.type === 'account' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                            fb.type === 'recharge' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            'bg-blue-50 text-blue-600 border-blue-100'
+                          }`}>
+                            {fb.typeLabel || fb.type || 'Feedback'}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-slate-600 font-medium line-clamp-3 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed mb-3">
+                          "{fb.description}"
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                        <span className="truncate">Contact: {fb.contactInfo || 'Not provided'}</span>
+                        <span className="shrink-0">
+                          {fb.timestamp ? new Date(fb.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                {feedbacks.length === 0 && (
+                  <div className="col-span-full py-16 text-center text-slate-400 text-sm font-medium bg-white rounded-2xl border border-slate-200">
+                    <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2 animate-pulse" />
+                    <p className="font-bold text-slate-700">No user feedback submitted yet</p>
+                    <p className="text-xs text-slate-400 mt-1">Feedback submitted by users in the app will appear here in real time via Socket.IO.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* FEEDBACK DETAIL MODAL */}
+            {selectedFeedback && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+                  <button
+                    onClick={() => setSelectedFeedback(null)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center gap-3 mb-5 border-b border-slate-100 pb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold flex items-center justify-center text-lg shadow-md overflow-hidden shrink-0">
+                      {selectedFeedback.userPhoto ? (
+                        <img src={selectedFeedback.userPhoto} alt={selectedFeedback.userName} className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{(selectedFeedback.userName || 'U').charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">{selectedFeedback.userName || 'User'}</h3>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mt-0.5">
+                        <span>User ID / Account ID: <strong className="text-indigo-600">{selectedFeedback.userAccountId || selectedFeedback.userId}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Issue Category</span>
+                      <span className={`inline-block px-3 py-1 rounded-lg text-xs font-bold border ${
+                        selectedFeedback.type === 'bug' ? 'bg-red-50 text-red-600 border-red-100' :
+                        selectedFeedback.type === 'account' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                        selectedFeedback.type === 'recharge' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                        'bg-blue-50 text-blue-600 border-blue-100'
+                      }`}>
+                        {selectedFeedback.typeLabel || selectedFeedback.type}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Feedback Description</span>
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs font-medium text-slate-800 leading-relaxed whitespace-pre-line max-h-60 overflow-y-auto">
+                        {selectedFeedback.description}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Contact Info</span>
+                        <span className="text-xs font-bold text-slate-700 break-all">{selectedFeedback.contactInfo || 'N/A'}</span>
+                      </div>
+
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">Submitted At</span>
+                        <span className="text-xs font-bold text-slate-700">
+                          {selectedFeedback.timestamp ? new Date(selectedFeedback.timestamp).toLocaleString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+                    <button
+                      onClick={() => setSelectedFeedback(null)}
+                      className="px-6 py-2.5 text-xs font-bold bg-indigo-600 text-white rounded-xl shadow-md hover:bg-indigo-700 transition-colors"
+                    >
+                      Close Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Placeholder for other tabs */}
-        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && activeTab !== 'bans' && (
+        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && activeTab !== 'bans' && activeTab !== 'feedback' && (
           <div className="p-8 max-w-5xl mx-auto w-full">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
               <h2 className="text-xl font-bold text-slate-800 capitalize">
