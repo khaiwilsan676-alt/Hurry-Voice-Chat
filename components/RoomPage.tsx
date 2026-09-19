@@ -787,7 +787,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           data.senderAvatar ||
           "/default-avatar.png",
         senderAccountId:
-          data.senderId || "",
+          data.senderAccountId || data.senderId || "",
         timestamp: Number(
           data.createdAt || Date.now()
         ),
@@ -1149,6 +1149,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         .slice(2, 8)}`,
       roomId,
       senderId: userAccountId,
+      senderAccountId: userAccountId,
       senderName: currentUser.name || "User",
       senderAvatar:
         currentUser.image || "/default-avatar.png",
@@ -2157,7 +2158,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || '' })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
@@ -2171,7 +2172,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || (msg.sender === currentUser.name ? userAccountId : '') })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
@@ -2187,7 +2188,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || (msg.sender === currentUser.name ? userAccountId : '') })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { apiUrl } from "../src/lib/api";
+import { generateStableId } from "../lib/hash";
 
 import React, { useEffect, useState, useRef } from 'react'
 import { 
@@ -320,7 +321,7 @@ export default function RoomProfile({
 
     const id = possibleIds.find(val => val && val.trim() !== '')
 
-    return id || 'User'
+    return id ? generateStableId(id) : 'User'
   }
 
   const accountId = getUserId()
