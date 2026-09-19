@@ -1246,6 +1246,68 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("send_official_message", async (data = {}) => {
+    const rawSenderId = String(data.senderId || "");
+    // Strictly restrict official sender IDs to hurry_team_official and hurry_system_official
+    if (rawSenderId !== "hurry_team_official" && rawSenderId !== "hurry_system_official") {
+      console.warn("Unauthorized or invalid official sender ID:", rawSenderId);
+      return;
+    }
+
+    const isTeam = rawSenderId === "hurry_team_official";
+    const senderName = isTeam ? "Hurry Team" : "Hurry System";
+    const senderPhoto = isTeam ? "/logo.png" : "/file_00000000a66881f8aa9e15d2fe2b9a0c.png";
+
+    const messageId = String(data.id || `official_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+
+    const payload = {
+      id: messageId,
+      senderId: rawSenderId,
+      senderName,
+      senderPhoto,
+      text: String(data.text || ""),
+      type: data.type || (data.imageUrl ? "image" : "message"),
+      imageUrl: data.imageUrl || undefined,
+      timestamp: Number(data.timestamp || Date.now()),
+      isOfficialBroadcast: true,
+    };
+
+    try {
+      if (db) {
+        await db.collection("officialMessages").updateOne(
+          { id: messageId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("Official message save failed:", error.message);
+    }
+
+    // Broadcast to ALL connected clients in real time
+    io.emit("official_broadcast_message", payload);
+  });
+
+  socket.on("official_message_history_request", async () => {
+    try {
+      if (db) {
+        const messages = await db
+          .collection("officialMessages")
+          .find({})
+          .sort({ timestamp: 1 })
+          .limit(500)
+          .toArray();
+
+        socket.emit("official_message_history_response", { messages });
+      } else {
+        socket.emit("official_message_history_response", { messages: [] });
+      }
+    } catch (error) {
+      console.error("Official message history fetch failed:", error.message);
+      socket.emit("official_message_history_response", { messages: [] });
+    }
+  });
+
   socket.on("disconnect", () => {
     const room = socket.roomId;
     const userId =

@@ -243,6 +243,74 @@ useEffect(() => {
       accountId: accNum
     });
     socket.emit('check_presence', targetUser.uid);
+    if (isFixedChat) {
+      socket.emit('official_message_history_request');
+    }
+  };
+
+  const handleOfficialBroadcast = async (data: any) => {
+    if (!data?.senderId || data.senderId !== targetUser.uid) return;
+
+    const message: Message = {
+      id: String(data.id || `official_${data.timestamp || Date.now()}`),
+      text: data.text || '',
+      sender: 'other',
+      timestamp: Number(data.timestamp || Date.now()),
+      type: data.type || 'message',
+      imageUrl: data.imageUrl || undefined,
+    };
+
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+
+      const updated = [...prev, message].sort(
+        (a, b) => a.timestamp - b.timestamp
+      );
+
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: message.type === 'image' ? '📷 Image' : message.text,
+        lastTimestamp: message.timestamp,
+        unreadCount: 0,
+      });
+      return updated;
+    });
+  };
+
+  const handleOfficialHistoryResponse = async (data: any) => {
+    if (!isFixedChat || !Array.isArray(data?.messages)) return;
+
+    const officialMsgs: Message[] = data.messages
+      .filter((m: any) => m?.senderId === targetUser.uid)
+      .map((m: any) => ({
+        id: String(m.id || `official_${m.timestamp || Date.now()}`),
+        text: m.text || '',
+        sender: 'other' as const,
+        timestamp: Number(m.timestamp || Date.now()),
+        type: m.type || 'message',
+        imageUrl: m.imageUrl || undefined,
+      }));
+
+    if (officialMsgs.length === 0) return;
+
+    setMessages((prev) => {
+      const map = new Map<string, Message>();
+      prev.forEach((m) => map.set(m.id, m));
+      officialMsgs.forEach((m) => map.set(m.id, m));
+
+      const updated = Array.from(map.values()).sort(
+        (a, b) => a.timestamp - b.timestamp
+      );
+
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      return updated;
+    });
   };
 
   const handlePrivateMessage = async (data: any) => {
@@ -301,6 +369,8 @@ useEffect(() => {
   socket.on('connect', handleConnect);
   socket.on('disconnect', handleDisconnect);
   socket.on('private_message', handlePrivateMessage);
+  socket.on('official_broadcast_message', handleOfficialBroadcast);
+  socket.on('official_message_history_response', handleOfficialHistoryResponse);
 
   if (socket.connected) {
     registerUser();
@@ -310,8 +380,10 @@ useEffect(() => {
     socket.off('connect', handleConnect);
     socket.off('disconnect', handleDisconnect);
     socket.off('private_message', handlePrivateMessage);
+    socket.off('official_broadcast_message', handleOfficialBroadcast);
+    socket.off('official_message_history_response', handleOfficialHistoryResponse);
   };
-}, [chatId, currentUser.uid, targetUser.uid]);
+}, [chatId, currentUser.uid, targetUser.uid, isFixedChat]);
 
 // ========== Auto-send room invite if sharedRoomData provided ==========
   useEffect(() => {
