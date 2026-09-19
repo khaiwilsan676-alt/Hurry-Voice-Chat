@@ -2968,8 +2968,8 @@ useEffect(() => {
 
         {/* Global Rooms Grid */}
         {allRooms.length > 0 ? (
-          <div className="px-4" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-            <div className="grid grid-cols-2 gap-1.5">
+          <div className="px-3" style={{ marginTop: isAndroid ? '3px' : '12px' }}>
+            <div className="grid grid-cols-2 gap-2">
               {allRooms.map((room) => (
                 <div
                   key={room.accountId}
@@ -2984,7 +2984,7 @@ useEffect(() => {
                   className="cursor-pointer group"
                 >
                   <div 
-                    className="relative bg-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                    className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
                     style={{ height: '170px' }}
                   >
                     <img
