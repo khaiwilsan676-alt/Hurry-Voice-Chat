@@ -1187,6 +1187,62 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("user_feedback", async (data = {}) => {
+    const feedbackId = String(
+      data.id || `${data.userId || "user"}_${Date.now()}`
+    );
+
+    const payload = {
+      id: feedbackId,
+      userId: String(data.userId || ""),
+      userName: String(data.userName || "User"),
+      userAccountId: String(data.userAccountId || data.userId || ""),
+      userPhoto: String(data.userPhoto || data.userImage || ""),
+      userEmail: String(data.userEmail || ""),
+      type: String(data.type || "other"),
+      typeLabel: String(data.typeLabel || data.type || "Feedback"),
+      description: String(data.description || data.text || ""),
+      contactInfo: String(data.contactInfo || ""),
+      timestamp: Number(data.timestamp || Date.now()),
+      createdAt: data.createdAt || new Date().toISOString(),
+    };
+
+    try {
+      if (db) {
+        await db.collection("userFeedbacks").updateOne(
+          { id: payload.id },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("User feedback save failed:", error.message);
+    }
+
+    // Broadcast user feedback real-time update to all connected clients (including owner panel)
+    io.emit("user_feedback", payload);
+  });
+
+  socket.on("user_feedback_history_request", async () => {
+    try {
+      if (db) {
+        const feedbacks = await db
+          .collection("userFeedbacks")
+          .find({})
+          .sort({ timestamp: -1 })
+          .limit(300)
+          .toArray();
+
+        socket.emit("user_feedback_history_response", { feedbacks });
+      } else {
+        socket.emit("user_feedback_history_response", { feedbacks: [] });
+      }
+    } catch (error) {
+      console.error("User feedback history fetch failed:", error.message);
+      socket.emit("user_feedback_history_response", { feedbacks: [] });
+    }
+  });
+
   socket.on("disconnect", () => {
     const room = socket.roomId;
     const userId =

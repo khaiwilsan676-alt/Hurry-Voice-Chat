@@ -4,6 +4,7 @@ import { apiUrl } from "../src/lib/api";
 
 import React, { useEffect, useState, useRef } from 'react'
 import { ChevronRight, Copy, ArrowLeft } from 'lucide-react'
+import { socket } from '../src/lib/socket'
 import SettingPage from './settingpage'
 import PublicProfile from './PublicProfile'
 import HurrySupport from './HurrySupport'
@@ -525,6 +526,12 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
     setFeedbackSubmitting(true);
 
     const feedbackData = {
+      id: `${user.uid || user.accountNumber || 'user'}_${Date.now()}`,
+      userId: user.uid || '',
+      userName: user.name || 'User',
+      userAccountId: user.displayAccountNumber || user.accountNumber || user.uid || '',
+      userPhoto: user.photo || '',
+      userEmail: user.phone || '',
       type: selectedType,
       typeLabel: FEEDBACK_TYPES.find(t => t.id === selectedType)?.label || selectedType,
       description: problemDescription.trim(),
@@ -536,6 +543,12 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
     try {
       await saveFeedbackToDB(feedbackData);
+
+      // Emit real-time feedback via Socket.IO
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit("user_feedback", feedbackData);
       
       setFeedbackSuccess(true);
       setSelectedType('');
@@ -548,21 +561,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
       }, 2000);
 
     } catch (error) {
-      console.error("Error submitting feedback to Google Sheets:", error);
-      try {
-        await saveFeedbackToDB(feedbackData);
-        setFeedbackSuccess(true);
-        setSelectedType('');
-        setProblemDescription('');
-        setContactInfo('');
-        
-        setTimeout(() => {
-          setShowFeedbackPage(false);
-          setFeedbackSuccess(false);
-        }, 2000);
-      } catch (dbError) {
-        setFeedbackError("Failed to submit feedback. Please try again.");
-      }
+      console.error("Error submitting feedback:", error);
+      setFeedbackError("Failed to submit feedback. Please try again.");
     } finally {
       setFeedbackSubmitting(false);
     }
