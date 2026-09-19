@@ -764,46 +764,13 @@ async function fetchSearchResults(
   const foundList: GlobalRoom[] = [];
   const addedKeys = new Set<string>();
 
-  // FIRST: search already-loaded live/local rooms.
-  for (const room of globalRooms) {
-    const roomId = String(room.id || "");
-    const accountId = String(room.accountId || "");
-    const name = String(room.name || "");
-
-    const exactMatch =
-      roomId.toLowerCase() === queryLower ||
-      accountId.toLowerCase() === queryLower;
-
-    const partialIdMatch =
-      (accountId && accountId.toLowerCase().includes(queryLower)) ||
-      (roomId && roomId.toLowerCase().includes(queryLower));
-
-    const nameMatch =
-      name.toLowerCase().includes(queryLower);
-
-    if (exactMatch || partialIdMatch || nameMatch) {
-      const key = `${accountId}_${roomId}`;
-
-      if (!addedKeys.has(key) && (!accountId || !addedKeys.has(accountId)) && (!roomId || !addedKeys.has(roomId))) {
-        addedKeys.add(key);
-        if (accountId) addedKeys.add(accountId);
-        if (roomId) addedKeys.add(roomId);
-        foundList.push(room);
-      }
-    }
-  }
-
-  // FALLBACK / SUPPLEMENT: Search users via API endpoint for ID matching
+  // 1. PRIMARY: Direct MongoDB search for matching ID / user / accountId
   try {
     const controller = new AbortController();
-
-    const timeout = window.setTimeout(
-      () => controller.abort(),
-      2500
-    );
+    const timeout = window.setTimeout(() => controller.abort(), 3500);
 
     const response = await fetch(
-      apiUrl(`/api/users?search=${encodeURIComponent(query)}&accountId=${encodeURIComponent(query)}`),
+      apiUrl(`/api/users?search=${encodeURIComponent(query)}&accountId=${encodeURIComponent(query)}&q=${encodeURIComponent(query)}`),
       {
         cache: "no-store",
         signal: controller.signal,
@@ -825,18 +792,9 @@ async function fetchSearchResults(
       for (const user of rawUsers) {
         if (!user) continue;
 
-        const userId = String(
-          user.id ||
-          user.uid ||
-          user.appLongId ||
-          ""
-        );
-
+        const userId = String(user.id || user.uid || user.appLongId || "");
         let accountId = String(
-          user.accountId ||
-          user.displayUserNumber ||
-          user.accountNumber ||
-          ""
+          user.accountId || user.accountNumber || user.displayUserNumber || user["Account Number"] || ""
         );
 
         if (!accountId || accountId === userId) {
@@ -848,25 +806,17 @@ async function fetchSearchResults(
         if (key && !addedKeys.has(key) && !addedKeys.has(userId)) {
           addedKeys.add(key);
           addedKeys.add(userId);
+          if (accountId) addedKeys.add(accountId);
+
           foundList.push({
-            id: userId,
-            name:
-              user.name ||
-              user.displayName ||
-              "User",
-            country:
-              user.country || "🇮🇳",
-            image:
-              user.image ||
-              user.photo ||
-              user.photoURL ||
-              "/default-avatar.png",
+            id: userId || accountId,
+            name: user.name || user.displayName || user.userName || "User",
+            country: user.country || "🇮🇳",
+            image: user.image || user.photo || user.photoURL || user.avatar || "/default-avatar.png",
             accountId: accountId,
-            createdAt:
-              user.createdAt || Date.now(),
+            createdAt: user.createdAt || Date.now(),
             isLocked: Boolean(user.isLocked),
-            roomPassword:
-              user.roomPassword || null,
+            roomPassword: user.roomPassword || null,
             isExplicitlyCreated: true,
             activeUserCount: 0,
           });
@@ -874,10 +824,35 @@ async function fetchSearchResults(
       }
     }
   } catch (error) {
-    console.error(
-      "Fast user search error:",
-      error
-    );
+    console.error("MongoDB user search error:", error);
+  }
+
+  // 2. SUPPLEMENT: Match globalRooms / local rooms
+  for (const room of globalRooms) {
+    const roomId = String(room.id || "");
+    const accountId = String(room.accountId || "");
+    const name = String(room.name || "");
+
+    const exactMatch =
+      roomId.toLowerCase() === queryLower ||
+      accountId.toLowerCase() === queryLower;
+
+    const partialIdMatch =
+      (accountId && accountId.toLowerCase().includes(queryLower)) ||
+      (roomId && roomId.toLowerCase().includes(queryLower));
+
+    const nameMatch = name.toLowerCase().includes(queryLower);
+
+    if (exactMatch || partialIdMatch || nameMatch) {
+      const key = `${accountId}_${roomId}`;
+
+      if (!addedKeys.has(key) && (!accountId || !addedKeys.has(accountId)) && (!roomId || !addedKeys.has(roomId))) {
+        addedKeys.add(key);
+        if (accountId) addedKeys.add(accountId);
+        if (roomId) addedKeys.add(roomId);
+        foundList.push(room);
+      }
+    }
   }
 
   return foundList;
@@ -1661,17 +1636,37 @@ useEffect(() => {
 
           if (roomBelongsToCurrentUser) {
             setIsRoomCreated(true)
+
+            let actualName = parsed.name;
+            let actualDp = parsed.image || parsed.roomDp || photo || '/default-avatar.png';
+
+            if (uid) {
+              try {
+                const mongoRoom = await fetchRoomFromMongoDB(uid);
+                if (mongoRoom) {
+                  const mName = mongoRoom['Room Name'] || mongoRoom.roomName || mongoRoom.name;
+                  const mDp = mongoRoom['Room dp'] || mongoRoom.roomDp || mongoRoom.image;
+                  if (mName && mName !== 'My Room' && mName !== 'My room') actualName = mName;
+                  if (mDp && mDp !== 'undefined' && mDp !== 'null') actualDp = mDp;
+                }
+              } catch (err) {
+                console.warn('Error fetching room from MongoDB in loadProfile:', err);
+              }
+            }
+
+            if (!actualName || actualName === 'My Room' || actualName === 'My room') {
+              actualName = name ? `${name}'s Room` : 'Voice Chat Room';
+            }
+
             const updatedRoom = {
               ...parsed,
               id: parsed.id || uid,
               accountId: finalAccNum,
-              image:
-                parsed.image ||
-                parsed.roomDp ||
-                photo ||
-                '/default-avatar.png'
+              name: actualName,
+              image: actualDp
             };
             setMyRoom(updatedRoom);
+            localStorage.setItem('myRoom', JSON.stringify(updatedRoom));
             await saveRoomToDB(updatedRoom);
           } else {
             // Room belongs to a different ID, reset local room state for new user ID
@@ -2124,17 +2119,36 @@ useEffect(() => {
     const storedAccNum = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
 
     if (isRoomCreated && myRoom) {
+      let currentRoomName = myRoom.name;
+      if (!currentRoomName || currentRoomName === 'My Room' || currentRoomName === 'My room') {
+        currentRoomName = userName ? `${userName}'s Room` : 'Voice Chat Room';
+      }
+      let currentRoomDp = myRoom.image;
+      if (!currentRoomDp || currentRoomDp === 'undefined' || currentRoomDp === 'null' || currentRoomDp === '/default-avatar.png') {
+        currentRoomDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png';
+      }
+
+      const updatedMyRoom = {
+        ...myRoom,
+        name: currentRoomName,
+        image: currentRoomDp,
+        accountId: myRoom.accountId || storedAccNum
+      };
+
+      setMyRoom(updatedMyRoom);
+      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoom));
+
       addToRecent({ 
-        name: myRoom.name, 
-        image: myRoom.image, 
-        accountId: myRoom.accountId || storedAccNum 
+        name: updatedMyRoom.name,
+        image: updatedMyRoom.image,
+        accountId: updatedMyRoom.accountId
       })
-      setSelectedUser(myRoom)
+      setSelectedUser(updatedMyRoom)
       setCurrentPage('room')
       return;
     }
 
-    const defaultRoomName = "My Room"
+    const defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
 
     const createdRoomCard: UserCard = {
       id: userUID,
@@ -2635,21 +2649,24 @@ useEffect(() => {
         ) : (
           <>
             <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-white/50">
-              {myRoom?.image ? (
-                <img
-                  src={myRoom.image}
-                  alt="Room Avatar"
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-600 flex items-center justify-center text-white font-bold text-xl">
-                  {myRoom?.name?.charAt(0).toUpperCase() || 'H'}
-                </div>
-              )}
+              <img
+                src={
+                  myRoom?.image && myRoom.image !== 'undefined' && myRoom.image !== 'null'
+                    ? myRoom.image
+                    : (userPhoto || '/default-avatar.png')
+                }
+                alt={myRoom?.name || 'Room Avatar'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = userPhoto || '/default-avatar.png';
+                }}
+              />
             </div>
             <div className="flex flex-col">
               <h3 className="text-white font-bold text-xl leading-tight">
-                {myRoom?.name || "My Room"}
+                {myRoom?.name && myRoom.name !== 'My Room' && myRoom.name !== 'My room'
+                  ? myRoom.name
+                  : (userName ? `${userName}'s Room` : 'Voice Chat Room')}
               </h3>
               <p className="text-white/80 text-sm mt-1 font-medium">
                 {t.enterRoomSubtitle || 'Tap to enter your room'}
@@ -3177,7 +3194,7 @@ useEffect(() => {
               />
             </div>
             <button
-              onClick={handlePerformSearch}
+              onClick={() => handlePerformSearch()}
               className="p-2.5 bg-gradient-to-tr from-blue-500 to-indigo-500 text-white rounded-full shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

@@ -529,6 +529,32 @@ export default function PublicProfile({
 
   // Instant Synchronous Lock state load to prevent Guest/blank flashing
   const [user, setUser] = useState(() => {
+    if (isOtherUser && targetUser) {
+      const targetUid = targetUser.uid || targetUser.id || 'N/A'
+      const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
+      const displayAccNum = searchKey !== 'N/A' ? generateStableId(searchKey) : ''
+      const initialName = isValidName(targetUser.name) ? targetUser.name! : (displayAccNum || 'User')
+      const photo = targetUser.photo || targetUser.image || '/default-avatar.png'
+      return {
+        name: initialName,
+        uid: targetUid,
+        displayAccountNumber: displayAccNum,
+        photo: photo,
+        coverPhoto: targetUser.coverPhoto || '',
+        gender: (targetUser.gender === 'female' || targetUser.gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+        age: targetUser.age ? (typeof targetUser.age === 'number' ? targetUser.age : parseInt(String(targetUser.age))) : 22,
+        followers: targetUser.followers || 0,
+        bio: targetUser.bio || '',
+        location: targetUser.location || targetUser.country || 'India',
+        flag: targetUser.flag || '🇮🇳',
+        countryCode: targetUser.countryCode || 'IN',
+        officialTag: Boolean(targetUser.officialTag),
+        adminTag: Boolean(targetUser.adminTag),
+        vipTag: Boolean(targetUser.vipTag),
+        premiumTag: Boolean(targetUser.premiumTag),
+      }
+    }
+
     if (typeof window === 'undefined') {
       return {
         name: '',
@@ -671,6 +697,7 @@ export default function PublicProfile({
 
 // Save current user data to IndexedDB
   const saveCurrentUserToDB = async () => {
+    if (isOtherUser) return;
     const uid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone');
     if (uid && uid !== 'N/A') {
       const profileData = {
@@ -702,28 +729,49 @@ export default function PublicProfile({
     const loadProfileData = async () => {
       if (isOtherUser && targetUser) {
         const targetUid = targetUser.uid || targetUser.id || 'N/A'
+        const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
+        let displayAccNum = searchKey !== 'N/A' ? generateStableId(searchKey) : ''
+        let initialName = isValidName(targetUser.name) ? targetUser.name! : (displayAccNum || 'User')
 
-        let displayAccNum = generateStableId(targetUser.accountId || targetUser.displayAccountNumber || targetUid)
-        let initialName = targetUser.name || ''
-        if (!isValidName(initialName)) initialName = targetUid.substring(0, 8)
-
-        let photo = targetUser.photo || targetUser.image || ''
+        let photo = targetUser.photo || targetUser.image || '/default-avatar.png'
         let coverPhoto = targetUser.coverPhoto || ''
         let bio = targetUser.bio || ''
         let country = targetUser.country || targetUser.location || 'India'
         let countryCode = targetUser.countryCode || 'IN'
-        let gender = targetUser.gender || '♂'
+        let gender = targetUser.gender || '♀'
         let age = targetUser.age
           ? typeof targetUser.age === 'number'
             ? targetUser.age
-            : parseInt(targetUser.age)
+            : parseInt(String(targetUser.age))
           : 22
         let followers = targetUser.followers || 0
         let album: string[] = []
-        let officialTag = targetUser.officialTag || false
-        let adminTag = targetUser.adminTag || false
-        let vipTag = targetUser.vipTag || false
-        let premiumTag = targetUser.premiumTag || false
+        let officialTag = Boolean(targetUser.officialTag)
+        let adminTag = Boolean(targetUser.adminTag)
+        let vipTag = Boolean(targetUser.vipTag)
+        let premiumTag = Boolean(targetUser.premiumTag)
+
+        const initialTargetUser = {
+          uid: targetUid,
+          name: initialName,
+          displayAccountNumber: displayAccNum,
+          photo,
+          coverPhoto,
+          gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+          age,
+          followers,
+          bio,
+          location: country,
+          flag: '🇮🇳',
+          countryCode,
+          albumImages: album,
+          officialTag,
+          adminTag,
+          vipTag,
+          premiumTag,
+        }
+
+        setUser(initialTargetUser)
 
         if (targetUid && targetUid !== 'N/A') {
           const cachedProfile = await loadProfileFromDB(targetUid);
@@ -752,76 +800,66 @@ export default function PublicProfile({
 
           try {
             const mongoResponse = await fetch(
-              apiUrl(`/api/users?uid=${encodeURIComponent(targetUid)}`)
+              apiUrl(`/api/users?search=${encodeURIComponent(searchKey)}&accountId=${encodeURIComponent(searchKey)}&uid=${encodeURIComponent(targetUid)}`)
             );
 
-            if (!mongoResponse.ok) {
-              throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`);
-            }
+            if (mongoResponse.ok) {
+              const res = await mongoResponse.json();
+              const data = res && (res.user || (Array.isArray(res.users) ? res.users[0] : null) || res.data);
 
-            const res = await mongoResponse.json();
-            const data = res && (res.user || res.data || res);
+              if (data && (data.id || data.uid || data.accountId || data.name)) {
+                displayAccNum = data.accountId || data.accountNumber || data['Account Number'] || displayAccNum;
 
-            if (data && (data.id || data.AppLongId || data['App long ID'] || data.Name || data.name)) {
-              displayAccNum = data.accountId || data.accountNumber || data['Account Number']
-                ? String(data.accountId || data.accountNumber || data['Account Number'])
-                : displayAccNum;
+                const docName = data.name || data.Name || data.displayName || data.userName || data.fullName;
+                const finalName = isValidName(docName) ? docName : initialName;
 
-              const docName = data.name || data.Name || data.displayName || data.userName || data.fullName;
-              const finalName = isValidName(docName) ? docName : (isValidName(initialName) ? initialName : targetUid.substring(0, 8));
+                photo = data.photo || data.photoURL || data.image || data.avatar || photo;
+                coverPhoto = data.coverPhoto || data.coverImage || data.backCover || coverPhoto;
+                bio = data.bio || data.Bio || data.about || bio;
+                country = data.country || data.Country || data.location || country;
+                countryCode = data.countryCode || countryCode;
+                gender = data.gender || data.Gender || gender;
+                age = data.age || data.Age ? parseInt(String(data.age || data.Age)) : age;
+                followers = data.followers !== undefined ? data.followers : followers;
+                officialTag = Boolean(data.officialTag ?? officialTag);
+                adminTag = Boolean(data.adminTag ?? adminTag);
+                vipTag = Boolean(data.vipTag ?? vipTag);
+                premiumTag = Boolean(data.premiumTag ?? premiumTag);
 
-              photo = data.photo || data.photoURL || data.image || data.avatar || data.Avtar || photo;
-              coverPhoto = data.coverPhoto || data.coverImage || data.backCover || data['Back Cover'] || coverPhoto;
-              let bio = data.bio || data.Bio || data.about || '';
-              let country = data.country || data.Country || data.location || 'India';
-              let countryCode = data.countryCode || 'IN';
-              let gender = data.gender || data.Gender || '♀';
-              let age = data.age || data.Age ? parseInt(data.age || data.Age) : 18;
-              let followers = data.followers !== undefined ? data.followers : 0;
-              let officialTag = data.officialTag;
-              let adminTag = data.adminTag;
-              let vipTag = data.vipTag;
-              let premiumTag = data.premiumTag;
+                if (data.albumImages && Array.isArray(data.albumImages)) {
+                  album = data.albumImages;
+                } else if (data.album && Array.isArray(data.album)) {
+                  album = data.album;
+                }
 
-              let album = [];
-              if (data.albumImages && Array.isArray(data.albumImages)) {
-                album = data.albumImages;
-              } else if (data.album && Array.isArray(data.album)) {
-                album = data.album;
+                const matchedCountry = COUNTRIES.find(
+                  (c) => c.code === countryCode || c.name === country || c.flag === country
+                ) || { name: 'India', flag: '🇮🇳', code: 'IN' };
+
+                const profileData = {
+                  uid: targetUid,
+                  name: finalName,
+                  displayAccountNumber: String(displayAccNum),
+                  photo,
+                  coverPhoto,
+                  gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+                  age,
+                  followers,
+                  bio,
+                  location: matchedCountry.name,
+                  flag: matchedCountry.flag,
+                  countryCode: matchedCountry.code,
+                  albumImages: album,
+                  officialTag,
+                  adminTag,
+                  vipTag,
+                  premiumTag,
+                };
+
+                setUser(profileData);
+                setAlbumImages(album);
+                await saveProfileToDB(profileData);
               }
-
-              if (!displayAccNum) {
-                displayAccNum = getOrCreateAccountNumber(targetUid);
-              }
-
-              const matchedCountry = COUNTRIES.find(
-                (c) =>
-                  c.code === countryCode || c.name === country || c.flag === country
-              ) || { name: 'India', flag: '🇮🇳', code: 'IN' };
-
-              const profileData = {
-                uid: targetUid,
-                name: finalName,
-                displayAccountNumber: displayAccNum,
-                photo,
-                coverPhoto,
-                gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
-                age,
-                followers,
-                bio,
-                location: matchedCountry.name,
-                flag: matchedCountry.flag,
-                countryCode: matchedCountry.code,
-                albumImages: album,
-                officialTag,
-                adminTag,
-                vipTag,
-                premiumTag,
-              };
-
-              setAlbumImages(album);
-              setUser(profileData);
-              await saveProfileToDB(profileData);
             }
           } catch (err) {
             console.warn('MongoDB fetch error for Target User:', err);
