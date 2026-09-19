@@ -635,51 +635,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       });
 
     const loadMessages = async () => {
-      try {
-        const db = await openRoomMessagesDB();
-        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readonly");
-        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
-        const index = store.index("roomId");
+      if (cancelled) return;
 
-        const stored = await new Promise<any[]>((resolve, reject) => {
-          const request = index.getAll(roomId);
-
-          request.onsuccess = () => resolve(request.result || []);
-          request.onerror = () => reject(request.error);
-        });
-
-        db.close();
-
-        if (cancelled) return;
-
-        const msgs = stored
-          .map(data => ({
-            id: String(data.id),
-            text: data.text || "",
-            sender: data.sender || "Unknown",
-            senderImage:
-              data.senderImage || "/default-avatar.png",
-            senderAccountId: data.senderAccountId || "",
-            timestamp: Number(data.timestamp || Date.now()),
-            type: data.type || "message",
-            imageUrl: data.imageUrl || undefined,
-          } as Message))
-          .filter(msg => {
-            if (
-              clearedAtRef.current &&
-              msg.timestamp <= clearedAtRef.current
-            ) {
-              return false;
-            }
-
-            return true;
-          })
-          .sort((a, b) => a.timestamp - b.timestamp);
-
-        setMessages(msgs);
-      } catch (err) {
-        console.error("IndexedDB room messages load error:", err);
-      }
+      // Do NOT restore old room messages when entering/re-entering.
+      // Only new realtime messages received after entering are shown.
+      setMessages([]);
     };
 
     loadMessages();
@@ -987,6 +947,56 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     );
 
     socket.on(
+      "room_seats",
+      (data: any) => {
+        if (
+          !data ||
+          String(data.roomId) !== String(roomId) ||
+          !Array.isArray(data.seats)
+        ) {
+          return;
+        }
+
+        setSeats(prev => {
+          const base =
+            prev.length > 0
+              ? prev
+              : getInitialSeats(micMode);
+
+          const byNumber = new Map(
+            base.map(seat => [seat.number, seat])
+          );
+
+          for (const incoming of data.seats) {
+            const number = Number(incoming?.number);
+
+            if (!Number.isFinite(number)) {
+              continue;
+            }
+
+            const existing = byNumber.get(number);
+
+            byNumber.set(number, {
+              ...(existing || {
+                number,
+                isOccupied: false,
+                isLocked: false,
+                isMuted: false,
+                isSpeaking: false,
+              }),
+              ...incoming,
+              number,
+            });
+          }
+
+          return Array.from(byNumber.values()).sort(
+            (a, b) => a.number - b.number
+          );
+        });
+      }
+    );
+
+    socket.on(
       "room_presence",
       handleRoomPresence
     );
@@ -1032,6 +1042,12 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
   return () => {
     socket.off("connect", joinRoom);
+
+      socket.off(
+        "room_seats",
+        handleRoomSeats
+      );
+
       socket.off(
         "room_presence",
         handleRoomPresence
@@ -1200,6 +1216,36 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     }
   };
 
+  const emitSeatAction = (
+    action: "take" | "leave" | "mute" | "lock" | "emoji",
+    seatNumber: number,
+    extra: Record<string, any> = {}
+  ) => {
+    if (!roomId || userAccountId === "guest") return;
+
+    const send = () => {
+      socket.emit("room_seat_action", {
+        roomId,
+        userId: userAccountId,
+        action,
+        seatNumber,
+        user: {
+          name: currentUser.name || "User",
+          image: currentUser.image || "/default-avatar.png",
+          accountId: userAccountId,
+        },
+        ...extra,
+      });
+    };
+
+    if (socket.connected) {
+      send();
+    } else {
+      socket.once("connect", send);
+      socket.connect();
+    }
+  };
+
   const handleTakeSeat = async (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -1236,6 +1282,15 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       });
 
       setSeats(updatedSeats);
+
+      emitSeatAction("take", selectedSeat, {
+        user: {
+          name: currentUser.name || "User",
+          image: currentUser.image || "/default-avatar.png",
+          accountId: userAccountId,
+        },
+      });
+
       setShowSeatSheet(false);
       setSelectedSeat(null);
     } catch (err) {
@@ -1259,6 +1314,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       });
 
       setSeats(updatedSeats);
+
+      emitSeatAction("leave", selectedSeat);
+
       setShowSeatSheet(false);
       setSelectedSeat(null);
     } catch (err) {
@@ -1290,6 +1348,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     );
 
     setSeats(updatedSeats);
+
+    emitSeatAction("mute", currentUserSeat.number, {
+      isMuted: newMuteState,
+    });
   };
 
   const handleToggleMute = async (e?: React.MouseEvent) => {
@@ -1305,6 +1367,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     const newMuteState = !target.isMuted;
     const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isMuted: newMuteState } : s);
     setSeats(updatedSeats);
+
+    emitSeatAction("mute", target.number, {
+      isMuted: newMuteState,
+    });
 
     setShowSeatSheet(false);
     setSelectedSeat(null);
@@ -1323,6 +1389,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     const newLockState = !target.isLocked;
     const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isLocked: newLockState } : s);
     setSeats(updatedSeats);
+
+    emitSeatAction("lock", target.number, {
+      isLocked: newLockState,
+    });
 
     setShowSeatSheet(false);
     setSelectedSeat(null);
@@ -1540,6 +1610,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       }
     } : s));
 
+    emitSeatAction("emoji", seatNum, {
+      src: emojiData.src,
+      timestamp: sendTimestamp,
+    });
+
     setTimeout(() => {
       setSeats(prev => prev.map(s => s.number === seatNum ? {
         ...s,
@@ -1552,9 +1627,39 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     handleSeatEmoji(emojiData);
   };
 
-  const handleClearChat = () => {
-    clearedAtRef.current = Date.now();
+  const handleClearChat = async () => {
+    const clearTime = Date.now();
+    clearedAtRef.current = clearTime;
     setMessages([]);
+
+    try {
+      const db = await openRoomMessagesDB();
+      const transaction = db.transaction(
+        [ROOM_MESSAGES_STORE],
+        "readwrite"
+      );
+      const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+      const index = store.index("roomId");
+      const request = index.openCursor(roomId);
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          db.close();
+        }
+      };
+
+      request.onerror = () => {
+        console.error("IndexedDB clear chat error:", request.error);
+        db.close();
+      };
+    } catch (err) {
+      console.error("Clear chat error:", err);
+    }
   };
 
   const liveUserCount = roomUsers.length;
