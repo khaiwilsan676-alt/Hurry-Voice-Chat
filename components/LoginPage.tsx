@@ -140,12 +140,15 @@ const syncUserToMongoDB = async (uid: string, name: string, email: string, photo
     const res = await getUserFromMongoDB(uid)
     const existingUser = res && (res.user || res.data || res)
 
-    if (existingUser && (existingUser.id || existingUser.AppLongId || existingUser['App long ID'] || existingUser.email || existingUser.Name || existingUser.name)) {
+    let existingEmail = ""
+
+    if (existingUser && (existingUser.id || existingUser.AppLongId || existingUser['App long ID'] || existingUser.email || existingUser.gmail || existingUser.Name || existingUser.name)) {
       finalAccountId = String(existingUser.accountId || existingUser.accountNumber || existingUser['Account Number'] || '')
       existingName = existingUser.name || existingUser.Name || ''
       existingImage = existingUser.image || existingUser.avatar || existingUser.Avtar || existingUser.photo || ''
       existingBio = existingUser.bio || existingUser.Bio || ''
       existingCountry = existingUser.country || existingUser.Country || ''
+      existingEmail = existingUser.email || existingUser.gmail || ''
     }
 
     if (OFFICIAL_IDS.includes(uid) || ADMIN_IDS.includes(uid) || SPECIAL_ACCOUNTS[uid]) {
@@ -154,7 +157,8 @@ const syncUserToMongoDB = async (uid: string, name: string, email: string, photo
       finalAccountId = getOrCreateAccountNumber(uid)
     }
 
-    const finalName = existingName || name || email.split('@')[0] || 'User'
+    const finalEmail = email || existingEmail || ''
+    const finalName = existingName || name || (finalEmail ? finalEmail.split('@')[0] : 'User')
     const finalImage = existingImage || photo || '/default-avatar.png'
     const finalCountry = existingCountry || '🇮🇳'
 
@@ -162,7 +166,8 @@ const syncUserToMongoDB = async (uid: string, name: string, email: string, photo
       id: uid,
       appLongId: uid,
       name: finalName,
-      email: email,
+      email: finalEmail,
+      gmail: finalEmail,
       country: finalCountry,
       image: finalImage,
       avatar: finalImage,
