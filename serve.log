@@ -1,94 +1,29 @@
-npm warn exec The following package was not found and will be installed: serve@14.2.6
  INFO  Accepting connections at http://localhost:3000
- HTTP  9/19/2026 4:56:13 AM ::1 GET /owner
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 262 ms
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/css/f8743d30c39c8d9e.css
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/webpack-f12a3d0ec3b37cb0.js
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/4bd1b696-215e5051988c3dde.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/794-337e750527b970b0.js
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/main-app-3f94d1654d7621f8.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/805-5ff3116500fef5f8.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/app/layout-fd367369810a780d.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/f9bd3b46-0b5bc73122bae5a2.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/681-522fd27feb4cbc07.js
- HTTP  9/19/2026 4:56:13 AM ::1 GET /_next/static/chunks/app/owner/page-0ae0ec338f2e010c.js
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 13 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 12 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 12 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 12 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 12 ms
- HTTP  9/19/2026 4:56:13 AM ::1 Returned 200 in 15 ms
- HTTP  9/19/2026 4:56:14 AM ::1 GET /_next/static/chunks/711.eabd49b975174e2e.js
- HTTP  9/19/2026 4:56:14 AM ::1 GET /api/users
- HTTP  9/19/2026 4:56:14 AM ::1 Returned 200 in 9 ms
- HTTP  9/19/2026 4:56:14 AM ::1 Returned 404 in 9 ms
- HTTP  9/19/2026 4:56:14 AM ::1 GET /_vercel/insights/script.js
- HTTP  9/19/2026 4:56:14 AM ::1 Returned 404 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /owner
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/css/f8743d30c39c8d9e.css
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 1 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/webpack-f12a3d0ec3b37cb0.js
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/4bd1b696-215e5051988c3dde.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/794-337e750527b970b0.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 1 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/main-app-3f94d1654d7621f8.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/805-5ff3116500fef5f8.js
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/app/layout-fd367369810a780d.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/f9bd3b46-0b5bc73122bae5a2.js
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/681-522fd27feb4cbc07.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/app/owner/page-0ae0ec338f2e010c.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 9 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_next/static/chunks/711.eabd49b975174e2e.js
- HTTP  9/19/2026 4:57:06 AM ::1 GET /api/users
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 404 in 5 ms
- HTTP  9/19/2026 4:57:06 AM ::1 GET /_vercel/insights/script.js
- HTTP  9/19/2026 4:57:06 AM ::1 Returned 404 in 0 ms
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0004.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0005.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0006.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0007.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0040.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 GET /IMG-20260904-WA0041.jpg
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 4 ms
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:18 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260815_103351.jpg
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000443.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000508.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000521.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000541.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000624.png
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000643.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000850.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000832.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000814.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000756.png
- HTTP  9/19/2026 4:57:21 AM ::1 GET /IMG_20260906_000713.png
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 11 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 11 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 12 ms
- HTTP  9/19/2026 4:57:21 AM ::1 Returned 200 in 12 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /owner
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 370 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/css/f8743d30c39c8d9e.css
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/webpack-f12a3d0ec3b37cb0.js
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 3 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 7 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/4bd1b696-215e5051988c3dde.js
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/794-337e750527b970b0.js
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/main-app-3f94d1654d7621f8.js
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/805-5ff3116500fef5f8.js
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/app/layout-fd367369810a780d.js
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/f9bd3b46-0b5bc73122bae5a2.js
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/681-522fd27feb4cbc07.js
+ HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/app/owner/page-293ec4dea0b6468e.js
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 3 ms
+ HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 2 ms
+ HTTP  9/19/2026 5:36:04 AM ::1 GET /_next/static/chunks/711.eabd49b975174e2e.js
+ HTTP  9/19/2026 5:36:04 AM ::1 GET /api/users
+ HTTP  9/19/2026 5:36:04 AM ::1 Returned 200 in 6 ms
+ HTTP  9/19/2026 5:36:04 AM ::1 Returned 404 in 6 ms
+ HTTP  9/19/2026 5:36:04 AM ::1 GET /_vercel/insights/script.js
+ HTTP  9/19/2026 5:36:04 AM ::1 Returned 404 in 2 ms

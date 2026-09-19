@@ -771,10 +771,14 @@ async function fetchSearchResults(
       roomId.toLowerCase() === queryLower ||
       accountId.toLowerCase() === queryLower;
 
+    const partialIdMatch =
+      (accountId && accountId.toLowerCase().includes(queryLower)) ||
+      (roomId && roomId.toLowerCase().includes(queryLower));
+
     const nameMatch =
       name.toLowerCase().includes(queryLower);
 
-    if (exactMatch || nameMatch) {
+    if (exactMatch || partialIdMatch || nameMatch) {
       const key = accountId || roomId;
 
       if (key && !addedIds.has(key)) {
@@ -784,13 +788,7 @@ async function fetchSearchResults(
     }
   }
 
-  // LOCAL RESULT MIL GAYA = RETURN INSTANTLY.
-  // No unnecessary Mongo/API wait.
-  if (foundList.length > 0) {
-    return foundList;
-  }
-
-  // FALLBACK: Mongo user search only when local search found nothing.
+  // FALLBACK / SUPPLEMENT: Search users via API endpoint for ID matching
   try {
     const controller = new AbortController();
 
@@ -811,9 +809,17 @@ async function fetchSearchResults(
 
     if (response.ok) {
       const data = await response.json();
-      const user = data?.user;
+      const rawUsers = Array.isArray(data)
+        ? data
+        : data?.users
+        ? data.users
+        : data?.user
+        ? [data.user]
+        : [];
 
-      if (user) {
+      for (const user of rawUsers) {
+        if (!user) continue;
+
         const accountId = String(
           user.accountId ||
           user.displayUserNumber ||
@@ -829,7 +835,10 @@ async function fetchSearchResults(
           accountId
         );
 
-        if (accountId && !addedIds.has(accountId)) {
+        const key = accountId || userId;
+
+        if (key && !addedIds.has(key)) {
+          addedIds.add(key);
           foundList.push({
             id: userId,
             name:
@@ -843,7 +852,7 @@ async function fetchSearchResults(
               user.photo ||
               user.photoURL ||
               "/default-avatar.png",
-            accountId,
+            accountId: accountId || userId,
             createdAt:
               user.createdAt || Date.now(),
             isLocked: Boolean(user.isLocked),
