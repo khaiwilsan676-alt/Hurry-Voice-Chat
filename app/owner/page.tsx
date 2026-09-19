@@ -324,6 +324,44 @@ export default function StaffPanel() {
   const supportChatEndRef = useRef<HTMLDivElement>(null);
 
   // Official Msg State
+  // Helper to compress image files before broadcast
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const [officialSender, setOfficialSender] = useState<'hurry_team_official' | 'hurry_system_official'>('hurry_team_official');
   const [officialText, setOfficialText] = useState('');
   const [officialImage, setOfficialImage] = useState('');
@@ -1773,16 +1811,15 @@ export default function StaffPanel() {
                       type="file"
                       ref={officialFileInputRef}
                       accept="image/*"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        if (file.size > 2 * 1024 * 1024) {
-                          alert('Image size must be less than 2MB');
-                          return;
+                        try {
+                          const base64 = await compressImage(file, 1200, 1200, 0.85);
+                          setOfficialImage(base64);
+                        } catch (err) {
+                          console.error('Image compression error:', err);
                         }
-                        const reader = new FileReader();
-                        reader.onload = () => setOfficialImage(reader.result as string);
-                        reader.readAsDataURL(file);
                       }}
                       className="hidden"
                     />

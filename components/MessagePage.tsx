@@ -133,6 +133,8 @@ interface MessagePageProps {
   } | null;
 }
 
+const FIXED_CHAT_UIDS = ['hurry_team_official', 'hurry_system_official'];
+
 export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: MessagePageProps) {
   const [fixedChats] = useState<FixedChat[]>([
     { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
@@ -142,7 +144,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   const [dynamicChats, setDynamicChats] = useState<ChatPreview[]>([]);
   const [activeChat, setActiveChat] = useState<{ uid: string; name: string; photo: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number }>>({});
+  const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }>>({});
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -235,27 +237,35 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         }
       });
 
-      const sorted = Array.from(chatMap.values()).sort(
-        (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
-      );
+      // Filter out fixed chat UIDs from dynamicChats to strictly avoid duplicates
+      const nonFixedChats = Array.from(chatMap.values())
+        .filter((chat) => !FIXED_CHAT_UIDS.includes(chat.otherUser.uid))
+        .sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
-      // Extract official message previews
-      const officialMap: Record<string, { lastMessage: string; lastTimestamp: number }> = {};
-      fixedChats.forEach(fc => {
+      // Extract official message previews for fixed chats
+      const officialMap: Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }> = {};
+      fixedChats.forEach((fc) => {
         const cId = [currentUserUid, fc.uid].sort().join('_');
         const existing = chatMap.get(cId);
+        let unread = 0;
+        allMessages.forEach((msg) => {
+          if (msg && msg.chatId === cId && msg.receiverId === currentUserUid && msg.isUnread) {
+            unread++;
+          }
+        });
         if (existing) {
           officialMap[fc.uid] = {
             lastMessage: existing.lastMessage,
-            lastTimestamp: existing.lastTimestamp
+            lastTimestamp: existing.lastTimestamp,
+            unreadCount: unread,
           };
         }
       });
 
       if (isMounted) {
-        setDynamicChats(sorted);
+        setDynamicChats(nonFixedChats);
         setOfficialPreviews(officialMap);
-        await saveToDB(currentUserUid, sorted);
+        await saveToDB(currentUserUid, nonFixedChats);
         setIsLoading(false);
       }
     };
@@ -319,6 +329,23 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       if (!isMounted) return;
 
+      // If message is for fixed chats, update officialPreviews instead of dynamicChats
+      if (FIXED_CHAT_UIDS.includes(otherUid)) {
+        if (isMounted) {
+          setOfficialPreviews((prev) => ({
+            ...prev,
+            [otherUid]: {
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: isMe ? 0 : ((prev[otherUid]?.unreadCount || 0) + 1),
+            },
+          }));
+        }
+        return;
+      }
+
+      if (!isMounted) return;
+
       setDynamicChats((prev) => {
         const existing = prev.find((chat) => chat.chatId === chatId);
 
@@ -347,7 +374,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             };
 
         const next = [
-          ...prev.filter((chat) => chat.chatId !== chatId),
+          ...prev.filter((chat) => chat.chatId !== chatId && !FIXED_CHAT_UIDS.includes(chat.otherUser.uid)),
           updatedChat,
         ].sort(
           (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
@@ -433,6 +460,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         [senderId]: {
           lastMessage,
           lastTimestamp: timestamp,
+          unreadCount: (prev[senderId]?.unreadCount || 0) + 1,
         },
       }));
     };
@@ -440,7 +468,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     const handleOfficialHistoryResponse = async (data: any) => {
       if (!Array.isArray(data?.messages) || !currentUserUid || currentUserUid === 'N/A') return;
 
-      const previews: Record<string, { lastMessage: string; lastTimestamp: number }> = {};
+      const previews: Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }> = {};
 
       try {
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -484,7 +512,11 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           });
 
           if (!previews[senderId] || timestamp > previews[senderId].lastTimestamp) {
-            previews[senderId] = { lastMessage, lastTimestamp: timestamp };
+            previews[senderId] = {
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: previews[senderId]?.unreadCount || 0,
+            };
           }
         });
 
@@ -586,7 +618,13 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           return (
             <div
               key={chat.id}
-              onClick={() => handleOpenFixedChat(chat)}
+              onClick={() => {
+                setOfficialPreviews((prev) => ({
+                  ...prev,
+                  [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                }));
+                handleOpenFixedChat(chat);
+              }}
               className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
             >
               <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -598,11 +636,16 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
                   <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
                 )}
               </div>
-              {preview?.lastTimestamp ? (
-                <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col items-end gap-1">
+                {preview?.lastTimestamp ? (
                   <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
-                </div>
-              ) : null}
+                ) : null}
+                {preview?.unreadCount && preview.unreadCount > 0 ? (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                    {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
+                  </span>
+                ) : null}
+              </div>
             </div>
           );
         })}
