@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Send } from "lucide-react";
+import { socket } from "../src/lib/socket";
 
 interface HurrySupportProps {
   onBack?: () => void;
@@ -21,19 +22,30 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
   const [userId, setUserId] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
   const [userEmail, setUserEmail] = useState<string>("");
+  const [userPhoto, setUserPhoto] = useState<string>("");
+  const [userAccountId, setUserAccountId] = useState<string>("");
   const [chatDocId, setChatDocId] = useState<string>("");
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatLoadedRef = useRef(false);
 
-  // Get current user info
+  // Get current user info & initialize socket connection
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const uid = localStorage.getItem('userUID') || 'anonymous';
+      const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'anonymous';
       const name = localStorage.getItem('userName') || 'User';
       const email = localStorage.getItem('userEmail') || '';
+      const photo = localStorage.getItem('userPhoto') || '';
+      const accNum = localStorage.getItem('accountNumber') || '';
       setUserId(uid);
       setUserName(name);
       setUserEmail(email);
+      setUserPhoto(photo);
+      setUserAccountId(accNum);
+
+      if (!socket.connected) {
+        socket.connect();
+      }
+      socket.emit('register', { userId: uid, accountId: accNum });
     }
   }, []);
 
@@ -97,15 +109,25 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
           );
           const writeStore = writeTransaction.objectStore(STORE_NAME);
 
-          writeStore.put({
+          const chatPayload = {
             userId,
             userName,
             userEmail,
+            userPhoto,
+            userAccountId,
             messages: [welcomeMessage],
             timestamp: Date.now()
-          });
+          };
 
+          writeStore.put(chatPayload);
           saveDB.close();
+
+          if (socket) {
+            socket.emit("ai_support_message", {
+              ...chatPayload,
+              lastMessage: welcomeMessage
+            });
+          }
         }
 
         chatLoadedRef.current = true;
@@ -126,7 +148,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
     loadOrCreateChat();
   }, [userId, userName, userEmail]);
 
-  // Save support chat to IndexedDB
+  // Save support chat to IndexedDB and sync via Socket.IO
   const saveChatToIndexedDB = async (updatedMessages: Array<MessageType>) => {
     if (!userId) return;
 
@@ -151,15 +173,26 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
       const transaction = db.transaction(["supportChats"], "readwrite");
       const store = transaction.objectStore("supportChats");
 
-      store.put({
+      const chatPayload = {
         userId,
         userName,
         userEmail,
+        userPhoto,
+        userAccountId,
         messages: updatedMessages,
         timestamp: Date.now()
-      });
+      };
 
+      store.put(chatPayload);
       db.close();
+
+      // Emit real-time Socket.IO message event
+      if (socket) {
+        socket.emit("ai_support_message", {
+          ...chatPayload,
+          lastMessage: updatedMessages[updatedMessages.length - 1]
+        });
+      }
     } catch (error) {
       console.error("Error saving support chat to IndexedDB:", error);
     }

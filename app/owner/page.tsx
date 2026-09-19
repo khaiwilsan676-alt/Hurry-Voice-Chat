@@ -1,11 +1,75 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette, MessageSquare, Bot, User, Clock, AlertTriangle, ShieldAlert, RefreshCw } from 'lucide-react';
 import { auth } from '@/src/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { socket } from '@/src/lib/socket';
 
 import { apiUrl } from "@/src/lib/api";
+
+// ==============================================================
+// INDEXEDDB HELPERS FOR AI SUPPORT CHATS
+// ==============================================================
+const loadAllSupportChatsFromIndexedDB = async (): Promise<any[]> => {
+  if (typeof window === 'undefined') return [];
+  return new Promise((resolve) => {
+    try {
+      const request = indexedDB.open("HurrySupportDB", 1);
+      request.onerror = () => resolve([]);
+      request.onupgradeneeded = (e: any) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("supportChats")) {
+          db.createObjectStore("supportChats", { keyPath: "userId" });
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("supportChats")) {
+          db.close();
+          resolve([]);
+          return;
+        }
+        const transaction = db.transaction(["supportChats"], "readonly");
+        const store = transaction.objectStore("supportChats");
+        const getAllReq = store.getAll();
+        getAllReq.onsuccess = () => {
+          db.close();
+          resolve(getAllReq.result || []);
+        };
+        getAllReq.onerror = () => {
+          db.close();
+          resolve([]);
+        };
+      };
+    } catch (err) {
+      resolve([]);
+    }
+  });
+};
+
+const saveSupportChatToIndexedDB = async (chatData: any) => {
+  if (typeof window === 'undefined' || !chatData?.userId) return;
+  try {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("HurrySupportDB", 1);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(request.result);
+      request.onupgradeneeded = (e: any) => {
+        const database = e.target.result;
+        if (!database.objectStoreNames.contains("supportChats")) {
+          database.createObjectStore("supportChats", { keyPath: "userId" });
+        }
+      };
+    });
+    const transaction = db.transaction(["supportChats"], "readwrite");
+    const store = transaction.objectStore("supportChats");
+    store.put(chatData);
+    db.close();
+  } catch (err) {
+    console.error("Error saving support chat to IndexedDB in Owner panel:", err);
+  }
+};
 // ==============================================================
 // TYPES & DATA STRUCTURES
 // ==============================================================
@@ -185,6 +249,77 @@ export default function StaffPanel() {
   const [selectedTagUserData, setSelectedTagUserData] = useState<UserRecord | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSuccess, setTagSuccess] = useState('');
+
+  // AI Support Live Chats State (Reports & Bans tab)
+  const [supportChats, setSupportChats] = useState<any[]>([]);
+  const [selectedSupportUserId, setSelectedSupportUserId] = useState<string | null>(null);
+  const [supportSearchQuery, setSupportSearchQuery] = useState('');
+  const [supportSubTab, setSupportSubTab] = useState<'ai_chats' | 'reports'>('ai_chats');
+  const supportChatEndRef = useRef<HTMLDivElement>(null);
+
+  // Initialize Support Chats from IndexedDB & Socket.IO
+  useEffect(() => {
+    let isMounted = true;
+
+    const initSupportChats = async () => {
+      const localChats = await loadAllSupportChatsFromIndexedDB();
+      if (isMounted && localChats.length > 0) {
+        setSupportChats(localChats.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
+      }
+    };
+
+    initSupportChats();
+
+    if (typeof window !== 'undefined') {
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      socket.emit("ai_support_history_request");
+
+      const handleHistoryResponse = (data: any) => {
+        if (!isMounted || !Array.isArray(data?.chats)) return;
+        setSupportChats(prev => {
+          const map = new Map<string, any>();
+          prev.forEach(item => map.set(item.userId, item));
+          data.chats.forEach((item: any) => {
+            if (item.userId) {
+              map.set(item.userId, { ...map.get(item.userId), ...item });
+              saveSupportChatToIndexedDB(item);
+            }
+          });
+          return Array.from(map.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        });
+      };
+
+      const handleAiSupportMessage = (data: any) => {
+        if (!isMounted || !data?.userId) return;
+        setSupportChats(prev => {
+          const map = new Map<string, any>();
+          prev.forEach(item => map.set(item.userId, item));
+          map.set(data.userId, data);
+          saveSupportChatToIndexedDB(data);
+          return Array.from(map.values()).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        });
+      };
+
+      socket.on("ai_support_history_response", handleHistoryResponse);
+      socket.on("ai_support_message", handleAiSupportMessage);
+
+      return () => {
+        isMounted = false;
+        socket.off("ai_support_history_response", handleHistoryResponse);
+        socket.off("ai_support_message", handleAiSupportMessage);
+      };
+    }
+  }, []);
+
+  // Auto-scroll selected AI support chat
+  useEffect(() => {
+    if (selectedSupportUserId) {
+      supportChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [supportChats, selectedSupportUserId]);
 
   // ============================================================
   // Fetch Real Users from /api/users & Firebase Auth
@@ -899,8 +1034,269 @@ export default function StaffPanel() {
           </div>
         )}
 
+        {/* ============================================================== */}
+        {/* TAB: REPORTS & BANS / AI SUPPORT LIVE CHATS */}
+        {/* ============================================================== */}
+        {activeTab === 'bans' && (
+          <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
+            {/* SUB-HEADER & NAVIGATION */}
+            <div className="px-6 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-red-500" />
+                  <h2 className="text-xl font-black text-slate-800">Reports, Bans & Customer Support</h2>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Real-time Socket.IO live AI support chats & moderation panel</p>
+              </div>
+
+              {/* SUB TABS */}
+              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setSupportSubTab('ai_chats')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                    supportSubTab === 'ai_chats'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Bot className="w-4 h-4" />
+                  <span>AI Support Chats</span>
+                  {supportChats.length > 0 && (
+                    <span className={`px-1.5 py-0.5 text-[10px] rounded-full font-extrabold ${
+                      supportSubTab === 'ai_chats' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {supportChats.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setSupportSubTab('reports')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+                    supportSubTab === 'reports'
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Flagged Reports & Bans</span>
+                </button>
+              </div>
+            </div>
+
+            {/* AI CHATS SUBTAB CONTENT */}
+            {supportSubTab === 'ai_chats' && (
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden p-4 gap-4">
+                {/* CHAT THREADS LIST (LEFT PANEL) */}
+                <div className="w-full md:w-80 lg:w-96 bg-white rounded-2xl border border-slate-200 flex flex-col overflow-hidden shadow-sm shrink-0">
+                  <div className="p-3 border-b border-slate-100 bg-slate-50/50">
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="text"
+                        value={supportSearchQuery}
+                        onChange={(e) => setSupportSearchQuery(e.target.value)}
+                        placeholder="Search AI chats by user name, ID, email..."
+                        className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-blue-500 shadow-inner"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+                    {supportChats
+                      .filter((chat) => {
+                        const q = supportSearchQuery.toLowerCase();
+                        return (
+                          (chat.userName || '').toLowerCase().includes(q) ||
+                          (chat.userId || '').toLowerCase().includes(q) ||
+                          (chat.userAccountId || '').toLowerCase().includes(q) ||
+                          (chat.userEmail || '').toLowerCase().includes(q)
+                        );
+                      })
+                      .map((chat) => {
+                        const isSelected = selectedSupportUserId === chat.userId;
+                        const lastMsgObj = chat.lastMessage || (Array.isArray(chat.messages) && chat.messages[chat.messages.length - 1]);
+                        const lastMsgText = typeof lastMsgObj === 'object' ? (lastMsgObj.text || 'Image attachment') : (lastMsgObj || 'New conversation');
+                        const timeString = chat.timestamp ? new Date(chat.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+
+                        return (
+                          <div
+                            key={chat.userId}
+                            onClick={() => setSelectedSupportUserId(chat.userId)}
+                            className={`p-3.5 flex items-start gap-3 cursor-pointer transition-colors relative ${
+                              isSelected ? 'bg-blue-50/80 border-l-4 border-blue-600' : 'hover:bg-slate-50'
+                            }`}
+                          >
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 text-white font-bold flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                              {chat.userPhoto ? (
+                                <img src={chat.userPhoto} alt={chat.userName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{(chat.userName || 'U').charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <span className="font-bold text-xs text-slate-800 truncate">{chat.userName || 'User'}</span>
+                                <span className="text-[10px] text-slate-400 font-medium shrink-0">{timeString}</span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-semibold mb-1">
+                                <span className="text-blue-600">ID: {chat.userAccountId || chat.userId}</span>
+                                {chat.userEmail && <span className="truncate">| {chat.userEmail}</span>}
+                              </div>
+
+                              <p className="text-xs text-slate-500 font-medium truncate leading-tight">
+                                {lastMsgObj?.isBot ? '🤖 Daisy: ' : '👤 User: '}{lastMsgText}
+                              </p>
+                            </div>
+
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping absolute top-3 right-3" />
+                          </div>
+                        );
+                      })}
+
+                    {supportChats.length === 0 && (
+                      <div className="p-8 text-center text-slate-400 text-xs font-medium flex flex-col items-center gap-2">
+                        <Bot className="w-8 h-8 text-slate-300" />
+                        <span>No AI support chat sessions recorded yet.</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ACTIVE CHAT THREAD VIEW (RIGHT PANEL) */}
+                <div className="flex-1 bg-white rounded-2xl border border-slate-200 flex flex-col overflow-hidden shadow-sm">
+                  {selectedSupportUserId ? (() => {
+                    const activeChat = supportChats.find(c => c.userId === selectedSupportUserId);
+                    if (!activeChat) return null;
+                    const msgs = Array.isArray(activeChat.messages) ? activeChat.messages : [];
+
+                    return (
+                      <>
+                        {/* CHAT HEADER */}
+                        <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 text-white font-bold flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                              {activeChat.userPhoto ? (
+                                <img src={activeChat.userPhoto} alt={activeChat.userName} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{(activeChat.userName || 'U').charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-sm text-slate-800">{activeChat.userName || 'User'}</h3>
+                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                  Socket Live
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3 text-xs text-slate-500 font-medium mt-0.5">
+                                <span>Account ID: <strong className="text-blue-600">{activeChat.userAccountId || activeChat.userId}</strong></span>
+                                {activeChat.userEmail && <span>Email: {activeChat.userEmail}</span>}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-[10px] font-bold text-slate-400 block">Total Messages</span>
+                            <span className="text-sm font-black text-slate-800">{msgs.length}</span>
+                          </div>
+                        </div>
+
+                        {/* MESSAGES SCROLL AREA */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8fafc]">
+                          {msgs.map((msg: any, idx: number) => {
+                            const isBot = msg.isBot;
+                            return (
+                              <div key={idx} className={`flex items-start gap-2.5 ${isBot ? '' : 'flex-row-reverse'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden border ${
+                                  isBot ? 'bg-gradient-to-r from-pink-400 to-purple-500 text-white border-pink-200' : 'bg-blue-600 text-white border-blue-400'
+                                }`}>
+                                  {isBot ? (
+                                    <img src="/1785612362650~2.jpg" alt="Daisy AI" className="w-full h-full object-cover" />
+                                  ) : activeChat.userPhoto ? (
+                                    <img src={activeChat.userPhoto} alt="User" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <span className="text-xs font-bold">{(activeChat.userName || 'U').charAt(0).toUpperCase()}</span>
+                                  )}
+                                </div>
+
+                                <div className={`max-w-[75%] rounded-2xl p-3 shadow-sm ${
+                                  isBot
+                                    ? 'bg-white rounded-tl-none border border-slate-200 text-slate-800'
+                                    : 'bg-blue-600 rounded-tr-none text-white'
+                                }`}>
+                                  <div className="flex items-center justify-between gap-3 mb-1">
+                                    <span className={`text-[10px] font-extrabold ${isBot ? 'text-purple-600' : 'text-blue-200'}`}>
+                                      {isBot ? '🤖 Daisy AI Assistant' : `👤 ${activeChat.userName || 'User'}`}
+                                    </span>
+                                    {msg.timestamp && (
+                                      <span className={`text-[9px] font-medium ${isBot ? 'text-slate-400' : 'text-blue-100'}`}>
+                                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {msg.text && (
+                                    <p className="text-xs whitespace-pre-line leading-relaxed">
+                                      {msg.text}
+                                    </p>
+                                  )}
+
+                                  {msg.image && (
+                                    <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                                      <img src={msg.image} alt="Attachment" className="max-h-60 object-contain bg-slate-100" />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <div ref={supportChatEndRef} />
+                        </div>
+
+                        {/* FOOTER BANNER */}
+                        <div className="p-3 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-500 font-medium flex items-center justify-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                          <span>Real-time Socket.IO AI Support Monitor. All messages are synced and stored in IndexedDB.</span>
+                        </div>
+                      </>
+                    );
+                  })() : (
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                      <Bot className="w-12 h-12 text-slate-300 mb-3 animate-bounce" />
+                      <h4 className="font-bold text-slate-700 text-base">Select an AI Support Session</h4>
+                      <p className="text-xs text-slate-500 mt-1 max-w-sm">
+                        Click on any user from the left list to view their complete real-time conversation history with Daisy AI Support.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* REPORTS & BANS SUBTAB CONTENT */}
+            {supportSubTab === 'reports' && (
+              <div className="p-8 max-w-5xl mx-auto w-full overflow-y-auto">
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+                  <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                    <ShieldAlert className="w-6 h-6 text-red-600" />
+                    <h3 className="text-xl font-bold text-slate-800">Flagged User Reports & Banned Accounts</h3>
+                  </div>
+
+                  <div className="py-12 text-center text-slate-400 text-sm font-medium">
+                    No active ban violations or user reports pending review. All users operating within community guidelines.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Placeholder for other tabs */}
-        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && (
+        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && activeTab !== 'bans' && (
           <div className="p-8 max-w-5xl mx-auto w-full">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
               <h2 className="text-xl font-bold text-slate-800 capitalize">
