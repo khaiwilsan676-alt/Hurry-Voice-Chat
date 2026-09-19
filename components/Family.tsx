@@ -699,5 +699,4 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
     </div>
   )
-    }
-```
+                                                             }
