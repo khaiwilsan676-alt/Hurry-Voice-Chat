@@ -5,19 +5,32 @@ import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X
 import socket from '../src/lib/socket';
 
 // ============ IndexedDB Functions for Conversations & Messages ============
-const CONVERSATIONS_DB_NAME = 'MessagesDB';
 const CONVERSATIONS_STORE = 'conversations';
 
-const saveConversationToDB = async (conversation: {
-  chatId: string;
-  otherUser: { uid: string; name: string; photo: string };
-  lastMessage: string;
-  lastTimestamp: number;
-  unreadCount: number;
-}) => {
+const getConversationsDbName = (userId: string) => {
+  const safeId = userId ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : 'default';
+  return `MessagesDB_${safeId}`;
+};
+
+const getMessagesDbName = (userId: string) => {
+  const safeId = userId ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : 'default';
+  return `ChatMessagesDB_${safeId}`;
+};
+
+const saveConversationToDB = async (
+  userId: string,
+  conversation: {
+    chatId: string;
+    otherUser: { uid: string; name: string; photo: string };
+    lastMessage: string;
+    lastTimestamp: number;
+    unreadCount: number;
+  }
+) => {
   try {
+    const dbName = getConversationsDbName(userId);
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(CONVERSATIONS_DB_NAME, 2);
+      const request = indexedDB.open(dbName, 2);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = () => {
@@ -36,12 +49,12 @@ const saveConversationToDB = async (conversation: {
   }
 };
 
-const MESSAGES_DB_NAME = 'ChatMessagesDB';
 const MESSAGES_STORE = 'messages';
 
-const openMessagesDB = (): Promise<IDBDatabase> => {
+const openMessagesDB = (userId: string): Promise<IDBDatabase> => {
+  const dbName = getMessagesDbName(userId);
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(MESSAGES_DB_NAME, 1);
+    const request = indexedDB.open(dbName, 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -57,10 +70,10 @@ const openMessagesDB = (): Promise<IDBDatabase> => {
   });
 };
 
-// Messages save karo IndexedDB mein
-const saveMessagesToDB = async (chatId: string, messages: Message[]) => {
+// Messages save karo IndexedDB mein (scoped to user)
+const saveMessagesToDB = async (userId: string, chatId: string, messages: Message[]) => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(userId);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
 
@@ -91,10 +104,10 @@ const saveMessagesToDB = async (chatId: string, messages: Message[]) => {
   }
 };
 
-// Messages load karo IndexedDB se
-const loadMessagesFromDB = async (chatId: string): Promise<Message[]> => {
+// Messages load karo IndexedDB se (scoped to user)
+const loadMessagesFromDB = async (userId: string, chatId: string): Promise<Message[]> => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(userId);
     const transaction = db.transaction([MESSAGES_STORE], 'readonly');
     const store = transaction.objectStore(MESSAGES_STORE);
     const index = store.index('chatId');
@@ -210,7 +223,7 @@ useEffect(() => {
     return;
   }
 
-  loadMessagesFromDB(chatId)
+  loadMessagesFromDB(currentUser.uid, chatId)
     .then((localMessages) => {
       const sorted = [...localMessages].sort(
         (a, b) => a.timestamp - b.timestamp
@@ -258,6 +271,9 @@ useEffect(() => {
       replyTo: data.replyTo || null,
     };
 
+    const senderName = data.senderName || targetUser.name;
+    const senderPhoto = data.senderPhoto || targetUser.photo;
+
     setMessages((prev) => {
       if (prev.some((m) => m.id === message.id)) return prev;
 
@@ -265,13 +281,13 @@ useEffect(() => {
         (a, b) => a.timestamp - b.timestamp
       );
 
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
+          name: senderName,
+          photo: senderPhoto,
         },
         lastMessage: message.type === 'image' ? '📷 Image' : message.text,
         lastTimestamp: message.timestamp,
@@ -328,6 +344,9 @@ const sendRoomInvite = async (roomData: {
       id: messageId,
       senderId: currentUser.uid,
       receiverId: targetUser.uid,
+      receiverAccountId: (targetUser as any).accountId || null,
+      senderName: currentUser.name || 'User',
+      senderPhoto: currentUser.photo || '/default-avatar.png',
       text: `Joins our Party Room: ${roomData.roomName}`,
       type: 'room_invite',
       roomData,
@@ -351,8 +370,8 @@ const sendRoomInvite = async (roomData: {
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -419,8 +438,8 @@ const handleSend = async () => {
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -469,6 +488,9 @@ const handleImageUpload = async (
       id: messageId,
       senderId: currentUser.uid,
       receiverId: targetUser.uid,
+      receiverAccountId: (targetUser as any).accountId || null,
+      senderName: currentUser.name || 'User',
+      senderPhoto: currentUser.photo || '/default-avatar.png',
       text: '',
       type: 'image',
       imageUrl: base64,
@@ -503,8 +525,8 @@ const handleImageUpload = async (
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -540,7 +562,7 @@ const handleClearChat = async () => {
       chatId,
     });
 
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
     const index = store.index('chatId');
@@ -566,7 +588,7 @@ const handleClearChat = async () => {
 // ========== Delete single message ==========
 const handleDeleteMessage = async (messageId: string) => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     transaction.objectStore(MESSAGES_STORE).delete(messageId);
     db.close();
@@ -584,7 +606,7 @@ const handleDeleteMessage = async (messageId: string) => {
 // ========== Delete selected messages (batch) ==========
 const handleDeleteSelectedMessages = async () => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
 

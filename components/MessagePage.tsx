@@ -7,13 +7,23 @@ import Image from 'next/image';
 import ChatScreen from './ChatScreen';
 
 // ============ Simple IndexedDB Functions ============
-const DB_NAME = 'MessagesDB';
 const STORE_NAME = 'conversations';
 
-// IndexedDB kholo
-const openDB = (): Promise<IDBDatabase> => {
+const getConversationsDbName = (userId: string) => {
+  const safeId = userId ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : 'default';
+  return `MessagesDB_${safeId}`;
+};
+
+const getMessagesDbName = (userId: string) => {
+  const safeId = userId ? userId.replace(/[^a-zA-Z0-9_-]/g, '_') : 'default';
+  return `ChatMessagesDB_${safeId}`;
+};
+
+// IndexedDB kholo (scoped per user)
+const openDB = (userId: string): Promise<IDBDatabase> => {
+  const dbName = getConversationsDbName(userId);
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 2);
+    const request = indexedDB.open(dbName, 2);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -27,10 +37,10 @@ const openDB = (): Promise<IDBDatabase> => {
   });
 };
 
-// IndexedDB mein save karo
-const saveToDB = async (conversations: ChatPreview[]) => {
+// IndexedDB mein save karo (scoped per user)
+const saveToDB = async (userId: string, conversations: ChatPreview[]) => {
   try {
-    const db = await openDB();
+    const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
 
@@ -49,10 +59,10 @@ const saveToDB = async (conversations: ChatPreview[]) => {
   }
 };
 
-// IndexedDB se load karo
-const loadFromDB = async (): Promise<ChatPreview[]> => {
+// IndexedDB se load karo (scoped per user)
+const loadFromDB = async (userId: string): Promise<ChatPreview[]> => {
   try {
-    const db = await openDB();
+    const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
 
@@ -70,11 +80,12 @@ const loadFromDB = async (): Promise<ChatPreview[]> => {
   }
 };
 
-// Fallback: load messages from ChatMessagesDB to build missing conversation entries
-const loadAllChatMessagesDB = async (): Promise<any[]> => {
+// Fallback: load messages from ChatMessagesDB to build missing conversation entries (scoped per user)
+const loadAllChatMessagesDB = async (userId: string): Promise<any[]> => {
   try {
+    const dbName = getMessagesDbName(userId);
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('ChatMessagesDB', 1);
+      const request = indexedDB.open(dbName, 1);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
     });
@@ -157,8 +168,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         return;
       }
 
-      const cachedChats = await loadFromDB();
-      const allMessages = await loadAllChatMessagesDB();
+      const cachedChats = await loadFromDB(currentUserUid);
+      const allMessages = await loadAllChatMessagesDB(currentUserUid);
       const chatMap = new Map<string, ChatPreview>();
 
       cachedChats.forEach((chat) => {
@@ -235,7 +246,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       if (isMounted) {
         setDynamicChats(sorted);
-        await saveToDB(sorted);
+        await saveToDB(currentUserUid, sorted);
         setIsLoading(false);
       }
     };
@@ -275,8 +286,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       };
 
       try {
+        const dbName = getMessagesDbName(currentUserUid);
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
-          const request = indexedDB.open('ChatMessagesDB', 1);
+          const request = indexedDB.open(dbName, 1);
           request.onerror = () => reject(request.error);
           request.onsuccess = () => resolve(request.result);
           request.onupgradeneeded = () => {
@@ -333,7 +345,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
         );
 
-        saveToDB(next).catch(() => {});
+        saveToDB(currentUserUid, next).catch(() => {});
         return next;
       });
     };
@@ -354,7 +366,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             : chat
         );
 
-        saveToDB(next).catch(() => {});
+        saveToDB(currentUserUid, next).catch(() => {});
         return next;
       });
     };
