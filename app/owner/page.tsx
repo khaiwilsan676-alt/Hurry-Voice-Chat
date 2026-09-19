@@ -23,7 +23,7 @@ const AVAILABLE_TAGS = [
   { id: 'adminTag', name: 'Admin', emoji: '🛡️' },
   { id: 'officialTag', name: 'Official', emoji: '✅' },
   { id: 'vipTag', name: 'VIP', emoji: '⭐' },
-  { id: 'premiumTag', name: 'Premium', emoji: '💎' },
+  { id: 'premiumTag', name: 'Premium', emoji: '💎' }, 
 ];
 
 interface MockUser {
