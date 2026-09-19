@@ -169,7 +169,11 @@ export default function Family({ onBack }: FamilyProps) {
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
     if (savedMembers) {
-      setMembers(JSON.parse(savedMembers))
+      try {
+        setMembers(JSON.parse(savedMembers))
+      } catch (e) {
+        console.error('Failed to parse saved family members:', e)
+      }
     }
     
     const savedCode = localStorage.getItem('familyCode')
