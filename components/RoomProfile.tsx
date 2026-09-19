@@ -378,7 +378,7 @@ export default function RoomProfile({
 
     // Agar tag hai → wahi height
     // Agar tag nahi hai → 4vh kam
-    const finalHeight = hasAnyTag ? baseHeight : baseHeight - 4
+    const finalHeight = hasAnyTag ? baseHeight : baseHeight - 6
 
     return `${finalHeight}vh`
   }
