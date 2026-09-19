@@ -822,20 +822,23 @@ async function fetchSearchResults(
       for (const user of rawUsers) {
         if (!user) continue;
 
-        const accountId = String(
-          user.accountId ||
-          user.displayUserNumber ||
-          user.id ||
-          user.uid ||
-          ""
-        );
-
         const userId = String(
           user.id ||
           user.uid ||
           user.appLongId ||
-          accountId
+          ""
         );
+
+        let accountId = String(
+          user.accountId ||
+          user.displayUserNumber ||
+          user.accountNumber ||
+          ""
+        );
+
+        if (!accountId || accountId === userId) {
+          accountId = getOrCreateAccountNumber(userId).fullAccNum;
+        }
 
         const key = accountId || userId;
 
@@ -854,7 +857,7 @@ async function fetchSearchResults(
               user.photo ||
               user.photoURL ||
               "/default-avatar.png",
-            accountId: accountId || userId,
+            accountId: accountId,
             createdAt:
               user.createdAt || Date.now(),
             isLocked: Boolean(user.isLocked),
@@ -1399,9 +1402,14 @@ useEffect(() => {
             merged[index] = updated;
           }
         } else {
+          const numericAccNum =
+            firstUser?.accountId && firstUser.accountId !== roomId
+              ? firstUser.accountId
+              : getOrCreateAccountNumber(roomId).fullAccNum;
+
           merged.push({
             id: roomId,
-            accountId: roomId,
+            accountId: numericAccNum,
             name: firstUser?.name || "Room",
             country: "🇮🇳",
             image:
@@ -2355,14 +2363,15 @@ useEffect(() => {
 
   // ============ SEARCH ============
   const handlePerformSearch = async () => {
-    if (!searchQuery.trim()) {
+    const queryRaw = searchQuery.trim()
+    if (!queryRaw) {
       setSearchResults([])
       setHasSearched(false)
       return
     }
 
     setIsSearching(true)
-    const queryRaw = searchQuery.trim()
+    setHasSearched(false)
 
     try {
       const results = await fetchSearchResults(queryRaw, globalRooms)
@@ -2370,6 +2379,8 @@ useEffect(() => {
       setHasSearched(true)
     } catch (err) {
       console.error("Search error:", err)
+      setSearchResults([])
+      setHasSearched(true)
     } finally {
       setIsSearching(false)
     }
@@ -2808,7 +2819,14 @@ useEffect(() => {
                     style={{ height: '170px' }}
                   >
                     <img
-                      src={room.image}
+                      src={
+                        room.image && room.image !== "undefined" && room.image !== "null"
+                          ? room.image
+                          : "/default-avatar.png"
+                      }
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/default-avatar.png";
+                      }}
                       alt={room.name}
                       className="w-full h-full object-cover"
                       draggable="false"

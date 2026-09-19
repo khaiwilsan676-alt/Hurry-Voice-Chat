@@ -1,11 +1,7 @@
-
-> my-project@0.1.0 dev
-> next dev --webpack
-
-▲ Next.js 16.2.6 (webpack)
+▲ Next.js 16.2.6 (Turbopack)
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.2:3000
-✓ Ready in 520ms
+✓ Ready in 550ms
 Attention: Next.js now collects completely anonymous telemetry regarding usage.
 This information is used to shape Next.js' roadmap and prioritize features.
 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
@@ -13,8 +9,8 @@ https://nextjs.org/telemetry
 
 
 ○ Compiling / ...
- HEAD / 200 in 14.7s (next.js: 14.0s, application-code: 697ms)
- GET /owner 200 in 2.5s (next.js: 2.2s, application-code: 329ms)
+ GET / 200 in 8.0s (next.js: 7.0s, application-code: 1003ms)
+ GET / 200 in 121ms (next.js: 9ms, application-code: 112ms)
 [browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
     at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
    9 |       try {
@@ -24,3 +20,4 @@ https://nextjs.org/telemetry
   12 |
   13 |         // Transparent status bar
   14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 727ms (next.js: 637ms, application-code: 90ms)

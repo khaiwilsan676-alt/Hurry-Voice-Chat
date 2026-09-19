@@ -360,7 +360,11 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     };
 
     const registerUser = () => {
-      socket.emit('register', currentUserUid);
+      const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
+      socket.emit('register', {
+        userId: currentUserUid,
+        accountId: accNum
+      });
     };
 
     socket.on('connect', registerUser);

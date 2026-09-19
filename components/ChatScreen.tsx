@@ -231,7 +231,11 @@ useEffect(() => {
   socket.connect();
 
   const registerUser = () => {
-    socket.emit('register', currentUser.uid);
+    const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
+    socket.emit('register', {
+      userId: currentUser.uid,
+      accountId: accNum
+    });
     socket.emit('check_presence', targetUser.uid);
   };
 
@@ -380,6 +384,9 @@ const handleSend = async () => {
       id: messageId,
       senderId: currentUser.uid,
       receiverId: targetUser.uid,
+      receiverAccountId: (targetUser as any).accountId || null,
+      senderName: currentUser.name || 'User',
+      senderPhoto: currentUser.photo || '/default-avatar.png',
       text: messageText,
       type: 'message',
       timestamp: Date.now(),
