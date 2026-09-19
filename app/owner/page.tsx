@@ -18,16 +18,8 @@ interface UserRecord {
   image?: string;
 }
 
-// Fallback mock users when API is offline or empty
-const fallbackUsers: UserRecord[] = [
-  { id: '1', name: 'Robot Gaming Master', username: 'robot_gaming', hurryId: '10002931', email: 'abhishekumar912004@gmail.com', role: 'NORMAL', image: '' },
-  { id: '2', name: 'Uuhbh Bhhnn', username: 'uuhbh', hurryId: '821004512', email: 'bhhhnuuhbh@gmail.com', role: 'HOST', image: '' },
-  { id: '3', name: 'Riya', username: 'riya_99', hurryId: '531006005', email: 'riyag3383@gmail.com', role: 'HOST', image: '' },
-  { id: '4', name: 'Rider', username: 'rider_x', hurryId: '821004571', email: 'ooosakshe@gmail.com', role: 'HOST', image: '' },
-  { id: '5', name: 'Samir', username: 'samir_1', hurryId: '320919038', email: 'mdsamira153@gmail.com', role: 'HOST', image: '' },
-  { id: '6', name: 'Marco', username: 'marco_talks', hurryId: '486052034', email: 'marco@hurryapp.com', role: 'HOST', image: '' },
-  { id: '7', name: 'Zara Beats', username: 'zara_beats', hurryId: '927199637', email: 'zara@hurryapp.com', role: 'HOST', image: '' },
-];
+// Fallback mock users array empty - strictly display real records from DB or Auth
+const fallbackUsers: UserRecord[] = [];
 
 const AVAILABLE_TAGS = [
   { id: 'adminTag', name: 'Admin', emoji: '🛡️' },
@@ -214,7 +206,7 @@ export default function StaffPanel() {
               id: String(u._id || u.id || u.uid || index + 1),
               name: u.name || u.displayName || u.userName || 'User',
               username: u.username || u.userName || `@${(u.name || 'user').toLowerCase().replace(/\s+/g, '')}`,
-              hurryId: String(u.accountId || u.appLongId || u.hurryId || u.id || '—'),
+              hurryId: String(u.accountId || u.displayUserNumber || u.appLongId || u.hurryId || u.id || '—'),
               email: u.email || u.gmail || u.emailPhone || '—',
               role: u.role || 'NORMAL',
               image: u.image || u.photo || u.avatar || u.photoURL || ''
@@ -277,10 +269,6 @@ export default function StaffPanel() {
           }
         }
 
-        // Fall back to predefined list if total count is 0
-        if (fetchedList.length === 0) {
-          fetchedList = fallbackUsers;
-        }
 
         if (isMounted) {
           setUsers(fetchedList);
@@ -703,7 +691,15 @@ export default function StaffPanel() {
 
                   <div className="w-40 h-40 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col items-center justify-center">
                     <div className="w-full h-full bg-white rounded-[22px] flex flex-col items-center justify-center p-3 relative">
-                      <span className="text-5xl drop-shadow-md mb-1">{livePrediction.wEmoji}</span>
+                      {livePrediction.winnerImg ? (
+                        <img
+                          src={livePrediction.winnerImg}
+                          alt={livePrediction.wName}
+                          className="w-16 h-16 object-contain drop-shadow-md mb-1"
+                        />
+                      ) : (
+                        <span className="text-5xl drop-shadow-md mb-1">{livePrediction.wEmoji}</span>
+                      )}
                       <span className="font-black text-slate-800 text-base">{livePrediction.wName}</span>
                       <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md mt-1">
                         Multiplier: {livePrediction.wMult}
@@ -757,7 +753,15 @@ export default function StaffPanel() {
 
                   <div className="w-40 h-40 bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-1 rounded-3xl shadow-2xl relative overflow-hidden flex flex-col items-center justify-center">
                     <div className="w-full h-full bg-white rounded-[22px] flex flex-col items-center justify-center p-3 relative">
-                      <span className="text-5xl drop-shadow-md mb-1">{wildPrediction.wEmoji}</span>
+                      {wildPrediction.winnerImg ? (
+                        <img
+                          src={wildPrediction.winnerImg}
+                          alt={wildPrediction.wName}
+                          className="w-16 h-16 object-contain drop-shadow-md mb-1"
+                        />
+                      ) : (
+                        <span className="text-5xl drop-shadow-md mb-1">{wildPrediction.wEmoji}</span>
+                      )}
                       <span className="font-black text-slate-800 text-base">{wildPrediction.wName}</span>
                       <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md mt-1">
                         Multiplier: {wildPrediction.wMult}
