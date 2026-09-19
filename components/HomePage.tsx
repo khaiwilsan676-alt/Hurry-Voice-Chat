@@ -85,11 +85,12 @@ const saveUserToMongoDB = async (userData: any) => {
 };
 
 const loadHomeMessagesFromDB = async (userUID: string): Promise<any[]> => {
-  if (!userUID) return [];
+  if (!userUID || userUID === 'N/A') return [];
 
   try {
+    const dbName = `ChatMessagesDB_${userUID}`;
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open("ChatMessagesDB", 1);
+      const request = indexedDB.open(dbName, 1);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
@@ -1548,7 +1549,6 @@ useEffect(() => {
       const roomData = localStorage.getItem('myRoom')
 
       if (roomCreated === 'true' && roomData) {
-        setIsRoomCreated(true)
         try {
           const parsed = JSON.parse(roomData)
           let finalAccNum = storedAccNum || parsed.accountId;
@@ -1556,18 +1556,33 @@ useEffect(() => {
             const accObj = getOrCreateAccountNumber(uid);
             finalAccNum = accObj.fullAccNum;
           }
-          const updatedRoom = {
-            ...parsed,
-            id: parsed.id || uid,
-            accountId: finalAccNum,
-            image:
-              parsed.image ||
-              parsed.roomDp ||
-              photo ||
-              '/default-avatar.png'
-          };
-          setMyRoom(updatedRoom);
-          await saveRoomToDB(updatedRoom);
+
+          // Strictly verify that the cached myRoom belongs to the current user (by ID or accountId)
+          const roomBelongsToCurrentUser =
+            (parsed.id && String(parsed.id) === String(uid)) ||
+            (parsed.accountId && String(parsed.accountId) === String(finalAccNum));
+
+          if (roomBelongsToCurrentUser) {
+            setIsRoomCreated(true)
+            const updatedRoom = {
+              ...parsed,
+              id: parsed.id || uid,
+              accountId: finalAccNum,
+              image:
+                parsed.image ||
+                parsed.roomDp ||
+                photo ||
+                '/default-avatar.png'
+            };
+            setMyRoom(updatedRoom);
+            await saveRoomToDB(updatedRoom);
+          } else {
+            // Room belongs to a different ID, reset local room state for new user ID
+            setIsRoomCreated(false);
+            setMyRoom(null);
+            localStorage.removeItem('isRoomCreated');
+            localStorage.removeItem('myRoom');
+          }
         } catch (e) {
           setIsRoomCreated(false)
           setMyRoom(null)
@@ -1578,7 +1593,11 @@ useEffect(() => {
         
         if (storedAccNum) {
           const indexedRoom = await loadRoomFromDB(storedAccNum);
-          if (indexedRoom) {
+          if (
+            indexedRoom &&
+            ((indexedRoom.id && String(indexedRoom.id) === String(uid)) ||
+              (indexedRoom.accountId && String(indexedRoom.accountId) === String(storedAccNum)))
+          ) {
             const restoredRoom = {
               ...indexedRoom,
               id: indexedRoom.id || uid,

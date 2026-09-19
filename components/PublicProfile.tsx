@@ -1829,9 +1829,10 @@ export default function PublicProfile({
             currentUser={getCurrentUserData()}
             targetUser={{
               uid: targetUser.uid || targetUser.id || '',
+              accountId: targetUser.displayAccountNumber || targetUser.accountId,
               name: isValidName(targetUser.name) ? targetUser.name! : (targetUser.displayAccountNumber || 'User'),
               photo: targetUser.photo || targetUser.image || '',
-            }}
+            } as any}
             onClose={() => setShowChat(false)}
             onJoinRoom={onJoinRoom}
           />
