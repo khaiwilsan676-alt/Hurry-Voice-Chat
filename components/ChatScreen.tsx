@@ -5,19 +5,26 @@ import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X
 import socket from '../src/lib/socket';
 
 // ============ IndexedDB Functions for Conversations & Messages ============
-const CONVERSATIONS_DB_NAME = 'MessagesDB';
 const CONVERSATIONS_STORE = 'conversations';
+const MESSAGES_STORE = 'messages';
 
-const saveConversationToDB = async (conversation: {
-  chatId: string;
-  otherUser: { uid: string; name: string; photo: string };
-  lastMessage: string;
-  lastTimestamp: number;
-  unreadCount: number;
-}) => {
+const getConversationsDBName = (userId: string) => `MessagesDB_${userId || 'guest'}`;
+const getChatMessagesDBName = (userId: string) => `ChatMessagesDB_${userId || 'guest'}`;
+
+const saveConversationToDB = async (
+  currentUserId: string,
+  conversation: {
+    chatId: string;
+    otherUser: { uid: string; name: string; photo: string };
+    lastMessage: string;
+    lastTimestamp: number;
+    unreadCount: number;
+  }
+) => {
+  if (!currentUserId || currentUserId === 'N/A') return;
   try {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(CONVERSATIONS_DB_NAME, 2);
+      const request = indexedDB.open(getConversationsDBName(currentUserId), 2);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
       request.onupgradeneeded = () => {
@@ -36,12 +43,9 @@ const saveConversationToDB = async (conversation: {
   }
 };
 
-const MESSAGES_DB_NAME = 'ChatMessagesDB';
-const MESSAGES_STORE = 'messages';
-
-const openMessagesDB = (): Promise<IDBDatabase> => {
+const openMessagesDB = (userId: string): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(MESSAGES_DB_NAME, 1);
+    const request = indexedDB.open(getChatMessagesDBName(userId), 1);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -58,9 +62,10 @@ const openMessagesDB = (): Promise<IDBDatabase> => {
 };
 
 // Messages save karo IndexedDB mein
-const saveMessagesToDB = async (chatId: string, messages: Message[]) => {
+const saveMessagesToDB = async (currentUserId: string, chatId: string, messages: Message[]) => {
+  if (!currentUserId || currentUserId === 'N/A') return;
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUserId);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
 
@@ -92,9 +97,10 @@ const saveMessagesToDB = async (chatId: string, messages: Message[]) => {
 };
 
 // Messages load karo IndexedDB se
-const loadMessagesFromDB = async (chatId: string): Promise<Message[]> => {
+const loadMessagesFromDB = async (currentUserId: string, chatId: string): Promise<Message[]> => {
+  if (!currentUserId || currentUserId === 'N/A') return [];
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUserId);
     const transaction = db.transaction([MESSAGES_STORE], 'readonly');
     const store = transaction.objectStore(MESSAGES_STORE);
     const index = store.index('chatId');
@@ -210,7 +216,7 @@ useEffect(() => {
     return;
   }
 
-  loadMessagesFromDB(chatId)
+  loadMessagesFromDB(currentUser.uid, chatId)
     .then((localMessages) => {
       const sorted = [...localMessages].sort(
         (a, b) => a.timestamp - b.timestamp
@@ -265,8 +271,8 @@ useEffect(() => {
         (a, b) => a.timestamp - b.timestamp
       );
 
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -351,8 +357,8 @@ const sendRoomInvite = async (roomData: {
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -419,8 +425,8 @@ const handleSend = async () => {
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -503,8 +509,8 @@ const handleImageUpload = async (
 
     setMessages((prev) => {
       const updated = [...prev, localMessage];
-      saveMessagesToDB(chatId, updated);
-      saveConversationToDB({
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
         chatId,
         otherUser: {
           uid: targetUser.uid,
@@ -540,7 +546,7 @@ const handleClearChat = async () => {
       chatId,
     });
 
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
     const index = store.index('chatId');
@@ -566,7 +572,7 @@ const handleClearChat = async () => {
 // ========== Delete single message ==========
 const handleDeleteMessage = async (messageId: string) => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     transaction.objectStore(MESSAGES_STORE).delete(messageId);
     db.close();
@@ -584,7 +590,7 @@ const handleDeleteMessage = async (messageId: string) => {
 // ========== Delete selected messages (batch) ==========
 const handleDeleteSelectedMessages = async () => {
   try {
-    const db = await openMessagesDB();
+    const db = await openMessagesDB(currentUser.uid);
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);
 

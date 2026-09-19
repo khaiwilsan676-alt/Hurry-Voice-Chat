@@ -7,13 +7,15 @@ import Image from 'next/image';
 import ChatScreen from './ChatScreen';
 
 // ============ Simple IndexedDB Functions ============
-const DB_NAME = 'MessagesDB';
 const STORE_NAME = 'conversations';
 
+const getConversationsDBName = (userId: string) => `MessagesDB_${userId || 'guest'}`;
+const getChatMessagesDBName = (userId: string) => `ChatMessagesDB_${userId || 'guest'}`;
+
 // IndexedDB kholo
-const openDB = (): Promise<IDBDatabase> => {
+const openDB = (userId: string): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 2);
+    const request = indexedDB.open(getConversationsDBName(userId), 2);
 
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -28,9 +30,10 @@ const openDB = (): Promise<IDBDatabase> => {
 };
 
 // IndexedDB mein save karo
-const saveToDB = async (conversations: ChatPreview[]) => {
+const saveToDB = async (userId: string, conversations: ChatPreview[]) => {
+  if (!userId || userId === 'N/A') return;
   try {
-    const db = await openDB();
+    const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
 
@@ -50,9 +53,10 @@ const saveToDB = async (conversations: ChatPreview[]) => {
 };
 
 // IndexedDB se load karo
-const loadFromDB = async (): Promise<ChatPreview[]> => {
+const loadFromDB = async (userId: string): Promise<ChatPreview[]> => {
+  if (!userId || userId === 'N/A') return [];
   try {
-    const db = await openDB();
+    const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
 
@@ -71,10 +75,11 @@ const loadFromDB = async (): Promise<ChatPreview[]> => {
 };
 
 // Fallback: load messages from ChatMessagesDB to build missing conversation entries
-const loadAllChatMessagesDB = async (): Promise<any[]> => {
+const loadAllChatMessagesDB = async (userId: string): Promise<any[]> => {
+  if (!userId || userId === 'N/A') return [];
   try {
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('ChatMessagesDB', 1);
+      const request = indexedDB.open(getChatMessagesDBName(userId), 1);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
     });
@@ -157,8 +162,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         return;
       }
 
-      const cachedChats = await loadFromDB();
-      const allMessages = await loadAllChatMessagesDB();
+      const cachedChats = await loadFromDB(currentUserUid);
+      const allMessages = await loadAllChatMessagesDB(currentUserUid);
       const chatMap = new Map<string, ChatPreview>();
 
       cachedChats.forEach((chat) => {
@@ -235,7 +240,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       if (isMounted) {
         setDynamicChats(sorted);
-        await saveToDB(sorted);
+        await saveToDB(currentUserUid, sorted);
         setIsLoading(false);
       }
     };
@@ -276,7 +281,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       try {
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
-          const request = indexedDB.open('ChatMessagesDB', 1);
+          const request = indexedDB.open(getChatMessagesDBName(currentUserUid), 1);
           request.onerror = () => reject(request.error);
           request.onsuccess = () => resolve(request.result);
           request.onupgradeneeded = () => {
@@ -333,7 +338,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
         );
 
-        saveToDB(next).catch(() => {});
+        saveToDB(currentUserUid, next).catch(() => {});
         return next;
       });
     };
@@ -354,7 +359,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             : chat
         );
 
-        saveToDB(next).catch(() => {});
+        saveToDB(currentUserUid, next).catch(() => {});
         return next;
       });
     };
