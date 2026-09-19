@@ -5,6 +5,7 @@ import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, Ch
 import { auth } from '@/src/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
+import { apiUrl } from "@/src/lib/api";
 // ==============================================================
 // TYPES & DATA STRUCTURES
 // ==============================================================
@@ -198,7 +199,7 @@ export default function StaffPanel() {
 
         // 1. Fetch users from API endpoint
         try {
-          const res = await fetch('/api/users');
+          const res = await fetch(apiUrl('/api/users'));
           if (res.ok) {
             const data = await res.json();
             const rawUsers = Array.isArray(data) ? data : (data?.users || []);

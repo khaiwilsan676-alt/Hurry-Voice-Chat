@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, ArrowRight, Eye, EyeOff, User } from 'lucide-react'
 import { 
@@ -86,7 +88,7 @@ const getUserFromMongoDB = async (uid: string) => {
   if (!uid) return null;
 
   const response = await fetch(
-    `/api/users?uid=${encodeURIComponent(uid)}`
+    apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
   );
 
   if (response.status === 404) {
@@ -108,7 +110,7 @@ const saveUserToMongoDB = async (userData: any) => {
     throw new Error("Missing user uid");
   }
 
-  const response = await fetch("/api/users", {
+  const response = await fetch(apiUrl("/api/users"), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

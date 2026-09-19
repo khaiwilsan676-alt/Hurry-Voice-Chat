@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { socket } from '../src/lib/socket'
 import MessagePage from './MessagePage'
@@ -64,7 +66,7 @@ const saveUserToMongoDB = async (userData: any) => {
     throw new Error("Missing user uid");
   }
 
-  const response = await fetch("/api/users", {
+  const response = await fetch(apiUrl("/api/users"), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -798,7 +800,7 @@ async function fetchSearchResults(
     );
 
     const response = await fetch(
-      `/api/users?accountId=${encodeURIComponent(query)}`,
+      apiUrl(`/api/users?accountId=${encodeURIComponent(query)}`),
       {
         cache: "no-store",
         signal: controller.signal,
@@ -1513,9 +1515,22 @@ useEffect(() => {
   useEffect(() => {
     const loadProfile = async () => {
       const name = localStorage.getItem('userName') || ''
-      const photo = localStorage.getItem('userPhoto') || ''
       const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || ''
       const storedAccNum = localStorage.getItem('accountNumber') || ''
+
+      let storedProfile: any = {}
+      try {
+        const rawProfile = localStorage.getItem('userData') || localStorage.getItem('user')
+        if (rawProfile) storedProfile = JSON.parse(rawProfile)
+      } catch {}
+
+      const photo =
+        localStorage.getItem('userPhoto') ||
+        storedProfile.image ||
+        storedProfile.photo ||
+        storedProfile.avatar ||
+        storedProfile.photoURL ||
+        '/default-avatar.png'
 
       setUserName(name)
       setUserPhoto(photo)
@@ -1535,8 +1550,13 @@ useEffect(() => {
           }
           const updatedRoom = {
             ...parsed,
-            id: uid,
-            accountId: finalAccNum
+            id: parsed.id || uid,
+            accountId: finalAccNum,
+            image:
+              parsed.image ||
+              parsed.roomDp ||
+              photo ||
+              '/default-avatar.png'
           };
           setMyRoom(updatedRoom);
           await saveRoomToDB(updatedRoom);
@@ -1551,10 +1571,22 @@ useEffect(() => {
         if (storedAccNum) {
           const indexedRoom = await loadRoomFromDB(storedAccNum);
           if (indexedRoom) {
+            const restoredRoom = {
+              ...indexedRoom,
+              id: indexedRoom.id || uid,
+              accountId: indexedRoom.accountId || storedAccNum,
+              image:
+                indexedRoom.image ||
+                indexedRoom.roomDp ||
+                photo ||
+                '/default-avatar.png'
+            };
+
             setIsRoomCreated(true);
-            setMyRoom(indexedRoom);
+            setMyRoom(restoredRoom);
             localStorage.setItem('isRoomCreated', 'true');
-            localStorage.setItem('myRoom', JSON.stringify(indexedRoom));
+            localStorage.setItem('myRoom', JSON.stringify(restoredRoom));
+            await saveRoomToDB(restoredRoom);
           }
         }
       }
@@ -1985,7 +2017,7 @@ useEffect(() => {
       accountId: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem('userCountry') || '🇮🇳',
-      image: userPhoto || '/default-avatar.png'
+      image: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png'
     }
 
     localStorage.setItem('isRoomCreated', 'true')
@@ -2018,7 +2050,7 @@ useEffect(() => {
         roomId: userUID,
         id: userUID,
         roomName: userName || defaultRoomName,
-        roomDp: userPhoto || '/default-avatar.png',
+        roomDp: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",
         roomAdmin: storedAccNum,
         message: `${userName || defaultRoomName}'s Room Notice`,
@@ -2030,7 +2062,7 @@ useEffect(() => {
         appLongId: userUID,
         name: userName || defaultRoomName,
         country: localStorage.getItem("userCountry") || "🇮🇳",
-        image: userPhoto || '/default-avatar.png',
+        image: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
         accountId: storedAccNum
       });
     } catch (e) {

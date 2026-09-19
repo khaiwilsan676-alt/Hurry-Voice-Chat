@@ -62,7 +62,6 @@ const VideoRewardItem = ({
         className={`w-full h-full object-cover pointer-events-none ${scaleClass}`} 
         style={{ 
           mixBlendMode: blendScreen ? 'screen' : 'normal', 
-          WebkitMixBlendMode: blendScreen ? 'screen' : 'normal',
           filter: 'url(#remove-black)' 
         }} 
       />
@@ -437,12 +436,10 @@ export default function Family({ onBack }: FamilyProps) {
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
-                    WebkitMixBlendMode: 'screen',
                     backgroundColor: 'transparent',
                     filter: 'url(#remove-black)' 
                   } : activeVideoModal.type === 'black-noblend' ? {
                     mixBlendMode: 'normal',
-                    WebkitMixBlendMode: 'normal',
                     backgroundColor: 'transparent',
                     filter: 'url(#remove-black)' 
                   } : {

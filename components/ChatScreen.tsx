@@ -200,26 +200,33 @@ useEffect(() => {
   };
 }, [targetUser.uid, isFixedChat]);
 
-// ========== Pehle IndexedDB se messages load karo ==========
-  useEffect(() => {
-    const loadCachedMessages = async () => {
-      try {
-        const cachedMessages = await loadMessagesFromDB(chatId);
-        if (cachedMessages.length > 0) {
-          setMessages(cachedMessages);
-          console.log('Chat messages IndexedDB se load huye:', cachedMessages.length);
-        }
-        setIsLoadingMessages(false);
-      } catch (error) {
-        console.error('Error loading cached messages:', error);
-        setIsLoadingMessages(false);
-      }
-    };
+// ========== Load private chat history from backend ==========
+useEffect(() => {
+  setMessages([]);
+  setIsLoadingMessages(true);
 
-    loadCachedMessages();
-  }, [chatId]);
+  if (!currentUser.uid || !targetUser.uid) {
+    setIsLoadingMessages(false);
+    return;
+  }
 
-  // ========== Socket.IO private messages ==========
+  loadMessagesFromDB(chatId)
+    .then((localMessages) => {
+      const sorted = [...localMessages].sort(
+        (a, b) => a.timestamp - b.timestamp
+      );
+      setMessages(sorted);
+    })
+    .catch((error) => {
+      console.error('Local message history load error:', error);
+      setMessages([]);
+    })
+    .finally(() => {
+      setIsLoadingMessages(false);
+    });
+}, [chatId, currentUser.uid, targetUser.uid]);
+
+// ========== Socket.IO private messages ==========
 useEffect(() => {
   socket.connect();
 
@@ -520,6 +527,12 @@ const handleImageUpload = async (
 // ========== Clear Chat ==========
 const handleClearChat = async () => {
   try {
+    socket.emit('private_message_clear', {
+      userId: currentUser.uid,
+      otherUserId: targetUser.uid,
+      chatId,
+    });
+
     const db = await openMessagesDB();
     const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
     const store = transaction.objectStore(MESSAGES_STORE);

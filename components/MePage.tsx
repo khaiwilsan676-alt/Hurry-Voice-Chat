@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import React, { useEffect, useState, useRef } from 'react'
 import { ChevronRight, Copy, ArrowLeft } from 'lucide-react'
 import SettingPage from './settingpage'
@@ -48,7 +50,7 @@ const getUserFromMongoDB = async (uid: string) => {
   if (!uid) return null;
 
   const response = await fetch(
-    `/api/users?uid=${encodeURIComponent(uid)}`
+    apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
   );
 
   if (response.status === 404) {

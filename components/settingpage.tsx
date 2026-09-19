@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import React, { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getTranslation, LanguageCode } from '../lib/translations'
@@ -55,7 +57,7 @@ export default function SettingPage({
     if (isOfficialOrAdmin && uid) {
       // Update session to false via Google Sheets API
       try {
-          const response = await fetch("/api/users", {
+          const response = await fetch(apiUrl("/api/users"), {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",

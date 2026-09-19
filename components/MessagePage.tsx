@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { socket } from '../src/lib/socket';
 import Image from 'next/image';
 
 import ChatScreen from './ChatScreen';
@@ -146,7 +147,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
   const currentUserUid = getCurrentUserData().uid;
 
-  // Sirf IndexedDB se load karo & polling for live updates
+  // Load cached conversations once + receive realtime private messages
   useEffect(() => {
     let isMounted = true;
 
@@ -156,27 +157,35 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         return;
       }
 
-      // IndexedDB se data load karo
       const cachedChats = await loadFromDB();
       const allMessages = await loadAllChatMessagesDB();
-
       const chatMap = new Map<string, ChatPreview>();
+
       cachedChats.forEach((chat) => {
         if (chat && chat.chatId) {
           chatMap.set(chat.chatId, chat);
         }
       });
 
-      // Group messages from ChatMessagesDB for any chatId not in chatMap or needing updated info
       allMessages.forEach((msg) => {
         if (!msg || !msg.chatId) return;
+
         const existing = chatMap.get(msg.chatId);
         const msgTime = Number(msg.timestamp || Date.now());
-        const isMe = msg.senderId === currentUserUid || msg.sender === 'me';
+        const isMe =
+          msg.senderId === currentUserUid || msg.sender === 'me';
 
-        const otherUid = isMe ? (msg.receiverId || msg.targetUid) : (msg.senderId || msg.otherUid);
-        const otherName = isMe ? (msg.targetUserName || msg.receiverName || msg.otherUserName || 'User') : (msg.senderName || msg.otherUserName || 'User');
-        const otherPhoto = isMe ? (msg.targetUserPhoto || msg.receiverPhoto || msg.otherUserPhoto || '/default-avatar.png') : (msg.senderPhoto || msg.otherUserPhoto || '/default-avatar.png');
+        const otherUid = isMe
+          ? (msg.receiverId || msg.targetUid)
+          : (msg.senderId || msg.otherUid);
+
+        const otherName = isMe
+          ? (msg.targetUserName || msg.receiverName || msg.otherUserName || 'User')
+          : (msg.senderName || msg.otherUserName || 'User');
+
+        const otherPhoto = isMe
+          ? (msg.targetUserPhoto || msg.receiverPhoto || msg.otherUserPhoto || '/default-avatar.png')
+          : (msg.senderPhoto || msg.otherUserPhoto || '/default-avatar.png');
 
         if (!existing) {
           if (otherUid) {
@@ -187,53 +196,192 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
                 name: otherName,
                 photo: otherPhoto,
               },
-              lastMessage: msg.type === 'image' ? '📷 Image' : (msg.text || ''),
+              lastMessage:
+                msg.type === 'image' ? '📷 Image' : (msg.text || ''),
               lastTimestamp: msgTime,
               unreadCount: 0,
             });
           }
-        } else {
-          if (msgTime > (existing.lastTimestamp || 0)) {
-            existing.lastMessage = msg.type === 'image' ? '📷 Image' : (msg.text || existing.lastMessage);
-            existing.lastTimestamp = msgTime;
-          }
-          if ((!existing.otherUser.name || existing.otherUser.name === 'User') && otherName && otherName !== 'User') {
+        } else if (msgTime > (existing.lastTimestamp || 0)) {
+          existing.lastMessage =
+            msg.type === 'image'
+              ? '📷 Image'
+              : (msg.text || existing.lastMessage);
+          existing.lastTimestamp = msgTime;
+
+          if (
+            (!existing.otherUser.name ||
+              existing.otherUser.name === 'User') &&
+            otherName &&
+            otherName !== 'User'
+          ) {
             existing.otherUser.name = otherName;
           }
-          if ((!existing.otherUser.photo || existing.otherUser.photo === '/default-avatar.png') && otherPhoto && otherPhoto !== '/default-avatar.png') {
+
+          if (
+            (!existing.otherUser.photo ||
+              existing.otherUser.photo === '/default-avatar.png') &&
+            otherPhoto &&
+            otherPhoto !== '/default-avatar.png'
+          ) {
             existing.otherUser.photo = otherPhoto;
           }
         }
       });
 
-      const mergedChats = Array.from(chatMap.values());
-      
+      const sorted = Array.from(chatMap.values()).sort(
+        (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
+      );
+
       if (isMounted) {
-        // Sort conversations by lastTimestamp descending
-        const sorted = mergedChats.sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
-        setDynamicChats((prev) => {
-          if (JSON.stringify(prev) === JSON.stringify(sorted)) {
-            return prev;
-          }
-          saveToDB(sorted);
-          return sorted;
-        });
+        setDynamicChats(sorted);
+        await saveToDB(sorted);
         setIsLoading(false);
       }
     };
 
-    loadData();
+    const handlePrivateMessage = async (data: any) => {
+      if (!data?.senderId || !data?.receiverId) return;
 
-    // Poll IndexedDB every 2 seconds to capture newly sent/received messages
-    const interval = setInterval(loadData, 2000);
+      if (
+        String(data.receiverId) !== String(currentUserUid) &&
+        String(data.senderId) !== String(currentUserUid)
+      ) {
+        return;
+      }
+
+      const isMe = String(data.senderId) === String(currentUserUid);
+      const otherUid = isMe ? String(data.receiverId) : String(data.senderId);
+
+      const chatId = [currentUserUid, otherUid].sort().join('_');
+      const timestamp = Number(data.timestamp || Date.now());
+      const lastMessage =
+        data.type === 'image' ? '📷 Image' : String(data.text || '');
+
+      const localMessage = {
+        id: String(data.id || `${data.senderId}_${timestamp}`),
+        chatId,
+        text: String(data.text || ''),
+        sender: isMe ? 'me' : 'other',
+        senderId: String(data.senderId),
+        receiverId: String(data.receiverId),
+        senderName: data.senderName || data.otherUserName || 'User',
+        senderPhoto: data.senderPhoto || data.otherUserPhoto || '/default-avatar.png',
+        timestamp,
+        type: data.type || 'message',
+        imageUrl: data.imageUrl || undefined,
+        roomData: data.roomData || undefined,
+        replyTo: data.replyTo || null,
+      };
+
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open('ChatMessagesDB', 1);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('messages')) {
+              const store = db.createObjectStore('messages', { keyPath: 'id' });
+              store.createIndex('chatId', 'chatId', { unique: false });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+            }
+          };
+        });
+
+        const tx = db.transaction(['messages'], 'readwrite');
+        tx.objectStore('messages').put(localMessage);
+        tx.oncomplete = () => db.close();
+        tx.onerror = () => db.close();
+      } catch (error) {
+        console.error('Realtime local message save error:', error);
+      }
+
+      if (!isMounted) return;
+
+      setDynamicChats((prev) => {
+        const existing = prev.find((chat) => chat.chatId === chatId);
+
+        const updatedChat: ChatPreview = existing
+          ? {
+              ...existing,
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: isMe
+                ? existing.unreadCount
+                : (existing.unreadCount || 0) + 1,
+            }
+          : {
+              chatId,
+              otherUser: {
+                uid: otherUid,
+                name: data.senderName || data.otherUserName || 'User',
+                photo:
+                  data.senderPhoto ||
+                  data.otherUserPhoto ||
+                  '/default-avatar.png',
+              },
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: isMe ? 0 : 1,
+            };
+
+        const next = [
+          ...prev.filter((chat) => chat.chatId !== chatId),
+          updatedChat,
+        ].sort(
+          (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
+        );
+
+        saveToDB(next).catch(() => {});
+        return next;
+      });
+    };
+
+    const handlePrivateMessageCleared = (data: any) => {
+      const clearedChatId = String(data?.chatId || '');
+      if (!clearedChatId || !isMounted) return;
+
+      setDynamicChats((prev) => {
+        const next = prev.map((chat) =>
+          chat.chatId === clearedChatId
+            ? {
+                ...chat,
+                lastMessage: '',
+                lastTimestamp: 0,
+                unreadCount: 0,
+              }
+            : chat
+        );
+
+        saveToDB(next).catch(() => {});
+        return next;
+      });
+    };
+
+    const registerUser = () => {
+      socket.emit('register', currentUserUid);
+    };
+
+    socket.on('connect', registerUser);
+    socket.on('private_message', handlePrivateMessage);
+    socket.on('private_message_cleared', handlePrivateMessageCleared);
+
+    if (!socket.connected) {
+      socket.connect();
+    } else {
+      registerUser();
+    }
+
+    loadData();
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      socket.off('connect', registerUser);
+      socket.off('private_message', handlePrivateMessage);
+      socket.off('private_message_cleared', handlePrivateMessageCleared);
     };
   }, [currentUserUid]);
-
-
 
   // ---------- Helpers ----------
   const formatTime = (timestamp: number) => {

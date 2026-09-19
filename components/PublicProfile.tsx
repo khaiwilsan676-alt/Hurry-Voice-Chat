@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import React, { useEffect, useState, useRef } from 'react'
 import {
   ArrowLeft,
@@ -619,7 +621,7 @@ export default function PublicProfile({
   if (!currentUid || currentUid === 'N/A') return
 
   try {
-    const response = await fetch('/api/users', {
+    const response = await fetch(apiUrl('/api/users'), {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -749,7 +751,7 @@ export default function PublicProfile({
 
           try {
             const mongoResponse = await fetch(
-              `/api/users?uid=${encodeURIComponent(targetUid)}`
+              apiUrl(`/api/users?uid=${encodeURIComponent(targetUid)}`)
             );
 
             if (!mongoResponse.ok) {
@@ -889,7 +891,7 @@ export default function PublicProfile({
       if (uid && uid !== 'N/A') {
         try {
       const mongoResponse = await fetch(
-        `/api/users?uid=${encodeURIComponent(uid)}`
+        apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
       )
 
       if (!mongoResponse.ok) {

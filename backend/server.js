@@ -33,6 +33,61 @@ const onlineUsers = new Map();
  */
 const roomUsers = new Map();
 
+/*
+ * roomId -> Map(seatNumber -> seat state)
+ * Seat state is kept in memory because it only represents the
+ * currently active room session.
+ */
+const roomSeats = new Map();
+
+function getRoomSeats(roomId) {
+  const room = roomSeats.get(String(roomId));
+  if (!room) return [];
+
+  return Array.from(room.values()).sort(
+    (a, b) => Number(a.number) - Number(b.number)
+  );
+}
+
+function emitRoomSeats(roomId) {
+  const room = String(roomId);
+  io.to(`room:${room}`).emit("room_seats", {
+    roomId: room,
+    seats: getRoomSeats(room),
+  });
+}
+
+function clearUserSeat(roomId, userId) {
+  const room = roomSeats.get(String(roomId));
+  if (!room) return false;
+
+  let changed = false;
+
+  for (const [number, seat] of room.entries()) {
+    if (
+      seat?.isOccupied &&
+      String(seat?.user?.accountId) === String(userId)
+    ) {
+      room.set(number, {
+        ...seat,
+        isOccupied: false,
+        user: undefined,
+        isMuted: false,
+        isSpeaking: false,
+        gif: undefined,
+      });
+      changed = true;
+    }
+  }
+
+  if (room.size === 0) {
+    roomSeats.delete(String(roomId));
+  }
+
+  return changed;
+}
+
+
 function getRoomUsers(roomId) {
   const users = roomUsers.get(String(roomId));
   if (!users) return [];
@@ -207,6 +262,245 @@ function getGlobalRoomPresence() {
   );
 }
 
+
+// ==================== USERS API ====================
+
+app.get("/api/users", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({
+        error: "MongoDB is not connected",
+      });
+    }
+
+    const uid = String(req.query.uid || "").trim();
+    const accountId = String(req.query.accountId || "").trim();
+
+    const users = db.collection("users");
+
+    // No query = return all registered users.
+    // Used by the Owner Panel.
+    if (!uid && !accountId) {
+      const allUsers = await users
+        .find({})
+        .sort({ createdAt: -1 })
+        .limit(1000)
+        .toArray();
+
+      const normalizedUsers = allUsers.map((user) => {
+        const numberId = String(
+          user.accountId ||
+          user.accountNumber ||
+          user["Account Number"] ||
+          user.displayUserNumber ||
+          ""
+        );
+
+        return {
+          ...user,
+          id: String(
+            user.id ||
+            user.uid ||
+            user.appLongId ||
+            user._id ||
+            ""
+          ),
+          uid: String(
+            user.uid ||
+            user.id ||
+            user.appLongId ||
+            ""
+          ),
+          appLongId: String(
+            user.appLongId ||
+            user.id ||
+            user.uid ||
+            ""
+          ),
+          accountId: numberId,
+          accountNumber: numberId,
+          displayUserNumber: numberId,
+          name:
+            user.name ||
+            user.displayName ||
+            user.userName ||
+            "User",
+          image:
+            user.image ||
+            user.photo ||
+            user.photoURL ||
+            user.avatar ||
+            "/default-avatar.png",
+          country:
+            user.country ||
+            "🇮🇳",
+        };
+      });
+
+      return res.json({
+        users: normalizedUsers,
+      });
+    }
+
+    let user = null;
+
+    if (uid) {
+      user = await users.findOne({
+        $or: [
+          { uid },
+          { id: uid },
+          { appLongId: uid },
+        ],
+      });
+    }
+
+    if (!user && accountId) {
+      user = await users.findOne({
+        $or: [
+          { accountId },
+          { accountNumber: accountId },
+          { "Account Number": accountId },
+          { displayUserNumber: accountId },
+        ],
+      });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const numberId = String(
+      user.accountId ||
+      user.accountNumber ||
+      user["Account Number"] ||
+      user.displayUserNumber ||
+      ""
+    );
+
+    return res.json({
+      user: {
+        ...user,
+        id: String(
+          user.id ||
+          user.uid ||
+          user.appLongId ||
+          user._id ||
+          ""
+        ),
+        uid: String(
+          user.uid ||
+          user.id ||
+          user.appLongId ||
+          ""
+        ),
+        appLongId: String(
+          user.appLongId ||
+          user.id ||
+          user.uid ||
+          ""
+        ),
+        accountId: numberId,
+        accountNumber: numberId,
+        displayUserNumber: numberId,
+        name:
+          user.name ||
+          user.displayName ||
+          user.userName ||
+          "User",
+        image:
+          user.image ||
+          user.photo ||
+          user.photoURL ||
+          user.avatar ||
+          "/default-avatar.png",
+        country:
+          user.country ||
+          "🇮🇳",
+      },
+    });
+  } catch (error) {
+    console.error("GET /api/users error:", error);
+    return res.status(500).json({
+      error: "Failed to fetch user",
+    });
+  }
+});
+
+app.put("/api/users", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({
+        error: "MongoDB is not connected",
+      });
+    }
+
+    const data = req.body || {};
+
+    const uid = String(
+      data.uid ||
+      data.id ||
+      data.appLongId ||
+      ""
+    ).trim();
+
+    if (!uid) {
+      return res.status(400).json({
+        error: "Missing user uid",
+      });
+    }
+
+    const accountId = String(
+      data.accountId ||
+      data.accountNumber ||
+      data["Account Number"] ||
+      data.displayUserNumber ||
+      ""
+    ).trim();
+
+    const users = db.collection("users");
+
+    const userData = {
+      ...data,
+      id: String(data.id || uid),
+      uid,
+      appLongId: String(data.appLongId || uid),
+      accountId,
+      accountNumber: accountId,
+      displayUserNumber: accountId,
+      updatedAt: Date.now(),
+    };
+
+    await users.updateOne(
+      {
+        $or: [
+          { uid },
+          { id: uid },
+          { appLongId: uid },
+        ],
+      },
+      {
+        $set: userData,
+        $setOnInsert: {
+          createdAt: Date.now(),
+        },
+      },
+      { upsert: true }
+    );
+
+    return res.json({
+      success: true,
+      user: userData,
+    });
+  } catch (error) {
+    console.error("PUT /api/users error:", error);
+    return res.status(500).json({
+      error: "Failed to save user",
+    });
+  }
+});
+
 app.get("/", (_req, res) => {
   res.json({
     status: "ok",
@@ -322,6 +616,13 @@ io.on("connection", (socket) => {
         if (oldRoom !== room) {
           socket.leave(`room:${oldRoom}`);
 
+          if (clearUserSeat(oldRoom, oldUser)) {
+            socket.to(`room:${oldRoom}`).emit("room_seats", {
+              roomId: oldRoom,
+              seats: getRoomSeats(oldRoom),
+            });
+          }
+
           removeUserFromRoom(
             oldRoom,
             oldUser
@@ -357,6 +658,11 @@ io.on("connection", (socket) => {
         roomId: room,
         users,
         activeUserCount: users.length,
+      });
+
+      socket.emit("room_seats", {
+        roomId: room,
+        seats: getRoomSeats(room),
       });
 
       socket
@@ -398,6 +704,13 @@ io.on("connection", (socket) => {
 
       socket.leave(`room:${room}`);
 
+      if (clearUserSeat(room, id)) {
+        socket.to(`room:${room}`).emit("room_seats", {
+          roomId: room,
+          seats: getRoomSeats(room),
+        });
+      }
+
       removeUserFromRoom(room, id);
 
       socket
@@ -418,6 +731,167 @@ io.on("connection", (socket) => {
     }
   );
 
+  socket.on("room_seats_request", ({ roomId } = {}) => {
+    if (!roomId) return;
+
+    const room = String(roomId);
+
+    // Only return seats for a room this socket has actually joined.
+    if (String(socket.roomId || "") !== room) {
+      return;
+    }
+
+    socket.emit("room_seats", {
+      roomId: room,
+      seats: getRoomSeats(room),
+    });
+  });
+
+  socket.on("room_seat_action", (data = {}) => {
+    const roomId = data.roomId ? String(data.roomId) : "";
+    const userId = data.userId ? String(data.userId) : "";
+    const action = data.action;
+    const seatNumber = Number(data.seatNumber);
+
+    if (
+      !roomId ||
+      !userId ||
+      !Number.isFinite(seatNumber)
+    ) {
+      return;
+    }
+
+    // Only a user who is actually joined to this room can control a seat.
+    if (
+      String(socket.roomId || "") !== roomId ||
+      String(socket.roomUserId || socket.userId || "") !== userId
+    ) {
+      return;
+    }
+
+    if (!roomSeats.has(roomId)) {
+      roomSeats.set(roomId, new Map());
+    }
+
+    const seats = roomSeats.get(roomId);
+
+    const current = seats.get(seatNumber) || {
+      number: seatNumber,
+      isOccupied: false,
+      isLocked: false,
+      isMuted: false,
+      isSpeaking: false,
+    };
+
+    if (action === "take") {
+      // One user can occupy only one seat.
+      for (const [number, seat] of seats.entries()) {
+        if (
+          seat?.isOccupied &&
+          String(seat?.user?.accountId) === userId &&
+          Number(number) !== seatNumber
+        ) {
+          seats.set(number, {
+            ...seat,
+            isOccupied: false,
+            user: undefined,
+            isMuted: false,
+            isSpeaking: false,
+            gif: undefined,
+          });
+        }
+      }
+
+      if (
+        current.isLocked &&
+        !current.isOccupied
+      ) {
+        emitRoomSeats(roomId);
+        return;
+      }
+
+      if (
+        current.isOccupied &&
+        String(current.user?.accountId) !== userId
+      ) {
+        emitRoomSeats(roomId);
+        return;
+      }
+
+      seats.set(seatNumber, {
+        ...current,
+        number: seatNumber,
+        isOccupied: true,
+        user: {
+          name: data.user?.name || "User",
+          image:
+            data.user?.image ||
+            "/default-avatar.png",
+          accountId: userId,
+        },
+        isMuted: false,
+        isSpeaking: false,
+        gif: undefined,
+      });
+    }
+
+    if (action === "leave") {
+      if (
+        current.isOccupied &&
+        String(current.user?.accountId) === userId
+      ) {
+        seats.set(seatNumber, {
+          ...current,
+          isOccupied: false,
+          user: undefined,
+          isMuted: false,
+          isSpeaking: false,
+          gif: undefined,
+        });
+      }
+    }
+
+    if (action === "mute") {
+      if (
+        current.isOccupied &&
+        String(current.user?.accountId) === userId
+      ) {
+        seats.set(seatNumber, {
+          ...current,
+          isMuted: Boolean(data.isMuted),
+        });
+      }
+    }
+
+    if (action === "lock") {
+      seats.set(seatNumber, {
+        ...current,
+        isLocked: Boolean(data.isLocked),
+      });
+    }
+
+    if (action === "emoji") {
+      if (
+        current.isOccupied &&
+        String(current.user?.accountId) === userId
+      ) {
+        seats.set(seatNumber, {
+          ...current,
+          gif: {
+            src: data.src,
+            timestamp: Number(
+              data.timestamp || Date.now()
+            ),
+          },
+        });
+      }
+    }
+
+    // IMPORTANT:
+    // Broadcast the complete seat state to EVERYONE in the room.
+    emitRoomSeats(roomId);
+  });
+
   socket.on("room_message", (message) => {
     if (
       !message?.roomId ||
@@ -432,7 +906,7 @@ io.on("connection", (socket) => {
     );
   });
 
-  socket.on("private_message", (message) => {
+  socket.on("private_message", async (message) => {
     if (
       !message?.senderId ||
       !message?.receiverId
@@ -440,12 +914,167 @@ io.on("connection", (socket) => {
       return;
     }
 
-    io.to(
-      `user:${message.receiverId}`
-    ).emit(
+    const normalizedMessage = {
+      id: String(message.id || `${message.senderId}_${Date.now()}`),
+      senderId: String(message.senderId),
+      receiverId: String(message.receiverId),
+      text: String(message.text || ""),
+      type: message.type || "message",
+      imageUrl: message.imageUrl || undefined,
+      roomData: message.roomData || undefined,
+      replyTo: message.replyTo || null,
+      timestamp: Number(message.timestamp || Date.now()),
+    };
+
+    try {
+      if (db) {
+        await db.collection("privateMessages").updateOne(
+          { id: normalizedMessage.id },
+          { $set: normalizedMessage },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("Private message save failed:", error.message);
+    }
+
+    io.to(`user:${normalizedMessage.receiverId}`).emit(
       "private_message",
-      message
+      normalizedMessage
     );
+  });
+
+  socket.on("private_message_history_request", async (data = {}) => {
+    const userId = String(data.userId || "");
+    const otherUserId = String(data.otherUserId || "");
+
+    if (!userId || !otherUserId) {
+      socket.emit("private_message_history", {
+        chatId: data.chatId || "",
+        messages: [],
+      });
+      return;
+    }
+
+    try {
+      if (!db) {
+        socket.emit("private_message_history", {
+          chatId: data.chatId || "",
+          messages: [],
+        });
+        return;
+      }
+
+      const messages = await db
+        .collection("privateMessages")
+        .find({
+          $or: [
+            { senderId: userId, receiverId: otherUserId },
+            { senderId: otherUserId, receiverId: userId },
+          ],
+        })
+        .sort({ timestamp: 1 })
+        .limit(500)
+        .toArray();
+
+      socket.emit("private_message_history", {
+        chatId: data.chatId || "",
+        messages,
+      });
+    } catch (error) {
+      console.error("Private message history failed:", error.message);
+
+      socket.emit("private_message_history", {
+        chatId: data.chatId || "",
+        messages: [],
+      });
+    }
+  });
+
+  socket.on("private_message_clear", async (data = {}) => {
+    const userId = String(data.userId || "");
+    const otherUserId = String(data.otherUserId || "");
+
+    if (!userId || !otherUserId || !db) return;
+
+    try {
+      await db.collection("privateMessages").deleteMany({
+        $or: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ],
+      });
+
+      io.to(`user:${userId}`).emit("private_message_cleared", {
+        chatId: data.chatId || "",
+      });
+
+      io.to(`user:${otherUserId}`).emit("private_message_cleared", {
+        chatId: data.chatId || "",
+      });
+    } catch (error) {
+      console.error("Private message clear failed:", error.message);
+    }
+  });
+
+  socket.on("private_message_delete", async (data = {}) => {
+    const userId = String(data.userId || "");
+    const otherUserId = String(data.otherUserId || "");
+    const messageId = String(data.messageId || "");
+
+    if (!userId || !otherUserId || !messageId || !db) return;
+
+    try {
+      await db.collection("privateMessages").deleteOne({
+        id: messageId,
+        $or: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ],
+      });
+
+      io.to(`user:${userId}`).emit("private_message_deleted", {
+        chatId: data.chatId || "",
+        messageId,
+      });
+
+      io.to(`user:${otherUserId}`).emit("private_message_deleted", {
+        chatId: data.chatId || "",
+        messageId,
+      });
+    } catch (error) {
+      console.error("Private message delete failed:", error.message);
+    }
+  });
+
+  socket.on("private_message_delete_many", async (data = {}) => {
+    const userId = String(data.userId || "");
+    const otherUserId = String(data.otherUserId || "");
+    const messageIds = Array.isArray(data.messageIds)
+      ? data.messageIds.map(String).filter(Boolean)
+      : [];
+
+    if (!userId || !otherUserId || !messageIds.length || !db) return;
+
+    try {
+      await db.collection("privateMessages").deleteMany({
+        id: { $in: messageIds },
+        $or: [
+          { senderId: userId, receiverId: otherUserId },
+          { senderId: otherUserId, receiverId: userId },
+        ],
+      });
+
+      const payload = {
+        chatId: data.chatId || "",
+        messageIds,
+      };
+
+      io.to(`user:${userId}`).emit("private_messages_deleted", payload);
+      io.to(`user:${otherUserId}`).emit("private_messages_deleted", payload);
+    } catch (error) {
+      console.error("Private messages delete failed:", error.message);
+    }
   });
 
   socket.on("disconnect", () => {
@@ -453,6 +1082,17 @@ io.on("connection", (socket) => {
     const userId =
       socket.roomUserId ||
       socket.userId;
+
+    if (socket.roomId && userId) {
+      const room = String(socket.roomId);
+
+      if (clearUserSeat(room, String(userId))) {
+        socket.to(`room:${room}`).emit("room_seats", {
+          roomId: room,
+          seats: getRoomSeats(room),
+        });
+      }
+    }
 
     if (room && userId) {
       removeUserFromRoom(

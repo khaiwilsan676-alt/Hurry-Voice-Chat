@@ -1,5 +1,7 @@
 'use client'
 
+import { apiUrl } from "../src/lib/api";
+
 import React, { useEffect, useState, useRef } from 'react'
 import { 
   Copy, 
@@ -270,7 +272,7 @@ export default function RoomProfile({
     const fetchTags = async () => {
       try {
         const response = await fetch(
-          `/api/users?uid=${encodeURIComponent(uid)}`
+          apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
         )
 
         if (!response.ok) {

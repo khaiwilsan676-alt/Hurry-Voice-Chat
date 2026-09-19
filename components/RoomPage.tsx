@@ -317,7 +317,7 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   useEffect(() => {
     const name = localStorage.getItem('userName') || 'User';
     const image = localStorage.getItem('userPhoto') || '/default-avatar.png';
-    const storedAccNum = localStorage.getItem('accountNumber') || localStorage.getItem('userUID') || '10000000';
+    const storedAccNum = localStorage.getItem('accountNumber') || '';
     setLocalUser({ name, image, accountId: storedAccNum });
   }, []);
 
@@ -341,7 +341,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
-  const [roomImage, setRoomImage] = useState<string>(roomOwner.image || "/1784533036732~2.jpg");
+  const [roomImage, setRoomImage] = useState<string>(
+    roomOwner.image || "/default-avatar.png"
+  );
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -496,8 +498,8 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         );
 
         setRoomImage(
-          currentUser.image ||
           roomOwner.image ||
+          currentUser.image ||
           "/default-avatar.png"
         );
       }
@@ -835,18 +837,23 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     };
 
     const joinRoom = () => {
-    socket.emit("room_join", {
-      roomId,
-      userId: userAccountId,
-      name: currentRoomUser.name,
-      dp: currentRoomUser.image,
-      email:
-        (currentUser as any)?.email ||
-        (currentUser as any)?.emailPhone ||
-        "",
+      socket.emit("room_join", {
+        roomId,
+        userId: userAccountId,
+        name: currentRoomUser.name,
+        dp: currentRoomUser.image,
+        email:
+          (currentUser as any)?.email ||
+          (currentUser as any)?.emailPhone ||
+          "",
       });
 
-  };
+      // Request the latest live seat state after the room_join event.
+      socket.emit("room_seats_request", {
+        roomId,
+      });
+    };
+
     socket.emit("room_presence_request", {
       roomId,
     });
@@ -957,11 +964,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
           return;
         }
 
-        setSeats(prev => {
-          const base =
-            prev.length > 0
-              ? prev
-              : getInitialSeats(micMode);
+        setSeats(() => {
+          // Always rebuild from the server snapshot.
+          // This prevents stale occupied seats from surviving
+          // when the server sends an empty seat list.
+          const base = getInitialSeats(micMode);
 
           const byNumber = new Map(
             base.map(seat => [seat.number, seat])
@@ -1043,10 +1050,6 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   return () => {
     socket.off("connect", joinRoom);
 
-      socket.off(
-        "room_seats",
-        handleRoomSeats
-      );
 
       socket.off(
         "room_presence",
@@ -1961,7 +1964,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
                   </button>
                 )}
               </div>
-              <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || roomOwner.id || ''}</p>
+              <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>
+              ID:{roomOwner.accountId || ''}
+            </p>
             </div>
           </div>
 
