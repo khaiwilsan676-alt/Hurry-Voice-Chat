@@ -133,6 +133,8 @@ interface MessagePageProps {
   } | null;
 }
 
+const FIXED_CHAT_UIDS = ['hurry_team_official', 'hurry_system_official'];
+
 export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: MessagePageProps) {
   const [fixedChats] = useState<FixedChat[]>([
     { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
@@ -142,6 +144,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   const [dynamicChats, setDynamicChats] = useState<ChatPreview[]>([]);
   const [activeChat, setActiveChat] = useState<{ uid: string; name: string; photo: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }>>({});
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -234,13 +237,35 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         }
       });
 
-      const sorted = Array.from(chatMap.values()).sort(
-        (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
-      );
+      // Filter out fixed chat UIDs from dynamicChats to strictly avoid duplicates
+      const nonFixedChats = Array.from(chatMap.values())
+        .filter((chat) => !FIXED_CHAT_UIDS.includes(chat.otherUser.uid))
+        .sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
+
+      // Extract official message previews for fixed chats
+      const officialMap: Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }> = {};
+      fixedChats.forEach((fc) => {
+        const cId = [currentUserUid, fc.uid].sort().join('_');
+        const existing = chatMap.get(cId);
+        let unread = 0;
+        allMessages.forEach((msg) => {
+          if (msg && msg.chatId === cId && msg.receiverId === currentUserUid && msg.isUnread) {
+            unread++;
+          }
+        });
+        if (existing) {
+          officialMap[fc.uid] = {
+            lastMessage: existing.lastMessage,
+            lastTimestamp: existing.lastTimestamp,
+            unreadCount: unread,
+          };
+        }
+      });
 
       if (isMounted) {
-        setDynamicChats(sorted);
-        await saveToDB(currentUserUid, sorted);
+        setDynamicChats(nonFixedChats);
+        setOfficialPreviews(officialMap);
+        await saveToDB(currentUserUid, nonFixedChats);
         setIsLoading(false);
       }
     };
@@ -304,6 +329,23 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       if (!isMounted) return;
 
+      // If message is for fixed chats, update officialPreviews instead of dynamicChats
+      if (FIXED_CHAT_UIDS.includes(otherUid)) {
+        if (isMounted) {
+          setOfficialPreviews((prev) => ({
+            ...prev,
+            [otherUid]: {
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: isMe ? 0 : ((prev[otherUid]?.unreadCount || 0) + 1),
+            },
+          }));
+        }
+        return;
+      }
+
+      if (!isMounted) return;
+
       setDynamicChats((prev) => {
         const existing = prev.find((chat) => chat.chatId === chatId);
 
@@ -332,7 +374,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             };
 
         const next = [
-          ...prev.filter((chat) => chat.chatId !== chatId),
+          ...prev.filter((chat) => chat.chatId !== chatId && !FIXED_CHAT_UIDS.includes(chat.otherUser.uid)),
           updatedChat,
         ].sort(
           (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
@@ -364,17 +406,145 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       });
     };
 
+    const handleOfficialBroadcastMessage = async (data: any) => {
+      if (!data?.senderId) return;
+
+      const senderId = String(data.senderId);
+      if (senderId !== 'hurry_team_official' && senderId !== 'hurry_system_official') return;
+
+      const chatId = [currentUserUid, senderId].sort().join('_');
+      const timestamp = Number(data.timestamp || Date.now());
+      const lastMessage = data.type === 'image' ? '📷 Image' : String(data.text || '');
+
+      const localMessage = {
+        id: String(data.id || `official_${timestamp}`),
+        chatId,
+        text: String(data.text || ''),
+        sender: 'other',
+        senderId,
+        receiverId: currentUserUid,
+        senderName: data.senderName || (senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'),
+        senderPhoto: data.senderPhoto || (senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'),
+        timestamp,
+        type: data.type || 'message',
+        imageUrl: data.imageUrl || undefined,
+      };
+
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open(getChatMessagesDBName(currentUserUid), 1);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains('messages')) {
+              const store = db.createObjectStore('messages', { keyPath: 'id' });
+              store.createIndex('chatId', 'chatId', { unique: false });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+            }
+          };
+        });
+
+        const tx = db.transaction(['messages'], 'readwrite');
+        tx.objectStore('messages').put(localMessage);
+        tx.oncomplete = () => db.close();
+        tx.onerror = () => db.close();
+      } catch (error) {
+        console.error('Realtime official message save error:', error);
+      }
+
+      if (!isMounted) return;
+
+      setOfficialPreviews((prev) => ({
+        ...prev,
+        [senderId]: {
+          lastMessage,
+          lastTimestamp: timestamp,
+          unreadCount: (prev[senderId]?.unreadCount || 0) + 1,
+        },
+      }));
+    };
+
+    const handleOfficialHistoryResponse = async (data: any) => {
+      if (!Array.isArray(data?.messages) || !currentUserUid || currentUserUid === 'N/A') return;
+
+      const previews: Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }> = {};
+
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open(getChatMessagesDBName(currentUserUid), 1);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+          request.onupgradeneeded = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains('messages')) {
+              const store = database.createObjectStore('messages', { keyPath: 'id' });
+              store.createIndex('chatId', 'chatId', { unique: false });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+            }
+          };
+        });
+
+        const tx = db.transaction(['messages'], 'readwrite');
+        const store = tx.objectStore('messages');
+
+        data.messages.forEach((msg: any) => {
+          if (!msg?.senderId) return;
+          const senderId = String(msg.senderId);
+          if (senderId !== 'hurry_team_official' && senderId !== 'hurry_system_official') return;
+
+          const chatId = [currentUserUid, senderId].sort().join('_');
+          const timestamp = Number(msg.timestamp || Date.now());
+          const lastMessage = msg.type === 'image' ? '📷 Image' : String(msg.text || '');
+
+          store.put({
+            id: String(msg.id || `official_${timestamp}`),
+            chatId,
+            text: String(msg.text || ''),
+            sender: 'other',
+            senderId,
+            receiverId: currentUserUid,
+            senderName: msg.senderName || (senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'),
+            senderPhoto: msg.senderPhoto || (senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'),
+            timestamp,
+            type: msg.type || 'message',
+            imageUrl: msg.imageUrl || undefined,
+          });
+
+          if (!previews[senderId] || timestamp > previews[senderId].lastTimestamp) {
+            previews[senderId] = {
+              lastMessage,
+              lastTimestamp: timestamp,
+              unreadCount: previews[senderId]?.unreadCount || 0,
+            };
+          }
+        });
+
+        tx.oncomplete = () => db.close();
+        tx.onerror = () => db.close();
+      } catch (error) {
+        console.error('Official history save error:', error);
+      }
+
+      if (isMounted && Object.keys(previews).length > 0) {
+        setOfficialPreviews((prev) => ({ ...prev, ...previews }));
+      }
+    };
+
     const registerUser = () => {
       const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
       socket.emit('register', {
         userId: currentUserUid,
         accountId: accNum
       });
+      socket.emit('official_message_history_request');
     };
 
     socket.on('connect', registerUser);
     socket.on('private_message', handlePrivateMessage);
     socket.on('private_message_cleared', handlePrivateMessageCleared);
+    socket.on('official_broadcast_message', handleOfficialBroadcastMessage);
+    socket.on('official_message_history_response', handleOfficialHistoryResponse);
 
     if (!socket.connected) {
       socket.connect();
@@ -389,6 +559,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       socket.off('connect', registerUser);
       socket.off('private_message', handlePrivateMessage);
       socket.off('private_message_cleared', handlePrivateMessageCleared);
+      socket.off('official_broadcast_message', handleOfficialBroadcastMessage);
+      socket.off('official_message_history_response', handleOfficialHistoryResponse);
     };
   }, [currentUserUid]);
 
@@ -441,20 +613,42 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       {/* Main content: Chats only */}
       <div className="pt-2 pb-24 flex flex-col gap-1">
         {/* Fixed chats */}
-        {fixedChats.map((chat) => (
-          <div
-            key={chat.id}
-            onClick={() => handleOpenFixedChat(chat)}
-            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-          >
-            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
+        {fixedChats.map((chat) => {
+          const preview = officialPreviews[chat.uid];
+          return (
+            <div
+              key={chat.id}
+              onClick={() => {
+                setOfficialPreviews((prev) => ({
+                  ...prev,
+                  [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                }));
+                handleOpenFixedChat(chat);
+              }}
+              className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            >
+              <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
+                {preview?.lastMessage && (
+                  <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
+                )}
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {preview?.lastTimestamp ? (
+                  <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
+                ) : null}
+                {preview?.unreadCount && preview.unreadCount > 0 ? (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                    {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
+                  </span>
+                ) : null}
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Dynamic chats from IndexedDB */}
         {dynamicChats.map((chat) => (

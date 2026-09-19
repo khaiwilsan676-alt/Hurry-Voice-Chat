@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette, MessageSquare, Bot, User, Clock, AlertTriangle, ShieldAlert, RefreshCw } from 'lucide-react';
+import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette, MessageSquare, Bot, User, Clock, AlertTriangle, ShieldAlert, RefreshCw, Send, ImageIcon, Megaphone, CheckCircle2, Trash2 } from 'lucide-react';
 import { auth } from '@/src/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { socket } from '@/src/lib/socket';
@@ -323,6 +323,53 @@ export default function StaffPanel() {
   const [supportSubTab, setSupportSubTab] = useState<'ai_chats' | 'reports'>('ai_chats');
   const supportChatEndRef = useRef<HTMLDivElement>(null);
 
+  // Official Msg State
+  // Helper to compress image files before broadcast
+  const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.8): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const [officialSender, setOfficialSender] = useState<'hurry_team_official' | 'hurry_system_official'>('hurry_team_official');
+  const [officialText, setOfficialText] = useState('');
+  const [officialImage, setOfficialImage] = useState('');
+  const [officialSending, setOfficialSending] = useState(false);
+  const [officialSuccess, setOfficialSuccess] = useState('');
+  const [officialHistory, setOfficialHistory] = useState<any[]>([]);
+  const officialFileInputRef = useRef<HTMLInputElement>(null);
+
   // Initialize User Feedbacks & Support Chats from IndexedDB & Socket.IO
   useEffect(() => {
     let isMounted = true;
@@ -348,6 +395,7 @@ export default function StaffPanel() {
 
       socket.emit("user_feedback_history_request");
       socket.emit("ai_support_history_request");
+      socket.emit("official_message_history_request");
 
       const handleFeedbackHistoryResponse = (data: any) => {
         if (!isMounted || !Array.isArray(data?.feedbacks)) return;
@@ -406,12 +454,30 @@ export default function StaffPanel() {
       socket.on("ai_support_history_response", handleHistoryResponse);
       socket.on("ai_support_message", handleAiSupportMessage);
 
+      const handleOfficialHistoryResponse = (data: any) => {
+        if (!isMounted || !Array.isArray(data?.messages)) return;
+        setOfficialHistory(data.messages.sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0)));
+      };
+
+      const handleOfficialBroadcast = (data: any) => {
+        if (!isMounted || !data?.id) return;
+        setOfficialHistory(prev => {
+          if (prev.some(m => m.id === data.id)) return prev;
+          return [data, ...prev].sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0));
+        });
+      };
+
+      socket.on("official_message_history_response", handleOfficialHistoryResponse);
+      socket.on("official_broadcast_message", handleOfficialBroadcast);
+
       return () => {
         isMounted = false;
         socket.off("user_feedback_history_response", handleFeedbackHistoryResponse);
         socket.off("user_feedback", handleUserFeedback);
         socket.off("ai_support_history_response", handleHistoryResponse);
         socket.off("ai_support_message", handleAiSupportMessage);
+        socket.off("official_message_history_response", handleOfficialHistoryResponse);
+        socket.off("official_broadcast_message", handleOfficialBroadcast);
       };
     }
   }, []);
@@ -727,7 +793,12 @@ export default function StaffPanel() {
           />
           <SidebarCategory
             icon="🛡️" title="Moderation" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
-            items={[{ id: 'feedback', label: 'User Feedback', icon: '💬' }, { id: 'bans', label: 'Reports & Bans', icon: '🚫' }, { id: 'tickets', label: 'Support Tickets', icon: '🎫' }]}
+            items={[
+              { id: 'feedback', label: 'User Feedback', icon: '💬' },
+              { id: 'bans', label: 'Reports & Bans', icon: '🚫' },
+              { id: 'tickets', label: 'Support Tickets', icon: '🎫' },
+              { id: 'official_msg', label: 'Official Msg', icon: '📢' }
+            ]}
           />
           <SidebarCategory
             icon="⚙️" title="Platform" activeItem={activeTab} setActiveItem={setActiveTab} setIsSidebarOpen={setIsSidebarOpen}
@@ -1615,8 +1686,305 @@ export default function StaffPanel() {
           </div>
         )}
 
+        {/* ============================================================== */}
+        {/* TAB: OFFICIAL MSG (REAL-TIME BROADCAST TO HURRY TEAM / SYSTEM) */}
+        {/* ============================================================== */}
+        {activeTab === 'official_msg' && (
+          <div className="flex flex-col h-full bg-slate-50 overflow-y-auto p-6 md:p-8">
+            <div className="max-w-4xl mx-auto w-full space-y-6">
+
+              {/* HEADER */}
+              <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                  <Megaphone className="w-64 h-64" />
+                </div>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="bg-white/20 backdrop-blur-md p-2 rounded-2xl">
+                    <Megaphone className="w-6 h-6 text-white" />
+                  </span>
+                  <h2 className="text-2xl font-black tracking-wide">Official Message Broadcast</h2>
+                </div>
+                <p className="text-blue-100 text-xs md:text-sm font-medium max-w-xl">
+                  Send real-time official announcements, updates or images directly to all users. Messages will strictly appear inside the <strong>Hurry Team</strong> or <strong>Hurry System</strong> chat threads on every user's Message page.
+                </p>
+              </div>
+
+              {/* SUCCESS BANNER */}
+              {officialSuccess && (
+                <div className="bg-emerald-500 text-white p-4 rounded-2xl shadow-md flex items-center justify-between animate-in fade-in duration-200">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-6 h-6 shrink-0" />
+                    <span className="font-bold text-sm">{officialSuccess}</span>
+                  </div>
+                  <button onClick={() => setOfficialSuccess('')} className="p-1 hover:bg-white/20 rounded-lg">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              {/* BROADCAST FORM CARD */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6">
+
+                {/* 1. SELECT OFFICIAL SENDER IDENTITY */}
+                <div>
+                  <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">
+                    1. Select Official Sender Account (ID) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    {/* HURRY TEAM OPTION */}
+                    <div
+                      onClick={() => setOfficialSender('hurry_team_official')}
+                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${
+                        officialSender === 'hurry_team_official'
+                          ? 'border-blue-600 bg-blue-50/60 shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 shrink-0 bg-white p-1">
+                        <img src="/logo.png" alt="Hurry Team" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-slate-800 text-sm">Hurry Team</h4>
+                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            officialSender === 'hurry_team_official' ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
+                          }`}>
+                            {officialSender === 'hurry_team_official' && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-blue-600 font-bold block mt-0.5">ID: hurry_team_official</span>
+                        <p className="text-[10px] text-slate-400 font-medium">Official team chat on Message page</p>
+                      </div>
+                    </div>
+
+                    {/* HURRY SYSTEM OPTION */}
+                    <div
+                      onClick={() => setOfficialSender('hurry_system_official')}
+                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${
+                        officialSender === 'hurry_system_official'
+                          ? 'border-indigo-600 bg-indigo-50/60 shadow-sm'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 shrink-0 bg-white p-1">
+                        <img src="/file_00000000a66881f8aa9e15d2fe2b9a0c.png" alt="Hurry System" className="w-full h-full object-contain" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-slate-800 text-sm">Hurry System</h4>
+                          <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            officialSender === 'hurry_system_official' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300'
+                          }`}>
+                            {officialSender === 'hurry_system_official' && <span className="w-1.5 h-1.5 bg-white rounded-full" />}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-indigo-600 font-bold block mt-0.5">ID: hurry_system_official</span>
+                        <p className="text-[10px] text-slate-400 font-medium">System notification chat on Message page</p>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* 2. MESSAGE CONTENT & ATTACHMENT */}
+                <div className="space-y-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                      2. Write Announcement Message
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={officialText}
+                      onChange={(e) => setOfficialText(e.target.value)}
+                      placeholder="Type your official announcement or message here..."
+                      className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                      Attach Image (Optional)
+                    </label>
+
+                    <input
+                      type="file"
+                      ref={officialFileInputRef}
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const base64 = await compressImage(file, 1200, 1200, 0.85);
+                          setOfficialImage(base64);
+                        } catch (err) {
+                          console.error('Image compression error:', err);
+                        }
+                      }}
+                      className="hidden"
+                    />
+
+                    {officialImage ? (
+                      <div className="relative inline-block border-2 border-slate-200 rounded-2xl overflow-hidden bg-slate-900 shadow-sm max-w-xs">
+                        <img src={officialImage} alt="Attachment" className="max-h-48 object-contain" />
+                        <button
+                          onClick={() => {
+                            setOfficialImage('');
+                            if (officialFileInputRef.current) officialFileInputRef.current.value = '';
+                          }}
+                          className="absolute top-2 right-2 bg-black/70 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => officialFileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        <ImageIcon className="w-4 h-4 text-slate-500" />
+                        <span>Select Image File</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. REAL-TIME LIVE PREVIEW */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                  <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-3">
+                    📱 User Live Chat Preview
+                  </span>
+
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200 max-w-md shadow-sm space-y-2">
+                    <div className="flex items-center gap-3 border-b border-slate-100 pb-2">
+                      <img
+                        src={officialSender === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'}
+                        alt="Sender"
+                        className="w-8 h-8 rounded-full object-cover border"
+                      />
+                      <div>
+                        <h5 className="font-bold text-xs text-slate-800">
+                          {officialSender === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'}
+                        </h5>
+                        <span className="text-[9px] text-emerald-600 font-extrabold">Verified Official Account</span>
+                      </div>
+                    </div>
+
+                    {officialText ? (
+                      <p className="text-xs text-slate-800 font-medium whitespace-pre-line leading-relaxed">
+                        {officialText}
+                      </p>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">Message content will appear here...</span>
+                    )}
+
+                    {officialImage && (
+                      <div className="rounded-xl overflow-hidden border border-slate-200 mt-2 max-h-40">
+                        <img src={officialImage} alt="Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* SUBMIT BROADCAST BUTTON */}
+                <div className="pt-2 flex justify-end">
+                  <button
+                    onClick={() => {
+                      if (!officialText.trim() && !officialImage) {
+                        alert('Please enter text or select an image to broadcast.');
+                        return;
+                      }
+
+                      setOfficialSending(true);
+
+                      const senderName = officialSender === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System';
+                      const senderPhoto = officialSender === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png';
+
+                      const payload = {
+                        id: `official_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                        senderId: officialSender,
+                        senderName,
+                        senderPhoto,
+                        text: officialText.trim(),
+                        type: officialImage ? 'image' : 'message',
+                        imageUrl: officialImage || undefined,
+                        timestamp: Date.now()
+                      };
+
+                      socket.emit('send_official_message', payload);
+
+                      setOfficialSuccess(`Message broadcasted successfully in real-time under ${senderName}!`);
+                      setOfficialText('');
+                      setOfficialImage('');
+                      if (officialFileInputRef.current) officialFileInputRef.current.value = '';
+                      setOfficialSending(false);
+
+                      setTimeout(() => {
+                        setOfficialSuccess('');
+                      }, 4000);
+                    }}
+                    disabled={officialSending || (!officialText.trim() && !officialImage)}
+                    className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-extrabold rounded-2xl shadow-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{officialSending ? 'Broadcasting...' : 'Send Official Message'}</span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* SENT BROADCAST HISTORY */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-indigo-600" />
+                    <h3 className="font-extrabold text-slate-800 text-base">Broadcast History</h3>
+                  </div>
+                  <span className="text-xs font-extrabold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">
+                    {officialHistory.length} Sent
+                  </span>
+                </div>
+
+                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                  {officialHistory.map((item) => (
+                    <div key={item.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-3">
+                      <img
+                        src={item.senderPhoto || (item.senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png')}
+                        alt="Sender"
+                        className="w-10 h-10 rounded-full object-cover border shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="font-extrabold text-xs text-slate-800">{item.senderName || (item.senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System')}</span>
+                          <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                            {item.timestamp ? new Date(item.timestamp).toLocaleString() : ''}
+                          </span>
+                        </div>
+                        {item.text && <p className="text-xs text-slate-700 font-medium whitespace-pre-line leading-relaxed mb-1">{item.text}</p>}
+                        {item.imageUrl && (
+                          <div className="rounded-xl overflow-hidden border border-slate-200 max-w-xs mt-1">
+                            <img src={item.imageUrl} alt="Attached image" className="max-h-32 object-contain bg-slate-900" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  {officialHistory.length === 0 && (
+                    <div className="py-12 text-center text-slate-400 text-xs font-medium">
+                      No official broadcast messages sent yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         {/* Placeholder for other tabs */}
-        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && activeTab !== 'bans' && activeTab !== 'feedback' && (
+        {activeTab !== 'manage_users' && activeTab !== 'game_fruit_party' && activeTab !== 'game_wild_party' && activeTab !== 'themes' && activeTab !== 'gift_catalog' && activeTab !== 'bans' && activeTab !== 'feedback' && activeTab !== 'official_msg' && (
           <div className="p-8 max-w-5xl mx-auto w-full">
             <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
               <h2 className="text-xl font-bold text-slate-800 capitalize">

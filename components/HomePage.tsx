@@ -974,7 +974,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const jitsiJoinedRef = useRef(false)
   const [isJitsiJoined, setIsJitsiJoined] = useState(false)
 
-  // ============ UNREAD COUNT ============
+  // ============ UNREAD COUNT & GLOBAL REAL-TIME MESSAGES ============
   useEffect(() => {
     if (!userUID || userUID === 'N/A') return;
 
@@ -994,11 +994,105 @@ export default function HomePage({ onLogout }: HomePageProps) {
     };
 
     fetchUnread();
-    const interval = setInterval(fetchUnread, 10000);
+    const interval = setInterval(fetchUnread, 5000);
+
+    const handleUnreadUpdated = () => {
+      fetchUnread();
+    };
+
+    window.addEventListener('unread_count_updated', handleUnreadUpdated);
+
+    const saveIncomingMessageToDB = async (msgData: any) => {
+      try {
+        const dbName = `ChatMessagesDB_${userUID}`;
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open(dbName, 1);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+          request.onupgradeneeded = () => {
+            const database = request.result;
+            if (!database.objectStoreNames.contains("messages")) {
+              const store = database.createObjectStore("messages", { keyPath: "id" });
+              store.createIndex("chatId", "chatId", { unique: false });
+              store.createIndex("timestamp", "timestamp", { unique: false });
+            }
+          };
+        });
+
+        const tx = db.transaction(["messages"], "readwrite");
+        tx.objectStore("messages").put(msgData);
+        tx.oncomplete = () => {
+          db.close();
+          window.dispatchEvent(new CustomEvent('unread_count_updated'));
+        };
+        tx.onerror = () => db.close();
+      } catch (err) {
+        console.error("Error saving incoming message to IndexedDB in HomePage:", err);
+      }
+    };
+
+    const handleIncomingPrivateMsg = (data: any) => {
+      if (!data) return;
+      const rId = String(data.receiverId || '');
+      if (rId !== String(userUID)) return;
+
+      const senderId = String(data.senderId || '');
+      const chatId = [userUID, senderId].sort().join('_');
+      const timestamp = Number(data.timestamp || Date.now());
+
+      const msgObj = {
+        id: String(data.id || `${senderId}_${timestamp}`),
+        chatId,
+        text: String(data.text || ''),
+        sender: 'other',
+        senderId,
+        receiverId: userUID,
+        senderName: data.senderName || 'User',
+        senderPhoto: data.senderPhoto || '/default-avatar.png',
+        timestamp,
+        type: data.type || (data.imageUrl ? 'image' : 'message'),
+        imageUrl: data.imageUrl || undefined,
+        isUnread: true,
+      };
+
+      saveIncomingMessageToDB(msgObj);
+    };
+
+    const handleIncomingOfficialBroadcast = (data: any) => {
+      if (!data?.senderId) return;
+      const senderId = String(data.senderId);
+      if (senderId !== 'hurry_team_official' && senderId !== 'hurry_system_official') return;
+
+      const chatId = [userUID, senderId].sort().join('_');
+      const timestamp = Number(data.timestamp || Date.now());
+
+      const msgObj = {
+        id: String(data.id || `official_${timestamp}`),
+        chatId,
+        text: String(data.text || ''),
+        sender: 'other',
+        senderId,
+        receiverId: userUID,
+        senderName: data.senderName || (senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'),
+        senderPhoto: data.senderPhoto || (senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'),
+        timestamp,
+        type: data.type || (data.imageUrl ? 'image' : 'message'),
+        imageUrl: data.imageUrl || undefined,
+        isUnread: true,
+      };
+
+      saveIncomingMessageToDB(msgObj);
+    };
+
+    socket.on('private_message', handleIncomingPrivateMsg);
+    socket.on('official_broadcast_message', handleIncomingOfficialBroadcast);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
+      window.removeEventListener('unread_count_updated', handleUnreadUpdated);
+      socket.off('private_message', handleIncomingPrivateMsg);
+      socket.off('official_broadcast_message', handleIncomingOfficialBroadcast);
     };
   }, [userUID]);
 
@@ -3566,7 +3660,7 @@ useEffect(() => {
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white shadow-sm animate-pulse">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}

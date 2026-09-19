@@ -96,6 +96,44 @@ const saveMessagesToDB = async (currentUserId: string, chatId: string, messages:
   }
 };
 
+// Helper to compress high-res image files to lightweight base64
+const compressImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.8): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
 // Messages load karo IndexedDB se
 const loadMessagesFromDB = async (currentUserId: string, chatId: string): Promise<Message[]> => {
   if (!currentUserId || currentUserId === 'N/A') return [];
@@ -217,11 +255,39 @@ useEffect(() => {
   }
 
   loadMessagesFromDB(currentUser.uid, chatId)
-    .then((localMessages) => {
+    .then(async (localMessages) => {
       const sorted = [...localMessages].sort(
         (a, b) => a.timestamp - b.timestamp
       );
       setMessages(sorted);
+
+      // Clear unread flag for this active chat in IndexedDB
+      let hasUnread = false;
+      localMessages.forEach((m: any) => {
+        if (m.isUnread) hasUnread = true;
+      });
+
+      if (hasUnread) {
+        try {
+          const db = await openMessagesDB(currentUser.uid);
+          const tx = db.transaction([MESSAGES_STORE], 'readwrite');
+          const store = tx.objectStore(MESSAGES_STORE);
+          localMessages.forEach((m: any) => {
+            if (m.isUnread) {
+              store.put({ ...m, isUnread: false });
+            }
+          });
+          tx.oncomplete = () => {
+            db.close();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('unread_count_updated'));
+            }
+          };
+          tx.onerror = () => db.close();
+        } catch (e) {
+          console.error('Error clearing unread status in ChatScreen:', e);
+        }
+      }
     })
     .catch((error) => {
       console.error('Local message history load error:', error);
@@ -243,6 +309,74 @@ useEffect(() => {
       accountId: accNum
     });
     socket.emit('check_presence', targetUser.uid);
+    if (isFixedChat) {
+      socket.emit('official_message_history_request');
+    }
+  };
+
+  const handleOfficialBroadcast = async (data: any) => {
+    if (!data?.senderId || data.senderId !== targetUser.uid) return;
+
+    const message: Message = {
+      id: String(data.id || `official_${data.timestamp || Date.now()}`),
+      text: data.text || '',
+      sender: 'other',
+      timestamp: Number(data.timestamp || Date.now()),
+      type: data.type || 'message',
+      imageUrl: data.imageUrl || undefined,
+    };
+
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === message.id)) return prev;
+
+      const updated = [...prev, message].sort(
+        (a, b) => a.timestamp - b.timestamp
+      );
+
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      saveConversationToDB(currentUser.uid, {
+        chatId,
+        otherUser: {
+          uid: targetUser.uid,
+          name: targetUser.name,
+          photo: targetUser.photo,
+        },
+        lastMessage: message.type === 'image' ? '📷 Image' : message.text,
+        lastTimestamp: message.timestamp,
+        unreadCount: 0,
+      });
+      return updated;
+    });
+  };
+
+  const handleOfficialHistoryResponse = async (data: any) => {
+    if (!isFixedChat || !Array.isArray(data?.messages)) return;
+
+    const officialMsgs: Message[] = data.messages
+      .filter((m: any) => m?.senderId === targetUser.uid)
+      .map((m: any) => ({
+        id: String(m.id || `official_${m.timestamp || Date.now()}`),
+        text: m.text || '',
+        sender: 'other' as const,
+        timestamp: Number(m.timestamp || Date.now()),
+        type: m.type || 'message',
+        imageUrl: m.imageUrl || undefined,
+      }));
+
+    if (officialMsgs.length === 0) return;
+
+    setMessages((prev) => {
+      const map = new Map<string, Message>();
+      prev.forEach((m) => map.set(m.id, m));
+      officialMsgs.forEach((m) => map.set(m.id, m));
+
+      const updated = Array.from(map.values()).sort(
+        (a, b) => a.timestamp - b.timestamp
+      );
+
+      saveMessagesToDB(currentUser.uid, chatId, updated);
+      return updated;
+    });
   };
 
   const handlePrivateMessage = async (data: any) => {
@@ -301,6 +435,8 @@ useEffect(() => {
   socket.on('connect', handleConnect);
   socket.on('disconnect', handleDisconnect);
   socket.on('private_message', handlePrivateMessage);
+  socket.on('official_broadcast_message', handleOfficialBroadcast);
+  socket.on('official_message_history_response', handleOfficialHistoryResponse);
 
   if (socket.connected) {
     registerUser();
@@ -310,8 +446,10 @@ useEffect(() => {
     socket.off('connect', handleConnect);
     socket.off('disconnect', handleDisconnect);
     socket.off('private_message', handlePrivateMessage);
+    socket.off('official_broadcast_message', handleOfficialBroadcast);
+    socket.off('official_message_history_response', handleOfficialHistoryResponse);
   };
-}, [chatId, currentUser.uid, targetUser.uid]);
+}, [chatId, currentUser.uid, targetUser.uid, isFixedChat]);
 
 // ========== Auto-send room invite if sharedRoomData provided ==========
   useEffect(() => {
@@ -454,20 +592,10 @@ const handleImageUpload = async (
   const file = e.target.files?.[0];
   if (!file) return;
 
-  if (file.size > 1.5 * 1024 * 1024) {
-    alert('Image size should be less than 1.5MB');
-    return;
-  }
-
   setImageUploading(true);
 
   try {
-    const base64 = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    const base64 = await compressImage(file, 1200, 1200, 0.85);
 
     const messageId = `${currentUser.uid}_${Date.now()}`;
 
