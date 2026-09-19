@@ -57,6 +57,17 @@ function emitRoomSeats(roomId) {
   });
 }
 
+const pendingSeatDisconnects = new Map();
+
+function cancelPendingSeatDisconnect(roomId, userId) {
+  const key = `${String(roomId)}:${String(userId)}`;
+  const timer = pendingSeatDisconnects.get(key);
+  if (timer) {
+    clearTimeout(timer);
+    pendingSeatDisconnects.delete(key);
+  }
+}
+
 function clearUserSeat(roomId, userId) {
   const room = roomSeats.get(String(roomId));
   if (!room) return false;
@@ -66,7 +77,8 @@ function clearUserSeat(roomId, userId) {
   for (const [number, seat] of room.entries()) {
     if (
       seat?.isOccupied &&
-      String(seat?.user?.accountId) === String(userId)
+      (String(seat?.user?.accountId) === String(userId) ||
+       String(seat?.user?.userId) === String(userId))
     ) {
       room.set(number, {
         ...seat,
@@ -85,6 +97,30 @@ function clearUserSeat(roomId, userId) {
   }
 
   return changed;
+}
+
+function clearUserSeatGracefully(roomId, userId, delayMs = 5000) {
+  const room = String(roomId);
+  const id = String(userId);
+  const key = `${room}:${id}`;
+
+  cancelPendingSeatDisconnect(room, id);
+
+  if (delayMs <= 0) {
+    if (clearUserSeat(room, id)) {
+      emitRoomSeats(room);
+    }
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    pendingSeatDisconnects.delete(key);
+    if (clearUserSeat(room, id)) {
+      emitRoomSeats(room);
+    }
+  }, delayMs);
+
+  pendingSeatDisconnects.set(key, timer);
 }
 
 
@@ -585,11 +621,15 @@ io.on("connection", (socket) => {
 
   socket.on(
     "room_join",
-    ({ roomId, userId, name, dp, email } = {}) => {
+    ({ roomId, userId, accountId, name, dp, email } = {}) => {
       if (!roomId || !userId) return;
 
       const room = String(roomId);
       const id = String(userId);
+      const accId = accountId ? String(accountId) : id;
+
+      cancelPendingSeatDisconnect(room, id);
+      cancelPendingSeatDisconnect(room, accId);
 
       // Prevent duplicate joins from increasing the live count.
       if (
@@ -604,6 +644,11 @@ io.on("connection", (socket) => {
           activeUserCount: users.length,
         });
 
+        socket.emit("room_seats", {
+          roomId: room,
+          seats: getRoomSeats(room),
+        });
+
         return;
       }
 
@@ -616,12 +661,7 @@ io.on("connection", (socket) => {
         if (oldRoom !== room) {
           socket.leave(`room:${oldRoom}`);
 
-          if (clearUserSeat(oldRoom, oldUser)) {
-            socket.to(`room:${oldRoom}`).emit("room_seats", {
-              roomId: oldRoom,
-              seats: getRoomSeats(oldRoom),
-            });
-          }
+          clearUserSeatGracefully(oldRoom, oldUser, 0);
 
           removeUserFromRoom(
             oldRoom,
@@ -650,6 +690,7 @@ io.on("connection", (socket) => {
           dp ||
           "/default-avatar.png",
         email: email || "",
+        accountId: accId,
       });
 
       const users = getRoomUsers(room);
@@ -704,12 +745,7 @@ io.on("connection", (socket) => {
 
       socket.leave(`room:${room}`);
 
-      if (clearUserSeat(room, id)) {
-        socket.to(`room:${room}`).emit("room_seats", {
-          roomId: room,
-          seats: getRoomSeats(room),
-        });
-      }
+      clearUserSeatGracefully(room, id, 0);
 
       removeUserFromRoom(room, id);
 
@@ -906,6 +942,16 @@ io.on("connection", (socket) => {
     );
   });
 
+  socket.on("room_clear_chat", (data = {}) => {
+    const roomId = data?.roomId ? String(data.roomId) : "";
+    if (!roomId) return;
+
+    io.to(`room:${roomId}`).emit("room_chat_cleared", {
+      roomId,
+      timestamp: Date.now(),
+    });
+  });
+
   socket.on("private_message", async (message) => {
     if (
       !message?.senderId ||
@@ -914,10 +960,16 @@ io.on("connection", (socket) => {
       return;
     }
 
+    const receiverId = String(message.receiverId);
+    const receiverAccountId = message.receiverAccountId ? String(message.receiverAccountId) : null;
+
     const normalizedMessage = {
       id: String(message.id || `${message.senderId}_${Date.now()}`),
       senderId: String(message.senderId),
-      receiverId: String(message.receiverId),
+      receiverId,
+      receiverAccountId,
+      senderName: message.senderName || message.otherUserName || "User",
+      senderPhoto: message.senderPhoto || message.otherUserPhoto || "/default-avatar.png",
       text: String(message.text || ""),
       type: message.type || "message",
       imageUrl: message.imageUrl || undefined,
@@ -938,10 +990,17 @@ io.on("connection", (socket) => {
       console.error("Private message save failed:", error.message);
     }
 
-    io.to(`user:${normalizedMessage.receiverId}`).emit(
+    io.to(`user:${receiverId}`).emit(
       "private_message",
       normalizedMessage
     );
+
+    if (receiverAccountId && receiverAccountId !== receiverId) {
+      io.to(`user:${receiverAccountId}`).emit(
+        "private_message",
+        normalizedMessage
+      );
+    }
   });
 
   socket.on("private_message_history_request", async (data = {}) => {
@@ -1137,12 +1196,8 @@ io.on("connection", (socket) => {
     if (socket.roomId && userId) {
       const room = String(socket.roomId);
 
-      if (clearUserSeat(room, String(userId))) {
-        socket.to(`room:${room}`).emit("room_seats", {
-          roomId: room,
-          seats: getRoomSeats(room),
-        });
-      }
+      // Grace period of 5s before clearing seat on disconnect
+      clearUserSeatGracefully(room, String(userId), 5000);
     }
 
     if (room && userId) {
