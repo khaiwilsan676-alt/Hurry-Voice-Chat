@@ -1605,6 +1605,24 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       roomSettings
     );
 
+    const isOwnerOfRoom =
+      String(roomId) === String(currentUser.id) ||
+      String(roomId) === String(currentUser.accountId) ||
+      String(roomOwner.id) === String(currentUser.id) ||
+      String(roomOwner.accountId) === String(currentUser.accountId);
+
+    if (isOwnerOfRoom) {
+      const updatedMyRoomCard = {
+        id: currentUser.id || roomId,
+        accountId: currentUser.accountId || roomOwner.accountId,
+        name: roomSettings.roomName,
+        image: roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳'
+      };
+      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
+      window.dispatchEvent(new Event('storage'));
+    }
+
     // Realtime source for users currently inside the room.
     socket.emit(
       "room_settings_update",
