@@ -386,13 +386,29 @@ app.get("/api/users", async (req, res) => {
 
       const normalizedUsers = matches.map(normalizeUser);
 
-      if (normalizedUsers.length === 0 && uid) {
+      // Filter/rank to prioritize exact or startsWith matches on accountId, accountNumber, uid, or name
+      const rankedUsers = normalizedUsers.filter((u) => {
+        const uAcc = String(u.accountId || u.accountNumber || u.displayUserNumber || "").toLowerCase();
+        const uUid = String(u.uid || u.id || u.appLongId || "").toLowerCase();
+        const uName = String(u.name || "").toLowerCase();
+        const qLower = q.toLowerCase();
+
+        return (
+          uAcc.includes(qLower) ||
+          uUid.includes(qLower) ||
+          uName.includes(qLower)
+        );
+      });
+
+      const finalUsers = rankedUsers.length > 0 ? rankedUsers : normalizedUsers;
+
+      if (finalUsers.length === 0 && uid) {
         return res.status(404).json({ error: "User not found" });
       }
 
       return res.json({
-        users: normalizedUsers,
-        user: normalizedUsers[0] || null,
+        users: finalUsers,
+        user: finalUsers[0] || null,
       });
     }
 
