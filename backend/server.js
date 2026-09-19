@@ -10,14 +10,14 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "50mb" }));
 
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   },
-  maxHttpBufferSize: 2 * 1024 * 1024,
+  maxHttpBufferSize: 50 * 1024 * 1024,
 });
 
 const mongoClient = process.env.MONGODB_URI
