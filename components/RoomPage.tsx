@@ -342,7 +342,9 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
   const [roomImage, setRoomImage] = useState<string>(
-    roomOwner.image || "/default-avatar.png"
+    roomOwner.image && roomOwner.image !== "undefined" && roomOwner.image !== "null"
+      ? roomOwner.image
+      : "/default-avatar.png"
   );
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
@@ -836,10 +838,47 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       }
     };
 
+    const handleRoomChatCleared = async (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+
+      const clearTime = Number(data.timestamp || Date.now());
+      clearedAtRef.current = clearTime;
+      setMessages([]);
+
+      try {
+        const db = await openRoomMessagesDB();
+        const transaction = db.transaction(
+          [ROOM_MESSAGES_STORE],
+          "readwrite"
+        );
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        const index = store.index("roomId");
+        const request = index.openCursor(roomId);
+
+        request.onsuccess = () => {
+          const cursor = request.result;
+
+          if (cursor) {
+            cursor.delete();
+            cursor.continue();
+          } else {
+            db.close();
+          }
+        };
+
+        request.onerror = () => {
+          db.close();
+        };
+      } catch (err) {
+        console.error("Room chat cleared socket error:", err);
+      }
+    };
+
     const joinRoom = () => {
       socket.emit("room_join", {
         roomId,
-        userId: userAccountId,
+        userId: currentUser.uid || currentUser.id || userAccountId,
+        accountId: userAccountId,
         name: currentRoomUser.name,
         dp: currentRoomUser.image,
         email:
@@ -1023,6 +1062,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       handleRoomMessage
     );
 
+    socket.on(
+      "room_chat_cleared",
+      handleRoomChatCleared
+    );
+
       setRoomUsers(prev => {
       const exists = prev.some(
         user =>
@@ -1069,6 +1113,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       socket.off(
         "room_message",
         handleRoomMessage
+      );
+
+      socket.off(
+        "room_chat_cleared",
+        handleRoomChatCleared
       );
 
       if (!isKeepingRef.current) {
@@ -1635,6 +1684,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
     clearedAtRef.current = clearTime;
     setMessages([]);
 
+    socket.emit("room_clear_chat", {
+      roomId,
+    });
+
     try {
       const db = await openRoomMessagesDB();
       const transaction = db.transaction(
@@ -1937,7 +1990,19 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
               className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
               style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}
             >
-              <img src={roomImage} alt="Room Cover" className="w-full h-full object-cover" draggable={false} />
+              <img
+                src={
+                  roomImage && roomImage !== "undefined" && roomImage !== "null"
+                    ? roomImage
+                    : "/default-avatar.png"
+                }
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/default-avatar.png";
+                }}
+                alt="Room Cover"
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
             </button>
             <div className="text-left py-0.5">
               <div className="flex items-center gap-1 sm:gap-2">
