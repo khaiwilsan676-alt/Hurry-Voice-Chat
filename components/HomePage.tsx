@@ -762,7 +762,7 @@ async function fetchSearchResults(
 
   const queryLower = query.toLowerCase();
   const foundList: GlobalRoom[] = [];
-  const addedIds = new Set<string>();
+  const addedKeys = new Set<string>();
 
   // FIRST: search already-loaded live/local rooms.
   for (const room of globalRooms) {
@@ -782,10 +782,12 @@ async function fetchSearchResults(
       name.toLowerCase().includes(queryLower);
 
     if (exactMatch || partialIdMatch || nameMatch) {
-      const key = accountId || roomId;
+      const key = `${accountId}_${roomId}`;
 
-      if (key && !addedIds.has(key)) {
-        addedIds.add(key);
+      if (!addedKeys.has(key) && (!accountId || !addedKeys.has(accountId)) && (!roomId || !addedKeys.has(roomId))) {
+        addedKeys.add(key);
+        if (accountId) addedKeys.add(accountId);
+        if (roomId) addedKeys.add(roomId);
         foundList.push(room);
       }
     }
@@ -797,7 +799,7 @@ async function fetchSearchResults(
 
     const timeout = window.setTimeout(
       () => controller.abort(),
-      3000
+      2500
     );
 
     const response = await fetch(
@@ -843,8 +845,9 @@ async function fetchSearchResults(
 
         const key = accountId || userId;
 
-        if (key && !addedIds.has(key)) {
-          addedIds.add(key);
+        if (key && !addedKeys.has(key) && !addedKeys.has(userId)) {
+          addedKeys.add(key);
+          addedKeys.add(userId);
           foundList.push({
             id: userId,
             name:
@@ -2474,12 +2477,13 @@ useEffect(() => {
   }
 };
 
-  // ============ SEARCH ============
-  const handlePerformSearch = async () => {
-    const queryRaw = searchQuery.trim()
+  // ============ REAL-TIME LIVE SEARCH ============
+  const handlePerformSearch = useCallback(async (queryParam?: string) => {
+    const queryRaw = (typeof queryParam === 'string' ? queryParam : searchQuery).trim();
     if (!queryRaw) {
       setSearchResults([])
       setHasSearched(false)
+      setIsSearching(false)
       return
     }
 
@@ -2497,7 +2501,42 @@ useEffect(() => {
     } finally {
       setIsSearching(false)
     }
-  }
+  }, [searchQuery, globalRooms]);
+
+  // Real-time live search effect on searchQuery change with debouncing
+  useEffect(() => {
+    if (!isSearchOpen) return;
+
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setSearchResults([]);
+      setHasSearched(false);
+      setIsSearching(false);
+      return;
+    }
+
+    // Instant local filter first for instant UI response
+    const queryLower = trimmed.toLowerCase();
+    const immediateLocal = globalRooms.filter(room => {
+      const acc = String(room.accountId || "").toLowerCase();
+      const id = String(room.id || "").toLowerCase();
+      const name = String(room.name || "").toLowerCase();
+      return acc.includes(queryLower) || id.includes(queryLower) || name.includes(queryLower);
+    });
+
+    if (immediateLocal.length > 0) {
+      setSearchResults(immediateLocal);
+      setHasSearched(true);
+    } else {
+      setIsSearching(true);
+    }
+
+    const timer = setTimeout(() => {
+      handlePerformSearch(trimmed);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, isSearchOpen, globalRooms, handlePerformSearch]);
 
   // ============ SIGN IN MODAL ============
   const handleImageClick = () => {

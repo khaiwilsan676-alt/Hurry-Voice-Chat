@@ -581,6 +581,46 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   };
 
   const handleOpenDynamicChat = (chat: ChatPreview) => {
+    // Clear unread count for this dynamic chat locally and update IndexedDB
+    setDynamicChats((prev) => {
+      const next = prev.map((item) =>
+        item.chatId === chat.chatId ? { ...item, unreadCount: 0 } : item
+      );
+      saveToDB(currentUserUid, next).catch(() => {});
+      return next;
+    });
+
+    // Also mark messages as read in ChatMessagesDB
+    loadAllChatMessagesDB(currentUserUid).then(async (messages) => {
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open(getChatMessagesDBName(currentUserUid), 1);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(request.result);
+        });
+        if (db.objectStoreNames.contains('messages')) {
+          const tx = db.transaction(['messages'], 'readwrite');
+          const store = tx.objectStore('messages');
+          messages.forEach((m) => {
+            if (m.chatId === chat.chatId && m.isUnread) {
+              store.put({ ...m, isUnread: false });
+            }
+          });
+          tx.oncomplete = () => {
+            db.close();
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('unread_count_updated'));
+            }
+          };
+          tx.onerror = () => db.close();
+        } else {
+          db.close();
+        }
+      } catch (err) {
+        console.error('Error clearing dynamic unread messages:', err);
+      }
+    });
+
     setActiveChat({
       uid: chat.otherUser.uid,
       name: chat.otherUser.name,
