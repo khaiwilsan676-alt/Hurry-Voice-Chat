@@ -1,12 +1,8 @@
 import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : "";
+const SOCKET_URL = "https://humanity-cleared-necessity-governments.trycloudflare.com";
 
 export const socket: Socket = io(SOCKET_URL, {
-  path: "/api/socket",
   transports: ["websocket"],
   autoConnect: false,
   reconnection: true,
