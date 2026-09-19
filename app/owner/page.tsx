@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer } from 'lucide-react';
+import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, RefreshCw } from 'lucide-react';
+import { getUsers } from '../../src/lib/googleSheet.backup';
 
 // ==============================================================
-// MOCK DATA (No backend needed)
+// MOCK FALLBACK USERS DATA
 // ==============================================================
 const mockUsers = [
-  { id: '1', name: 'Robot Gaming Master', username: 'robot_gaming', hurryId: '—', email: 'abhishekumar912004@gmail.com', role: 'NORMAL' },
-  { id: '2', name: 'Uuhbh Bhhnn', username: 'uuhbh', hurryId: '—', email: 'bhhhnuuhbh@gmail.com', role: 'HOST' },
-  { id: '3', name: 'Riya', username: 'riya_99', hurryId: '—', email: 'riyag3383@gmail.com', role: 'HOST' },
-  { id: '4', name: 'Rider', username: 'rider_x', hurryId: '—', email: 'ooosakshe@gmail.com', role: 'HOST' },
-  { id: '5', name: 'Samir', username: 'samir_1', hurryId: '—', email: 'mdsamira153@gmail.com', role: 'HOST' },
-  { id: '6', name: 'Newbie Fan', username: 'newbie_fan', hurryId: '531006005', email: '—', role: 'NORMAL' },
-  { id: '7', name: 'Luna Star', username: 'luna_star', hurryId: '821004571', email: '—', role: 'HOST' },
-  { id: '8', name: 'Agent Boss', username: 'agent_boss', hurryId: '320919038', email: '—', role: 'AGENCY' },
-  { id: '9', name: 'Marco', username: 'marco_talks', hurryId: '486052034', email: '—', role: 'HOST' },
-  { id: '10', name: 'Zara Beats', username: 'zara_beats', hurryId: '927199637', email: '—', role: 'HOST' }, 
+  { id: '1', name: 'Robot Gaming Master', username: 'robot_gaming', hurryId: '—', email: 'abhishekumar912004@gmail.com', avatar: '', role: 'NORMAL' },
+  { id: '2', name: 'Uuhbh Bhhnn', username: 'uuhbh', hurryId: '—', email: 'bhhhnuuhbh@gmail.com', avatar: '', role: 'HOST' },
+  { id: '3', name: 'Riya', username: 'riya_99', hurryId: '—', email: 'riyag3383@gmail.com', avatar: '', role: 'HOST' },
+  { id: '4', name: 'Rider', username: 'rider_x', hurryId: '—', email: 'ooosakshe@gmail.com', avatar: '', role: 'HOST' },
+  { id: '5', name: 'Samir', username: 'samir_1', hurryId: '—', email: 'mdsamira153@gmail.com', avatar: '', role: 'HOST' },
+  { id: '6', name: 'Newbie Fan', username: 'newbie_fan', hurryId: '531006005', email: '—', avatar: '', role: 'NORMAL' },
+  { id: '7', name: 'Luna Star', username: 'luna_star', hurryId: '821004571', email: '—', avatar: '', role: 'HOST' },
+  { id: '8', name: 'Agent Boss', username: 'agent_boss', hurryId: '320919038', email: '—', avatar: '', role: 'AGENCY' },
+  { id: '9', name: 'Marco', username: 'marco_talks', hurryId: '486052034', email: '—', avatar: '', role: 'HOST' },
+  { id: '10', name: 'Zara Beats', username: 'zara_beats', hurryId: '927199637', email: '—', avatar: '', role: 'HOST' },
 ];
 
 const AVAILABLE_TAGS = [
@@ -26,12 +27,13 @@ const AVAILABLE_TAGS = [
   { id: 'premiumTag', name: 'Premium', emoji: '💎' }, 
 ];
 
-interface MockUser {
+interface UserItem {
   id: string;
   name: string;
   username: string;
   hurryId: string;
   email: string;
+  avatar: string;
   role: string;
 }
 
@@ -85,6 +87,58 @@ export default function StaffPanel() {
   const [activeTab, setActiveTab] = useState('manage_users');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Users State
+  const [usersList, setUsersList] = useState<UserItem[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<string>('All Roles');
+
+  // Fetch real users function
+  const fetchRealUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Fetch timeout')), 8000)
+      );
+      const res: any = await Promise.race([getUsers(), timeoutPromise]);
+      const rawUsers = Array.isArray(res) ? res : (res?.users || res?.data || []);
+
+      if (rawUsers && rawUsers.length > 0) {
+        const parsedUsers: UserItem[] = rawUsers.map((u: any, idx: number) => {
+          const userId = String(u.id || u.uid || u.AppLongId || u['App long ID'] || `user_${idx}`);
+          const realName = u.name || u.Name || u.displayName || u.username || 'User';
+          const emailVal = u.email || u.Email || u.gmail || '—';
+          const hurryAccId = String(u.accountId || u.accountNumber || u['Account Number'] || u.AppLongId || u['App long ID'] || '—');
+          const avatarUrl = u.image || u.avatar || u.photo || u.photoURL || u.Avtar || '';
+          const userRole = (u.role || u.Role || (u.type ? String(u.type).toUpperCase() : 'NORMAL')).toUpperCase();
+          const usernameVal = u.username || (emailVal !== '—' ? emailVal.split('@')[0] : userId.substring(0, 10));
+
+          return {
+            id: userId,
+            name: realName,
+            username: usernameVal,
+            hurryId: hurryAccId,
+            email: emailVal,
+            avatar: avatarUrl,
+            role: userRole,
+          };
+        });
+        setUsersList(parsedUsers);
+      } else {
+        setUsersList(mockUsers);
+      }
+    } catch (error) {
+      console.warn('Failed to fetch real users, using fallback mock data:', error);
+      setUsersList(mockUsers);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRealUsers();
+  }, []);
+
   // Fruit Party Prediction
   const [livePrediction, setLivePrediction] = useState({
     round: 0, winnerImg: '', countdown: 0, phase: 'betting'
@@ -97,7 +151,7 @@ export default function StaffPanel() {
 
   // Tag Modal
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
-  const [selectedTagUserData, setSelectedTagUserData] = useState<MockUser | null>(null);
+  const [selectedTagUserData, setSelectedTagUserData] = useState<UserItem | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagSuccess, setTagSuccess] = useState('');
 
@@ -178,12 +232,26 @@ export default function StaffPanel() {
   // ============================================================
   // Tag Modal Handlers
   // ============================================================
-  const openTagModal = (user: MockUser) => {
+  const openTagModal = (user: UserItem) => {
     setSelectedTagUserData(user);
     setIsTagModalOpen(true);
     setTagSuccess('');
     setSelectedTags([]);
   };
+
+  // Filtered Users
+  const filteredUsers = usersList.filter(u => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch = !q || (
+      u.name.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      u.hurryId.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q) ||
+      u.id.toLowerCase().includes(q)
+    );
+    const matchesRole = roleFilter === 'All Roles' || u.role === roleFilter.toUpperCase();
+    return matchesSearch && matchesRole;
+  });
 
   const handleAssignTags = () => {
     setTagSuccess('Tags updated successfully!');
@@ -288,25 +356,43 @@ export default function StaffPanel() {
         {activeTab === 'manage_users' && (
           <div className="flex flex-col h-full bg-white">
             <div className="px-8 py-6 pb-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">Users</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-slate-800">Users</h2>
+                <span className="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 font-bold rounded-full">
+                  Total: {filteredUsers.length}
+                </span>
+              </div>
+              <button
+                onClick={fetchRealUsers}
+                disabled={loadingUsers}
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loadingUsers ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
             </div>
 
             <div className="p-8 flex-1 overflow-y-auto">
               <div className="flex flex-col gap-4 mb-6">
                 <input
                   type="text"
-                  placeholder="Search by name, phone, email, Hurry ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by real name, email, User ID, Hurry ID..."
                   className="w-full max-w-3xl px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-300"
                 />
                 <div className="flex flex-wrap gap-2">
-                  {['All Roles', 'All Status', 'All (mute)', 'Country...'].map(f => (
-                    <select key={f} className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 outline-none hover:bg-slate-50">
-                      <option>{f}</option>
-                    </select>
-                  ))}
-                  <button className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600 font-bold hover:bg-slate-50 ml-auto flex items-center gap-1">
-                    ↓ DESC
-                  </button>
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => setRoleFilter(e.target.value)}
+                    className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 outline-none hover:bg-slate-50 cursor-pointer"
+                  >
+                    <option>All Roles</option>
+                    <option value="NORMAL">NORMAL</option>
+                    <option value="HOST">HOST</option>
+                    <option value="AGENCY">AGENCY</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
                 </div>
               </div>
 
@@ -314,49 +400,75 @@ export default function StaffPanel() {
                 <table className="w-full text-left border-collapse min-w-[800px]">
                   <thead>
                     <tr className="border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 pl-4 pr-2 w-1/3">User</th>
+                      <th className="py-4 pl-4 pr-2 w-1/3">User / Avatar</th>
                       <th className="py-4 px-2">Hurry ID</th>
-                      <th className="py-4 px-2">Email</th>
+                      <th className="py-4 px-2">Firebase Email</th>
                       <th className="py-4 px-2">Role</th>
-                      <th className="py-4 pr-4 text-right"></th>
+                      <th className="py-4 pr-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {mockUsers.map((u, i) => (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="py-3 pl-4 pr-2">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg drop-shadow-sm">
-                              {u.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-slate-800">{u.name}</span>
-                              <span className="text-[11px] text-slate-400 font-medium">{u.username}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          <span className="text-sm font-bold text-[#8a92ff] tracking-wide">{u.hurryId}</span>
-                        </td>
-                        <td className="py-3 px-2">
-                          <span className="text-xs font-semibold text-slate-500">{u.email}</span>
-                        </td>
-                        <td className="py-3 px-2">
-                          <span className={`px-2 py-1 rounded-md text-[10px] font-bold shadow-sm ${
-                            u.role === 'HOST' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
-                            u.role === 'AGENCY' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
-                            'bg-blue-50 text-blue-600 border border-blue-100'
-                          }`}>
-                            {u.role}
-                          </span>
-                        </td>
-                        <td className="py-3 pr-4 text-right">
-                          <button onClick={() => openTagModal(u)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
+                    {loadingUsers ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-slate-400 font-semibold text-sm">
+                          Loading real users from database...
                         </td>
                       </tr>
-                    ))}
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-12 text-center text-slate-400 font-semibold text-sm">
+                          No users found matching query.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((u, i) => (
+                        <tr key={u.id || i} className="hover:bg-slate-50/50 transition-colors group">
+                          <td className="py-3 pl-4 pr-2">
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg drop-shadow-sm overflow-hidden shrink-0">
+                                {u.avatar ? (
+                                  <img
+                                    src={u.avatar}
+                                    alt={u.name}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  u.name.charAt(0).toUpperCase()
+                                )}
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold text-slate-800">{u.name}</span>
+                                <span className="text-[11px] text-slate-400 font-medium">{u.username || u.id}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            <span className="text-sm font-bold text-[#8a92ff] tracking-wide">{u.hurryId}</span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <span className="text-xs font-semibold text-slate-600">{u.email}</span>
+                          </td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold shadow-sm ${
+                              u.role === 'HOST' ? 'bg-purple-50 text-purple-600 border border-purple-100' :
+                              u.role === 'AGENCY' ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+                              u.role === 'ADMIN' ? 'bg-red-50 text-red-600 border border-red-100' :
+                              'bg-blue-50 text-blue-600 border border-blue-100'
+                            }`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td className="py-3 pr-4 text-right">
+                            <button onClick={() => openTagModal(u)} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer">
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
