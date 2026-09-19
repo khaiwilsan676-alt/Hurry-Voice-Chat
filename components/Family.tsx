@@ -157,9 +157,7 @@ const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, ima
         alt={title} 
         className="w-full h-full object-cover scale-110 pointer-events-none" 
         style={{ 
-          mixBlendMode: 'screen',
-          filter: 'url(#remove-black)',
-          // Yeh mask add kiya taaki other vehicle cards jaisa edge smoothly blend ho
+          // Yahan se black remove wale filters hata diye bhai
           maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
           WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)'
         }} 
@@ -447,6 +445,7 @@ export default function Family({ onBack }: FamilyProps) {
           >
             {activeVideoModal.type === 'vehicle' ? (
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
+                {/* Max height increased from 70vh to 85vh */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -455,7 +454,7 @@ export default function Family({ onBack }: FamilyProps) {
                   controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
-                  className="w-full h-auto max-h-[70vh] object-cover" 
+                  className="w-full h-auto max-h-[85vh] object-cover" 
                   style={{
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
@@ -465,6 +464,7 @@ export default function Family({ onBack }: FamilyProps) {
             ) : activeVideoModal.type === 'mixed' ? (
               /* NEW: Mixed Modal Edge to Edge with TOP & BOTTOM fade exactly same as vehicle */
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
+                {/* Max height increased from 70vh to 85vh and black filters removed */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -473,11 +473,9 @@ export default function Family({ onBack }: FamilyProps) {
                   controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
-                  className="w-full h-auto max-h-[70vh] object-cover" 
+                  className="w-full h-auto max-h-[85vh] object-cover" 
                   style={{
-                    mixBlendMode: 'screen',
                     backgroundColor: 'transparent',
-                    filter: 'url(#remove-black)',
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
                   }} 
@@ -485,6 +483,7 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+                {/* Modal height for other videos also increased slightly (85vw -> 90vw, max 400 -> 450px) */}
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -494,7 +493,7 @@ export default function Family({ onBack }: FamilyProps) {
                   controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
-                  className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
+                  className="w-[90vw] h-[90vw] max-w-[450px] max-h-[450px] object-cover rounded-xl drop-shadow-2xl" 
                   style={activeVideoModal.type === 'black' ? { 
                     mixBlendMode: 'screen', 
                     backgroundColor: 'transparent',
