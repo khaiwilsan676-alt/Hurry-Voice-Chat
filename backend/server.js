@@ -1077,6 +1077,57 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("ai_support_message", async (data = {}) => {
+    const userId = String(data.userId || "");
+    if (!userId) return;
+
+    const payload = {
+      userId,
+      userName: data.userName || "User",
+      userEmail: data.userEmail || "",
+      userPhoto: data.userPhoto || data.userImage || "",
+      userAccountId: data.userAccountId || "",
+      messages: Array.isArray(data.messages) ? data.messages : [],
+      lastMessage: data.lastMessage || data.message || null,
+      timestamp: Number(data.timestamp || Date.now()),
+    };
+
+    try {
+      if (db) {
+        await db.collection("aiSupportChats").updateOne(
+          { userId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("AI support message save failed:", error.message);
+    }
+
+    // Broadcast AI support chat real-time update to all listeners (including owner panel)
+    io.emit("ai_support_message", payload);
+  });
+
+  socket.on("ai_support_history_request", async () => {
+    try {
+      if (db) {
+        const chats = await db
+          .collection("aiSupportChats")
+          .find({})
+          .sort({ timestamp: -1 })
+          .limit(200)
+          .toArray();
+
+        socket.emit("ai_support_history_response", { chats });
+      } else {
+        socket.emit("ai_support_history_response", { chats: [] });
+      }
+    } catch (error) {
+      console.error("AI support history fetch failed:", error.message);
+      socket.emit("ai_support_history_response", { chats: [] });
+    }
+  });
+
   socket.on("disconnect", () => {
     const room = socket.roomId;
     const userId =

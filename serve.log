@@ -1,29 +1,60 @@
- INFO  Accepting connections at http://localhost:3000
- HTTP  9/19/2026 5:36:03 AM ::1 GET /owner
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 370 ms
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/css/f8743d30c39c8d9e.css
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/webpack-f12a3d0ec3b37cb0.js
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 7 ms
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/4bd1b696-215e5051988c3dde.js
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/794-337e750527b970b0.js
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/main-app-3f94d1654d7621f8.js
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/805-5ff3116500fef5f8.js
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/app/layout-fd367369810a780d.js
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/f9bd3b46-0b5bc73122bae5a2.js
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 5 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/681-522fd27feb4cbc07.js
- HTTP  9/19/2026 5:36:03 AM ::1 GET /_next/static/chunks/app/owner/page-293ec4dea0b6468e.js
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 3 ms
- HTTP  9/19/2026 5:36:03 AM ::1 Returned 200 in 2 ms
- HTTP  9/19/2026 5:36:04 AM ::1 GET /_next/static/chunks/711.eabd49b975174e2e.js
- HTTP  9/19/2026 5:36:04 AM ::1 GET /api/users
- HTTP  9/19/2026 5:36:04 AM ::1 Returned 200 in 6 ms
- HTTP  9/19/2026 5:36:04 AM ::1 Returned 404 in 6 ms
- HTTP  9/19/2026 5:36:04 AM ::1 GET /_vercel/insights/script.js
- HTTP  9/19/2026 5:36:04 AM ::1 Returned 404 in 2 ms
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 547ms
+
+○ Compiling / ...
+ GET / 200 in 9.3s (next.js: 8.3s, application-code: 1067ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 89ms (next.js: 5ms, application-code: 84ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 75ms (next.js: 5ms, application-code: 70ms)
+ GET /owner 200 in 827ms (next.js: 705ms, application-code: 122ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 92ms (next.js: 4ms, application-code: 88ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 85ms (next.js: 5ms, application-code: 80ms)
+ GET /owner 200 in 81ms (next.js: 4ms, application-code: 78ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /default-avatar.png 404 in 79ms (next.js: 5ms, application-code: 74ms)
+ GET /default-avatar.png 404 in 65ms (next.js: 11ms, application-code: 54ms)
