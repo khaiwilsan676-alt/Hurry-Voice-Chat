@@ -361,6 +361,11 @@ app.get("/api/users", async (req, res) => {
             user.displayName ||
             user.userName ||
             "User",
+          email:
+            user.email ||
+            user.gmail ||
+            user.emailPhone ||
+            "",
           image:
             user.image ||
             user.photo ||

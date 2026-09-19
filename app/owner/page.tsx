@@ -467,13 +467,17 @@ export default function StaffPanel() {
           currentUserPhoto = auth.currentUser.photoURL || '';
         }
 
-        // 3. Read local logged-in user from localStorage or IndexedDB cache
+        // 3. Read local logged-in user from localStorage
         if (typeof window !== 'undefined') {
+          const storedEmail = localStorage.getItem('userEmail');
+          if (storedEmail && !currentUserEmail) currentUserEmail = storedEmail;
+
           const localUserData = localStorage.getItem('userData') || localStorage.getItem('user');
           if (localUserData) {
             try {
               const parsed = JSON.parse(localUserData);
               if (parsed.email && !currentUserEmail) currentUserEmail = parsed.email;
+              if (parsed.gmail && !currentUserEmail) currentUserEmail = parsed.gmail;
               if (parsed.name && !currentUserName) currentUserName = parsed.name;
               if (parsed.image && !currentUserPhoto) currentUserPhoto = parsed.image;
               if (parsed.accountId || parsed.uid) currentUserId = String(parsed.accountId || parsed.uid);
@@ -483,23 +487,31 @@ export default function StaffPanel() {
           }
         }
 
-        // 4. Merge Firebase / local current user if missing in list
+        // 4. Merge Firebase / local current user if missing in list or update placeholder email
         if (currentUserEmail || currentUserId) {
-          const exists = fetchedList.some(u => u.email === currentUserEmail || u.hurryId === currentUserId || u.id === currentUserId);
+          const exists = fetchedList.some(u =>
+            (currentUserEmail && u.email === currentUserEmail) ||
+            u.hurryId === currentUserId ||
+            u.id === currentUserId
+          );
           if (!exists) {
             fetchedList.unshift({
               id: currentUserId || 'auth-current-user',
               name: currentUserName || 'Verified User',
               username: currentUserName ? `@${currentUserName.toLowerCase().replace(/\s+/g, '')}` : '@active_user',
               hurryId: currentUserId || '88100293',
-              email: currentUserEmail || 'user@gmail.com',
+              email: currentUserEmail || '—',
               role: 'NORMAL',
               image: currentUserPhoto || ''
             });
           } else {
-            // Update email in fetched record if email was missing
+            // Update email in fetched record if email was missing or placeholder/dummy
             fetchedList = fetchedList.map(u => {
-              if ((u.id === currentUserId || u.hurryId === currentUserId) && u.email === '—' && currentUserEmail) {
+              if (
+                (u.id === currentUserId || u.hurryId === currentUserId) &&
+                currentUserEmail &&
+                (!u.email || u.email === '—' || u.email.endsWith('@hurry.app') || u.email === 'user@gmail.com')
+              ) {
                 return { ...u, email: currentUserEmail };
               }
               return u;
