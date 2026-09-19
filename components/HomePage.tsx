@@ -801,7 +801,7 @@ async function fetchSearchResults(
     );
 
     const response = await fetch(
-      apiUrl(`/api/users?accountId=${encodeURIComponent(query)}`),
+      apiUrl(`/api/users?search=${encodeURIComponent(query)}&accountId=${encodeURIComponent(query)}`),
       {
         cache: "no-store",
         signal: controller.signal,

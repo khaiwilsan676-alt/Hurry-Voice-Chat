@@ -1,6 +1,7 @@
 'use client'
 
 import { apiUrl } from "../src/lib/api";
+import { generateStableId } from "../lib/hash";
 
 import React, { useEffect, useState, useRef } from 'react'
 import {
@@ -702,7 +703,7 @@ export default function PublicProfile({
       if (isOtherUser && targetUser) {
         const targetUid = targetUser.uid || targetUser.id || 'N/A'
 
-        let displayAccNum = targetUser.displayAccountNumber || targetUser.accountId || ''
+        let displayAccNum = generateStableId(targetUser.accountId || targetUser.displayAccountNumber || targetUid)
         let initialName = targetUser.name || ''
         if (!isValidName(initialName)) initialName = targetUid.substring(0, 8)
 

@@ -158,11 +158,12 @@ function addUserToRoom(roomId, userId, userData = {}) {
       existing.image ||
       "/default-avatar.png";
     existing.email = userData.email || existing.email || "";
+    if (userData.accountId) existing.accountId = String(userData.accountId);
   } else {
     users.set(id, {
       count: 1,
       userId: id,
-      accountId: id,
+      accountId: String(userData.accountId || id),
       name: userData.name || "User",
       image: userData.image || "/default-avatar.png",
       email: userData.email || "",
@@ -309,157 +310,101 @@ app.get("/api/users", async (req, res) => {
       });
     }
 
+    const searchQuery = String(
+      req.query.search ||
+      req.query.q ||
+      req.query.query ||
+      ""
+    ).trim();
+
     const uid = String(req.query.uid || "").trim();
     const accountId = String(req.query.accountId || "").trim();
 
     const users = db.collection("users");
 
-    // No query = return all registered users.
-    // Used by the Owner Panel.
-    if (!uid && !accountId) {
-      const allUsers = await users
-        .find({})
-        .sort({ createdAt: -1 })
-        .limit(1000)
-        .toArray();
+    const normalizeUser = (user) => {
+      const id = String(
+        user.id || user.uid || user.appLongId || user._id || ""
+      );
 
-      const normalizedUsers = allUsers.map((user) => {
-        const numberId = String(
-          user.accountId ||
-          user.accountNumber ||
-          user["Account Number"] ||
-          user.displayUserNumber ||
-          ""
-        );
+      let numberId = String(
+        user.accountId ||
+        user.accountNumber ||
+        user["Account Number"] ||
+        user.displayUserNumber ||
+        ""
+      );
 
-        return {
-          ...user,
-          id: String(
-            user.id ||
-            user.uid ||
-            user.appLongId ||
-            user._id ||
-            ""
-          ),
-          uid: String(
-            user.uid ||
-            user.id ||
-            user.appLongId ||
-            ""
-          ),
-          appLongId: String(
-            user.appLongId ||
-            user.id ||
-            user.uid ||
-            ""
-          ),
-          accountId: numberId,
-          accountNumber: numberId,
-          displayUserNumber: numberId,
-          name:
-            user.name ||
-            user.displayName ||
-            user.userName ||
-            "User",
-          email:
-            user.email ||
-            user.gmail ||
-            user.emailPhone ||
-            "",
-          image:
-            user.image ||
-            user.photo ||
-            user.photoURL ||
-            user.avatar ||
-            "/default-avatar.png",
-          country:
-            user.country ||
-            "🇮🇳",
-        };
-      });
+      if (!numberId || numberId === id) {
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+          hash = (hash << 5) - hash + id.charCodeAt(i);
+          hash |= 0;
+        }
+        numberId = String(10000000 + (Math.abs(hash) % 90000000));
+      }
 
-      return res.json({
-        users: normalizedUsers,
-      });
-    }
-
-    let user = null;
-
-    if (uid) {
-      user = await users.findOne({
-        $or: [
-          { uid },
-          { id: uid },
-          { appLongId: uid },
-        ],
-      });
-    }
-
-    if (!user && accountId) {
-      user = await users.findOne({
-        $or: [
-          { accountId },
-          { accountNumber: accountId },
-          { "Account Number": accountId },
-          { displayUserNumber: accountId },
-        ],
-      });
-    }
-
-    if (!user) {
-      return res.status(404).json({
-        error: "User not found",
-      });
-    }
-
-    const numberId = String(
-      user.accountId ||
-      user.accountNumber ||
-      user["Account Number"] ||
-      user.displayUserNumber ||
-      ""
-    );
-
-    return res.json({
-      user: {
+      return {
         ...user,
-        id: String(
-          user.id ||
-          user.uid ||
-          user.appLongId ||
-          user._id ||
-          ""
-        ),
-        uid: String(
-          user.uid ||
-          user.id ||
-          user.appLongId ||
-          ""
-        ),
-        appLongId: String(
-          user.appLongId ||
-          user.id ||
-          user.uid ||
-          ""
-        ),
+        id,
+        uid: String(user.uid || id),
+        appLongId: String(user.appLongId || id),
         accountId: numberId,
         accountNumber: numberId,
         displayUserNumber: numberId,
-        name:
-          user.name ||
-          user.displayName ||
-          user.userName ||
-          "User",
-        image:
-          user.image ||
-          user.photo ||
-          user.photoURL ||
-          user.avatar ||
-          "/default-avatar.png",
-        country:
-          user.country ||
-          "🇮🇳",
-      },
+        name: user.name || user.displayName || user.userName || "User",
+        email: user.email || user.gmail || user.emailPhone || "",
+        image: user.image || user.photo || user.photoURL || user.avatar || "/default-avatar.png",
+        country: user.country || "🇮🇳",
+      };
+    };
+
+    const q = searchQuery || accountId || uid;
+    if (q) {
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+      const matches = await users
+        .find({
+          $or: [
+            { accountId: q },
+            { accountNumber: q },
+            { "Account Number": q },
+            { displayUserNumber: q },
+            { uid: q },
+            { id: q },
+            { appLongId: q },
+            { accountId: regex },
+            { accountNumber: regex },
+            { displayUserNumber: regex },
+            { name: regex },
+            { displayName: regex },
+            { userName: regex },
+          ],
+        })
+        .limit(50)
+        .toArray();
+
+      const normalizedUsers = matches.map(normalizeUser);
+
+      if (normalizedUsers.length === 0 && uid) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({
+        users: normalizedUsers,
+        user: normalizedUsers[0] || null,
+      });
+    }
+
+    // No query = return all registered users (for Owner Panel).
+    const allUsers = await users
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(1000)
+      .toArray();
+
+    return res.json({
+      users: allUsers.map(normalizeUser),
     });
   } catch (error) {
     console.error("GET /api/users error:", error);
@@ -717,7 +662,7 @@ io.on("connection", (socket) => {
           roomId: room,
           userId: id,
           user: {
-            accountId: id,
+            accountId: accId,
             userId: id,
             name: name || "User",
             image:
@@ -877,10 +822,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "leave") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           isOccupied: false,
@@ -893,10 +835,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "mute") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           isMuted: Boolean(data.isMuted),
@@ -931,6 +870,12 @@ io.on("connection", (socket) => {
     // IMPORTANT:
     // Broadcast the complete seat state to EVERYONE in the room.
     emitRoomSeats(roomId);
+  });
+
+  socket.on("room_settings_update", (data = {}) => {
+    if (!data || !data.roomId) return;
+    const roomId = String(data.roomId);
+    io.to(`room:${roomId}`).emit("room_settings_updated", data);
   });
 
   socket.on("room_message", (message) => {
