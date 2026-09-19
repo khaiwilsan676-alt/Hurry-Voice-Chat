@@ -215,6 +215,10 @@ export default function ChatScreen({
   const [swipeMsgId, setSwipeMsgId] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
+  
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
+
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastSentInviteRoomIdRef = useRef<string | null>(null);
@@ -224,234 +228,234 @@ export default function ChatScreen({
   const chatId = [currentUser.uid, targetUser.uid].sort().join('_');
 
   // ========== Online status ==========
-useEffect(() => {
-  if (isFixedChat) {
-    setOnline(true);
-    return;
-  }
-
-  const handlePresence = (data: { userId: string; online: boolean }) => {
-    if (data.userId === targetUser.uid) {
-      setOnline(data.online);
-    }
-  };
-
-  socket.on('presence_status', handlePresence);
-  socket.emit('check_presence', targetUser.uid);
-
-  return () => {
-    socket.off('presence_status', handlePresence);
-  };
-}, [targetUser.uid, isFixedChat]);
-
-// ========== Load private chat history from backend ==========
-useEffect(() => {
-  setMessages([]);
-  setIsLoadingMessages(true);
-
-  if (!currentUser.uid || !targetUser.uid) {
-    setIsLoadingMessages(false);
-    return;
-  }
-
-  loadMessagesFromDB(currentUser.uid, chatId)
-    .then(async (localMessages) => {
-      const sorted = [...localMessages].sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
-      setMessages(sorted);
-
-      // Clear unread flag for this active chat in IndexedDB
-      let hasUnread = false;
-      localMessages.forEach((m: any) => {
-        if (m.isUnread) hasUnread = true;
-      });
-
-      if (hasUnread) {
-        try {
-          const db = await openMessagesDB(currentUser.uid);
-          const tx = db.transaction([MESSAGES_STORE], 'readwrite');
-          const store = tx.objectStore(MESSAGES_STORE);
-          localMessages.forEach((m: any) => {
-            if (m.isUnread) {
-              store.put({ ...m, isUnread: false });
-            }
-          });
-          tx.oncomplete = () => {
-            db.close();
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('unread_count_updated'));
-            }
-          };
-          tx.onerror = () => db.close();
-        } catch (e) {
-          console.error('Error clearing unread status in ChatScreen:', e);
-        }
-      }
-    })
-    .catch((error) => {
-      console.error('Local message history load error:', error);
-      setMessages([]);
-    })
-    .finally(() => {
-      setIsLoadingMessages(false);
-    });
-}, [chatId, currentUser.uid, targetUser.uid]);
-
-// ========== Socket.IO private messages ==========
-useEffect(() => {
-  socket.connect();
-
-  const registerUser = () => {
-    const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
-    socket.emit('register', {
-      userId: currentUser.uid,
-      accountId: accNum
-    });
-    socket.emit('check_presence', targetUser.uid);
+  useEffect(() => {
     if (isFixedChat) {
-      socket.emit('official_message_history_request');
-    }
-  };
-
-  const handleOfficialBroadcast = async (data: any) => {
-    if (!data?.senderId || data.senderId !== targetUser.uid) return;
-
-    const message: Message = {
-      id: String(data.id || `official_${data.timestamp || Date.now()}`),
-      text: data.text || '',
-      sender: 'other',
-      timestamp: Number(data.timestamp || Date.now()),
-      type: data.type || 'message',
-      imageUrl: data.imageUrl || undefined,
-    };
-
-    setMessages((prev) => {
-      if (prev.some((m) => m.id === message.id)) return prev;
-
-      const updated = [...prev, message].sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
-
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      saveConversationToDB(currentUser.uid, {
-        chatId,
-        otherUser: {
-          uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
-        },
-        lastMessage: message.type === 'image' ? '📷 Image' : message.text,
-        lastTimestamp: message.timestamp,
-        unreadCount: 0,
-      });
-      return updated;
-    });
-  };
-
-  const handleOfficialHistoryResponse = async (data: any) => {
-    if (!isFixedChat || !Array.isArray(data?.messages)) return;
-
-    const officialMsgs: Message[] = data.messages
-      .filter((m: any) => m?.senderId === targetUser.uid)
-      .map((m: any) => ({
-        id: String(m.id || `official_${m.timestamp || Date.now()}`),
-        text: m.text || '',
-        sender: 'other' as const,
-        timestamp: Number(m.timestamp || Date.now()),
-        type: m.type || 'message',
-        imageUrl: m.imageUrl || undefined,
-      }));
-
-    if (officialMsgs.length === 0) return;
-
-    setMessages((prev) => {
-      const map = new Map<string, Message>();
-      prev.forEach((m) => map.set(m.id, m));
-      officialMsgs.forEach((m) => map.set(m.id, m));
-
-      const updated = Array.from(map.values()).sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
-
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      return updated;
-    });
-  };
-
-  const handlePrivateMessage = async (data: any) => {
-    if (
-      data?.senderId !== targetUser.uid ||
-      data?.receiverId !== currentUser.uid
-    ) {
+      setOnline(true);
       return;
     }
 
-    const message: Message = {
-      id: String(data.id || `${data.senderId}_${data.timestamp || Date.now()}`),
-      text: data.text || '',
-      sender: 'other',
-      timestamp: Number(data.timestamp || Date.now()),
-      type: data.type || 'message',
-      imageUrl: data.imageUrl || undefined,
-      roomData: data.roomData || undefined,
-      replyTo: data.replyTo || null,
+    const handlePresence = (data: { userId: string; online: boolean }) => {
+      if (data.userId === targetUser.uid) {
+        setOnline(data.online);
+      }
     };
 
-    setMessages((prev) => {
-      if (prev.some((m) => m.id === message.id)) return prev;
+    socket.on('presence_status', handlePresence);
+    socket.emit('check_presence', targetUser.uid);
 
-      const updated = [...prev, message].sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
+    return () => {
+      socket.off('presence_status', handlePresence);
+    };
+  }, [targetUser.uid, isFixedChat]);
 
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      saveConversationToDB(currentUser.uid, {
-        chatId,
-        otherUser: {
-          uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
-        },
-        lastMessage: message.type === 'image' ? '📷 Image' : message.text,
-        lastTimestamp: message.timestamp,
-        unreadCount: 0,
+  // ========== Load private chat history from backend ==========
+  useEffect(() => {
+    setMessages([]);
+    setIsLoadingMessages(true);
+
+    if (!currentUser.uid || !targetUser.uid) {
+      setIsLoadingMessages(false);
+      return;
+    }
+
+    loadMessagesFromDB(currentUser.uid, chatId)
+      .then(async (localMessages) => {
+        const sorted = [...localMessages].sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
+        setMessages(sorted);
+
+        // Clear unread flag for this active chat in IndexedDB
+        let hasUnread = false;
+        localMessages.forEach((m: any) => {
+          if (m.isUnread) hasUnread = true;
+        });
+
+        if (hasUnread) {
+          try {
+            const db = await openMessagesDB(currentUser.uid);
+            const tx = db.transaction([MESSAGES_STORE], 'readwrite');
+            const store = tx.objectStore(MESSAGES_STORE);
+            localMessages.forEach((m: any) => {
+              if (m.isUnread) {
+                store.put({ ...m, isUnread: false });
+              }
+            });
+            tx.oncomplete = () => {
+              db.close();
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('unread_count_updated'));
+              }
+            };
+            tx.onerror = () => db.close();
+          } catch (e) {
+            console.error('Error clearing unread status in ChatScreen:', e);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Local message history load error:', error);
+        setMessages([]);
+      })
+      .finally(() => {
+        setIsLoadingMessages(false);
       });
-      return updated;
-    });
+  }, [chatId, currentUser.uid, targetUser.uid]);
 
-    setConnected(true);
-  };
+  // ========== Socket.IO private messages ==========
+  useEffect(() => {
+    socket.connect();
 
-  const handleConnect = () => {
-    setConnected(true);
-    registerUser();
-  };
+    const registerUser = () => {
+      const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
+      socket.emit('register', {
+        userId: currentUser.uid,
+        accountId: accNum
+      });
+      socket.emit('check_presence', targetUser.uid);
+      if (isFixedChat) {
+        socket.emit('official_message_history_request');
+      }
+    };
 
-  const handleDisconnect = () => {
-    setConnected(false);
-  };
+    const handleOfficialBroadcast = async (data: any) => {
+      if (!data?.senderId || data.senderId !== targetUser.uid) return;
 
-  socket.on('connect', handleConnect);
-  socket.on('disconnect', handleDisconnect);
-  socket.on('private_message', handlePrivateMessage);
-  socket.on('official_broadcast_message', handleOfficialBroadcast);
-  socket.on('official_message_history_response', handleOfficialHistoryResponse);
+      const message: Message = {
+        id: String(data.id || `official_${data.timestamp || Date.now()}`),
+        text: data.text || '',
+        sender: 'other',
+        timestamp: Number(data.timestamp || Date.now()),
+        type: data.type || 'message',
+        imageUrl: data.imageUrl || undefined,
+      };
 
-  if (socket.connected) {
-    registerUser();
-  }
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
 
-  return () => {
-    socket.off('connect', handleConnect);
-    socket.off('disconnect', handleDisconnect);
-    socket.off('private_message', handlePrivateMessage);
-    socket.off('official_broadcast_message', handleOfficialBroadcast);
-    socket.off('official_message_history_response', handleOfficialHistoryResponse);
-  };
-}, [chatId, currentUser.uid, targetUser.uid, isFixedChat]);
+        const updated = [...prev, message].sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
 
-// ========== Auto-send room invite if sharedRoomData provided ==========
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        saveConversationToDB(currentUser.uid, {
+          chatId,
+          otherUser: {
+            uid: targetUser.uid,
+            name: targetUser.name,
+            photo: targetUser.photo,
+          },
+          lastMessage: message.type === 'image' ? '📷 Image' : message.text,
+          lastTimestamp: message.timestamp,
+          unreadCount: 0,
+        });
+        return updated;
+      });
+    };
+
+    const handleOfficialHistoryResponse = async (data: any) => {
+      if (!isFixedChat || !Array.isArray(data?.messages)) return;
+
+      const officialMsgs: Message[] = data.messages
+        .filter((m: any) => m?.senderId === targetUser.uid)
+        .map((m: any) => ({
+          id: String(m.id || `official_${m.timestamp || Date.now()}`),
+          text: m.text || '',
+          sender: 'other' as const,
+          timestamp: Number(m.timestamp || Date.now()),
+          type: m.type || 'message',
+          imageUrl: m.imageUrl || undefined,
+        }));
+
+      if (officialMsgs.length === 0) return;
+
+      setMessages((prev) => {
+        const map = new Map<string, Message>();
+        prev.forEach((m) => map.set(m.id, m));
+        officialMsgs.forEach((m) => map.set(m.id, m));
+
+        const updated = Array.from(map.values()).sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
+
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        return updated;
+      });
+    };
+
+    const handlePrivateMessage = async (data: any) => {
+      if (
+        data?.senderId !== targetUser.uid ||
+        data?.receiverId !== currentUser.uid
+      ) {
+        return;
+      }
+
+      const message: Message = {
+        id: String(data.id || `${data.senderId}_${data.timestamp || Date.now()}`),
+        text: data.text || '',
+        sender: 'other',
+        timestamp: Number(data.timestamp || Date.now()),
+        type: data.type || 'message',
+        imageUrl: data.imageUrl || undefined,
+        roomData: data.roomData || undefined,
+        replyTo: data.replyTo || null,
+      };
+
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+
+        const updated = [...prev, message].sort(
+          (a, b) => a.timestamp - b.timestamp
+        );
+
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        saveConversationToDB(currentUser.uid, {
+          chatId,
+          otherUser: {
+            uid: targetUser.uid,
+            name: targetUser.name,
+            photo: targetUser.photo,
+          },
+          lastMessage: message.type === 'image' ? '📷 Image' : message.text,
+          lastTimestamp: message.timestamp,
+          unreadCount: 0,
+        });
+        return updated;
+      });
+
+      setConnected(true);
+    };
+
+    const handleConnect = () => {
+      setConnected(true);
+      registerUser();
+    };
+
+    const handleDisconnect = () => {
+      setConnected(false);
+    };
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('private_message', handlePrivateMessage);
+    socket.on('official_broadcast_message', handleOfficialBroadcast);
+    socket.on('official_message_history_response', handleOfficialHistoryResponse);
+
+    if (socket.connected) {
+      registerUser();
+    }
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('private_message', handlePrivateMessage);
+      socket.off('official_broadcast_message', handleOfficialBroadcast);
+      socket.off('official_message_history_response', handleOfficialHistoryResponse);
+    };
+  }, [chatId, currentUser.uid, targetUser.uid, isFixedChat]);
+
+  // ========== Auto-send room invite if sharedRoomData provided ==========
   useEffect(() => {
     if (sharedRoomData && lastSentInviteRoomIdRef.current !== sharedRoomData.roomId) {
       lastSentInviteRoomIdRef.current = sharedRoomData.roomId;
@@ -460,344 +464,346 @@ useEffect(() => {
   }, [sharedRoomData]);
 
   // ========== Send room invite ==========
-const sendRoomInvite = async (roomData: {
-  roomId: string;
-  roomName: string;
-  roomImage: string;
-}) => {
-  try {
-    const messageId = `${currentUser.uid}_${Date.now()}`;
+  const sendRoomInvite = async (roomData: {
+    roomId: string;
+    roomName: string;
+    roomImage: string;
+  }) => {
+    try {
+      const messageId = `${currentUser.uid}_${Date.now()}`;
 
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      text: `Joins our Party Room: ${roomData.roomName}`,
-      type: 'room_invite',
-      roomData,
-      timestamp: Date.now(),
-    };
+      const outgoing = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        text: `Joins our Party Room: ${roomData.roomName}`,
+        type: 'room_invite',
+        roomData,
+        timestamp: Date.now(),
+      };
 
-    socket.emit('private_message', outgoing);
+      socket.emit('private_message', outgoing);
 
-    const localMessage: any = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      targetUserName: targetUser.name,
-      targetUserPhoto: targetUser.photo,
-      text: outgoing.text,
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'room_invite',
-      roomData,
-    };
+      const localMessage: any = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        targetUserName: targetUser.name,
+        targetUserPhoto: targetUser.photo,
+        text: outgoing.text,
+        sender: 'me',
+        timestamp: outgoing.timestamp,
+        type: 'room_invite',
+        roomData,
+      };
 
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      saveConversationToDB(currentUser.uid, {
-        chatId,
-        otherUser: {
-          uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
-        },
-        lastMessage: localMessage.text,
-        lastTimestamp: localMessage.timestamp,
-        unreadCount: 0,
+      setMessages((prev) => {
+        const updated = [...prev, localMessage];
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        saveConversationToDB(currentUser.uid, {
+          chatId,
+          otherUser: {
+            uid: targetUser.uid,
+            name: targetUser.name,
+            photo: targetUser.photo,
+          },
+          lastMessage: localMessage.text,
+          lastTimestamp: localMessage.timestamp,
+          unreadCount: 0,
+        });
+        return updated;
       });
-      return updated;
-    });
-  } catch (error) {
-    console.error('Error sending room invite:', error);
-  }
-};
-
-// ========== Send text message ==========
-const handleSend = async () => {
-  if (!newMessage.trim()) return;
-
-  const messageText = newMessage.trim();
-  setNewMessage('');
-
-  try {
-    const messageId = `${currentUser.uid}_${Date.now()}`;
-
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      receiverAccountId: (targetUser as any).accountId || null,
-      senderName: currentUser.name || 'User',
-      senderPhoto: currentUser.photo || '/default-avatar.png',
-      text: messageText,
-      type: 'message',
-      timestamp: Date.now(),
-      replyTo: replyTo
-        ? {
-            id: replyTo.id,
-            text: replyTo.text,
-            senderName:
-              replyTo.sender === 'me'
-                ? currentUser.name
-                : targetUser.name,
-          }
-        : null,
-    };
-
-    socket.emit('private_message', outgoing);
-
-    const localMessage: any = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      targetUserName: targetUser.name,
-      targetUserPhoto: targetUser.photo,
-      text: messageText,
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'message',
-      replyTo: outgoing.replyTo,
-    };
-
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      saveConversationToDB(currentUser.uid, {
-        chatId,
-        otherUser: {
-          uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
-        },
-        lastMessage: messageText,
-        lastTimestamp: localMessage.timestamp,
-        unreadCount: 0,
-      });
-      return updated;
-    });
-
-    setReplyTo(null);
-  } catch (error) {
-    console.error('Error sending message:', error);
-    setNewMessage(messageText);
-  }
-};
-
-// ========== Send image message ==========
-const handleImageUpload = async (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  setImageUploading(true);
-
-  try {
-    const base64 = await compressImage(file, 1200, 1200, 0.85);
-
-    const messageId = `${currentUser.uid}_${Date.now()}`;
-
-    const outgoing = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      text: '',
-      type: 'image',
-      imageUrl: base64,
-      timestamp: Date.now(),
-      replyTo: replyTo
-        ? {
-            id: replyTo.id,
-            text: replyTo.text,
-            senderName:
-              replyTo.sender === 'me'
-                ? currentUser.name
-                : targetUser.name,
-          }
-        : null,
-    };
-
-    socket.emit('private_message', outgoing);
-
-    const localMessage: any = {
-      id: messageId,
-      senderId: currentUser.uid,
-      receiverId: targetUser.uid,
-      targetUserName: targetUser.name,
-      targetUserPhoto: targetUser.photo,
-      text: '',
-      sender: 'me',
-      timestamp: outgoing.timestamp,
-      type: 'image',
-      imageUrl: base64,
-      replyTo: outgoing.replyTo,
-    };
-
-    setMessages((prev) => {
-      const updated = [...prev, localMessage];
-      saveMessagesToDB(currentUser.uid, chatId, updated);
-      saveConversationToDB(currentUser.uid, {
-        chatId,
-        otherUser: {
-          uid: targetUser.uid,
-          name: targetUser.name,
-          photo: targetUser.photo,
-        },
-        lastMessage: '📷 Image',
-        lastTimestamp: localMessage.timestamp,
-        unreadCount: 0,
-      });
-      return updated;
-    });
-
-    setReplyTo(null);
-  } catch (error) {
-    console.error('Error uploading image:', error);
-    alert('Failed to upload image. Please try again.');
-  } finally {
-    setImageUploading(false);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    } catch (error) {
+      console.error('Error sending room invite:', error);
     }
-  }
-};
+  };
 
-// ========== Clear Chat ==========
-const handleClearChat = async () => {
-  try {
-    socket.emit('private_message_clear', {
-      userId: currentUser.uid,
-      otherUserId: targetUser.uid,
-      chatId,
-    });
+  // ========== Send text message ==========
+  const handleSend = async () => {
+    if (!newMessage.trim() || isBlocked) return;
 
-    const db = await openMessagesDB(currentUser.uid);
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    const store = transaction.objectStore(MESSAGES_STORE);
-    const index = store.index('chatId');
+    const messageText = newMessage.trim();
+    setNewMessage('');
 
-    const request = index.getAll(chatId);
+    try {
+      const messageId = `${currentUser.uid}_${Date.now()}`;
 
-    request.onsuccess = () => {
-      request.result.forEach((msg: any) => {
-        store.delete(msg.id);
+      const outgoing = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        receiverAccountId: (targetUser as any).accountId || null,
+        senderName: currentUser.name || 'User',
+        senderPhoto: currentUser.photo || '/default-avatar.png',
+        text: messageText,
+        type: 'message',
+        timestamp: Date.now(),
+        replyTo: replyTo
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName:
+                replyTo.sender === 'me'
+                  ? currentUser.name
+                  : targetUser.name,
+            }
+          : null,
+      };
+
+      socket.emit('private_message', outgoing);
+
+      const localMessage: any = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        targetUserName: targetUser.name,
+        targetUserPhoto: targetUser.photo,
+        text: messageText,
+        sender: 'me',
+        timestamp: outgoing.timestamp,
+        type: 'message',
+        replyTo: outgoing.replyTo,
+      };
+
+      setMessages((prev) => {
+        const updated = [...prev, localMessage];
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        saveConversationToDB(currentUser.uid, {
+          chatId,
+          otherUser: {
+            uid: targetUser.uid,
+            name: targetUser.name,
+            photo: targetUser.photo,
+          },
+          lastMessage: messageText,
+          lastTimestamp: localMessage.timestamp,
+          unreadCount: 0,
+        });
+        return updated;
       });
+
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setNewMessage(messageText);
+    }
+  };
+
+  // ========== Send image message ==========
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (isBlocked) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploading(true);
+
+    try {
+      const base64 = await compressImage(file, 1200, 1200, 0.85);
+
+      const messageId = `${currentUser.uid}_${Date.now()}`;
+
+      const outgoing = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        text: '',
+        type: 'image',
+        imageUrl: base64,
+        timestamp: Date.now(),
+        replyTo: replyTo
+          ? {
+              id: replyTo.id,
+              text: replyTo.text,
+              senderName:
+                replyTo.sender === 'me'
+                  ? currentUser.name
+                  : targetUser.name,
+            }
+          : null,
+      };
+
+      socket.emit('private_message', outgoing);
+
+      const localMessage: any = {
+        id: messageId,
+        senderId: currentUser.uid,
+        receiverId: targetUser.uid,
+        targetUserName: targetUser.name,
+        targetUserPhoto: targetUser.photo,
+        text: '',
+        sender: 'me',
+        timestamp: outgoing.timestamp,
+        type: 'image',
+        imageUrl: base64,
+        replyTo: outgoing.replyTo,
+      };
+
+      setMessages((prev) => {
+        const updated = [...prev, localMessage];
+        saveMessagesToDB(currentUser.uid, chatId, updated);
+        saveConversationToDB(currentUser.uid, {
+          chatId,
+          otherUser: {
+            uid: targetUser.uid,
+            name: targetUser.name,
+            photo: targetUser.photo,
+          },
+          lastMessage: '📷 Image',
+          lastTimestamp: localMessage.timestamp,
+          unreadCount: 0,
+        });
+        return updated;
+      });
+
+      setReplyTo(null);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setImageUploading(false);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // ========== Clear Chat ==========
+  const handleClearChat = async () => {
+    try {
+      socket.emit('private_message_clear', {
+        userId: currentUser.uid,
+        otherUserId: targetUser.uid,
+        chatId,
+      });
+
+      const db = await openMessagesDB(currentUser.uid);
+      const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
+      const store = transaction.objectStore(MESSAGES_STORE);
+      const index = store.index('chatId');
+
+      const request = index.getAll(chatId);
+
+      request.onsuccess = () => {
+        request.result.forEach((msg: any) => {
+          store.delete(msg.id);
+        });
+        db.close();
+      };
+
+      setMessages([]);
+      setShowOptions(false);
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+    } catch (error) {
+      console.error('Error clearing chat:', error);
+    }
+  };
+
+  // ========== Delete single message ==========
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const db = await openMessagesDB(currentUser.uid);
+      const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
+      transaction.objectStore(MESSAGES_STORE).delete(messageId);
       db.close();
-    };
 
-    setMessages([]);
-    setShowOptions(false);
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-  } catch (error) {
-    console.error('Error clearing chat:', error);
-  }
-};
-
-// ========== Delete single message ==========
-const handleDeleteMessage = async (messageId: string) => {
-  try {
-    const db = await openMessagesDB(currentUser.uid);
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    transaction.objectStore(MESSAGES_STORE).delete(messageId);
-    db.close();
-
-    setMessages((prev) => prev.filter((m) => m.id !== messageId));
-    setLongPressMsg(null);
-    setShowDeleteConfirm(false);
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-  } catch (error) {
-    console.error('Error deleting message:', error);
-  }
-};
-
-// ========== Delete selected messages (batch) ==========
-const handleDeleteSelectedMessages = async () => {
-  try {
-    const db = await openMessagesDB(currentUser.uid);
-    const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
-    const store = transaction.objectStore(MESSAGES_STORE);
-
-    selectedMessages.forEach((messageId) => {
-      store.delete(messageId);
-    });
-
-    db.close();
-
-    setMessages((prev) =>
-      prev.filter((message) => !selectedMessages.has(message.id))
-    );
-
-    setDeleteMode(false);
-    setSelectedMessages(new Set());
-    setShowDeleteSelectedConfirm(false);
-    setShowOptions(false);
-  } catch (error) {
-    console.error('Error deleting selected messages:', error);
-    alert('Failed to delete messages. Please try again.');
-  }
-};
-
-// ========== Block user ==========
-const handleBlockUser = async () => {
-  try {
-    const response = await fetch('/api/users/block', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        blockedBy: currentUser.uid,
-        blockedUser: targetUser.uid,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to block user');
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      setLongPressMsg(null);
+      setShowDeleteConfirm(false);
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+    } catch (error) {
+      console.error('Error deleting message:', error);
     }
+  };
 
-    setShowBlockConfirm(false);
-    setShowOptions(false);
-    onClose();
-  } catch (error) {
-    console.error('Error blocking user:', error);
-  }
-};
+  // ========== Delete selected messages (batch) ==========
+  const handleDeleteSelectedMessages = async () => {
+    try {
+      const db = await openMessagesDB(currentUser.uid);
+      const transaction = db.transaction([MESSAGES_STORE], 'readwrite');
+      const store = transaction.objectStore(MESSAGES_STORE);
 
-// ========== Report user ==========
-const handleReportUser = async () => {
-  try {
-    const response = await fetch('/api/users/report', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        reportedBy: currentUser.uid,
-        reportedUser: targetUser.uid,
-        reportedUserName: targetUser.name,
-        chatId,
-      }),
-    });
+      selectedMessages.forEach((messageId) => {
+        store.delete(messageId);
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to report user');
+      db.close();
+
+      setMessages((prev) =>
+        prev.filter((message) => !selectedMessages.has(message.id))
+      );
+
+      setDeleteMode(false);
+      setSelectedMessages(new Set());
+      setShowDeleteSelectedConfirm(false);
+      setShowOptions(false);
+    } catch (error) {
+      console.error('Error deleting selected messages:', error);
+      alert('Failed to delete messages. Please try again.');
     }
+  };
 
-    setShowReportConfirm(false);
-    setShowOptions(false);
-    alert('User reported successfully.');
-  } catch (error) {
-    console.error('Error reporting user:', error);
-    alert('Failed to report user. Please try again.');
-  }
-};
+  // ========== Block user ==========
+  const handleBlockUser = async () => {
+    try {
+      const response = await fetch('/api/users/block', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          blockedBy: currentUser.uid,
+          blockedUser: targetUser.uid,
+        }),
+      });
 
-// ========== Reply to message ==========
+      if (!response.ok) {
+        throw new Error('Failed to block user');
+      }
+
+      // Block API success ke baad input disable karne ke liye isBlocked true kiya
+      setIsBlocked(true);
+      setShowBlockConfirm(false);
+      setShowOptions(false);
+    } catch (error) {
+      console.error('Error blocking user:', error);
+    }
+  };
+
+  // ========== Report user ==========
+  const handleReportUser = async () => {
+    try {
+      const response = await fetch('/api/users/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reportedBy: currentUser.uid,
+          reportedUser: targetUser.uid,
+          reportedUserName: targetUser.name,
+          chatId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to report user');
+      }
+
+      setShowReportConfirm(false);
+      setShowOptions(false);
+      alert('User reported successfully.');
+    } catch (error) {
+      console.error('Error reporting user:', error);
+      alert('Failed to report user. Please try again.');
+    }
+  };
+
+  // ========== Reply to message ==========
   const handleReply = (msg: Message) => {
     setReplyTo(msg);
     setLongPressMsg(null);
@@ -907,7 +913,7 @@ const handleReportUser = async () => {
 
   // ========================= RENDER =========================
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[#f0f2f5] flex flex-col">
       {/* ----- Header ----- */}
       <div
         className="px-4 pb-3 flex items-center gap-3 sticky top-0 z-10"
@@ -968,58 +974,55 @@ const handleReportUser = async () => {
               >
                 <MoreHorizontal size={24} className="text-gray-800" />
               </button>
-
-              {showOptions && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowOptions(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-                    <button
-                      onClick={() => {
-                        setShowOptions(false);
-                        setShowReportConfirm(true);
-                      }}
-                      className="w-full px-4 py-3 text-left text-black hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                    >
-                      <Flag size={18} className="text-orange-500" />
-                      <span className="text-sm font-medium">Report</span>
-                    </button>
-                    <button
-                      onClick={handleClearChat}
-                      className="w-full px-4 py-3 text-left text-black hover:bg-gray-50 flex items-center gap-3 transition-colors border-t border-gray-100"
-                    >
-                      <Trash2 size={18} className="text-gray-500" />
-                      <span className="text-sm font-medium">Clear Chat</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowOptions(false);
-                        setDeleteMode(true);
-                      }}
-                      className="w-full px-4 py-3 text-left text-black hover:bg-gray-50 flex items-center gap-3 transition-colors border-t border-gray-100"
-                    >
-                      <Trash2 size={18} className="text-red-500" />
-                      <span className="text-sm font-medium">Delete Messages</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowOptions(false);
-                        setShowBlockConfirm(true);
-                      }}
-                      className="w-full px-4 py-3 text-left text-black hover:bg-red-50 flex items-center gap-3 transition-colors border-t border-gray-100"
-                    >
-                      <Ban size={18} className="text-red-500" />
-                      <span className="text-sm font-medium">Block User</span>
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           )
         )}
       </div>
 
+      {/* ----- Bottom Sheet Options Menu ----- */}
+      {showOptions && !isFixedChat && (
+        <>
+          <div className="fixed inset-0 z-[60] bg-black/50 transition-opacity" onClick={() => setShowOptions(false)} />
+          <div className="fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-md z-[70] flex flex-col justify-around py-2 shadow-2xl animate-in slide-in-from-bottom duration-200">
+            <button
+              onClick={() => {
+                setShowOptions(false);
+                setShowReportConfirm(true);
+              }}
+              className="w-full flex-1 text-center text-black font-medium border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+              Report
+            </button>
+            <button
+              onClick={handleClearChat}
+              className="w-full flex-1 text-center text-black font-medium border-b border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+              Clear Chat
+            </button>
+            <button
+              onClick={() => {
+                setShowOptions(false);
+                setDeleteMode(true);
+              }}
+              className="w-full flex-1 text-center text-red-500 font-medium border-b border-gray-100 hover:bg-red-50 transition-colors"
+            >
+              Delete Messages
+            </button>
+            <button
+              onClick={() => {
+                setShowOptions(false);
+                setShowBlockConfirm(true);
+              }}
+              className="w-full flex-1 text-center text-red-500 font-medium hover:bg-red-50 transition-colors"
+            >
+              Block User
+            </button>
+          </div>
+        </>
+      )}
+
       {/* ----- Messages area ----- */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gray-50">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent">
         {isLoadingMessages && messages.length === 0 && (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -1043,7 +1046,7 @@ const handleReportUser = async () => {
             return (
               <div
                 key={msg.id}
-                className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+                className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
                   deleteMode ? 'cursor-pointer' : ''
                 }`}
                 onClick={() => deleteMode && toggleMessageSelection(msg.id)}
@@ -1089,7 +1092,7 @@ const handleReportUser = async () => {
             return (
               <div
                 key={msg.id}
-                className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+                className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
                   deleteMode ? 'cursor-pointer' : ''
                 }`}
                 onClick={() => deleteMode && toggleMessageSelection(msg.id)}
@@ -1097,7 +1100,7 @@ const handleReportUser = async () => {
                 onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
               >
                 {!isMine && (
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-auto">
+                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
                     <img
                       src={targetUser.photo || '/default-avatar.png'}
                       alt={targetUser.name}
@@ -1124,17 +1127,18 @@ const handleReportUser = async () => {
                     <img
                       src={msg.imageUrl}
                       alt="Shared image"
-                      className="max-w-full h-auto max-h-64 object-cover"
+                      className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
+                      onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
                     />
-                    <div className={`px-2 py-1 ${isMine ? 'bg-[#dcf8c6]' : 'bg-white'}`}>
-                      <p className={`text-[10px] text-right ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <div className={`px-2 py-1 ${isMine ? 'bg-[#374151]' : 'bg-white'}`}>
+                      <p className={`text-[10px] text-right ${isMine ? 'text-gray-300' : 'text-gray-400'}`}>
                         {formatTime(msg.timestamp)}
                       </p>
                     </div>
                   </div>
                 </div>
                 {isMine && (
-                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mt-auto">
+                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
                     <img
                       src={currentUser.photo || '/default-avatar.png'}
                       alt={currentUser.name}
@@ -1150,7 +1154,7 @@ const handleReportUser = async () => {
           return (
             <div
               key={msg.id}
-              className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+              className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} ${
                 deleteMode ? 'cursor-pointer' : ''
               }`}
               onClick={() => deleteMode && toggleMessageSelection(msg.id)}
@@ -1170,7 +1174,7 @@ const handleReportUser = async () => {
               onMouseUp={() => !deleteMode && handleMouseUp()}
             >
               {!isMine && (
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-auto">
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
                   <img
                     src={targetUser.photo || '/default-avatar.png'}
                     alt={targetUser.name}
@@ -1179,26 +1183,25 @@ const handleReportUser = async () => {
                 </div>
               )}
               <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
-                {!isMine && (
-                  <span className="text-[10px] text-gray-500 ml-1 mb-0.5">{targetUser.name}</span>
-                )}
                 <div
                   className={`px-3 py-2 rounded-2xl break-words relative ${
                     isMine
-                      ? 'bg-[#dcf8c6] text-gray-800 rounded-br-md'
+                      ? 'bg-[#374151] text-white rounded-br-md' // Halka Black Grey for own msgs
                       : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
                   } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
                 >
                   {msg.replyTo && (
-                    <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/5 rounded p-1">
-                      <p className="text-[10px] font-semibold text-blue-600">
+                    <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
+                      <p className="text-[10px] font-semibold text-blue-400">
                         {msg.replyTo.senderName}
                       </p>
-                      <p className="text-[11px] text-gray-600 truncate">{msg.replyTo.text}</p>
+                      <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>
+                        {msg.replyTo.text}
+                      </p>
                     </div>
                   )}
                   <p className="text-sm">{msg.text}</p>
-                  <p className={`text-[10px] mt-1 ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                  <p className={`text-[10px] mt-1 ${isMine ? 'text-gray-300' : 'text-gray-400'}`}>
                     {formatTime(msg.timestamp)}
                   </p>
                 </div>
@@ -1207,7 +1210,7 @@ const handleReportUser = async () => {
                 )}
               </div>
               {isMine && (
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mt-auto">
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
                   <img
                     src={currentUser.photo || '/default-avatar.png'}
                     alt={currentUser.name}
@@ -1221,8 +1224,28 @@ const handleReportUser = async () => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* ----- Image Preview Modal (Center pe dikhane ke liye) ----- */}
+      {selectedImageModal && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setSelectedImageModal(null)}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white p-2 bg-black/50 rounded-full hover:bg-black/70"
+            onClick={() => setSelectedImageModal(null)}
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={selectedImageModal} 
+            alt="Full screen preview" 
+            className="max-w-full max-h-full object-contain rounded-lg"
+          />
+        </div>
+      )}
+
       {/* ----- Reply bar ----- */}
-      {replyTo && !deleteMode && (
+      {replyTo && !deleteMode && !isBlocked && (
         <div className="px-4 py-2 bg-gray-100 border-t border-gray-200 flex items-center gap-2">
           <div className="flex-1 border-l-4 border-blue-400 pl-2 bg-white rounded p-2">
             <p className="text-[10px] font-semibold text-blue-600">
@@ -1237,19 +1260,25 @@ const handleReportUser = async () => {
       )}
 
       {/* ----- Input bar ----- */}
-      {!isFixedChat && !deleteMode && (
-        <div className="px-4 py-3 bg-white border-t border-gray-200 flex items-center gap-2">
+      {isFixedChat ? (
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center pb-5">
+          <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
+        </div>
+      ) : !deleteMode && (
+        // UI color pehle jaisa (white/gray), bas fields disabled rahengi block hone pe
+        <div className="px-4 py-3 bg-white flex items-center gap-2 pb-5">
           <input
             type="file"
             ref={fileInputRef}
             onChange={handleImageUpload}
             accept="image/*"
             className="hidden"
+            disabled={isBlocked}
           />
           <button
             className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
             onClick={() => fileInputRef.current?.click()}
-            disabled={imageUploading}
+            disabled={imageUploading || isBlocked}
           >
             {imageUploading ? (
               <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -1262,12 +1291,13 @@ const handleReportUser = async () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300"
+            placeholder={isBlocked ? "Cannot send messages" : "Type a message..."}
+            disabled={isBlocked}
+            className="flex-1 bg-gray-100 text-black rounded-full px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-70"
           />
           <button
             onClick={handleSend}
-            disabled={!newMessage.trim()}
+            disabled={!newMessage.trim() || isBlocked}
             className="text-blue-500 disabled:text-gray-300 hover:text-blue-600"
           >
             <Send size={24} />
@@ -1275,23 +1305,17 @@ const handleReportUser = async () => {
         </div>
       )}
 
-      {isFixedChat && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center">
-          <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
-        </div>
-      )}
-
       {/* ----- Block Confirmation ----- */}
       {showBlockConfirm && (
         <div
-          className="absolute inset-0 z-[70] flex items-center justify-center bg-black/50"
+          className="absolute inset-0 z-[80] flex items-center justify-center bg-black/50"
           onClick={() => setShowBlockConfirm(false)}
         >
           <div
             className="bg-white rounded-2xl px-6 py-5 shadow-xl max-w-xs w-full text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-4xl mb-3">🚫</div>
+            <div className="text-4xl mb-3"></div>
             <h3 className="text-lg font-bold text-gray-800 mb-1">Block {targetUser.name}?</h3>
             <p className="text-sm text-gray-500 mb-4">You won't receive messages from this user.</p>
             <div className="flex gap-2">
@@ -1315,14 +1339,14 @@ const handleReportUser = async () => {
       {/* ----- Report Confirmation ----- */}
       {showReportConfirm && (
         <div
-          className="absolute inset-0 z-[70] flex items-center justify-center bg-black/50"
+          className="absolute inset-0 z-[80] flex items-center justify-center bg-black/50"
           onClick={() => setShowReportConfirm(false)}
         >
           <div
             className="bg-white rounded-2xl px-6 py-5 shadow-xl max-w-xs w-full text-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-4xl mb-3">🚨</div>
+            <div className="text-4xl mb-3"></div>
             <h3 className="text-lg font-bold text-gray-800 mb-1">Report {targetUser.name}?</h3>
             <p className="text-sm text-gray-500 mb-4">This user will be reviewed by our team.</p>
             <div className="flex gap-2">
@@ -1346,7 +1370,7 @@ const handleReportUser = async () => {
       {/* ----- Delete Selected Messages Confirmation ----- */}
       {showDeleteSelectedConfirm && (
         <div
-          className="absolute inset-0 z-[70] flex items-center justify-center bg-black/50"
+          className="absolute inset-0 z-[80] flex items-center justify-center bg-black/50"
           onClick={() => setShowDeleteSelectedConfirm(false)}
         >
           <div
@@ -1377,4 +1401,5 @@ const handleReportUser = async () => {
       )}
     </div>
   );
-    }
+}
+
