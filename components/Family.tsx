@@ -476,7 +476,7 @@ export default function Family({ onBack }: FamilyProps) {
                   className="w-full h-auto max-h-[85vh] object-cover" 
                   style={{
                     backgroundColor: 'transparent',
-                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 95%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
                   }} 
                 />
