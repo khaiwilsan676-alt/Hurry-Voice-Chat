@@ -2,7 +2,8 @@
 
 import { apiUrl } from "../src/lib/api";
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Send, ImageIcon, Smile, AlertTriangle, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
+// Yaha AlertTriangle hata kar MoreHorizontal aur Reply add kiya hai bss
+import { ArrowLeft, Send, ImageIcon, Smile, MoreHorizontal, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy, Reply } from 'lucide-react';
 import socket from '../src/lib/socket';
 
 // Yahan humne naya Report page import kar liya hai bss
@@ -214,6 +215,10 @@ export default function ChatScreen({
   const [copiedMessage, setCopiedMessage] = useState<string | null>(null);
   const [swipeStartX, setSwipeStartX] = useState<number | null>(null);
   const [swipeMsgId, setSwipeMsgId] = useState<string | null>(null);
+  
+  // Naya state left swipe animation ke liye bss
+  const [swipeOffset, setSwipeOffset] = useState<number>(0);
+
   const [imageUploading, setImageUploading] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(true);
   
@@ -645,7 +650,7 @@ export default function ChatScreen({
             </div>
           </div>
 
-          {/* Right Side: Delete Options / Alert Icon */}
+          {/* Right Side: Delete Options / More Icon */}
           <div className="flex-shrink-0 flex items-center pr-1">
             {deleteMode ? (
               <div className="flex items-center gap-2">
@@ -667,8 +672,9 @@ export default function ChatScreen({
             ) : (
               !isFixedChat && (
                 <div className="relative">
+                  {/* Danger icon ko hatakar MoreHorizontal (row-wise 3 dot) use kiya bss */}
                   <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
-                    <AlertTriangle size={24} className="text-black" />
+                    <MoreHorizontal size={24} className="text-black" />
                   </button>
                 </div>
               )
@@ -729,7 +735,7 @@ export default function ChatScreen({
         )}
 
         {/* ----- Messages area ----- */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
+        <div className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
           {isLoadingMessages && messages.length === 0 && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -742,6 +748,8 @@ export default function ChatScreen({
             return messages.map((msg) => {
               const isMine = msg.sender === 'me';
               const isSelected = selectedMessages.has(msg.id);
+              const isSwiping = swipeMsgId === msg.id;
+              const currentOffset = isSwiping ? swipeOffset : 0;
 
               const msgDate = new Date(msg.timestamp).toDateString();
               const showDateHeader = msgDate !== lastDateString;
@@ -768,56 +776,100 @@ export default function ChatScreen({
                     </div>
                   )}
 
-                  <div 
-                    className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
-                    onClick={() => deleteMode && toggleMessageSelection(msg.id)}
-                  >
-                    {deleteMode && !isMine && <CheckboxRender />}
-
-                    <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
-                      
-                      {!isMine && (
-                        <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
-                          <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
+                  <div className="relative w-full">
+                    {/* Reply Icon Background (Jo left swipe pe dikhega) */}
+                    {!deleteMode && (
+                      <div className={`absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center transition-opacity ${currentOffset < -40 ? 'opacity-100' : 'opacity-0'}`}>
+                        <div className="bg-blue-100 p-2 rounded-full">
+                          <Reply size={16} className="text-blue-500" />
                         </div>
-                      )}
-                      
-                      <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      </div>
+                    )}
+
+                    {/* Yahan par Touch Logic add kiya left slide (swipe) ke liye bss */}
+                    <div 
+                      className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'} w-full relative z-10`}
+                      onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                      onTouchStart={(e) => {
+                        if (deleteMode) return;
+                        setSwipeMsgId(msg.id);
+                        setSwipeStartX(e.touches[0].clientX);
+                        setSwipeOffset(0);
+                      }}
+                      onTouchMove={(e) => {
+                        if (deleteMode) return;
+                        if (swipeMsgId === msg.id && swipeStartX !== null) {
+                          const currentX = e.touches[0].clientX;
+                          const diff = currentX - swipeStartX;
+                          if (diff < 0) { // Sirf Left slide hone pe reply trigger hoga bss
+                            setSwipeOffset(Math.max(diff, -80)); // 80px max slide limit bss
+                          }
+                        }
+                      }}
+                      onTouchEnd={() => {
+                        if (deleteMode) return;
+                        if (swipeMsgId === msg.id) {
+                          if (swipeOffset < -50) {
+                            // Agar 50px se jyada left slide hua toh reply set kardo
+                            setReplyTo(msg);
+                          }
+                          setSwipeMsgId(null);
+                          setSwipeStartX(null);
+                          setSwipeOffset(0);
+                        }
+                      }}
+                      style={{ 
+                        transform: `translateX(${currentOffset}px)`, 
+                        transition: isSwiping ? 'none' : 'transform 0.2s ease-out' 
+                      }}
+                    >
+                      {deleteMode && !isMine && <CheckboxRender />}
+
+                      <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
                         
-                        {msg.type === 'image' && msg.imageUrl ? (
-                          <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
-                            <img
-                              src={msg.imageUrl}
-                              alt="Shared"
-                              className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
-                              onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
-                            />
-                          </div>
-                        ) : (
-                          <div className={`px-3 py-2 rounded-2xl break-words relative ${
-                              isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
-                            }`}
-                          >
-                            {msg.replyTo && (
-                              <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
-                                <p className="text-[10px] font-semibold text-blue-400">{msg.replyTo.senderName}</p>
-                                <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>{msg.replyTo.text}</p>
-                              </div>
-                            )}
-                            <p className="text-sm">{msg.text}</p>
+                        {!isMine && (
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
+                            <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
                           </div>
                         )}
+                        
+                        <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                          
+                          {msg.type === 'image' && msg.imageUrl ? (
+                            <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+                              <img
+                                src={msg.imageUrl}
+                                alt="Shared"
+                                className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
+                                onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
+                              />
+                            </div>
+                          ) : (
+                            <div className={`px-3 py-2 rounded-2xl break-words relative ${
+                                isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
+                              }`}
+                            >
+                              {msg.replyTo && (
+                                <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
+                                  <p className="text-[10px] font-semibold text-blue-400">{msg.replyTo.senderName}</p>
+                                  <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>{msg.replyTo.text}</p>
+                                </div>
+                              )}
+                              <p className="text-sm">{msg.text}</p>
+                            </div>
+                          )}
 
+                        </div>
+
+                        {isMine && (
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
+                            <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
+                          </div>
+                        )}
                       </div>
 
-                      {isMine && (
-                        <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
-                          <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
-                        </div>
-                      )}
+                      {deleteMode && isMine && <CheckboxRender />}
                     </div>
-
-                    {deleteMode && isMine && <CheckboxRender />}
                   </div>
                 </React.Fragment>
               );
@@ -844,6 +896,24 @@ export default function ChatScreen({
           </div>
         ) : !deleteMode && (
           <div className="bg-white flex flex-col">
+            
+            {/* Reply Preview Box (Taaki user ko pata chale wo kisko reply kar raha hai bss) */}
+            {replyTo && (
+              <div className="flex items-center justify-between bg-gray-100 mx-4 mt-2 px-3 py-2 rounded-t-lg border-l-4 border-blue-500">
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-xs font-bold text-blue-500">
+                    {replyTo.sender === 'me' ? currentUser.name : targetUser.name}
+                  </span>
+                  <span className="text-xs text-gray-600 truncate">
+                    {replyTo.type === 'image' ? '📷 Image' : replyTo.text}
+                  </span>
+                </div>
+                <button onClick={() => setReplyTo(null)} className="p-1 hover:bg-gray-200 rounded-full">
+                  <X size={16} className="text-gray-500" />
+                </button>
+              </div>
+            )}
+
             {/* Input Bar */}
             <div className={`px-4 py-3 flex items-center gap-2 ${showEmojiPicker ? '' : 'pb-5'}`}>
               <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" disabled={isBlocked} />
