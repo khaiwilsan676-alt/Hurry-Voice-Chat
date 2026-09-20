@@ -468,24 +468,39 @@ app.get("/api/users", async (req, res) => {
     const q = searchQuery || accountId || uid;
     if (q) {
       const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const numericQ = !isNaN(Number(q)) && q.trim() !== "" ? Number(q) : null;
+
+      const orConditions = [
+        { accountId: q },
+        { accountNumber: q },
+        { "Account Number": q },
+        { displayUserNumber: q },
+        { uid: q },
+        { id: q },
+        { appLongId: q },
+        { accountId: regex },
+        { accountNumber: regex },
+        { displayUserNumber: regex },
+        { name: regex },
+        { displayName: regex },
+        { userName: regex },
+        { uid: regex },
+        { id: regex },
+        { appLongId: regex },
+      ];
+
+      // Add numeric match if the query is a valid number
+      if (numericQ !== null) {
+        orConditions.push(
+          { accountId: numericQ },
+          { accountNumber: numericQ },
+          { displayUserNumber: numericQ }
+        );
+      }
 
       const matches = await users
         .find({
-          $or: [
-            { accountId: q },
-            { accountNumber: q },
-            { "Account Number": q },
-            { displayUserNumber: q },
-            { uid: q },
-            { id: q },
-            { appLongId: q },
-            { accountId: regex },
-            { accountNumber: regex },
-            { displayUserNumber: regex },
-            { name: regex },
-            { displayName: regex },
-            { userName: regex },
-          ],
+          $or: orConditions,
         })
         .limit(50)
         .toArray();
