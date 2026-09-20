@@ -2,6 +2,7 @@
 
 import { apiUrl } from "../src/lib/api";
 import { generateStableId } from "../lib/hash";
+import { socket } from "../src/lib/socket";
 
 import React, { useEffect, useState, useRef } from 'react'
 import {
@@ -1845,6 +1846,23 @@ export default function PublicProfile({
                   setShowActionSheet(false)
                   setShowReportToast(true)
                   setTimeout(() => setShowReportToast(false), 2000)
+
+                  // Emit user report
+                  if (!socket.connected) {
+                    socket.connect();
+                  }
+
+                  const currentUserData = getCurrentUserData();
+                  socket.emit("user_report", {
+                    id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    senderId: currentUserData?.accountId || currentUserData?.uid || "",
+                    senderName: currentUserData?.name || "User",
+                    senderPhoto: currentUserData?.photo || "",
+                    reportedId: targetUser?.displayAccountNumber || targetUser?.accountId || targetUser?.uid || "",
+                    reportedName: targetUser?.name || "User",
+                    reportedPhoto: targetUser?.image || targetUser?.photo || "",
+                    timestamp: Date.now()
+                  });
                 }}
                 className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
               >
