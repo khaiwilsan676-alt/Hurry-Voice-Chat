@@ -5,6 +5,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const { MongoClient } = require("mongodb");
+const { setOnlineStatus, removeOnlineStatus } = require("./redis");
 
 const app = express();
 const server = http.createServer(app);
@@ -249,6 +250,9 @@ function markUserOnline(userId, socket, accountId = null) {
     if (count === 0) {
       socket.broadcast.emit("user_online", presenceId);
     }
+
+    // Sync to Redis asynchronously (fire and forget)
+    setOnlineStatus(presenceId);
   });
 
   socket.emit("presence_status", {
@@ -281,6 +285,9 @@ function markUserOffline(socket) {
     if (count <= 1) {
       onlineUsers.delete(id);
       socket.broadcast.emit("user_offline", id);
+
+      // Remove from Redis asynchronously
+      removeOnlineStatus(id);
     } else {
       onlineUsers.set(id, count - 1);
     }
