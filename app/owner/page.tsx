@@ -7,6 +7,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { socket } from '@/src/lib/socket';
 
 import Reports from '@/components/Reports';
+import OwnerBan from '@/components/ownerban';
 import { apiUrl } from "@/src/lib/api";
 
 // ==============================================================
@@ -1833,16 +1834,8 @@ export default function StaffPanel() {
         )}
 
         {activeTab === 'bans' && (
-          <div className="p-8 max-w-5xl mx-auto w-full overflow-y-auto">
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
-                <ShieldAlert className="w-6 h-6 text-red-600" />
-                <h3 className="text-xl font-bold text-slate-800">Banned Accounts</h3>
-              </div>
-              <div className="py-12 text-center text-slate-400 text-sm font-medium">
-                No banned accounts found.
-              </div>
-            </div>
+          <div className="h-full w-full overflow-y-auto">
+            <OwnerBan />
           </div>
         )}
 
