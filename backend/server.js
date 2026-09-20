@@ -649,6 +649,8 @@ io.on("connection", (socket) => {
 
       socket.roomId = room;
       socket.roomUserId = id;
+      socket.accountId = accId;
+      socket.roomAccountId = accId;
 
       addUserToRoom(room, id, {
         name: name || "User",
@@ -764,10 +766,14 @@ io.on("connection", (socket) => {
     }
 
     // Only a user who is actually joined to this room can control a seat.
-    if (
-      String(socket.roomId || "") !== roomId ||
-      String(socket.roomUserId || socket.userId || "") !== userId
-    ) {
+    const isRoomUser =
+      String(socket.roomUserId || "") === userId ||
+      String(socket.userId || "") === userId ||
+      String(socket.accountId || "") === userId ||
+      String(socket.roomAccountId || "") === userId ||
+      Boolean(socket.roomId && String(socket.roomId) === roomId);
+
+    if (String(socket.roomId || "") !== roomId || !isRoomUser) {
       return;
     }
 
@@ -867,10 +873,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "emoji") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           gif: {
