@@ -2208,9 +2208,10 @@ useEffect(() => {
 
       const updatedMyRoom = {
         ...myRoom,
+        id: storedAccNum,
         name: currentRoomName,
         image: currentRoomDp,
-        accountId: myRoom.accountId || storedAccNum
+        accountId: storedAccNum
       };
 
       setMyRoom(updatedMyRoom);
@@ -2229,7 +2230,7 @@ useEffect(() => {
     const defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
 
     const createdRoomCard: UserCard = {
-      id: userUID,
+      id: storedAccNum,
       accountId: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem('userCountry') || '🇮🇳',
@@ -2353,16 +2354,18 @@ useEffect(() => {
     }
 
     // Always resolve the actual room from the known global room list.
+    const searchAccId = String(user.accountId || user.id || '');
     const foundRoom = globalRooms.find(
       (r) =>
-        String(r.id || '') === String(user.id || '') ||
-        String(r.accountId || '') === String(user.accountId || '')
+        String(r.accountId || '') === searchAccId ||
+        String(r.id || '') === searchAccId
     )
 
     const canonicalRoomId = String(
+      foundRoom?.accountId ||
+      user.accountId ||
       foundRoom?.id ||
       user.id ||
-      user.accountId ||
       ''
     )
 
@@ -2374,11 +2377,7 @@ useEffect(() => {
     const roomUser: UserCard = {
       ...user,
       id: canonicalRoomId,
-      accountId: String(
-        foundRoom?.accountId ||
-        user.accountId ||
-        canonicalRoomId
-      ),
+      accountId: canonicalRoomId,
       name:
         foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
           ? foundRoom.name
