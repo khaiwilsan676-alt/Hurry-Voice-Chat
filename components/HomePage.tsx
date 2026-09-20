@@ -2,7 +2,7 @@
 
 import { apiUrl } from "../src/lib/api";
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import React { useState, useEffect, useRef, useCallback } from 'react'
 import { socket } from '../src/lib/socket'
 import MessagePage from './MessagePage'
 import MePage from './MePage'
@@ -857,7 +857,48 @@ async function fetchSearchResults(
 
   return foundList;
 }
+// ============ LIVE ROOM STATS COMPONENT ============
+const LiveRoomStats = () => {
+  const [count, setCount] = React.useState(() => Math.floor(Math.random() * 4000) + 1000);
 
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setCount((prev) => prev + (Math.floor(Math.random() * 7) - 3));
+    }, Math.random() * 2000 + 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1.5 border border-[#FFD700]/40 z-10 shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+      <style>
+        {`
+          @keyframes trackEq {
+            0% { height: 3px; }
+            50% { height: 9px; }
+            100% { height: 3px; }
+          }
+          .track-bar {
+            width: 2.5px;
+            background-color: #FFD700;
+            border-radius: 2px;
+            animation: trackEq infinite ease-in-out;
+          }
+        `}
+      </style>
+
+      <div className="flex items-end gap-[2px] h-[9px]">
+        <div className="track-bar" style={{ animationDuration: '0.8s', animationDelay: '0s' }}></div>
+        <div className="track-bar" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }}></div>
+        <div className="track-bar" style={{ animationDuration: '1s', animationDelay: '0.4s' }}></div>
+      </div>
+      
+      <div className="flex items-center gap-[3px] text-[#FFD700] text-[10px] font-extrabold tracking-wider">
+        <span>S</span>
+        <span>{count}</span>
+      </div>
+    </div>
+  );
+};
 // ============ MAIN COMPONENT ============
 export default function HomePage({ onLogout }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('popular')
@@ -2967,65 +3008,65 @@ useEffect(() => {
         </div>
 
         {/* Global Rooms Grid */}
-        {allRooms.length > 0 ? (
-          <div className="px-3" style={{ marginTop: isAndroid ? '3px' : '12px' }}>
-            <div className="grid grid-cols-2 gap-2">
-              {allRooms.map((room) => (
-                <div
-                  key={room.accountId}
-                  onClick={() => handleUserCardClick({
-                    id: room.id,
-                    accountId: room.accountId,
-                    name: room.name,
-                    country: room.country,
-                    image: room.image,
-                    isLocked: room.isLocked
-                  })}
-                  className="cursor-pointer group"
-                >
-                  <div 
-                    className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-                    style={{ height: '170px' }}
-                  >
-                    <img
-                      src={
-                        room.image && room.image !== "undefined" && room.image !== "null"
-                          ? room.image
-                          : "/default-avatar.png"
-                      }
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/default-avatar.png";
-                      }}
-                      alt={room.name}
-                      className="w-full h-full object-cover"
-                      draggable="false"
-                    />
-                    {room.isLocked && (
-                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-2 px-1">
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-sm">{room.country}</span>
-                      <span className="font-semibold text-gray-900 text-sm truncate">
-                        {room.name}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+{allRooms.length > 0 ? (
+  <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
+    <div className="grid grid-cols-2 gap-x-0.5 gap-1.5 ">
+      {allRooms.map((room) => (
+        <div
+          key={room.accountId}
+          onClick={() => handleUserCardClick({
+            id: room.id,
+            accountId: room.accountId,
+            name: room.name,
+            country: room.country,
+            image: room.image,
+            isLocked: room.isLocked
+          })}
+          className="cursor-pointer group"
+        >
+          <div 
+            className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+            style={{ height: '170px' }}
+          >
+            <img
+              src={
+                room.image && room.image !== "undefined" && room.image !== "null"
+                  ? room.image
+                  : "/default-avatar.png"
+              }
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/default-avatar.png";
+              }}
+              alt={room.name}
+              className="w-full h-full object-cover"
+              draggable="false"
+            />
+            {room.isLocked && (
+              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                </svg>
+              </div>
+            )}
+
+            {/* 👇 LIVE ROOM STATS — Golden animation + S number */}
+            <LiveRoomStats />
+
+          </div>
+          
+          <div className="mt-0.5 px-1">
+            <div className="flex items-center gap-0.5">
+              <span className="text-sm">{room.country}</span>
+              <span className="font-semibold text-gray-900 text-sm truncate">
+                {room.name}
+              </span>
             </div>
           </div>
-        ) : null}
-      </>
-    );
-  };
-
+        </div>
+      ))}
+    </div>
+  </div>
+) : null}
 
 
 
