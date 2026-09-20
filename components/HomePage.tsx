@@ -859,9 +859,9 @@ async function fetchSearchResults(
 }
 // ============ LIVE ROOM STATS COMPONENT ============
 const LiveRoomStats = () => {
-  const [count, setCount] = React.useState(() => Math.floor(Math.random() * 4000) + 1000);
+  const [count, setCount] = useState(() => Math.floor(Math.random() * 4000) + 1000);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(() => {
       setCount((prev) => prev + (Math.floor(Math.random() * 7) - 3));
     }, Math.random() * 2000 + 1000);
@@ -947,6 +947,14 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const [userUID, setUserUID] = useState('')
   const [userPresence, setUserPresence] = useState<Record<string, boolean>>({})
   const [totalUnreadCount, setTotalUnreadCount] = useState(0)
+  const [topNotification, setTopNotification] = useState<{
+    id: string;
+    senderName: string;
+    senderPhoto: string;
+    text: string;
+    senderId: string;
+  } | null>(null);
+  const notificationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [globalRooms, setGlobalRooms] = useState<GlobalRoom[]>([])
 
@@ -1075,6 +1083,21 @@ export default function HomePage({ onLogout }: HomePageProps) {
       };
 
       saveIncomingMessageToDB(msgObj);
+
+      if (senderId !== userUID) {
+        setTopNotification({
+          id: String(data.id || Date.now()),
+          senderName: data.senderName || 'User',
+          senderPhoto: data.senderPhoto || '/default-avatar.png',
+          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+          senderId,
+        });
+
+        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = setTimeout(() => {
+          setTopNotification(null);
+        }, 3800);
+      }
     };
 
     const handleIncomingOfficialBroadcast = (data: any) => {
@@ -1101,6 +1124,19 @@ export default function HomePage({ onLogout }: HomePageProps) {
       };
 
       saveIncomingMessageToDB(msgObj);
+
+      setTopNotification({
+        id: String(data.id || Date.now()),
+        senderName: msgObj.senderName,
+        senderPhoto: msgObj.senderPhoto,
+        text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+        senderId,
+      });
+
+      if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+      notificationTimerRef.current = setTimeout(() => {
+        setTopNotification(null);
+      }, 3800);
     };
 
     socket.on('private_message', handleIncomingPrivateMsg);
@@ -2279,8 +2315,43 @@ useEffect(() => {
         ? rawAccNum
         : (rawAccNum as any).fullAccNum
 
+    const isOwner =
+      (user.id && String(user.id) === String(userUID)) ||
+      (user.accountId && String(user.accountId) === String(currentAccountId)) ||
+      (myRoom && (user.id === myRoom.id || user.accountId === myRoom.accountId));
+
+    // If room owner is entering their own room from ANY location
+    if (isOwner) {
+      let ownerName = myRoom?.name || user.name;
+      if (!ownerName || ownerName === 'My Room' || ownerName === 'My room') {
+        ownerName = userName ? `${userName}'s Room` : 'Voice Chat Room';
+      }
+      let ownerDp = myRoom?.image || user.image;
+      if (!ownerDp || ownerDp === 'undefined' || ownerDp === 'null' || ownerDp === '/default-avatar.png') {
+        ownerDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png';
+      }
+
+      const ownerRoomUser: UserCard = {
+        id: userUID,
+        accountId: currentAccountId,
+        name: ownerName,
+        image: ownerDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳'
+      };
+
+      setEnteredFromKept(false);
+      addToRecent({
+        name: ownerRoomUser.name,
+        image: ownerRoomUser.image,
+        accountId: ownerRoomUser.accountId || ownerRoomUser.id,
+      });
+      setSelectedUser(ownerRoomUser);
+      setCurrentPage('room');
+      if (isSearchOpen) setIsSearchOpen(false);
+      return;
+    }
+
     // Always resolve the actual room from the known global room list.
-    // Room accountId is NOT the Socket.IO roomId.
     const foundRoom = globalRooms.find(
       (r) =>
         String(r.id || '') === String(user.id || '') ||
@@ -2308,9 +2379,11 @@ useEffect(() => {
         canonicalRoomId
       ),
       name:
-        foundRoom?.name ||
-        user.name ||
-        'Room',
+        foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
+          ? foundRoom.name
+          : user.name && user.name !== 'My Room' && user.name !== 'My room'
+          ? user.name
+          : 'Voice Chat Room',
       image:
         foundRoom?.image ||
         user.image ||
@@ -2321,8 +2394,14 @@ useEffect(() => {
     }
 
     try {
-      const roomData =
-        await fetchRoomFromMongoDB(canonicalRoomId)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Room fetch timeout')), 1200)
+      );
+
+      const roomData: any = await Promise.race([
+        fetchRoomFromMongoDB(canonicalRoomId),
+        timeoutPromise,
+      ]);
 
       if (roomData) {
         if (
@@ -2340,32 +2419,29 @@ useEffect(() => {
         }
 
         // MongoDB is the source of truth for room name and DP.
-        roomUser.name =
-          roomData['Room Name'] ||
-          roomData.roomName ||
-          roomData.name ||
-          roomUser.name
+        if (roomData['Room Name'] || roomData.roomName || roomData.name) {
+          const rName = roomData['Room Name'] || roomData.roomName || roomData.name;
+          if (rName !== 'My Room' && rName !== 'My room') {
+            roomUser.name = rName;
+          }
+        }
 
-        roomUser.image =
-          roomData['Room dp'] ||
-          roomData.roomDp ||
-          roomData.image ||
-          roomUser.image
+        if (roomData['Room dp'] || roomData.roomDp || roomData.image) {
+          const rDp = roomData['Room dp'] || roomData.roomDp || roomData.image;
+          if (rDp !== 'undefined' && rDp !== 'null') {
+            roomUser.image = rDp;
+          }
+        }
 
-        roomUser.isLocked =
-          Boolean(roomData.isLocked)
+        roomUser.isLocked = Boolean(roomData.isLocked)
       }
     } catch (e) {
-      console.warn(
-        'Failed to fetch room data:',
-        e
-      )
+      console.warn('Failed to fetch room data or timed out:', e)
 
       if (
         foundRoom &&
         foundRoom.isLocked &&
-        String(foundRoom.accountId) !==
-          String(currentAccountId)
+        String(foundRoom.accountId) !== String(currentAccountId)
       ) {
         setSelectedLockedRoom(roomUser)
         setShowRoomPasswordCard(true)
@@ -2642,16 +2718,19 @@ useEffect(() => {
   }, [currentPage])
 
   // ============ ALL ROOMS FILTER ============
-  const allRooms = globalRooms.filter(room => 
+  const allRooms = globalRooms.filter((room, index, self) =>
     room && 
     room.name && 
+    room.name !== 'My Room' &&
+    room.name !== 'My room' &&
+    room.name !== 'User' &&
     room.image && 
     !/jiys/i.test(room.name) && 
-    room.name !== 'User' &&
     room.accountId !== 'undefined' &&
     room.accountId !== 'null' &&
     room.accountId !== '' &&
-    room.activeUserCount && room.activeUserCount >= 1 
+    room.accountId !== null &&
+    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index
   )
 
   // ============ RENDER MINE TAB ============
@@ -3129,6 +3208,13 @@ useEffect(() => {
         @keyframes modalOverlayIn {
           0% { opacity: 0; }
           100% { opacity: 1; }
+        }
+        @keyframes slideDownNotif {
+          0% { transform: translateY(-100%) scale(0.95); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .animate-slide-down {
+          animation: slideDownNotif 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes slideUpSheet {
           0% { transform: translateY(100%); }
