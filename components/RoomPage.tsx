@@ -488,24 +488,24 @@ function RoomContent({
     setShowUserProfile(true);
   };
 
-  const desiredAudioStateRef = useRef<boolean | null>(null);
+    const desiredAudioStateRef = useRef<boolean | null>(null);
 
-  useEffect(() => {
-    const isMuted = currentUserSeat?.isMuted ?? true;
-    const isInSeat = hasSeat;
-    const desiredState = isInSeat && !isMuted;
+    useEffect(() => {
+      const isMuted = currentUserSeat?.isMuted ?? true;
+      const isInSeat = hasSeat;
+      const desiredState = isInSeat && !isMuted;
 
-    if (desiredAudioStateRef.current !== desiredState) {
-      desiredAudioStateRef.current = desiredState;
+      if (desiredAudioStateRef.current !== desiredState) {
+        desiredAudioStateRef.current = desiredState;
 
-      if (jitsiApi) {
-        if (desiredState) {
-          jitsiApi.executeCommand("toggleAudio");
+        if (jitsiApi) {
+          jitsiApi.executeCommand("setAudioMute", !desiredState);
         }
       }
-    }
-  }, [currentUserSeat?.isMuted, hasSeat]);  useEffect(() => {
+    }, [currentUserSeat?.isMuted, hasSeat]);
     let mounted = true;
+
+    useEffect(() => {
 
     const loadRoomSettings = async () => {
       if (!roomId) return;
