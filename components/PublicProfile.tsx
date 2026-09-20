@@ -14,7 +14,7 @@ import {
   X,
   Heart,
   MessageCircle,
-  MoreHorizontal,
+  AlertTriangle,
 } from 'lucide-react'
 
 
@@ -633,7 +633,8 @@ export default function PublicProfile({
 
   const [isFollowing, setIsFollowing] = useState(false)
 
-  const [showThreeDotMenu, setShowThreeDotMenu] = useState(false)
+  // Nayi state Action Sheet ke liye
+  const [showActionSheet, setShowActionSheet] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
 
@@ -1319,46 +1320,12 @@ export default function PublicProfile({
           </button>
 
           {isOtherUser ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowThreeDotMenu(!showThreeDotMenu)}
-                className="text-white"
-              >
-                <MoreHorizontal size={24} />
-              </button>
-
-              {showThreeDotMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg py-2 w-48 z-50">
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Report user')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    Report
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Block user')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Block
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Share profile')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Share Profile
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setShowActionSheet(true)}
+              className="text-white"
+            >
+              <AlertTriangle size={24} />
+            </button>
           ) : (
             <button onClick={handleOpenEditSheet} className="text-white">
               <Edit3 size={22} />
@@ -1855,6 +1822,49 @@ export default function PublicProfile({
                 className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
               >
                 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== NAYA ACTION SHEET (REPORT & BLOCK) ===== */}
+      {showActionSheet && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowActionSheet(false)}></div>
+          
+          <div className="relative bg-black w-full max-w-md rounded-t-3xl animate-slide-up flex flex-col pb-6 pt-2 border-t border-gray-800 shadow-2xl">
+            {/* Grabber indicator (optional, makes it look good) */}
+            <div className="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-4 mt-2"></div>
+            
+            <div className="flex flex-col text-white px-4">
+              <button
+                onClick={() => {
+                  setShowActionSheet(false)
+                  alert('Report user')
+                }}
+                className="w-full text-left px-4 py-4 text-lg border-b border-gray-800 transition-colors font-medium active:bg-gray-900 rounded-t-xl"
+              >
+                Report
+              </button>
+              
+              <button
+                onClick={() => {
+                  setShowActionSheet(false)
+                  alert('Block user')
+                }}
+                className="w-full text-left px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
+              >
+                Block
+              </button>
+            </div>
+            
+            <div className="px-4 mt-2">
+              <button
+                onClick={() => setShowActionSheet(false)}
+                className="w-full bg-blue-500 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-600 active:scale-[0.98] transition-all"
+              >
+                Cancel
               </button>
             </div>
           </div>
