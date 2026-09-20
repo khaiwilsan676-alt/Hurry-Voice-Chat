@@ -5,6 +5,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, ImageIcon, Smile, AlertTriangle, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
 import socket from '../src/lib/socket';
 
+// Yahan humne naya Report page import kar liya hai bss
+import UserReportScreen from './userreport';
+
 // ============ IndexedDB Functions for Conversations & Messages ============
 const CONVERSATIONS_STORE = 'conversations';
 const MESSAGES_STORE = 'messages';
@@ -203,7 +206,6 @@ export default function ChatScreen({
   const [connected, setConnected] = useState(false);
   const [online, setOnline] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
-  const [showReportConfirm, setShowReportConfirm] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [longPressMsg, setLongPressMsg] = useState<Message | null>(null);
   const [deleteMode, setDeleteMode] = useState(false);
@@ -221,6 +223,9 @@ export default function ChatScreen({
   
   // Emoji Picker State
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  // Naya state for Report Screen bss
+  const [showReportScreen, setShowReportScreen] = useState(false);
 
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -416,7 +421,7 @@ export default function ChatScreen({
     if (!newMessage.trim() || isBlocked) return;
     const messageText = newMessage.trim();
     setNewMessage('');
-    setShowEmojiPicker(false); // Hide picker on send
+    setShowEmojiPicker(false);
 
     try {
       const messageId = `${currentUser.uid}_${Date.now()}`;
@@ -609,312 +614,315 @@ export default function ChatScreen({
 
   // ========================= RENDER =========================
   return (
-    <div className="fixed inset-0 z-50 bg-[#f0f2f5] flex flex-col">
-      
-      {/* ----- Header ----- */}
-      <div
-        className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10"
-        style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-        }}
-      >
-        {/* Left Side: Back Button + Avatar + Name/Status */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Back button ekdum corner me */}
-          <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
-            <ArrowLeft size={24} className="text-gray-800" />
-          </button>
+    <>
+      <div className="fixed inset-0 z-50 bg-[#f0f2f5] flex flex-col">
+        
+        {/* ----- Header ----- */}
+        <div
+          className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10"
+          style={{
+            background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          }}
+        >
+          {/* Left Side: Back Button + Avatar + Name/Status */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
+              <ArrowLeft size={24} className="text-gray-800" />
+            </button>
 
-          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-            <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
+            </div>
+
+            <div className="flex flex-col min-w-0">
+              <h2 className="text-lg font-bold text-gray-800 truncate leading-tight">{targetUser.name}</h2>
+              {!isFixedChat && (
+                <span className={`text-[11px] font-medium ${online ? 'text-green-600' : 'text-gray-600'}`}>
+                  {online ? 'Online' : 'Offline'}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Name upar, status 2nd row me, dot (•) hata diya */}
-          <div className="flex flex-col min-w-0">
-            <h2 className="text-lg font-bold text-gray-800 truncate leading-tight">{targetUser.name}</h2>
-            {!isFixedChat && (
-              <span className={`text-[11px] font-medium ${online ? 'text-green-600' : 'text-gray-600'}`}>
-                {online ? 'Online' : 'Offline'}
-              </span>
+          {/* Right Side: Delete Options / Alert Icon */}
+          <div className="flex-shrink-0 flex items-center pr-1">
+            {deleteMode ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">{selectedMessages.size} selected</span>
+                <button
+                  onClick={() => setShowDeleteSelectedConfirm(true)}
+                  disabled={selectedMessages.size === 0}
+                  className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-medium disabled:opacity-50"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => { setDeleteMode(false); setSelectedMessages(new Set()); }}
+                  className="p-1 hover:bg-white/30 rounded-full"
+                >
+                  <X size={20} className="text-gray-800" />
+                </button>
+              </div>
+            ) : (
+              !isFixedChat && (
+                <div className="relative">
+                  <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
+                    <AlertTriangle size={24} className="text-black" />
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
 
-        {/* Right Side: Delete Options / Alert Icon */}
-        <div className="flex-shrink-0 flex items-center pr-1">
-          {deleteMode ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">{selectedMessages.size} selected</span>
-              <button
-                onClick={() => setShowDeleteSelectedConfirm(true)}
-                disabled={selectedMessages.size === 0}
-                className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-medium disabled:opacity-50"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => { setDeleteMode(false); setSelectedMessages(new Set()); }}
-                className="p-1 hover:bg-white/30 rounded-full"
-              >
-                <X size={20} className="text-gray-800" />
-              </button>
-            </div>
-          ) : (
-            !isFixedChat && (
-              <div className="relative">
-                {/* Alert Icon Black and ekdum corner me */}
-                <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
-                  <AlertTriangle size={24} className="text-black" />
+        {/* ----- Bottom Sheet Options Menu ----- */}
+        {showOptions && !isFixedChat && (
+          <>
+            <div className="fixed inset-0 z-[60] bg-black/50 transition-opacity" onClick={() => setShowOptions(false)} />
+            <div className="fixed bottom-0 left-0 right-0 h-[35vh] bg-black rounded-t-2xl z-[70] flex flex-col py-4 shadow-2xl animate-in slide-in-from-bottom duration-200 px-4">
+              
+              <div className="flex-1 flex flex-col justify-evenly">
+                {/* Yahan click karne par Report page khulega bss */}
+                <button
+                  onClick={() => { setShowOptions(false); setShowReportScreen(true); }}
+                  className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Report
+                </button>
+                <button
+                  onClick={handleClearChat}
+                  className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Clear Chat
+                </button>
+                <button
+                  onClick={() => { setShowOptions(false); setDeleteMode(true); }}
+                  className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  Delete Messages
+                </button>
+                <button
+                  onClick={handleToggleBlock}
+                  className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  {isBlocked ? 'Unblock' : 'Block'}
                 </button>
               </div>
-            )
-          )}
-        </div>
-      </div>
 
-      {/* ----- Bottom Sheet Options Menu ----- */}
-      {showOptions && !isFixedChat && (
-        <>
-          <div className="fixed inset-0 z-[60] bg-black/50 transition-opacity" onClick={() => setShowOptions(false)} />
-          <div className="fixed bottom-0 left-0 right-0 h-[35vh] bg-black rounded-t-2xl z-[70] flex flex-col py-4 shadow-2xl animate-in slide-in-from-bottom duration-200 px-4">
-            
-            <div className="flex-1 flex flex-col justify-evenly">
               <button
-                onClick={() => { setShowOptions(false); setShowReportConfirm(true); }}
-                className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
+                onClick={() => setShowOptions(false)}
+                className="w-full py-3.5 bg-blue-500 text-white font-bold rounded-xl transition-colors mt-2"
               >
-                Report
+                Cancel
               </button>
-              <button
-                onClick={handleClearChat}
-                className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
-              >
-                Clear Chat
-              </button>
-              <button
-                onClick={() => { setShowOptions(false); setDeleteMode(true); }}
-                className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
-              >
-                Delete Messages
-              </button>
-              <button
-                onClick={handleToggleBlock}
-                className="w-full py-3 text-center text-white font-medium hover:bg-white/10 rounded-lg transition-colors"
-              >
-                {isBlocked ? 'Unblock' : 'Block'}
-              </button>
+
             </div>
+          </>
+        )}
 
-            <button
-              onClick={() => setShowOptions(false)}
-              className="w-full py-3.5 bg-blue-500 text-white font-bold rounded-xl transition-colors mt-2"
-            >
-              Cancel
-            </button>
-
-          </div>
-        </>
-      )}
-
-      {/* ----- Toast Notification ----- */}
-      {toastMsg && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-black/80 text-white px-5 py-2.5 rounded-full text-sm font-medium z-[100] shadow-lg animate-in fade-in zoom-in duration-200">
-          {toastMsg}
-        </div>
-      )}
-
-      {/* ----- Messages area ----- */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
-        {isLoadingMessages && messages.length === 0 && (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        {/* ----- Toast Notification ----- */}
+        {toastMsg && (
+          <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-black/80 text-white px-5 py-2.5 rounded-full text-sm font-medium z-[100] shadow-lg animate-in fade-in zoom-in duration-200">
+            {toastMsg}
           </div>
         )}
-        
-        {(() => {
-          let lastDateString = '';
 
-          return messages.map((msg) => {
-            const isMine = msg.sender === 'me';
-            const isSelected = selectedMessages.has(msg.id);
-
-            const msgDate = new Date(msg.timestamp).toDateString();
-            const showDateHeader = msgDate !== lastDateString;
-            lastDateString = msgDate;
-
-            const CheckboxRender = () => (
-              <div 
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 cursor-pointer ${
-                  isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-400 bg-white'
-                }`}
-              >
-                {isSelected && <Check size={12} className="text-white" />}
-              </div>
-            );
-
-            return (
-              <React.Fragment key={msg.id}>
-                
-                {showDateHeader && (
-                  <div className="flex justify-center my-4">
-                    <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
-                      {formatDateHeader(msg.timestamp)}
-                    </span>
-                  </div>
-                )}
-
-                <div 
-                  className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
-                  onClick={() => deleteMode && toggleMessageSelection(msg.id)}
-                >
-                  {deleteMode && !isMine && <CheckboxRender />}
-
-                  <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
-                    
-                    {!isMine && (
-                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
-                        <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                    
-                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                      
-                      {msg.type === 'image' && msg.imageUrl ? (
-                        <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
-                          <img
-                            src={msg.imageUrl}
-                            alt="Shared"
-                            className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
-                            onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
-                          />
-                        </div>
-                      ) : (
-                        <div className={`px-3 py-2 rounded-2xl break-words relative ${
-                            isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
-                          }`}
-                        >
-                          {msg.replyTo && (
-                            <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
-                              <p className="text-[10px] font-semibold text-blue-400">{msg.replyTo.senderName}</p>
-                              <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>{msg.replyTo.text}</p>
-                            </div>
-                          )}
-                          <p className="text-sm">{msg.text}</p>
-                        </div>
-                      )}
-
-                    </div>
-
-                    {isMine && (
-                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
-                        <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
-                      </div>
-                    )}
-                  </div>
-
-                  {deleteMode && isMine && <CheckboxRender />}
-                </div>
-              </React.Fragment>
-            );
-          });
-        })()}
-        
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* ----- Image Modal ----- */}
-      {selectedImageModal && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setSelectedImageModal(null)}>
-          <button className="absolute top-4 right-4 text-white p-2 bg-black/50 rounded-full hover:bg-black/70">
-            <X size={24} />
-          </button>
-          <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg" />
-        </div>
-      )}
-
-      {/* ----- Input Area & Emoji Picker ----- */}
-      {isFixedChat ? (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center pb-5">
-          <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
-        </div>
-      ) : !deleteMode && (
-        <div className="bg-white flex flex-col">
-          {/* Input Bar */}
-          <div className={`px-4 py-3 flex items-center gap-2 ${showEmojiPicker ? '' : 'pb-5'}`}>
-            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" disabled={isBlocked} />
-            
-            {/* Image Icon */}
-            <button
-              className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={imageUploading || isBlocked}
-            >
-              {imageUploading ? <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" /> : <ImageIcon size={24} />}
-            </button>
-            
-            {/* Emoji Icon */}
-            <button 
-              className={`hover:text-gray-700 disabled:opacity-50 transition-colors ${showEmojiPicker ? 'text-blue-500' : 'text-gray-500'}`}
-              disabled={isBlocked}
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            >
-              <Smile size={24} />
-            </button>
-
-            {/* Input container with inside Send Button */}
-            <div className="flex-1 relative flex items-center">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onFocus={() => setShowEmojiPicker(false)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-                placeholder={isBlocked ? "Cannot send messages" : "Type a message..."}
-                disabled={isBlocked}
-                className="w-full bg-gray-100 text-black rounded-full pl-4 pr-12 py-2.5 text-sm outline-none disabled:opacity-70"
-              />
-              
-              {/* Send button input ke andar */}
-              <button 
-                onClick={handleSend} 
-                disabled={!newMessage.trim() || isBlocked} 
-                className="absolute right-3 text-blue-500 disabled:text-gray-300 flex items-center justify-center"
-              >
-                <Send size={20} />
-              </button>
-            </div>
-          </div>
-
-          {/* Emoji Keyboard Picker */}
-          {showEmojiPicker && (
-            <div className="h-64 bg-gray-100 border-t border-gray-200 relative pb-5 animate-in slide-in-from-bottom-2 duration-150">
-              {/* pb-20 added to not let emojis hide under the floating erase button */}
-              <div className="absolute inset-0 overflow-y-auto p-2 grid grid-cols-8 gap-2 content-start text-center pb-20">
-                {EMOJI_LIST.map((emoji, idx) => (
-                  <button 
-                    key={idx} 
-                    onClick={() => handleEmojiClick(emoji)} 
-                    className="text-2xl hover:bg-gray-200 p-1 rounded transition-colors"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Floating Overlap Erase Button (Koi alag bottom tab nahi) */}
-              <button 
-                onClick={handleEraseEmoji} 
-                className="absolute bottom-6 right-4 p-3 bg-white rounded-full text-gray-700 shadow-[0_4px_10px_rgba(0,0,0,0.15)] border border-gray-200 transition-colors active:scale-95 z-10"
-              >
-                <Delete size={24} />
-              </button>
+        {/* ----- Messages area ----- */}
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
+          {isLoadingMessages && messages.length === 0 && (
+            <div className="text-center py-8">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           )}
-        </div>
-      )}
+          
+          {(() => {
+            let lastDateString = '';
 
-    </div>
+            return messages.map((msg) => {
+              const isMine = msg.sender === 'me';
+              const isSelected = selectedMessages.has(msg.id);
+
+              const msgDate = new Date(msg.timestamp).toDateString();
+              const showDateHeader = msgDate !== lastDateString;
+              lastDateString = msgDate;
+
+              const CheckboxRender = () => (
+                <div 
+                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 cursor-pointer ${
+                    isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-400 bg-white'
+                  }`}
+                >
+                  {isSelected && <Check size={12} className="text-white" />}
+                </div>
+              );
+
+              return (
+                <React.Fragment key={msg.id}>
+                  
+                  {showDateHeader && (
+                    <div className="flex justify-center my-4">
+                      <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
+                        {formatDateHeader(msg.timestamp)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div 
+                    className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
+                    onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                  >
+                    {deleteMode && !isMine && <CheckboxRender />}
+
+                    <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
+                      
+                      {!isMine && (
+                        <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
+                          <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      
+                      <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                        
+                        {msg.type === 'image' && msg.imageUrl ? (
+                          <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+                            <img
+                              src={msg.imageUrl}
+                              alt="Shared"
+                              className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
+                              onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
+                            />
+                          </div>
+                        ) : (
+                          <div className={`px-3 py-2 rounded-2xl break-words relative ${
+                              isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
+                            }`}
+                          >
+                            {msg.replyTo && (
+                              <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
+                                <p className="text-[10px] font-semibold text-blue-400">{msg.replyTo.senderName}</p>
+                                <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>{msg.replyTo.text}</p>
+                              </div>
+                            )}
+                            <p className="text-sm">{msg.text}</p>
+                          </div>
+                        )}
+
+                      </div>
+
+                      {isMine && (
+                        <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
+                          <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+
+                    {deleteMode && isMine && <CheckboxRender />}
+                  </div>
+                </React.Fragment>
+              );
+            });
+          })()}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* ----- Image Modal ----- */}
+        {selectedImageModal && (
+          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setSelectedImageModal(null)}>
+            <button className="absolute top-4 right-4 text-white p-2 bg-black/50 rounded-full hover:bg-black/70">
+              <X size={24} />
+            </button>
+            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg" />
+          </div>
+        )}
+
+        {/* ----- Input Area & Emoji Picker ----- */}
+        {isFixedChat ? (
+          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center pb-5">
+            <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
+          </div>
+        ) : !deleteMode && (
+          <div className="bg-white flex flex-col">
+            {/* Input Bar */}
+            <div className={`px-4 py-3 flex items-center gap-2 ${showEmojiPicker ? '' : 'pb-5'}`}>
+              <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" disabled={isBlocked} />
+              
+              {/* Image Icon */}
+              <button
+                className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={imageUploading || isBlocked}
+              >
+                {imageUploading ? <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" /> : <ImageIcon size={24} />}
+              </button>
+              
+              {/* Emoji Icon */}
+              <button 
+                className={`hover:text-gray-700 disabled:opacity-50 transition-colors ${showEmojiPicker ? 'text-blue-500' : 'text-gray-500'}`}
+                disabled={isBlocked}
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              >
+                <Smile size={24} />
+              </button>
+
+              {/* Input container with inside Send Button */}
+              <div className="flex-1 relative flex items-center">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onFocus={() => setShowEmojiPicker(false)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                  placeholder={isBlocked ? "Cannot send messages" : "Type a message..."}
+                  disabled={isBlocked}
+                  className="w-full bg-gray-100 text-black rounded-full pl-4 pr-12 py-2.5 text-sm outline-none disabled:opacity-70"
+                />
+                
+                {/* Send button input ke andar */}
+                <button 
+                  onClick={handleSend} 
+                  disabled={!newMessage.trim() || isBlocked} 
+                  className="absolute right-3 text-blue-500 disabled:text-gray-300 flex items-center justify-center"
+                >
+                  <Send size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Emoji Keyboard Picker */}
+            {showEmojiPicker && (
+              <div className="h-64 bg-gray-100 border-t border-gray-200 relative pb-5 animate-in slide-in-from-bottom-2 duration-150">
+                <div className="absolute inset-0 overflow-y-auto p-2 grid grid-cols-8 gap-2 content-start text-center pb-20">
+                  {EMOJI_LIST.map((emoji, idx) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => handleEmojiClick(emoji)} 
+                      className="text-2xl hover:bg-gray-200 p-1 rounded transition-colors"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                
+                <button 
+                  onClick={handleEraseEmoji} 
+                  className="absolute bottom-6 right-4 p-3 bg-white rounded-full text-gray-700 shadow-[0_4px_10px_rgba(0,0,0,0.15)] border border-gray-200 transition-colors active:scale-95 z-10"
+                >
+                  <Delete size={24} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+      </div>
+
+      {/* ----- Render UserReportScreen ----- */}
+      {showReportScreen && (
+        <UserReportScreen onClose={() => setShowReportScreen(false)} />
+      )}
+    </>
   );
 }
 
