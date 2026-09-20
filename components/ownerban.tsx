@@ -51,7 +51,7 @@ export default function OwnerBan() {
     if (!searchId.trim()) return
     setSearching(true)
     try {
-      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}`))
+      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}&online=true`))
       if (res.ok) {
         const data = await res.json()
         if (data.users && data.users.length > 0) {
@@ -59,7 +59,7 @@ export default function OwnerBan() {
           setIsBanFormOpen(true)
           resetBanForm()
         } else {
-          alert('User not found')
+          alert('User is not online or not found')
         }
       }
     } catch (e) {

@@ -416,6 +416,8 @@ app.get("/api/users", async (req, res) => {
       });
     }
 
+    const isOnlineCheck = req.query.online === 'true';
+
     const searchQuery = String(
       req.query.search ||
       req.query.q ||
@@ -525,13 +527,18 @@ app.get("/api/users", async (req, res) => {
 
       const finalUsers = rankedUsers.length > 0 ? rankedUsers : normalizedUsers;
 
-      if (finalUsers.length === 0 && (uid || q)) {
+      let filteredUsers = finalUsers;
+      if (isOnlineCheck) {
+        filteredUsers = filteredUsers.filter(u => onlineUsers.has(String(u.id)) || onlineUsers.has(String(u.uid)) || onlineUsers.has(String(u.accountId)));
+      }
+
+      if (filteredUsers.length === 0 && (uid || q)) {
         return res.status(404).json({ error: "User not found" });
       }
 
       return res.json({
-        users: finalUsers,
-        user: finalUsers[0] || null,
+        users: filteredUsers,
+        user: filteredUsers[0] || null,
       });
     }
 
