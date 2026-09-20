@@ -879,19 +879,19 @@ const LiveRoomStats = () => {
           }
           .track-bar {
             width: 2.5px;
-            background-color: #FFD700;
+            background-color: #FFFFFF;
             border-radius: 2px;
             animation: trackEq infinite ease-in-out;
           }
         `}
       </style>
 
-      {/* 🔢 Number pehle — white color, no S */}
-      <span className="text-white text-[11px] font-extrabold tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+      {/* 🔢 Number pehle — white, no shadow, no S */}
+      <span className="text-white text-[11px] font-extrabold tracking-wider">
         {count}
       </span>
 
-      {/* 📊 Track (equalizer bars) baad me */}
+      {/* 📊 Track (equalizer bars) baad me — white */}
       <div className="flex items-end gap-[2px] h-[9px]">
         <div className="track-bar" style={{ animationDuration: '0.8s', animationDelay: '0s' }}></div>
         <div className="track-bar" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }}></div>
