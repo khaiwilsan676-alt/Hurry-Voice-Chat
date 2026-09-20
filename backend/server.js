@@ -1299,6 +1299,9 @@ io.on("connection", (socket) => {
       reportedId: String(data.reportedId || ""),
       reportedName: String(data.reportedName || "User"),
       reportedPhoto: String(data.reportedPhoto || ""),
+      category: String(data.category || ""),
+      description: String(data.description || ""),
+      proofImage: data.proofImage ? String(data.proofImage) : null,
       timestamp: Number(data.timestamp || Date.now()),
     };
 

@@ -920,7 +920,11 @@ export default function ChatScreen({
 
       {/* ----- Render UserReportScreen ----- */}
       {showReportScreen && (
-        <UserReportScreen onClose={() => setShowReportScreen(false)} />
+        <UserReportScreen
+          currentUser={currentUser}
+          targetUser={targetUser}
+          onClose={() => setShowReportScreen(false)}
+        />
       )}
     </>
   );

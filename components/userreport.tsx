@@ -2,8 +2,17 @@
 
 import React, { useState, useRef } from 'react';
 import { ArrowLeft, Plus, X } from 'lucide-react';
+import { socket } from '../src/lib/socket';
 
-export default function UserReportScreen({ onClose }: { onClose?: () => void }) {
+export default function UserReportScreen({
+  currentUser,
+  targetUser,
+  onClose
+}: {
+  currentUser?: any;
+  targetUser?: any;
+  onClose?: () => void;
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [proofImage, setProofImage] = useState<string | null>(null);
@@ -38,11 +47,24 @@ export default function UserReportScreen({ onClose }: { onClose?: () => void }) 
       alert("Please select a report category!");
       return;
     }
-    console.log({
-      category: selectedCategory,
-      description,
-      proofImage,
-    });
+
+    if (socket.connected) {
+      const reportId = `report_${Date.now()}_${currentUser?.accountId || 'unknown'}`;
+      socket.emit('user_report', {
+        id: reportId,
+        senderId: currentUser?.accountId || currentUser?.uid || '',
+        senderName: currentUser?.name || 'User',
+        senderPhoto: currentUser?.photo || currentUser?.image || '',
+        reportedId: targetUser?.accountId || targetUser?.uid || '',
+        reportedName: targetUser?.name || 'User',
+        reportedPhoto: targetUser?.photo || targetUser?.image || '',
+        category: selectedCategory,
+        description,
+        proofImage,
+        timestamp: Date.now(),
+      });
+    }
+
     alert("Report Submitted Successfully!");
     if (onClose) onClose();
   };

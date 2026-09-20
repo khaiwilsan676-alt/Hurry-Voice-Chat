@@ -903,6 +903,42 @@ export default function StaffPanel() {
     );
   };
 
+  const handleSearchQueryChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+
+    if (val.trim()) {
+      try {
+        const res = await fetch(apiUrl(`/api/users?search=${encodeURIComponent(val)}&accountId=${encodeURIComponent(val)}`));
+        if (res.ok) {
+          const data = await res.json();
+          const rawUsers = Array.isArray(data) ? data : (data?.users || []);
+          const fetchedList = rawUsers.map((u: any, index: number) => ({
+            id: String(u._id || u.id || u.uid || index + 1),
+            name: u.name || u.displayName || u.userName || 'User',
+            username: u.username || u.userName || `@${(u.name || 'user').toLowerCase().replace(/\s+/g, '')}`,
+            hurryId: String(u.accountId || u.displayUserNumber || u.appLongId || u.hurryId || u.id || '—'),
+            email: u.email || u.gmail || u.emailPhone || '—',
+            role: u.role || 'NORMAL',
+            image: u.image || u.photo || u.avatar || u.photoURL || ''
+          }));
+
+          setUsers(prev => {
+            const newUsers = [...prev];
+            fetchedList.forEach((u: any) => {
+              if (!newUsers.some(existing => existing.id === u.id)) {
+                newUsers.push(u);
+              }
+            });
+            return newUsers;
+          });
+        }
+      } catch (err) {
+        console.warn('API users fetch fallback:', err);
+      }
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
@@ -1104,7 +1140,7 @@ export default function StaffPanel() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchQueryChange}
                     placeholder="Search by real name, email, Hurry ID, username..."
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 font-medium text-slate-900 placeholder:text-slate-400 caret-slate-900"
                   />
