@@ -3,7 +3,7 @@
 import { apiUrl } from "../src/lib/api";
 import React, { useState, useEffect, useRef } from 'react';
 // Yaha AlertTriangle hata kar MoreHorizontal aur Reply add kiya hai bss
-import { ArrowLeft, Send, ImageIcon, Smile, MoreHorizontal, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy, Reply } from 'lucide-react';
+import { ArrowLeft, Send, ImageIcon, Smile, MoreVertical, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy, Reply } from 'lucide-react';
 import socket from '../src/lib/socket';
 
 // Yahan humne naya Report page import kar liya hai bss
@@ -674,7 +674,7 @@ export default function ChatScreen({
                 <div className="relative">
                   {/* Danger icon ko hatakar MoreHorizontal (row-wise 3 dot) use kiya bss */}
                   <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
-                    <MoreHorizontal size={24} className="text-black" />
+                    <MoreVertical size={24} className="text-black" />
                   </button>
                 </div>
               )
