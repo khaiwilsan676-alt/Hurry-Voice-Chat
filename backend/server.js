@@ -1181,6 +1181,57 @@ io.on("connection", (socket) => {
     }
   });
 
+
+  socket.on("user_report", async (data = {}) => {
+    const reportId = String(data.id || `report_${Date.now()}`);
+
+    const payload = {
+      id: reportId,
+      senderId: String(data.senderId || ""),
+      senderName: String(data.senderName || "User"),
+      senderPhoto: String(data.senderPhoto || ""),
+      reportedId: String(data.reportedId || ""),
+      reportedName: String(data.reportedName || "User"),
+      reportedPhoto: String(data.reportedPhoto || ""),
+      timestamp: Number(data.timestamp || Date.now()),
+    };
+
+    try {
+      if (db) {
+        await db.collection("userReports").updateOne(
+          { id: reportId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("User report save failed:", error.message);
+    }
+
+    // Broadcast user report real-time update
+    io.emit("user_report", payload);
+  });
+
+  socket.on("user_report_history_request", async () => {
+    try {
+      if (db) {
+        const reports = await db
+          .collection("userReports")
+          .find({})
+          .sort({ timestamp: -1 })
+          .limit(200)
+          .toArray();
+
+        socket.emit("user_report_history_response", { reports });
+      } else {
+        socket.emit("user_report_history_response", { reports: [] });
+      }
+    } catch (error) {
+      console.error("User report history fetch failed:", error.message);
+      socket.emit("user_report_history_response", { reports: [] });
+    }
+  });
+
   socket.on("user_feedback", async (data = {}) => {
     const feedbackId = String(data.id || `fb_${Date.now()}`);
 
