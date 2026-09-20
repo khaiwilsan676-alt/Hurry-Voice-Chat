@@ -2249,7 +2249,7 @@ useEffect(() => {
     });
 
     const roomData = {
-      id: userUID,
+      id: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem("userCountry") || "🇮🇳",
       countryCode: localStorage.getItem("userCountryCode") || "IN",
@@ -2264,8 +2264,9 @@ useEffect(() => {
 
     try {
       await saveRoomToMongoDB({
-        roomId: userUID,
-        id: userUID,
+        roomId: storedAccNum,
+        id: storedAccNum,
+        accountId: storedAccNum,
         roomName: userName || defaultRoomName,
         roomDp: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",

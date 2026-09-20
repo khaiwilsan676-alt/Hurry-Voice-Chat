@@ -302,6 +302,105 @@ function getGlobalRoomPresence() {
 
 // ==================== USERS API ====================
 
+
+app.get("/api/rooms", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const roomId = req.query.roomId;
+    if (roomId) {
+      const room = await db.collection("rooms").findOne({
+        $or: [
+          { accountId: roomId },
+          { id: roomId },
+          { roomId: roomId }
+        ]
+      });
+
+      if (!room) {
+        return res.status(404).json({ error: "Room not found" });
+      }
+      return res.json({ room });
+    }
+
+    const rooms = await db.collection("rooms")
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .toArray();
+
+    return res.json({ rooms });
+  } catch (error) {
+    console.error("GET /api/rooms error:", error);
+    return res.status(500).json({ error: "Failed to fetch rooms" });
+  }
+});
+
+app.put("/api/rooms", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const data = req.body || {};
+
+    // Strict room ID definition using accountId or user uid
+    const accountId = String(
+      data.accountId ||
+      data["Room Admin"] ||
+      data.roomAdmin ||
+      data.id ||
+      ""
+    ).trim();
+
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing room accountId" });
+    }
+
+    const rooms = db.collection("rooms");
+
+    const roomData = {
+      accountId,
+      id: accountId,
+      roomId: accountId,
+      name: data.name || data.roomName || data["Room Name"] || "Voice Chat Room",
+      image: data.image || data.roomDp || data["Room dp"] || "/default-avatar.png",
+      country: data.country || data.Country || "🇮🇳",
+      message: data.message || data.announcement || "",
+      theme: data.theme || "default",
+      isLocked: Boolean(data.isLocked),
+      roomPassword: data.roomPassword || null,
+      updatedAt: Date.now()
+    };
+
+    await rooms.updateOne(
+      {
+        $or: [
+          { accountId },
+          { id: accountId }
+        ]
+      },
+      {
+        $set: roomData,
+        $setOnInsert: {
+          createdAt: Date.now()
+        }
+      },
+      { upsert: true }
+    );
+
+    return res.json({
+      success: true,
+      room: roomData
+    });
+  } catch (error) {
+    console.error("PUT /api/rooms error:", error);
+    return res.status(500).json({ error: "Failed to save room" });
+  }
+});
+
 app.get("/api/users", async (req, res) => {
   try {
     if (!db) {

@@ -1855,7 +1855,7 @@ export default function PublicProfile({
                   const currentUserData = getCurrentUserData();
                   socket.emit("user_report", {
                     id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    senderId: currentUserData?.accountId || currentUserData?.uid || "",
+                    senderId: (currentUserData as any)?.accountId || currentUserData?.uid || "",
                     senderName: currentUserData?.name || "User",
                     senderPhoto: currentUserData?.photo || "",
                     reportedId: targetUser?.displayAccountNumber || targetUser?.accountId || targetUser?.uid || "",
