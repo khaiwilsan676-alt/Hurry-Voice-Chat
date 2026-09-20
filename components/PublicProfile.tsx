@@ -633,8 +633,9 @@ export default function PublicProfile({
 
   const [isFollowing, setIsFollowing] = useState(false)
 
-  // Nayi state Action Sheet ke liye
+  // Action Sheet aur Toast State
   const [showActionSheet, setShowActionSheet] = useState(false)
+  const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
 
@@ -1828,37 +1829,39 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== NAYA ACTION SHEET (REPORT & BLOCK) ===== */}
+      {/* ===== ACTION SHEET (REPORT & BLOCK) - CORNERS STRICTLY MD ===== */}
       {showActionSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowActionSheet(false)}></div>
-          
-          <div className="relative bg-black w-full max-w-md rounded-t-3xl animate-slide-up flex flex-col pb-6 pt-2 border-t border-gray-800 shadow-2xl">
-            {/* Grabber indicator (optional, makes it look good) */}
-            <div className="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-4 mt-2"></div>
-            
+        <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+          {/* Black backdrop hataya, click pe close hoga */}
+          <div
+            className="absolute inset-0 bg-transparent pointer-events-auto"
+            onClick={() => setShowActionSheet(false)}
+          ></div>
+
+          <div className="relative bg-black w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto">
             <div className="flex flex-col text-white px-4">
               <button
                 onClick={() => {
                   setShowActionSheet(false)
-                  alert('Report user')
+                  setShowReportToast(true)
+                  setTimeout(() => setShowReportToast(false), 2000)
                 }}
-                className="w-full text-left px-4 py-4 text-lg border-b border-gray-800 transition-colors font-medium active:bg-gray-900 rounded-t-xl"
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
               >
                 Report
               </button>
-              
+
               <button
                 onClick={() => {
                   setShowActionSheet(false)
                   alert('Block user')
                 }}
-                className="w-full text-left px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
               >
                 Block
               </button>
             </div>
-            
+
             <div className="px-4 mt-2">
               <button
                 onClick={() => setShowActionSheet(false)}
@@ -1868,6 +1871,13 @@ export default function PublicProfile({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===== REPORT SUCCESSFUL TOAST (CHOTA CARD) ===== */}
+      {showReportToast && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
+          Report Successful
         </div>
       )}
 
