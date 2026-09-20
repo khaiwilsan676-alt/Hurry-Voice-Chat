@@ -56,6 +56,9 @@ const allStoreItems: StoreItem[] = [
   { id: "c1", name: "1", image: "/file_000000003d888211822aa6837fe5013c.png", tab: "Chat Bubble", stars: 4, price: "500,000", duration: "3D" },
   { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" }, 
   { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" }, 
+  { id: "c4", name: "4", image: "/IMG_20260920_122831.png", tab: "Chat Bubble", stars: 4, price: "246,000", duration: "3D" }, 
+  { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" }, 
+  { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" }, 
   
   // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
@@ -173,6 +176,7 @@ function WebGLImageAvatar({ src }: { src: string }) {
       }
     `;
 
+    // Updated fragment shader with perfectly smooth mix logic instead of discard
     const fsSource = `
       precision mediump float;
       varying vec2 v_texCoord;
@@ -183,15 +187,15 @@ function WebGLImageAvatar({ src }: { src: string }) {
         float maxRB = max(color.r, color.b);
         float greenness = color.g - maxRB;
         
-        float alpha = 1.0 - smoothstep(0.04, 0.12, greenness);
+        // Blend factor nikal rahe hai greenness ke hisaab se
+        float blend = smoothstep(0.04, 0.12, greenness);
         
-        color.g = min(color.g, maxRB + 0.05);
+        // Spill suppression taaki edges green na dikhein
+        vec4 despilled = color;
+        despilled.g = min(despilled.g, maxRB + 0.05);
         
-        if (alpha < 0.01) {
-          discard;
-        }
-        
-        gl_FragColor = vec4(color.rgb * alpha, alpha);
+        // Seedha mix() use karke color aur pure transparency (0,0,0,0) ko blend kar rahe hai
+        gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
       }
     `;
 
@@ -285,6 +289,7 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
       }
     `;
 
+    // Main update yaha par hai for Video: discard remove kar diya aur smooth mix() daal diya
     const fsSource = `
       precision mediump float;
       varying vec2 v_texCoord;
@@ -295,15 +300,15 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
         float maxRB = max(color.r, color.b);
         float greenness = color.g - maxRB;
         
-        float alpha = 1.0 - smoothstep(0.04, 0.12, greenness);
+        // Smoothstep s humein ek proper blending ratio mil raha hai
+        float blend = smoothstep(0.04, 0.15, greenness);
         
-        color.g = min(color.g, maxRB + 0.05);
+        // Green spill suppression taaki corners sharp/green na aaye
+        vec4 despilled = color;
+        despilled.g = min(despilled.g, maxRB + 0.05);
         
-        if (alpha < 0.01) {
-          discard;
-        }
-        
-        gl_FragColor = vec4(color.rgb * alpha, alpha);
+        // Mix function seedha original color ko transparent (0 alpha) k sath mix kar raha hai
+        gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
       }
     `;
 
@@ -443,7 +448,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             </button>
           </div>
 
-          {/* Category Tabs - Removed scroll (overflow-hidden), added pl-3 and pr-[2vh] */}
+          {/* Category Tabs */}
           <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-3 mb-3 overflow-hidden shrink-0 w-full">
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -515,8 +520,8 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                 return (
                   <div
                     key={item.id}
-                    className={`relative bg-white rounded-xl p-1 flex flex-col items-center justify-between shadow-sm overflow-hidden ${
-                      isTheme ? "min-h-[220px]" : "h-auto"
+                    className={`relative bg-white rounded-md p-1 flex flex-col items-center justify-between shadow-sm overflow-hidden ${
+                      isTheme ? "min-h-[200px]" : "h-auto"
                     }`}
                   >
                     {isTheme && (
@@ -612,8 +617,22 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
               })}
 
               {displayedItems.length === 0 && (
-                <div className="col-span-2 text-center text-gray-400 mt-12 text-sm font-medium">
-                  {currentView === "bag" ? "No items in Bag for this category" : "No items found"}
+                <div className="col-span-2 flex flex-col items-center justify-center min-h-[50vh] w-full">
+                  {currentView === "bag" ? (
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-[120px] h-[120px] mb-2">
+                        <Image 
+                          src="/file_0000000047308211a02722299d1fda2e.png" 
+                          alt="No data" 
+                          fill 
+                          className="object-contain" 
+                        />
+                      </div>
+                      <span className="text-gray-400 text-sm font-medium">No data</span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm font-medium">No items found</span>
+                  )}
                 </div>
               )}
             </div>
