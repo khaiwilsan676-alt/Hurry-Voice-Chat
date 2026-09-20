@@ -2,7 +2,7 @@
 
 import { apiUrl } from "../src/lib/api";
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
+import { ArrowLeft, Send, ImageIcon, Smile, AlertTriangle, Delete, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
 import socket from '../src/lib/socket';
 
 // ============ IndexedDB Functions for Conversations & Messages ============
@@ -186,6 +186,11 @@ interface ChatScreenProps {
 
 const FIXED_CHAT_UIDS = ['hurry_team_official', 'hurry_system_official'];
 
+// Emoji Keyboard List
+const EMOJI_LIST = [
+  '😀', '😂', '🤣', '🥺', '😍', '🥰', '😘', '😊', '😇', '🙂', '🙃', '😉', '😌', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻', '💀', '👽', '👾', '🤖', '🎃', '❤️', '🔥', '✨', '💯', '👍', '👎', '👏', '🙌', '🤝', '💪'
+];
+
 export default function ChatScreen({
   currentUser,
   targetUser,
@@ -213,6 +218,9 @@ export default function ChatScreen({
   const [isBlocked, setIsBlocked] = useState(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [selectedImageModal, setSelectedImageModal] = useState<string | null>(null);
+  
+  // Emoji Picker State
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -408,6 +416,7 @@ export default function ChatScreen({
     if (!newMessage.trim() || isBlocked) return;
     const messageText = newMessage.trim();
     setNewMessage('');
+    setShowEmojiPicker(false); // Hide picker on send
 
     try {
       const messageId = `${currentUser.uid}_${Date.now()}`;
@@ -491,13 +500,26 @@ export default function ChatScreen({
     }
   };
 
+  // ========== Emoji Handlers ==========
+  const handleEmojiClick = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleEraseEmoji = () => {
+    setNewMessage(prev => {
+      // Using Array.from to correctly remove emojis without breaking unicode pairs
+      const arr = Array.from(prev);
+      arr.pop();
+      return arr.join('');
+    });
+  };
+
   // ========== Block / Unblock Toggle ==========
   const handleToggleBlock = async () => {
     try {
       const action = isBlocked ? 'unblock' : 'block';
       const endpoint = isBlocked ? '/api/users/unblock' : '/api/users/block';
 
-      // Yaha par aapka actual backend call chalega
       await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -518,7 +540,6 @@ export default function ChatScreen({
       setShowOptions(false);
     } catch (error) {
       console.error(`Error ${isBlocked ? 'unblocking' : 'blocking'} user:`, error);
-      // Agar API fail bhi ho to UI handle karne ke liye (remove in production if needed)
       setIsBlocked(!isBlocked);
       showToast(isBlocked ? "Unblocked User" : "You blocked this user");
       setShowOptions(false);
@@ -598,19 +619,16 @@ export default function ChatScreen({
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         }}
       >
-        <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full p-1">
+        <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full px-3 py-1">
           <ArrowLeft size={24} className="text-gray-800" />
         </button>
 
-        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-          <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
-        </div>
-
-        <div className="flex-1 min-w-0">
+        {/* Name and Online Status in one row */}
+        <div className="flex-1 min-w-0 flex items-center gap-2">
           <h2 className="text-lg font-bold text-gray-800 truncate">{targetUser.name}</h2>
           {!isFixedChat && (
-            <span className={`text-xs ${online ? 'text-green-500' : 'text-gray-600'}`}>
-              {online ? 'Online' : 'Offline'}
+            <span className={`text-xs whitespace-nowrap ${online ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
+              • {online ? 'Online' : 'Offline'}
             </span>
           )}
         </div>
@@ -635,8 +653,8 @@ export default function ChatScreen({
         ) : (
           !isFixedChat && (
             <div className="relative">
-              <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-1">
-                <MoreHorizontal size={24} className="text-gray-800" />
+              <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full px-3 py-1">
+                <AlertTriangle size={24} className="text-red-500" />
               </button>
             </div>
           )
@@ -649,7 +667,6 @@ export default function ChatScreen({
           <div className="fixed inset-0 z-[60] bg-black/50 transition-opacity" onClick={() => setShowOptions(false)} />
           <div className="fixed bottom-0 left-0 right-0 h-[35vh] bg-black rounded-t-2xl z-[70] flex flex-col py-4 shadow-2xl animate-in slide-in-from-bottom duration-200 px-4">
             
-            {/* Direct options in black sheet without inner card/lines */}
             <div className="flex-1 flex flex-col justify-evenly">
               <button
                 onClick={() => { setShowOptions(false); setShowReportConfirm(true); }}
@@ -688,7 +705,7 @@ export default function ChatScreen({
         </>
       )}
 
-      {/* ----- Toast Notification (Block/Unblock) ----- */}
+      {/* ----- Toast Notification ----- */}
       {toastMsg && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-black/80 text-white px-5 py-2.5 rounded-full text-sm font-medium z-[100] shadow-lg animate-in fade-in zoom-in duration-200">
           {toastMsg}
@@ -696,7 +713,7 @@ export default function ChatScreen({
       )}
 
       {/* ----- Messages area ----- */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent">
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
         {isLoadingMessages && messages.length === 0 && (
           <div className="text-center py-8">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -714,7 +731,6 @@ export default function ChatScreen({
             const showDateHeader = msgDate !== lastDateString;
             lastDateString = msgDate;
 
-            // Checkbox for Delete Mode
             const CheckboxRender = () => (
               <div 
                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 cursor-pointer ${
@@ -728,7 +744,6 @@ export default function ChatScreen({
             return (
               <React.Fragment key={msg.id}>
                 
-                {/* Date Header */}
                 {showDateHeader && (
                   <div className="flex justify-center my-4">
                     <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
@@ -741,7 +756,6 @@ export default function ChatScreen({
                   className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}
                   onClick={() => deleteMode && toggleMessageSelection(msg.id)}
                 >
-                  {/* Left Checkbox for Other User */}
                   {deleteMode && !isMine && <CheckboxRender />}
 
                   <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
@@ -787,7 +801,6 @@ export default function ChatScreen({
                     )}
                   </div>
 
-                  {/* Right Checkbox for My User */}
                   {deleteMode && isMine && <CheckboxRender />}
                 </div>
               </React.Fragment>
@@ -808,33 +821,83 @@ export default function ChatScreen({
         </div>
       )}
 
-      {/* ----- Input Area ----- */}
+      {/* ----- Input Area & Emoji Picker ----- */}
       {isFixedChat ? (
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center pb-5">
           <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
         </div>
       ) : !deleteMode && (
-        <div className="px-4 py-3 bg-white flex items-center gap-2 pb-5">
-          <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" disabled={isBlocked} />
-          <button
-            className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={imageUploading || isBlocked}
-          >
-            {imageUploading ? <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" /> : <ImageIcon size={24} />}
-          </button>
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-            placeholder={isBlocked ? "Cannot send messages" : "Type a message..."}
-            disabled={isBlocked}
-            className="flex-1 bg-gray-100 text-black rounded-full px-4 py-2.5 text-sm outline-none disabled:opacity-70"
-          />
-          <button onClick={handleSend} disabled={!newMessage.trim() || isBlocked} className="text-blue-500 disabled:text-gray-300">
-            <Send size={24} />
-          </button>
+        <div className="bg-white flex flex-col">
+          {/* Input Bar */}
+          <div className={`px-4 py-3 flex items-center gap-2 ${showEmojiPicker ? '' : 'pb-5'}`}>
+            <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" disabled={isBlocked} />
+            
+            {/* Image Icon */}
+            <button
+              className="text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={imageUploading || isBlocked}
+            >
+              {imageUploading ? <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" /> : <ImageIcon size={24} />}
+            </button>
+            
+            {/* Emoji Icon */}
+            <button 
+              className={`hover:text-gray-700 disabled:opacity-50 transition-colors ${showEmojiPicker ? 'text-blue-500' : 'text-gray-500'}`}
+              disabled={isBlocked}
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            >
+              <Smile size={24} />
+            </button>
+
+            {/* Input container with inside Send Button */}
+            <div className="flex-1 relative flex items-center">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onFocus={() => setShowEmojiPicker(false)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                placeholder={isBlocked ? "Cannot send messages" : "Type a message..."}
+                disabled={isBlocked}
+                className="w-full bg-gray-100 text-black rounded-full pl-4 pr-12 py-2.5 text-sm outline-none disabled:opacity-70"
+              />
+              
+              {/* Send button input ke andar */}
+              <button 
+                onClick={handleSend} 
+                disabled={!newMessage.trim() || isBlocked} 
+                className="absolute right-3 text-blue-500 disabled:text-gray-300 flex items-center justify-center"
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Emoji Keyboard Picker */}
+          {showEmojiPicker && (
+            <div className="h-64 bg-gray-100 border-t border-gray-200 flex flex-col pb-5 animate-in slide-in-from-bottom-2 duration-150">
+              <div className="flex-1 overflow-y-auto p-2 grid grid-cols-8 gap-2 content-start text-center">
+                {EMOJI_LIST.map((emoji, idx) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => handleEmojiClick(emoji)} 
+                    className="text-2xl hover:bg-gray-200 p-1 rounded transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <div className="px-4 py-2 border-t border-gray-300 flex justify-end bg-gray-200">
+                <button 
+                  onClick={handleEraseEmoji} 
+                  className="p-2 bg-white hover:bg-gray-100 rounded-lg text-gray-700 shadow-sm transition-colors active:scale-95"
+                >
+                  <Delete size={24} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
