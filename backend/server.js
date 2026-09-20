@@ -503,6 +503,26 @@ app.put("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/privateMessages", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const messages = await db
+      .collection("privateMessages")
+      .find({})
+      .sort({ timestamp: -1 })
+      .limit(1000)
+      .toArray();
+
+    return res.json({ messages });
+  } catch (error) {
+    console.error("GET /api/privateMessages error:", error);
+    return res.status(500).json({ error: "Failed to fetch private messages" });
+  }
+});
+
 app.get("/", (_req, res) => {
   res.json({
     status: "ok",

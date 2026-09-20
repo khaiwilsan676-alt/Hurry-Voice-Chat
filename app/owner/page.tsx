@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette, MessageSquare, Bot, User, Clock, AlertTriangle, ShieldAlert, RefreshCw, Send, ImageIcon, Megaphone, CheckCircle2, Trash2 } from 'lucide-react';
+import { Menu, X, ChevronDown, MoreVertical, Gamepad2, Timer, Search, Shield, CheckCircle, Star, Sparkles, Gift, Palette, MessageSquare, Bot, User, Clock, AlertTriangle, ShieldAlert, RefreshCw, Send, ImageIcon, Megaphone, CheckCircle2, Trash2, Ticket } from 'lucide-react';
 import { auth } from '@/src/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { socket } from '@/src/lib/socket';
@@ -318,6 +318,12 @@ export default function StaffPanel() {
 
   // AI Support Live Chats State (Reports & Bans tab)
   const [supportChats, setSupportChats] = useState<any[]>([]);
+
+  // Private Messages Tracking State (Support Tickets tab)
+  const [privateMessages, setPrivateMessages] = useState<any[]>([]);
+  const [filteredPrivateMessages, setFilteredPrivateMessages] = useState<any[]>([]);
+  const [privateMessageSearchQuery, setPrivateMessageSearchQuery] = useState('');
+  const [loadingPrivateMessages, setLoadingPrivateMessages] = useState(false);
   const [selectedSupportUserId, setSelectedSupportUserId] = useState<string | null>(null);
   const [supportSearchQuery, setSupportSearchQuery] = useState('');
   const [supportSubTab, setSupportSubTab] = useState<'ai_chats' | 'reports'>('ai_chats');
@@ -488,6 +494,62 @@ export default function StaffPanel() {
       supportChatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [supportChats, selectedSupportUserId]);
+
+  // ============================================================
+  // Fetch All Private Messages (Support Tickets tab)
+  // ============================================================
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPrivateMessages = async () => {
+      try {
+        setLoadingPrivateMessages(true);
+        const res = await fetch(apiUrl('/api/privateMessages'));
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) {
+            setPrivateMessages(data.messages || []);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch private messages:', err);
+      } finally {
+        if (isMounted) {
+          setLoadingPrivateMessages(false);
+        }
+      }
+    };
+
+    fetchPrivateMessages();
+
+    // Set up polling for new messages every 10 seconds
+    const intervalId = setInterval(fetchPrivateMessages, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // Filter Private Messages
+  useEffect(() => {
+    if (!privateMessageSearchQuery.trim()) {
+      setFilteredPrivateMessages(privateMessages);
+      return;
+    }
+
+    const query = privateMessageSearchQuery.toLowerCase();
+    const filtered = privateMessages.filter((msg) => {
+      return (
+        (msg.text && msg.text.toLowerCase().includes(query)) ||
+        (msg.senderId && msg.senderId.toLowerCase().includes(query)) ||
+        (msg.receiverId && msg.receiverId.toLowerCase().includes(query)) ||
+        (msg.senderName && msg.senderName.toLowerCase().includes(query))
+      );
+    });
+
+    setFilteredPrivateMessages(filtered);
+  }, [privateMessages, privateMessageSearchQuery]);
 
   // ============================================================
   // Fetch Real Users from /api/users & Firebase Auth
@@ -796,7 +858,7 @@ export default function StaffPanel() {
             items={[
               { id: 'feedback', label: 'User Feedback', icon: '💬' },
               { id: 'bans', label: 'Reports & Bans', icon: '🚫' },
-              { id: 'tickets', label: 'Support Tickets', icon: '🎫' },
+              { id: 'tickets', label: 'Private Chat', icon: '🎫' },
               { id: 'official_msg', label: 'Official Msg', icon: '📢' }
             ]}
           />
@@ -1215,6 +1277,105 @@ export default function StaffPanel() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* TAB: SUPPORT TICKETS (PRIVATE MESSAGES) */}
+        {/* ============================================================== */}
+        {activeTab === 'tickets' && (
+          <div className="flex flex-col h-full bg-slate-50 overflow-hidden">
+            <div className="px-6 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-indigo-500" />
+                  <h2 className="text-xl font-black text-slate-800">Private Chat</h2>
+                </div>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Real-time view of user private messages and chat history</p>
+              </div>
+            </div>
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+                {/* Search Bar */}
+                <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                  <div className="relative w-full max-w-md">
+                    <Search className="w-5 h-5 text-slate-400 absolute left-3 top-2.5" />
+                    <input
+                      type="text"
+                      value={privateMessageSearchQuery}
+                      onChange={(e) => setPrivateMessageSearchQuery(e.target.value)}
+                      placeholder="Search messages, users, IDs..."
+                      className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500 shadow-sm"
+                    />
+                  </div>
+                  <div className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-full ml-4">
+                    {filteredPrivateMessages.length} Messages
+                  </div>
+                </div>
+
+                {/* Messages List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                  {loadingPrivateMessages && privateMessages.length === 0 ? (
+                    <div className="flex justify-center items-center h-40">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+                    </div>
+                  ) : filteredPrivateMessages.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-40 text-slate-400">
+                      <MessageSquare className="w-12 h-12 mb-3 text-slate-200" />
+                      <p>No private messages found.</p>
+                    </div>
+                  ) : (
+                    filteredPrivateMessages.map((msg, idx) => (
+                      <div key={msg.id || idx} className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={msg.senderPhoto || '/default-avatar.png'}
+                              alt={msg.senderName}
+                              className="w-10 h-10 rounded-full border border-slate-200 object-cover"
+                              onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+                            />
+                            <div>
+                              <div className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                {msg.senderName || 'Unknown User'}
+                                <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-mono">
+                                  ID: {msg.senderId}
+                                </span>
+                              </div>
+                              <div className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                <span>Sent to:</span>
+                                <span className="font-semibold text-indigo-600 font-mono bg-indigo-50 px-1.5 py-0.5 rounded ml-1">
+                                  ID: {msg.receiverId}
+                                </span>
+                                {msg.receiverAccountId && msg.receiverAccountId !== msg.receiverId && (
+                                  <span className="font-semibold text-emerald-600 font-mono bg-emerald-50 px-1.5 py-0.5 rounded">
+                                    AccID: {msg.receiverAccountId}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-xs font-semibold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">
+                            {new Date(msg.timestamp || Date.now()).toLocaleString()}
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm text-slate-700">
+                          {msg.type === 'image' || msg.imageUrl ? (
+                            <div className="mt-2">
+                              {msg.text && <p className="mb-2">{msg.text}</p>}
+                              <img src={msg.imageUrl} alt="Attachment" className="max-w-xs rounded-lg border border-slate-200" />
+                            </div>
+                          ) : (
+                            <p>{msg.text || <span className="italic text-slate-400">Empty message</span>}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
