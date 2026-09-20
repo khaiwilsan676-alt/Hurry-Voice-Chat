@@ -15,17 +15,8 @@ import StorePage from './StorePage';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 
-// LiveKit imports for Voice Audio
-import {
-  LiveKitRoom,
-  RoomAudioRenderer,
-  useLocalParticipant,
-  useRemoteParticipants
-} from "@livekit/components-react";
-import "@livekit/components-styles";
-import {
-  Track as LKTrack
-} from "livekit-client";
+// Jitsi imports for Voice Audio
+import { JitsiMeeting } from "@jitsi/react-sdk";
 
 interface RoomPageProps {
   roomOwner: {
@@ -217,44 +208,17 @@ const openRoomMessagesDB = (): Promise<IDBDatabase> =>
   });
 
 export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle }: RoomPageProps) {
-  const [livekitToken, setLivekitToken] = useState<string>("");
-  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL || "";
-
+  const [jitsiApi, setJitsiApi] = useState<any>(null);
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const res = await fetch(`/api/livekit?room=${roomId}&username=${encodeURIComponent(currentUser.name)}&identity=${userAccountId}`);
-        const data = await res.json();
-        if (data.token) {
-          setLivekitToken(data.token);
-        }
-      } catch (err) {
-        console.error("Error fetching LiveKit token:", err);
-      }
-    };
-    if (roomId && currentUser.name && userAccountId !== "guest") {
-      fetchToken();
-    }
-  }, [roomId, currentUser.name, userAccountId]);
-
   return (
-    <LiveKitRoom
-      audio={false}
-      video={false}
-      token={livekitToken}
-      serverUrl={livekitUrl}
-      connect={Boolean(livekitToken)}
-      className="fixed inset-0 z-50 bg-black flex flex-col"
-      options={{
-        adaptiveStream: true,
-        dynacast: true,
-        publishDefaults: {
-          simulcast: false,
-        },
-      }}
+    <RoomVoiceJitsi
+      roomId={roomId}
+      userAccountId={userAccountId}
+      userName={currentUser.name}
+      userEmail={undefined}
+      onApiReady={setJitsiApi}
     >
       <RoomContent
         roomOwner={roomOwner}
@@ -263,12 +227,84 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
         onBack={onBack}
         onKeepRoom={onKeepRoom}
         onFollowToggle={onFollowToggle}
+        jitsiApi={jitsiApi}
       />
-    </LiveKitRoom>
+    </RoomVoiceJitsi>
   );
 }
 
-function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle }: RoomPageProps) {
+function RoomVoiceJitsi({
+  roomId,
+  userAccountId,
+  userName,
+  userEmail,
+  children,
+  onApiReady,
+}: {
+  roomId: string;
+  userAccountId: string;
+  userName: string;
+  userEmail?: string;
+  children: React.ReactNode;
+  onApiReady: (api: any) => void;
+}) {
+
+  return (
+    <>
+      <div
+        className="fixed"
+        style={{
+          width: "1px",
+          height: "1px",
+          left: "-10px",
+          top: "-10px",
+          opacity: 0,
+          pointerEvents: "none",
+          overflow: "hidden",
+        }}
+      >
+        <JitsiMeeting
+          domain="meet.jit.si"
+          roomName={`HurryVoice-${roomId}`}
+          configOverwrite={{
+            startAudioOnly: true,
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+            prejoinConfig: {
+              enabled: false,
+            },
+          }}
+          interfaceConfigOverwrite={{
+            TOOLBAR_BUTTONS: [],
+          }}
+          userInfo={{
+            displayName: userName,
+            email: userEmail || "",
+          }}
+          getIFrameRef={(iframeRef) => {
+            iframeRef.style.width = "1px";
+            iframeRef.style.height = "1px";
+          }}
+          onApiReady={(externalApi) => {
+            onApiReady(externalApi);
+          }}
+        />
+      </div>
+
+      {children}
+    </>
+  );
+}
+
+function RoomContent({
+  roomOwner,
+  currentUser,
+  onClose,
+  onBack,
+  onKeepRoom,
+  onFollowToggle,
+  jitsiApi,
+}: RoomPageProps & { jitsiApi?: any }) {
   const isKeepingRef = useRef(false);
 
   const [showExitMenu, setShowExitMenu] = useState(false);
@@ -292,8 +328,6 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const [showStore, setShowStore] = useState(false);
   const [storeInitialView, setStoreInitialView] = useState<"store" | "bag">("store");
 
-  const { localParticipant } = useLocalParticipant();
-  const remoteParticipants = useRemoteParticipants();
 
   // Music Controller State (hidden | full | minimized)
   const [musicControllerState, setMusicControllerState] = useState<'hidden' | 'full' | 'minimized'>('hidden');
@@ -439,53 +473,20 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
   const desiredAudioStateRef = useRef<boolean | null>(null);
 
   useEffect(() => {
-    if (localParticipant) {
-      const isMuted = currentUserSeat?.isMuted ?? true;
-      const isInSeat = hasSeat;
-      const desiredState = isInSeat && !isMuted;
+    const isMuted = currentUserSeat?.isMuted ?? true;
+    const isInSeat = hasSeat;
+    const desiredState = isInSeat && !isMuted;
 
-      if (desiredAudioStateRef.current !== desiredState) {
-        desiredAudioStateRef.current = desiredState;
-        localParticipant.setMicrophoneEnabled(desiredState).catch(console.error);
-      }
-    }
-  }, [currentUserSeat?.isMuted, hasSeat, localParticipant]);
+    if (desiredAudioStateRef.current !== desiredState) {
+      desiredAudioStateRef.current = desiredState;
 
-  useEffect(() => {
-    if (!remoteParticipants || remoteParticipants.length === 0) return;
-
-    const updateSeatsWithRemoteParticipants = async () => {
-      const updatedSeats = [...seats];
-      let hasChanges = false;
-
-      for (const participant of remoteParticipants) {
-        const seatIndex = updatedSeats.findIndex(s =>
-          s.isOccupied && s.user?.accountId === participant.identity
-        );
-
-        if (seatIndex !== -1) {
-          const audioPublication = participant.getTrackPublication(LKTrack.Source.Microphone);
-          const isMuted = audioPublication ? audioPublication.isMuted : true;
-
-          if (updatedSeats[seatIndex].isMuted !== isMuted) {
-            updatedSeats[seatIndex] = {
-              ...updatedSeats[seatIndex],
-              isMuted,
-            };
-            hasChanges = true;
-          }
+      if (jitsiApi) {
+        if (desiredState) {
+          jitsiApi.executeCommand("toggleAudio");
         }
       }
-
-      if (hasChanges) {
-        setSeats(updatedSeats);
-      }
-    };
-
-    updateSeatsWithRemoteParticipants();
-  }, [remoteParticipants, seats]);
-
-  useEffect(() => {
+    }
+  }, [currentUserSeat?.isMuted, hasSeat]);  useEffect(() => {
     let mounted = true;
 
     const loadRoomSettings = async () => {
@@ -2994,7 +2995,6 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleEmojiSelect} />}
       {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} />}
 
-      {isSpeakerOn && <RoomAudioRenderer />}
     </div>
   );
 }
@@ -3015,18 +3015,10 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
   const isRoomOwnerSeat = isOccupied && user?.accountId === roomOwnerId;
   const gif = seatData?.gif;
 
-  const remoteParticipants = useRemoteParticipants();
-  const { localParticipant } = useLocalParticipant();
-
   const isUserSpeaking = React.useMemo(() => {
     if (!isOccupied || isMuted) return false;
-    if (user?.accountId === accountId) {
-      return localParticipant?.isSpeaking ?? false;
-    } else {
-      const p = remoteParticipants.find(rp => rp.identity === user?.accountId);
-      return p?.isSpeaking ?? false;
-    }
-  }, [isOccupied, isMuted, user?.accountId, accountId, localParticipant, remoteParticipants]);
+    return isSpeaking;
+  }, [isOccupied, isMuted, isSpeaking]);
 
   const activeSpeaking = isSpeaking || isUserSpeaking;
 
