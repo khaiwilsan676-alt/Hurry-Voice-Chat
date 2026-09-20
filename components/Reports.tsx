@@ -160,6 +160,7 @@ export default function Reports() {
 
           {/* ----- Main Scrollable Content ----- */}
           <div className="flex-1 overflow-y-auto px-4 pb-6">
+            <h2 className="text-base font-bold text-gray-800 mt-4 mb-2">Types</h2>
             {/* Category Cards (No borders, no shadows) */}
             <div className="mt-2 grid grid-cols-2 gap-3">
               {[
@@ -198,14 +199,14 @@ export default function Reports() {
 
             {/* Attach Proof Section (Sirf dashed border rakha hai, shadow hata di) */}
             <div className="mt-6">
-              <h2 className="text-base font-bold text-gray-800 mb-2">Attached Proof</h2>
+              <h2 className="text-base font-bold text-gray-800 mb-2">Uploaded Image</h2>
               <div
-                className="w-24 h-24 bg-white border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center relative overflow-hidden"
+                className="w-full max-h-[500px] bg-white rounded-md flex items-center justify-center relative overflow-hidden"
               >
                 {selectedReport.proofImage ? (
-                  <img src={selectedReport.proofImage} alt="Proof" className="w-full h-full object-cover" />
+                  <img src={selectedReport.proofImage} alt="Proof" className="w-full h-auto max-h-[500px] object-contain" />
                 ) : (
-                  <span className="text-xs text-gray-400">No Image</span>
+                  <span className="text-xs text-gray-400 py-10">No Image</span>
                 )}
               </div>
             </div>
