@@ -1,0 +1,136 @@
+
+> my-project@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 564ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+○ Compiling / ...
+ GET / 200 in 22.0s (next.js: 21.2s, application-code: 863ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 130ms (next.js: 75ms, application-code: 55ms)
+ GET /video-thumbnail.jpg 404 in 2.4s (next.js: 2.1s, application-code: 286ms)
+ GET / 200 in 447ms (next.js: 5ms, application-code: 441ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 78ms (next.js: 6ms, application-code: 72ms)
+⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /owner 200 in 3.5s (next.js: 3.2s, application-code: 332ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 469ms (next.js: 81ms, application-code: 388ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 102ms (next.js: 21ms, application-code: 81ms)
+ GET /owner 200 in 91ms (next.js: 7ms, application-code: 84ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 56ms (next.js: 4ms, application-code: 52ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 100ms (next.js: 20ms, application-code: 80ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+[browser] ⨯ unhandledRejection: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:23:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1292:24)
+  21 |
+  22 |   if (!response.ok) {
+> 23 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  24 |   }
+  25 |
+  26 |   const result = await response.json();
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1226:19)
+    at HomePage.useEffect (components/HomePage.tsx:1243:7)
+    at Page (app/page.tsx:122:7)
+  1224 |     try {
+  1225 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1226 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1227 |       jitsiApiRef.current = api
+  1228 |       jitsiJoinedRef.current = false
+  1229 | (components/HomePage.tsx:1237:15)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+ GET /api/rooms 404 in 1339ms (next.js: 12ms, application-code: 1326ms)
+ GET /api/rooms 404 in 1227ms (next.js: 3ms, application-code: 1224ms)
+[browser] ⨯ unhandledRejection: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:23:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1292:24)
+  21 |
+  22 |   if (!response.ok) {
+> 23 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  24 |   }
+  25 |
+  26 |   const result = await response.json();
+ GET /owner 200 in 94ms (next.js: 6ms, application-code: 88ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)

@@ -1,6 +1,8 @@
 'use client'
 
 import { apiUrl } from "../src/lib/api";
+import { generateStableId } from "../lib/hash";
+import { socket } from "../src/lib/socket";
 
 import React, { useEffect, useState, useRef } from 'react'
 import {
@@ -13,12 +15,13 @@ import {
   X,
   Heart,
   MessageCircle,
-  MoreHorizontal,
+  AlertTriangle,
 } from 'lucide-react'
 
 
 // Import the WebRTC ChatScreen component
 import ChatScreen from './ChatScreen' // adjust path if necessary
+import UserReport from './userreport' // ✅ Import kiya userreport.tsx
 
 // ============ IndexedDB Functions for Profile Data ============
 const PROFILE_DB_NAME = 'ProfileDataDB';
@@ -528,6 +531,32 @@ export default function PublicProfile({
 
   // Instant Synchronous Lock state load to prevent Guest/blank flashing
   const [user, setUser] = useState(() => {
+    if (isOtherUser && targetUser) {
+      const targetUid = targetUser.uid || targetUser.id || 'N/A'
+      const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
+      const displayAccNum = searchKey !== 'N/A' ? generateStableId(searchKey) : ''
+      const initialName = isValidName(targetUser.name) ? targetUser.name! : (displayAccNum || 'User')
+      const photo = targetUser.photo || targetUser.image || '/default-avatar.png'
+      return {
+        name: initialName,
+        uid: targetUid,
+        displayAccountNumber: displayAccNum,
+        photo: photo,
+        coverPhoto: targetUser.coverPhoto || '',
+        gender: (targetUser.gender === 'female' || targetUser.gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+        age: targetUser.age ? (typeof targetUser.age === 'number' ? targetUser.age : parseInt(String(targetUser.age))) : 22,
+        followers: targetUser.followers || 0,
+        bio: targetUser.bio || '',
+        location: targetUser.location || targetUser.country || 'India',
+        flag: targetUser.flag || '🇮🇳',
+        countryCode: targetUser.countryCode || 'IN',
+        officialTag: Boolean(targetUser.officialTag),
+        adminTag: Boolean(targetUser.adminTag),
+        vipTag: Boolean(targetUser.vipTag),
+        premiumTag: Boolean(targetUser.premiumTag),
+      }
+    }
+
     if (typeof window === 'undefined') {
       return {
         name: '',
@@ -606,70 +635,74 @@ export default function PublicProfile({
 
   const [isFollowing, setIsFollowing] = useState(false)
 
-  const [showThreeDotMenu, setShowThreeDotMenu] = useState(false)
+  // Action Sheet aur Toast State
+  const [showActionSheet, setShowActionSheet] = useState(false)
+  const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
+  const [showUserReport, setShowUserReport] = useState(false) // ✅ naya state user report ke liye
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
   const saveToMongoDB = async (updateData: Record<string, any>) => {
-  const currentUid =
-    user.uid ||
-    localStorage.getItem('userUID') ||
-    localStorage.getItem('userPhone')
+    const currentUid =
+      user.uid ||
+      localStorage.getItem('userUID') ||
+      localStorage.getItem('userPhone')
 
-  if (!currentUid || currentUid === 'N/A') return
+    if (!currentUid || currentUid === 'N/A') return
 
-  try {
-    const response = await fetch(apiUrl('/api/users'), {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uid: currentUid,
-        ...updateData,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`MongoDB user update failed: ${response.status}`)
-    }
-
-    const roomUpdateData = { ...updateData }
-
-    delete roomUpdateData.name
-    delete roomUpdateData.displayName
-    delete roomUpdateData.userName
-    delete roomUpdateData.image
-    delete roomUpdateData.photo
-    delete roomUpdateData.photoURL
-    delete roomUpdateData.coverPhoto
-    delete roomUpdateData.coverImage
-
-    if (Object.keys(roomUpdateData).length > 0) {
-      const roomResponse = await fetch('/api/rooms', {
+    try {
+      const response = await fetch(apiUrl('/api/users'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          roomId: currentUid,
-          ...roomUpdateData,
+          uid: currentUid,
+          ...updateData,
         }),
       })
 
-      if (!roomResponse.ok) {
-        throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
+      if (!response.ok) {
+        throw new Error(`MongoDB user update failed: ${response.status}`)
       }
-    }
-  } catch (err) {
-    console.error('Error saving data to MongoDB:', err)
-  }
-}
 
-// Save current user data to IndexedDB
+      const roomUpdateData = { ...updateData }
+
+      delete roomUpdateData.name
+      delete roomUpdateData.displayName
+      delete roomUpdateData.userName
+      delete roomUpdateData.image
+      delete roomUpdateData.photo
+      delete roomUpdateData.photoURL
+      delete roomUpdateData.coverPhoto
+      delete roomUpdateData.coverImage
+
+      if (Object.keys(roomUpdateData).length > 0) {
+        const roomResponse = await fetch(apiUrl('/api/rooms'), {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            roomId: currentUid,
+            ...roomUpdateData,
+          }),
+        })
+
+        if (!roomResponse.ok) {
+          throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
+        }
+      }
+    } catch (err) {
+      console.error('Error saving data to MongoDB:', err)
+    }
+  }
+
+  // Save current user data to IndexedDB
   const saveCurrentUserToDB = async () => {
+    if (isOtherUser) return;
     const uid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone');
     if (uid && uid !== 'N/A') {
       const profileData = {
@@ -701,28 +734,49 @@ export default function PublicProfile({
     const loadProfileData = async () => {
       if (isOtherUser && targetUser) {
         const targetUid = targetUser.uid || targetUser.id || 'N/A'
+        const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
+        let displayAccNum = searchKey !== 'N/A' ? generateStableId(searchKey) : ''
+        let initialName = isValidName(targetUser.name) ? targetUser.name! : (displayAccNum || 'User')
 
-        let displayAccNum = targetUser.displayAccountNumber || targetUser.accountId || ''
-        let initialName = targetUser.name || ''
-        if (!isValidName(initialName)) initialName = targetUid.substring(0, 8)
-
-        let photo = targetUser.photo || targetUser.image || ''
+        let photo = targetUser.photo || targetUser.image || '/default-avatar.png'
         let coverPhoto = targetUser.coverPhoto || ''
         let bio = targetUser.bio || ''
         let country = targetUser.country || targetUser.location || 'India'
         let countryCode = targetUser.countryCode || 'IN'
-        let gender = targetUser.gender || '♂'
+        let gender = targetUser.gender || '♀'
         let age = targetUser.age
           ? typeof targetUser.age === 'number'
             ? targetUser.age
-            : parseInt(targetUser.age)
+            : parseInt(String(targetUser.age))
           : 22
         let followers = targetUser.followers || 0
         let album: string[] = []
-        let officialTag = targetUser.officialTag || false
-        let adminTag = targetUser.adminTag || false
-        let vipTag = targetUser.vipTag || false
-        let premiumTag = targetUser.premiumTag || false
+        let officialTag = Boolean(targetUser.officialTag)
+        let adminTag = Boolean(targetUser.adminTag)
+        let vipTag = Boolean(targetUser.vipTag)
+        let premiumTag = Boolean(targetUser.premiumTag)
+
+        const initialTargetUser = {
+          uid: targetUid,
+          name: initialName,
+          displayAccountNumber: displayAccNum,
+          photo,
+          coverPhoto,
+          gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+          age,
+          followers,
+          bio,
+          location: country,
+          flag: '🇮🇳',
+          countryCode,
+          albumImages: album,
+          officialTag,
+          adminTag,
+          vipTag,
+          premiumTag,
+        }
+
+        setUser(initialTargetUser)
 
         if (targetUid && targetUid !== 'N/A') {
           const cachedProfile = await loadProfileFromDB(targetUid);
@@ -751,76 +805,66 @@ export default function PublicProfile({
 
           try {
             const mongoResponse = await fetch(
-              apiUrl(`/api/users?uid=${encodeURIComponent(targetUid)}`)
+              apiUrl(`/api/users?search=${encodeURIComponent(searchKey)}&accountId=${encodeURIComponent(searchKey)}&uid=${encodeURIComponent(targetUid)}`)
             );
 
-            if (!mongoResponse.ok) {
-              throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`);
-            }
+            if (mongoResponse.ok) {
+              const res = await mongoResponse.json();
+              const data = res && (res.user || (Array.isArray(res.users) ? res.users[0] : null) || res.data);
 
-            const res = await mongoResponse.json();
-            const data = res && (res.user || res.data || res);
+              if (data && (data.id || data.uid || data.accountId || data.name)) {
+                displayAccNum = data.accountId || data.accountNumber || data['Account Number'] || displayAccNum;
 
-            if (data && (data.id || data.AppLongId || data['App long ID'] || data.Name || data.name)) {
-              displayAccNum = data.accountId || data.accountNumber || data['Account Number']
-                ? String(data.accountId || data.accountNumber || data['Account Number'])
-                : displayAccNum;
+                const docName = data.name || data.Name || data.displayName || data.userName || data.fullName;
+                const finalName = isValidName(docName) ? docName : initialName;
 
-              const docName = data.name || data.Name || data.displayName || data.userName || data.fullName;
-              const finalName = isValidName(docName) ? docName : (isValidName(initialName) ? initialName : targetUid.substring(0, 8));
+                photo = data.photo || data.photoURL || data.image || data.avatar || photo;
+                coverPhoto = data.coverPhoto || data.coverImage || data.backCover || coverPhoto;
+                bio = data.bio || data.Bio || data.about || bio;
+                country = data.country || data.Country || data.location || country;
+                countryCode = data.countryCode || countryCode;
+                gender = data.gender || data.Gender || gender;
+                age = data.age || data.Age ? parseInt(String(data.age || data.Age)) : age;
+                followers = data.followers !== undefined ? data.followers : followers;
+                officialTag = Boolean(data.officialTag ?? officialTag);
+                adminTag = Boolean(data.adminTag ?? adminTag);
+                vipTag = Boolean(data.vipTag ?? vipTag);
+                premiumTag = Boolean(data.premiumTag ?? premiumTag);
 
-              photo = data.photo || data.photoURL || data.image || data.avatar || data.Avtar || photo;
-              coverPhoto = data.coverPhoto || data.coverImage || data.backCover || data['Back Cover'] || coverPhoto;
-              let bio = data.bio || data.Bio || data.about || '';
-              let country = data.country || data.Country || data.location || 'India';
-              let countryCode = data.countryCode || 'IN';
-              let gender = data.gender || data.Gender || '♀';
-              let age = data.age || data.Age ? parseInt(data.age || data.Age) : 18;
-              let followers = data.followers !== undefined ? data.followers : 0;
-              let officialTag = data.officialTag;
-              let adminTag = data.adminTag;
-              let vipTag = data.vipTag;
-              let premiumTag = data.premiumTag;
+                if (data.albumImages && Array.isArray(data.albumImages)) {
+                  album = data.albumImages;
+                } else if (data.album && Array.isArray(data.album)) {
+                  album = data.album;
+                }
 
-              let album = [];
-              if (data.albumImages && Array.isArray(data.albumImages)) {
-                album = data.albumImages;
-              } else if (data.album && Array.isArray(data.album)) {
-                album = data.album;
+                const matchedCountry = COUNTRIES.find(
+                  (c) => c.code === countryCode || c.name === country || c.flag === country
+                ) || { name: 'India', flag: '🇮🇳', code: 'IN' };
+
+                const profileData = {
+                  uid: targetUid,
+                  name: finalName,
+                  displayAccountNumber: String(displayAccNum),
+                  photo,
+                  coverPhoto,
+                  gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
+                  age,
+                  followers,
+                  bio,
+                  location: matchedCountry.name,
+                  flag: matchedCountry.flag,
+                  countryCode: matchedCountry.code,
+                  albumImages: album,
+                  officialTag,
+                  adminTag,
+                  vipTag,
+                  premiumTag,
+                };
+
+                setUser(profileData);
+                setAlbumImages(album);
+                await saveProfileToDB(profileData);
               }
-
-              if (!displayAccNum) {
-                displayAccNum = getOrCreateAccountNumber(targetUid);
-              }
-
-              const matchedCountry = COUNTRIES.find(
-                (c) =>
-                  c.code === countryCode || c.name === country || c.flag === country
-              ) || { name: 'India', flag: '🇮🇳', code: 'IN' };
-
-              const profileData = {
-                uid: targetUid,
-                name: finalName,
-                displayAccountNumber: displayAccNum,
-                photo,
-                coverPhoto,
-                gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
-                age,
-                followers,
-                bio,
-                location: matchedCountry.name,
-                flag: matchedCountry.flag,
-                countryCode: matchedCountry.code,
-                albumImages: album,
-                officialTag,
-                adminTag,
-                vipTag,
-                premiumTag,
-              };
-
-              setAlbumImages(album);
-              setUser(profileData);
-              await saveProfileToDB(profileData);
             }
           } catch (err) {
             console.warn('MongoDB fetch error for Target User:', err);
@@ -890,137 +934,137 @@ export default function PublicProfile({
 
       if (uid && uid !== 'N/A') {
         try {
-      const mongoResponse = await fetch(
-        apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
-      )
+          const mongoResponse = await fetch(
+            apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
+          )
 
-      if (!mongoResponse.ok) {
-        throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
-      }
-
-      const result = await mongoResponse.json()
-      const data = result?.user
-
-      if (data) {
-        if (data.accountId) {
-          displayAccNum = String(data.accountId)
-          localStorage.setItem('accountNumber', displayAccNum)
-        }
-
-        const docName = data.name || data.displayName || data.userName
-        if (isValidName(docName)) {
-          storedName = docName
-          localStorage.setItem('userName', storedName)
-        }
-
-        if (data.photo || data.photoURL || data.image) {
-          photo = data.photo || data.photoURL || data.image || photo
-          localStorage.setItem('userPhoto', photo)
-        }
-
-        if (data.coverPhoto || data.coverImage) {
-          coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
-          localStorage.setItem('userCoverPhoto', coverPhoto)
-        }
-
-        if (data.bio) {
-          storedBio = data.bio
-          localStorage.setItem('userBio', storedBio)
-        }
-
-        if (data.country || data.location) {
-          storedCountry = data.country || data.location
-          localStorage.setItem('userCountry', storedCountry)
-        }
-
-        if (data.countryCode) {
-          storedCountryCode = data.countryCode
-          localStorage.setItem('userCountryCode', storedCountryCode)
-        }
-
-        if (data.countryLocked !== undefined) {
-          isCountryLockedInStorage = data.countryLocked
-          if (data.countryLocked) {
-            localStorage.setItem('userCountryLocked', 'true')
+          if (!mongoResponse.ok) {
+            throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
           }
-        }
 
-        if (data.setupComplete) {
-          isCountryLockedInStorage = true
-          localStorage.setItem('userCountryLocked', 'true')
-        }
+          const result = await mongoResponse.json()
+          const data = result?.user
 
-        if (data.gender) {
-          storedGender = data.gender
-          localStorage.setItem('userGender', storedGender)
-        }
+          if (data) {
+            if (data.accountId) {
+              displayAccNum = String(data.accountId)
+              localStorage.setItem('accountNumber', displayAccNum)
+            }
 
-        if (data.age) {
-          storedAge = String(data.age)
-          localStorage.setItem('userAge', storedAge)
-        }
+            const docName = data.name || data.displayName || data.userName
+            if (isValidName(docName)) {
+              storedName = docName
+              localStorage.setItem('userName', storedName)
+            }
 
-        if (data.albumImages && Array.isArray(data.albumImages)) {
-          setAlbumImages(data.albumImages)
-          localStorage.setItem(
-            'userAlbumImages',
-            JSON.stringify(data.albumImages)
-          )
-        }
+            if (data.photo || data.photoURL || data.image) {
+              photo = data.photo || data.photoURL || data.image || photo
+              localStorage.setItem('userPhoto', photo)
+            }
 
-        if (!displayAccNum) {
-          displayAccNum = getOrCreateAccountNumber(uid)
-        }
+            if (data.coverPhoto || data.coverImage) {
+              coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
+              localStorage.setItem('userCoverPhoto', coverPhoto)
+            }
 
-        if (!isValidName(storedName)) {
-          storedName = displayAccNum
-        }
+            if (data.bio) {
+              storedBio = data.bio
+              localStorage.setItem('userBio', storedBio)
+            }
 
-        const matchedCountry = COUNTRIES.find(
-          (c) =>
-            c.code === storedCountryCode ||
-            c.flag === storedCountry ||
-            c.name === storedCountry
-        ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+            if (data.country || data.location) {
+              storedCountry = data.country || data.location
+              localStorage.setItem('userCountry', storedCountry)
+            }
 
-        const profileData = {
-          uid: uid,
-          name: storedName,
-          displayAccountNumber: displayAccNum,
-          photo,
-          coverPhoto,
-          bio: storedBio,
-          location: matchedCountry.name,
-          flag: matchedCountry.flag,
-          countryCode: matchedCountry.code,
-          gender:
-            storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
-          age: storedAge ? parseInt(storedAge) : 24,
-          followers: data.followers || 0,
-          albumImages: data.albumImages || [],
-          officialTag: data.officialTag || false,
-          adminTag: data.adminTag || false,
-          vipTag: data.vipTag || false,
-          premiumTag: data.premiumTag || false,
-        }
+            if (data.countryCode) {
+              storedCountryCode = data.countryCode
+              localStorage.setItem('userCountryCode', storedCountryCode)
+            }
 
-        setUser(profileData)
-        await saveProfileToDB(profileData)
-        setEditName(storedName)
-        setEditAge(storedAge || '24')
-        setEditBio(storedBio || '')
-        setEditCountry(matchedCountry.name)
-        setEditCountryCode(matchedCountry.code)
-        setCountryLocked(isCountryLockedInStorage)
+            if (data.countryLocked !== undefined) {
+              isCountryLockedInStorage = data.countryLocked
+              if (data.countryLocked) {
+                localStorage.setItem('userCountryLocked', 'true')
+              }
+            }
 
-        if (storedGender) {
-          setEditGender(
-            storedGender === 'female' || storedGender === '♀'
-              ? 'female'
-              : 'male'
-          )
-          setGenderLocked(true)
-        }
+            if (data.setupComplete) {
+              isCountryLockedInStorage = true
+              localStorage.setItem('userCountryLocked', 'true')
+            }
+
+            if (data.gender) {
+              storedGender = data.gender
+              localStorage.setItem('userGender', storedGender)
+            }
+
+            if (data.age) {
+              storedAge = String(data.age)
+              localStorage.setItem('userAge', storedAge)
+            }
+
+            if (data.albumImages && Array.isArray(data.albumImages)) {
+              setAlbumImages(data.albumImages)
+              localStorage.setItem(
+                'userAlbumImages',
+                JSON.stringify(data.albumImages)
+              )
+            }
+
+            if (!displayAccNum) {
+              displayAccNum = getOrCreateAccountNumber(uid)
+            }
+
+            if (!isValidName(storedName)) {
+              storedName = displayAccNum
+            }
+
+            const matchedCountry = COUNTRIES.find(
+              (c) =>
+                c.code === storedCountryCode ||
+                c.flag === storedCountry ||
+                c.name === storedCountry
+            ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+
+            const profileData = {
+              uid: uid,
+              name: storedName,
+              displayAccountNumber: displayAccNum,
+              photo,
+              coverPhoto,
+              bio: storedBio,
+              location: matchedCountry.name,
+              flag: matchedCountry.flag,
+              countryCode: matchedCountry.code,
+              gender:
+                storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
+              age: storedAge ? parseInt(storedAge) : 24,
+              followers: data.followers || 0,
+              albumImages: data.albumImages || [],
+              officialTag: data.officialTag || false,
+              adminTag: data.adminTag || false,
+              vipTag: data.vipTag || false,
+              premiumTag: data.premiumTag || false,
+            }
+
+            setUser(profileData)
+            await saveProfileToDB(profileData)
+            setEditName(storedName)
+            setEditAge(storedAge || '24')
+            setEditBio(storedBio || '')
+            setEditCountry(matchedCountry.name)
+            setEditCountryCode(matchedCountry.code)
+            setCountryLocked(isCountryLockedInStorage)
+
+            if (storedGender) {
+              setEditGender(
+                storedGender === 'female' || storedGender === '♀'
+                  ? 'female'
+                  : 'male'
+              )
+              setGenderLocked(true)
+            }
           }
         } catch (err) {
           console.warn('MongoDB fetch error in PublicProfile:', err)
@@ -1280,46 +1324,12 @@ export default function PublicProfile({
           </button>
 
           {isOtherUser ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowThreeDotMenu(!showThreeDotMenu)}
-                className="text-white"
-              >
-                <MoreHorizontal size={24} />
-              </button>
-
-              {showThreeDotMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg py-2 w-48 z-50">
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Report user')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    Report
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Block user')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Block
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowThreeDotMenu(false)
-                      alert('Share profile')
-                    }}
-                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Share Profile
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setShowActionSheet(true)}
+              className="text-white"
+            >
+              <AlertTriangle size={24} />
+            </button>
           ) : (
             <button onClick={handleOpenEditSheet} className="text-white">
               <Edit3 size={22} />
@@ -1587,7 +1597,8 @@ export default function PublicProfile({
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl animate-slide-up flex flex-col h-[70vh]">
+          {/* ✅ rounded-t-md kar diya */}
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -1647,11 +1658,12 @@ export default function PublicProfile({
                         Remove
                       </button>
                     )}
+                    {/* ✅ Sirf Camera icon, text hataya */}
                     <button
                       onClick={() => coverInputRef.current?.click()}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
                     >
-                      <Camera size={14} /> Add Photo
+                      <Camera size={16} />
                     </button>
                   </div>
                 </div>
@@ -1672,11 +1684,12 @@ export default function PublicProfile({
                     Album Photos ({albumImages.length}/4)
                   </span>
                   {albumImages.length < 4 && (
+                    // ✅ Sirf Camera icon, text hataya
                     <button
                       onClick={() => albumInputRef.current?.click()}
-                      className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold flex items-center gap-1 hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
                     >
-                      <Camera size={14} /> Add Photo
+                      <Camera size={16} />
                     </button>
                   )}
                 </div>
@@ -1822,6 +1835,56 @@ export default function PublicProfile({
         </div>
       )}
 
+      {/* ===== ACTION SHEET (REPORT & BLOCK) - CORNERS STRICTLY MD ===== */}
+      {showActionSheet && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+          <div
+            className="absolute inset-0 bg-transparent pointer-events-auto"
+            onClick={() => setShowActionSheet(false)}
+          ></div>
+
+          <div className="relative bg-black w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto">
+            <div className="flex flex-col text-white px-4">
+              <button
+                onClick={() => {
+                  setShowActionSheet(false)
+                  setShowUserReport(true) // ✅ Report click pe user report open
+                }}
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
+              >
+                Report
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowActionSheet(false)
+                  alert('Block user')
+                }}
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
+              >
+                Block
+              </button>
+            </div>
+
+            <div className="px-4 mt-2">
+              <button
+                onClick={() => setShowActionSheet(false)}
+                className="w-full bg-blue-500 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-600 active:scale-[0.98] transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== REPORT SUCCESSFUL TOAST (CHOTA CARD) ===== */}
+      {showReportToast && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
+          Report Successful
+        </div>
+      )}
+
       {/* ChatScreen Overlay */}
       {isOtherUser && showChat && targetUser && (
         <div className="fixed inset-0 z-[100]">
@@ -1835,6 +1898,17 @@ export default function PublicProfile({
             } as any}
             onClose={() => setShowChat(false)}
             onJoinRoom={onJoinRoom}
+          />
+        </div>
+      )}
+
+      {/* ✅ UserReport Overlay - Report click pe open hoga */}
+      {isOtherUser && showUserReport && targetUser && (
+        <div className="fixed inset-0 z-[100]">
+          <UserReport
+            currentUser={getCurrentUserData()}
+            targetUser={targetUser}
+            onClose={() => setShowUserReport(false)}
           />
         </div>
       )}
@@ -1854,5 +1928,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-}
-
+  }

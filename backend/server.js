@@ -5,19 +5,20 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const { MongoClient } = require("mongodb");
+const { setOnlineStatus, removeOnlineStatus } = require("./redis");
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "50mb" }));
 
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   },
-  maxHttpBufferSize: 2 * 1024 * 1024,
+  maxHttpBufferSize: 50 * 1024 * 1024,
 });
 
 const mongoClient = process.env.MONGODB_URI
@@ -158,11 +159,12 @@ function addUserToRoom(roomId, userId, userData = {}) {
       existing.image ||
       "/default-avatar.png";
     existing.email = userData.email || existing.email || "";
+    if (userData.accountId) existing.accountId = String(userData.accountId);
   } else {
     users.set(id, {
       count: 1,
       userId: id,
-      accountId: id,
+      accountId: String(userData.accountId || id),
       name: userData.name || "User",
       image: userData.image || "/default-avatar.png",
       email: userData.email || "",
@@ -248,6 +250,9 @@ function markUserOnline(userId, socket, accountId = null) {
     if (count === 0) {
       socket.broadcast.emit("user_online", presenceId);
     }
+
+    // Sync to Redis asynchronously (fire and forget)
+    setOnlineStatus(presenceId);
   });
 
   socket.emit("presence_status", {
@@ -280,6 +285,9 @@ function markUserOffline(socket) {
     if (count <= 1) {
       onlineUsers.delete(id);
       socket.broadcast.emit("user_offline", id);
+
+      // Remove from Redis asynchronously
+      removeOnlineStatus(id);
     } else {
       onlineUsers.set(id, count - 1);
     }
@@ -301,6 +309,105 @@ function getGlobalRoomPresence() {
 
 // ==================== USERS API ====================
 
+
+app.get("/api/rooms", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const roomId = req.query.roomId;
+    if (roomId) {
+      const room = await db.collection("rooms").findOne({
+        $or: [
+          { accountId: roomId },
+          { id: roomId },
+          { roomId: roomId }
+        ]
+      });
+
+      if (!room) {
+        return res.status(404).json({ error: "Room not found" });
+      }
+      return res.json({ room });
+    }
+
+    const rooms = await db.collection("rooms")
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .toArray();
+
+    return res.json({ rooms });
+  } catch (error) {
+    console.error("GET /api/rooms error:", error);
+    return res.status(500).json({ error: "Failed to fetch rooms" });
+  }
+});
+
+app.put("/api/rooms", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const data = req.body || {};
+
+    // Strict room ID definition using accountId or user uid
+    const accountId = String(
+      data.accountId ||
+      data["Room Admin"] ||
+      data.roomAdmin ||
+      data.id ||
+      ""
+    ).trim();
+
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing room accountId" });
+    }
+
+    const rooms = db.collection("rooms");
+
+    const roomData = {
+      accountId,
+      id: accountId,
+      roomId: accountId,
+      name: data.name || data.roomName || data["Room Name"] || "Voice Chat Room",
+      image: data.image || data.roomDp || data["Room dp"] || "/default-avatar.png",
+      country: data.country || data.Country || "🇮🇳",
+      message: data.message || data.announcement || "",
+      theme: data.theme || "default",
+      isLocked: Boolean(data.isLocked),
+      roomPassword: data.roomPassword || null,
+      updatedAt: Date.now()
+    };
+
+    await rooms.updateOne(
+      {
+        $or: [
+          { accountId },
+          { id: accountId }
+        ]
+      },
+      {
+        $set: roomData,
+        $setOnInsert: {
+          createdAt: Date.now()
+        }
+      },
+      { upsert: true }
+    );
+
+    return res.json({
+      success: true,
+      room: roomData
+    });
+  } catch (error) {
+    console.error("PUT /api/rooms error:", error);
+    return res.status(500).json({ error: "Failed to save room" });
+  }
+});
+
 app.get("/api/users", async (req, res) => {
   try {
     if (!db) {
@@ -309,157 +416,134 @@ app.get("/api/users", async (req, res) => {
       });
     }
 
+    const searchQuery = String(
+      req.query.search ||
+      req.query.q ||
+      req.query.query ||
+      ""
+    ).trim();
+
     const uid = String(req.query.uid || "").trim();
     const accountId = String(req.query.accountId || "").trim();
 
     const users = db.collection("users");
 
-    // No query = return all registered users.
-    // Used by the Owner Panel.
-    if (!uid && !accountId) {
-      const allUsers = await users
-        .find({})
-        .sort({ createdAt: -1 })
-        .limit(1000)
-        .toArray();
+    const normalizeUser = (user) => {
+      const id = String(
+        user.id || user.uid || user.appLongId || user._id || ""
+      );
 
-      const normalizedUsers = allUsers.map((user) => {
-        const numberId = String(
-          user.accountId ||
-          user.accountNumber ||
-          user["Account Number"] ||
-          user.displayUserNumber ||
-          ""
-        );
+      let numberId = String(
+        user.accountId ||
+        user.accountNumber ||
+        user["Account Number"] ||
+        user.displayUserNumber ||
+        ""
+      );
 
-        return {
-          ...user,
-          id: String(
-            user.id ||
-            user.uid ||
-            user.appLongId ||
-            user._id ||
-            ""
-          ),
-          uid: String(
-            user.uid ||
-            user.id ||
-            user.appLongId ||
-            ""
-          ),
-          appLongId: String(
-            user.appLongId ||
-            user.id ||
-            user.uid ||
-            ""
-          ),
-          accountId: numberId,
-          accountNumber: numberId,
-          displayUserNumber: numberId,
-          name:
-            user.name ||
-            user.displayName ||
-            user.userName ||
-            "User",
-          email:
-            user.email ||
-            user.gmail ||
-            user.emailPhone ||
-            "",
-          image:
-            user.image ||
-            user.photo ||
-            user.photoURL ||
-            user.avatar ||
-            "/default-avatar.png",
-          country:
-            user.country ||
-            "🇮🇳",
-        };
-      });
+      if (!numberId || numberId === id) {
+        let hash = 0;
+        for (let i = 0; i < id.length; i++) {
+          hash = (hash << 5) - hash + id.charCodeAt(i);
+          hash |= 0;
+        }
+        numberId = String(10000000 + (Math.abs(hash) % 90000000));
+      }
 
-      return res.json({
-        users: normalizedUsers,
-      });
-    }
-
-    let user = null;
-
-    if (uid) {
-      user = await users.findOne({
-        $or: [
-          { uid },
-          { id: uid },
-          { appLongId: uid },
-        ],
-      });
-    }
-
-    if (!user && accountId) {
-      user = await users.findOne({
-        $or: [
-          { accountId },
-          { accountNumber: accountId },
-          { "Account Number": accountId },
-          { displayUserNumber: accountId },
-        ],
-      });
-    }
-
-    if (!user) {
-      return res.status(404).json({
-        error: "User not found",
-      });
-    }
-
-    const numberId = String(
-      user.accountId ||
-      user.accountNumber ||
-      user["Account Number"] ||
-      user.displayUserNumber ||
-      ""
-    );
-
-    return res.json({
-      user: {
+      return {
         ...user,
-        id: String(
-          user.id ||
-          user.uid ||
-          user.appLongId ||
-          user._id ||
-          ""
-        ),
-        uid: String(
-          user.uid ||
-          user.id ||
-          user.appLongId ||
-          ""
-        ),
-        appLongId: String(
-          user.appLongId ||
-          user.id ||
-          user.uid ||
-          ""
-        ),
+        id,
+        uid: String(user.uid || id),
+        appLongId: String(user.appLongId || id),
         accountId: numberId,
         accountNumber: numberId,
         displayUserNumber: numberId,
-        name:
-          user.name ||
-          user.displayName ||
-          user.userName ||
-          "User",
-        image:
-          user.image ||
-          user.photo ||
-          user.photoURL ||
-          user.avatar ||
-          "/default-avatar.png",
-        country:
-          user.country ||
-          "🇮🇳",
-      },
+        name: user.name || user.displayName || user.userName || "User",
+        email: user.email || user.gmail || user.emailPhone || "",
+        image: user.image || user.photo || user.photoURL || user.avatar || "/default-avatar.png",
+        country: user.country || "🇮🇳",
+      };
+    };
+
+    const q = searchQuery || accountId || uid;
+    if (q) {
+      const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      const numericQ = !isNaN(Number(q)) && q.trim() !== "" ? Number(q) : null;
+
+      const orConditions = [
+        { accountId: q },
+        { accountNumber: q },
+        { "Account Number": q },
+        { displayUserNumber: q },
+        { uid: q },
+        { id: q },
+        { appLongId: q },
+        { accountId: regex },
+        { accountNumber: regex },
+        { displayUserNumber: regex },
+        { name: regex },
+        { displayName: regex },
+        { userName: regex },
+        { uid: regex },
+        { id: regex },
+        { appLongId: regex },
+      ];
+
+      // Add numeric match if the query is a valid number
+      if (numericQ !== null) {
+        orConditions.push(
+          { accountId: numericQ },
+          { accountNumber: numericQ },
+          { displayUserNumber: numericQ },
+          { uid: numericQ },
+          { id: numericQ }
+        );
+      }
+
+      const matches = await users
+        .find({
+          $or: orConditions,
+        })
+        .limit(50)
+        .toArray();
+
+      const normalizedUsers = matches.map(normalizeUser);
+
+      // Filter/rank to prioritize exact or startsWith matches on accountId, accountNumber, uid, or name
+      const rankedUsers = normalizedUsers.filter((u) => {
+        const uAcc = String(u.accountId || u.accountNumber || u.displayUserNumber || "").toLowerCase();
+        const uUid = String(u.uid || u.id || u.appLongId || "").toLowerCase();
+        const uName = String(u.name || "").toLowerCase();
+        const qLower = q.toLowerCase();
+
+        return (
+          uAcc.includes(qLower) ||
+          uUid.includes(qLower) ||
+          uName.includes(qLower)
+        );
+      });
+
+      const finalUsers = rankedUsers.length > 0 ? rankedUsers : normalizedUsers;
+
+      if (finalUsers.length === 0 && (uid || q)) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({
+        users: finalUsers,
+        user: finalUsers[0] || null,
+      });
+    }
+
+    // No query = return all registered users (for Owner Panel).
+    const allUsers = await users
+      .find({})
+      .sort({ createdAt: -1 })
+      .limit(1000)
+      .toArray();
+
+    return res.json({
+      users: allUsers.map(normalizeUser),
     });
   } catch (error) {
     console.error("GET /api/users error:", error);
@@ -511,7 +595,11 @@ app.put("/api/users", async (req, res) => {
       accountNumber: accountId,
       displayUserNumber: accountId,
       updatedAt: Date.now(),
+      lastIp: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '',
     };
+    if (data.deviceId) {
+      userData.lastDeviceId = data.deviceId;
+    }
 
     await users.updateOne(
       {
@@ -539,6 +627,26 @@ app.put("/api/users", async (req, res) => {
     return res.status(500).json({
       error: "Failed to save user",
     });
+  }
+});
+
+app.get("/api/privateMessages", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const messages = await db
+      .collection("privateMessages")
+      .find({})
+      .sort({ timestamp: -1 })
+      .limit(1000)
+      .toArray();
+
+    return res.json({ messages });
+  } catch (error) {
+    console.error("GET /api/privateMessages error:", error);
+    return res.status(500).json({ error: "Failed to fetch private messages" });
   }
 });
 
@@ -627,19 +735,18 @@ io.on("connection", (socket) => {
   socket.on(
     "room_join",
     ({ roomId, userId, accountId, name, dp, email } = {}) => {
-      if (!roomId || !userId) return;
+      if (!roomId || (!userId && !accountId)) return;
 
       const room = String(roomId);
-      const id = String(userId);
-      const accId = accountId ? String(accountId) : id;
+      const accId = accountId ? String(accountId) : String(userId);
 
-      cancelPendingSeatDisconnect(room, id);
       cancelPendingSeatDisconnect(room, accId);
+      if (userId) cancelPendingSeatDisconnect(room, String(userId));
 
       // Prevent duplicate joins from increasing the live count.
       if (
         socket.roomId === room &&
-        socket.roomUserId === id
+        socket.roomAccountId === accId
       ) {
         const users = getRoomUsers(room);
 
@@ -660,6 +767,8 @@ io.on("connection", (socket) => {
       if (socket.roomId) {
         const oldRoom = String(socket.roomId);
         const oldUser =
+          socket.roomAccountId ||
+          socket.accountId ||
           socket.roomUserId ||
           socket.userId;
 
@@ -687,9 +796,11 @@ io.on("connection", (socket) => {
       socket.join(`room:${room}`);
 
       socket.roomId = room;
-      socket.roomUserId = id;
+      if (userId) socket.roomUserId = String(userId);
+      socket.accountId = accId;
+      socket.roomAccountId = accId;
 
-      addUserToRoom(room, id, {
+      addUserToRoom(room, accId, {
         name: name || "User",
         image:
           dp ||
@@ -715,10 +826,10 @@ io.on("connection", (socket) => {
         .to(`room:${room}`)
         .emit("room_user_online", {
           roomId: room,
-          userId: id,
+          userId: accId,
           user: {
-            accountId: id,
-            userId: id,
+            accountId: accId,
+            userId: userId ? String(userId) : accId,
             name: name || "User",
             image:
               dp ||
@@ -734,7 +845,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "room_leave",
-    ({ roomId, userId } = {}) => {
+    ({ roomId, userId, accountId } = {}) => {
       const room = roomId
         ? String(roomId)
         : socket.roomId;
@@ -742,7 +853,10 @@ io.on("connection", (socket) => {
       if (!room) return;
 
       const id = String(
+        accountId ||
         userId ||
+        socket.roomAccountId ||
+        socket.accountId ||
         socket.roomUserId ||
         socket.userId ||
         ""
@@ -766,6 +880,7 @@ io.on("connection", (socket) => {
       if (socket.roomId === room) {
         socket.roomId = null;
         socket.roomUserId = null;
+        socket.roomAccountId = null;
       }
 
       emitGlobalRoomPresence();
@@ -803,10 +918,14 @@ io.on("connection", (socket) => {
     }
 
     // Only a user who is actually joined to this room can control a seat.
-    if (
-      String(socket.roomId || "") !== roomId ||
-      String(socket.roomUserId || socket.userId || "") !== userId
-    ) {
+    const isRoomUser =
+      String(socket.roomAccountId || "") === userId ||
+      String(socket.accountId || "") === userId ||
+      String(socket.roomUserId || "") === userId ||
+      String(socket.userId || "") === userId ||
+      Boolean(socket.roomId && String(socket.roomId) === roomId);
+
+    if (String(socket.roomId || "") !== roomId || !isRoomUser) {
       return;
     }
 
@@ -877,10 +996,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "leave") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           isOccupied: false,
@@ -893,10 +1009,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "mute") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           isMuted: Boolean(data.isMuted),
@@ -912,10 +1025,7 @@ io.on("connection", (socket) => {
     }
 
     if (action === "emoji") {
-      if (
-        current.isOccupied &&
-        String(current.user?.accountId) === userId
-      ) {
+      if (current.isOccupied) {
         seats.set(seatNumber, {
           ...current,
           gif: {
@@ -931,6 +1041,12 @@ io.on("connection", (socket) => {
     // IMPORTANT:
     // Broadcast the complete seat state to EVERYONE in the room.
     emitRoomSeats(roomId);
+  });
+
+  socket.on("room_settings_update", (data = {}) => {
+    if (!data || !data.roomId) return;
+    const roomId = String(data.roomId);
+    io.to(`room:${roomId}`).emit("room_settings_updated", data);
   });
 
   socket.on("room_message", (message) => {
@@ -1192,6 +1308,60 @@ io.on("connection", (socket) => {
     }
   });
 
+
+  socket.on("user_report", async (data = {}) => {
+    const reportId = String(data.id || `report_${Date.now()}`);
+
+    const payload = {
+      id: reportId,
+      senderId: String(data.senderId || ""),
+      senderName: String(data.senderName || "User"),
+      senderPhoto: String(data.senderPhoto || ""),
+      reportedId: String(data.reportedId || ""),
+      reportedName: String(data.reportedName || "User"),
+      reportedPhoto: String(data.reportedPhoto || ""),
+      category: String(data.category || ""),
+      description: String(data.description || ""),
+      proofImage: data.proofImage ? String(data.proofImage) : null,
+      timestamp: Number(data.timestamp || Date.now()),
+    };
+
+    try {
+      if (db) {
+        await db.collection("userReports").updateOne(
+          { id: reportId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("User report save failed:", error.message);
+    }
+
+    // Broadcast user report real-time update
+    io.emit("user_report", payload);
+  });
+
+  socket.on("user_report_history_request", async () => {
+    try {
+      if (db) {
+        const reports = await db
+          .collection("userReports")
+          .find({})
+          .sort({ timestamp: -1 })
+          .limit(200)
+          .toArray();
+
+        socket.emit("user_report_history_response", { reports });
+      } else {
+        socket.emit("user_report_history_response", { reports: [] });
+      }
+    } catch (error) {
+      console.error("User report history fetch failed:", error.message);
+      socket.emit("user_report_history_response", { reports: [] });
+    }
+  });
+
   socket.on("user_feedback", async (data = {}) => {
     const feedbackId = String(data.id || `fb_${Date.now()}`);
 
@@ -1246,6 +1416,68 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("send_official_message", async (data = {}) => {
+    const rawSenderId = String(data.senderId || "");
+    // Strictly restrict official sender IDs to hurry_team_official and hurry_system_official
+    if (rawSenderId !== "hurry_team_official" && rawSenderId !== "hurry_system_official") {
+      console.warn("Unauthorized or invalid official sender ID:", rawSenderId);
+      return;
+    }
+
+    const isTeam = rawSenderId === "hurry_team_official";
+    const senderName = isTeam ? "Hurry Team" : "Hurry System";
+    const senderPhoto = isTeam ? "/logo.png" : "/file_00000000a66881f8aa9e15d2fe2b9a0c.png";
+
+    const messageId = String(data.id || `official_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
+
+    const payload = {
+      id: messageId,
+      senderId: rawSenderId,
+      senderName,
+      senderPhoto,
+      text: String(data.text || ""),
+      type: data.type || (data.imageUrl ? "image" : "message"),
+      imageUrl: data.imageUrl || undefined,
+      timestamp: Number(data.timestamp || Date.now()),
+      isOfficialBroadcast: true,
+    };
+
+    try {
+      if (db) {
+        await db.collection("officialMessages").updateOne(
+          { id: messageId },
+          { $set: payload },
+          { upsert: true }
+        );
+      }
+    } catch (error) {
+      console.error("Official message save failed:", error.message);
+    }
+
+    // Broadcast to ALL connected clients in real time
+    io.emit("official_broadcast_message", payload);
+  });
+
+  socket.on("official_message_history_request", async () => {
+    try {
+      if (db) {
+        const messages = await db
+          .collection("officialMessages")
+          .find({})
+          .sort({ timestamp: 1 })
+          .limit(500)
+          .toArray();
+
+        socket.emit("official_message_history_response", { messages });
+      } else {
+        socket.emit("official_message_history_response", { messages: [] });
+      }
+    } catch (error) {
+      console.error("Official message history fetch failed:", error.message);
+      socket.emit("official_message_history_response", { messages: [] });
+    }
+  });
+
   socket.on("disconnect", () => {
     const room = socket.roomId;
     const userId =
@@ -1284,6 +1516,111 @@ io.on("connection", (socket) => {
       socket.id
     );
   });
+});
+
+
+
+// ==============================================================
+// BANS ENDPOINTS
+// ==============================================================
+
+app.get("/api/bans", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+    const bans = await db.collection("bans").find().toArray();
+    res.json({ bans });
+  } catch (err) {
+    console.error("GET /api/bans error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
+app.post("/api/bans", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+
+    // Check if requester is actually an official/admin (Using a simple check matching the owner panel login logic)
+    const requesterId = req.headers['x-requester-id'];
+    const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005', '700001', '700002', '700003'];
+    // In this app, special accounts and owner login use specific IDs.
+    // Ideally we'd verify a Firebase token here, but given the existing codebase's reliance on client-side ID checks (like in LoginPage),
+    // we'll enforce that the requester is in the OFFICIAL_IDS list or is the Hurry Owner.
+    if (!requesterId || (!OFFICIAL_IDS.includes(requesterId) && requesterId !== '100002' && requesterId !== '100003')) {
+       return res.status(403).json({ error: "Forbidden: Not an admin" });
+    }
+
+    const data = req.body;
+    if (!data.accountId) return res.status(400).json({ error: "Missing accountId" });
+
+    await db.collection("bans").updateOne(
+      { accountId: data.accountId },
+      { $set: data },
+      { upsert: true }
+    );
+    io.emit('banned_logout', { accountId: data.accountId });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("POST /api/bans error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
+app.post("/api/bans/unban", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+
+    // Check if requester is actually an official/admin (Using a simple check matching the owner panel login logic)
+    const requesterId = req.headers['x-requester-id'];
+    const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005', '700001', '700002', '700003'];
+    // In this app, special accounts and owner login use specific IDs.
+    // Ideally we'd verify a Firebase token here, but given the existing codebase's reliance on client-side ID checks (like in LoginPage),
+    // we'll enforce that the requester is in the OFFICIAL_IDS list or is the Hurry Owner.
+    if (!requesterId || (!OFFICIAL_IDS.includes(requesterId) && requesterId !== '100002' && requesterId !== '100003')) {
+       return res.status(403).json({ error: "Forbidden: Not an admin" });
+    }
+
+    const { accountId, reason } = req.body;
+    if (!accountId) return res.status(400).json({ error: "Missing accountId" });
+
+    await db.collection("bans").deleteOne({ accountId: String(accountId) });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("POST /api/bans/unban error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
+app.post("/api/check-ban", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+    const { accountId, deviceId, ipAddress } = req.body;
+
+    const query = { $or: [] };
+    if (accountId) query.$or.push({ accountId: String(accountId) });
+    if (deviceId && deviceId !== '') query.$or.push({ deviceId: String(deviceId), timeOption: 'Device Ban' });
+
+    if (query.$or.length === 0) {
+      return res.json({ banned: false });
+    }
+
+    const activeBans = await db.collection("bans").find(query).toArray();
+    if (activeBans.length === 0) return res.json({ banned: false });
+
+    const now = Date.now();
+    for (const ban of activeBans) {
+      if (ban.unbanTime === -1 || ban.unbanTime > now) {
+        return res.json({
+          banned: true,
+          banData: ban
+        });
+      }
+    }
+
+    res.json({ banned: false });
+  } catch (err) {
+    console.error("POST /api/check-ban error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
 });
 
 const PORT = process.env.PORT || 10000;

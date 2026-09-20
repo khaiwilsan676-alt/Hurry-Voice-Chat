@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from "../src/lib/api";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import EmojiPicker from './Emojipicker';
@@ -211,6 +212,23 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const [jitsiApi, setJitsiApi] = useState<any>(null);
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const res = await fetch(apiUrl(`/api/livekit?room=${roomId}&username=${encodeURIComponent(currentUser.name)}&identity=${userAccountId}`));
+        const data = await res.json();
+        if (data.token) {
+          setLivekitToken(data.token);
+        }
+      } catch (err) {
+        console.error("Error fetching LiveKit token:", err);
+      }
+    };
+    if (roomId && currentUser.name && userAccountId !== "guest") {
+      fetchToken();
+    }
+  }, [roomId, currentUser.name, userAccountId]);
 
   return (
     <RoomVoiceJitsi
@@ -495,14 +513,12 @@ function RoomContent({
       // First show Google account Name/DP immediately.
       if (mounted) {
         setRoomName(
-          currentUser.name ||
           roomOwner.name ||
           "Room"
         );
 
         setRoomImage(
           roomOwner.image ||
-          currentUser.image ||
           "/default-avatar.png"
         );
       }
@@ -518,14 +534,12 @@ function RoomContent({
         if (cached) {
           setRoomName(
             cached.roomName ||
-            currentUser.name ||
             roomOwner.name ||
             "Room"
           );
 
           setRoomImage(
             cached.roomDp ||
-            currentUser.image ||
             roomOwner.image ||
             "/default-avatar.png"
           );
@@ -788,7 +802,7 @@ function RoomContent({
           data.senderAvatar ||
           "/default-avatar.png",
         senderAccountId:
-          data.senderId || "",
+          data.senderAccountId || data.senderId || "",
         timestamp: Number(
           data.createdAt || Date.now()
         ),
@@ -911,13 +925,11 @@ function RoomContent({
 
         const updatedName =
           data.roomName ||
-          currentUser.name ||
           roomOwner.name ||
           "Room";
 
         const updatedDp =
           data.roomDp ||
-          currentUser.image ||
           roomOwner.image ||
           "/default-avatar.png";
 
@@ -1150,6 +1162,7 @@ function RoomContent({
         .slice(2, 8)}`,
       roomId,
       senderId: userAccountId,
+      senderAccountId: userAccountId,
       senderName: currentUser.name || "User",
       senderAvatar:
         currentUser.image || "/default-avatar.png",
@@ -1584,12 +1597,10 @@ function RoomContent({
       roomId: String(roomId),
       roomName:
         nextRoomName ||
-        currentUser.name ||
         roomOwner.name ||
         "Room",
       roomDp:
         nextRoomImage ||
-        currentUser.image ||
         roomOwner.image ||
         "/default-avatar.png",
       announcement: nextAnnouncement || "",
@@ -1604,6 +1615,24 @@ function RoomContent({
     await saveRoomSettingsToIndexedDB(
       roomSettings
     );
+
+    const isOwnerOfRoom =
+      String(roomId) === String(currentUser.id) ||
+      String(roomId) === String(currentUser.accountId) ||
+      String(roomOwner.id) === String(currentUser.id) ||
+      String(roomOwner.accountId) === String(currentUser.accountId);
+
+    if (isOwnerOfRoom) {
+      const updatedMyRoomCard = {
+        id: currentUser.id || roomId,
+        accountId: currentUser.accountId || roomOwner.accountId,
+        name: roomSettings.roomName,
+        image: roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳'
+      };
+      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
+      window.dispatchEvent(new Event('storage'));
+    }
 
     // Realtime source for users currently inside the room.
     socket.emit(
@@ -2158,7 +2187,7 @@ function RoomContent({
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || '' })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
@@ -2172,7 +2201,7 @@ function RoomContent({
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || (msg.sender === currentUser.name ? userAccountId : '') })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
@@ -2188,7 +2217,7 @@ function RoomContent({
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || (msg.sender === currentUser.name ? userAccountId : '') })}
+                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>

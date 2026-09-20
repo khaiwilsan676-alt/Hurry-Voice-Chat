@@ -148,6 +148,34 @@ const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }
   </div>
 );
 
+// NEW: MIXED IMAGE REWARD ITEM (For Top 3 & Top 4-10)
+const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
+  <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+      <img 
+        src={imageSrc} 
+        alt={title} 
+        className="w-full h-full object-cover scale-110 pointer-events-none" 
+        style={{ 
+          mixBlendMode: 'screen',
+          filter: 'url(#remove-black)',
+          // Yeh mask add kiya taaki other vehicle cards jaisa edge smoothly blend ho
+          maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)'
+        }} 
+      />
+    </div>
+    <div className="flex gap-[1px] mt-1.5">
+      {[...Array(5)].map((_, i) => (
+        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -164,7 +192,7 @@ export default function Family({ onBack }: FamilyProps) {
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
   // Modal states for videos
-  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend'} | null>(null)
+  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
 
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
@@ -371,7 +399,13 @@ export default function Family({ onBack }: FamilyProps) {
               {/* No Blend applied to maintain pure blue color for Medal */}
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" blendScreen={false} onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black-noblend'})} />
               <RewardItem title="Top3 Tag *7 days" />
-              <RewardItem title="Vehicle *7 days" />
+              
+              {/* NEW: Added Mixed Image Reward for Top 3 */}
+              <MixedImageRewardItem 
+                title="Vehicle *7 days" 
+                imageSrc="/IMG_20260919_222412.jpg" 
+                onClick={() => setActiveVideoModal({src: '/VID_20260919_222502.mp4', type: 'mixed'})} 
+              />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               {/* No Blend applied to maintain pure blue color for Frame, and scale reduced to 100 */}
@@ -394,7 +428,13 @@ export default function Family({ onBack }: FamilyProps) {
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
               <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
-              <RewardItem title="Vehicle *3 days" />
+              
+              {/* NEW: Added Mixed Image Reward for Top 4-10 */}
+              <MixedImageRewardItem 
+                title="Vehicle *3 days" 
+                imageSrc="/IMG_20260919_222041.jpg" 
+                onClick={() => setActiveVideoModal({src: '/VID_20260919_222549.mp4', type: 'mixed'})} 
+              />
             </div>
           </div>
         </div>
@@ -415,8 +455,29 @@ export default function Family({ onBack }: FamilyProps) {
                   controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
+                  className="w-full h-auto max-h-[85vh] object-cover" 
+                  style={{
+                    maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
+                    WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
+                  }} 
+                />
+              </div>
+            ) : activeVideoModal.type === 'mixed' ? (
+              /* NEW: Mixed Modal Edge to Edge with TOP & BOTTOM fade exactly same as vehicle */
+              <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
+                <video 
+                  src={activeVideoModal.src} 
+                  autoPlay 
+                  loop 
+                  playsInline 
+                  controls={false}
+                  disablePictureInPicture
+                  disableRemotePlayback
                   className="w-full h-auto max-h-[70vh] object-cover" 
                   style={{
+                    mixBlendMode: 'screen',
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)',
                     maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)',
                     WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)'
                   }} 
@@ -641,4 +702,4 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
     </div>
   )
-    }
+}
