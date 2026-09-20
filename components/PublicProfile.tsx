@@ -21,6 +21,7 @@ import {
 
 // Import the WebRTC ChatScreen component
 import ChatScreen from './ChatScreen' // adjust path if necessary
+import UserReport from './userreport' // ✅ Import kiya userreport.tsx
 
 // ============ IndexedDB Functions for Profile Data ============
 const PROFILE_DB_NAME = 'ProfileDataDB';
@@ -639,66 +640,67 @@ export default function PublicProfile({
   const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
+  const [showUserReport, setShowUserReport] = useState(false) // ✅ naya state user report ke liye
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
   const saveToMongoDB = async (updateData: Record<string, any>) => {
-  const currentUid =
-    user.uid ||
-    localStorage.getItem('userUID') ||
-    localStorage.getItem('userPhone')
+    const currentUid =
+      user.uid ||
+      localStorage.getItem('userUID') ||
+      localStorage.getItem('userPhone')
 
-  if (!currentUid || currentUid === 'N/A') return
+    if (!currentUid || currentUid === 'N/A') return
 
-  try {
-    const response = await fetch(apiUrl('/api/users'), {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        uid: currentUid,
-        ...updateData,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`MongoDB user update failed: ${response.status}`)
-    }
-
-    const roomUpdateData = { ...updateData }
-
-    delete roomUpdateData.name
-    delete roomUpdateData.displayName
-    delete roomUpdateData.userName
-    delete roomUpdateData.image
-    delete roomUpdateData.photo
-    delete roomUpdateData.photoURL
-    delete roomUpdateData.coverPhoto
-    delete roomUpdateData.coverImage
-
-    if (Object.keys(roomUpdateData).length > 0) {
-      const roomResponse = await fetch(apiUrl('/api/rooms'), {
+    try {
+      const response = await fetch(apiUrl('/api/users'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          roomId: currentUid,
-          ...roomUpdateData,
+          uid: currentUid,
+          ...updateData,
         }),
       })
 
-      if (!roomResponse.ok) {
-        throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
+      if (!response.ok) {
+        throw new Error(`MongoDB user update failed: ${response.status}`)
       }
-    }
-  } catch (err) {
-    console.error('Error saving data to MongoDB:', err)
-  }
-}
 
-// Save current user data to IndexedDB
+      const roomUpdateData = { ...updateData }
+
+      delete roomUpdateData.name
+      delete roomUpdateData.displayName
+      delete roomUpdateData.userName
+      delete roomUpdateData.image
+      delete roomUpdateData.photo
+      delete roomUpdateData.photoURL
+      delete roomUpdateData.coverPhoto
+      delete roomUpdateData.coverImage
+
+      if (Object.keys(roomUpdateData).length > 0) {
+        const roomResponse = await fetch(apiUrl('/api/rooms'), {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            roomId: currentUid,
+            ...roomUpdateData,
+          }),
+        })
+
+        if (!roomResponse.ok) {
+          throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
+        }
+      }
+    } catch (err) {
+      console.error('Error saving data to MongoDB:', err)
+    }
+  }
+
+  // Save current user data to IndexedDB
   const saveCurrentUserToDB = async () => {
     if (isOtherUser) return;
     const uid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone');
@@ -932,137 +934,137 @@ export default function PublicProfile({
 
       if (uid && uid !== 'N/A') {
         try {
-      const mongoResponse = await fetch(
-        apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
-      )
+          const mongoResponse = await fetch(
+            apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
+          )
 
-      if (!mongoResponse.ok) {
-        throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
-      }
-
-      const result = await mongoResponse.json()
-      const data = result?.user
-
-      if (data) {
-        if (data.accountId) {
-          displayAccNum = String(data.accountId)
-          localStorage.setItem('accountNumber', displayAccNum)
-        }
-
-        const docName = data.name || data.displayName || data.userName
-        if (isValidName(docName)) {
-          storedName = docName
-          localStorage.setItem('userName', storedName)
-        }
-
-        if (data.photo || data.photoURL || data.image) {
-          photo = data.photo || data.photoURL || data.image || photo
-          localStorage.setItem('userPhoto', photo)
-        }
-
-        if (data.coverPhoto || data.coverImage) {
-          coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
-          localStorage.setItem('userCoverPhoto', coverPhoto)
-        }
-
-        if (data.bio) {
-          storedBio = data.bio
-          localStorage.setItem('userBio', storedBio)
-        }
-
-        if (data.country || data.location) {
-          storedCountry = data.country || data.location
-          localStorage.setItem('userCountry', storedCountry)
-        }
-
-        if (data.countryCode) {
-          storedCountryCode = data.countryCode
-          localStorage.setItem('userCountryCode', storedCountryCode)
-        }
-
-        if (data.countryLocked !== undefined) {
-          isCountryLockedInStorage = data.countryLocked
-          if (data.countryLocked) {
-            localStorage.setItem('userCountryLocked', 'true')
+          if (!mongoResponse.ok) {
+            throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
           }
-        }
 
-        if (data.setupComplete) {
-          isCountryLockedInStorage = true
-          localStorage.setItem('userCountryLocked', 'true')
-        }
+          const result = await mongoResponse.json()
+          const data = result?.user
 
-        if (data.gender) {
-          storedGender = data.gender
-          localStorage.setItem('userGender', storedGender)
-        }
+          if (data) {
+            if (data.accountId) {
+              displayAccNum = String(data.accountId)
+              localStorage.setItem('accountNumber', displayAccNum)
+            }
 
-        if (data.age) {
-          storedAge = String(data.age)
-          localStorage.setItem('userAge', storedAge)
-        }
+            const docName = data.name || data.displayName || data.userName
+            if (isValidName(docName)) {
+              storedName = docName
+              localStorage.setItem('userName', storedName)
+            }
 
-        if (data.albumImages && Array.isArray(data.albumImages)) {
-          setAlbumImages(data.albumImages)
-          localStorage.setItem(
-            'userAlbumImages',
-            JSON.stringify(data.albumImages)
-          )
-        }
+            if (data.photo || data.photoURL || data.image) {
+              photo = data.photo || data.photoURL || data.image || photo
+              localStorage.setItem('userPhoto', photo)
+            }
 
-        if (!displayAccNum) {
-          displayAccNum = getOrCreateAccountNumber(uid)
-        }
+            if (data.coverPhoto || data.coverImage) {
+              coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
+              localStorage.setItem('userCoverPhoto', coverPhoto)
+            }
 
-        if (!isValidName(storedName)) {
-          storedName = displayAccNum
-        }
+            if (data.bio) {
+              storedBio = data.bio
+              localStorage.setItem('userBio', storedBio)
+            }
 
-        const matchedCountry = COUNTRIES.find(
-          (c) =>
-            c.code === storedCountryCode ||
-            c.flag === storedCountry ||
-            c.name === storedCountry
-        ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+            if (data.country || data.location) {
+              storedCountry = data.country || data.location
+              localStorage.setItem('userCountry', storedCountry)
+            }
 
-        const profileData = {
-          uid: uid,
-          name: storedName,
-          displayAccountNumber: displayAccNum,
-          photo,
-          coverPhoto,
-          bio: storedBio,
-          location: matchedCountry.name,
-          flag: matchedCountry.flag,
-          countryCode: matchedCountry.code,
-          gender:
-            storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
-          age: storedAge ? parseInt(storedAge) : 24,
-          followers: data.followers || 0,
-          albumImages: data.albumImages || [],
-          officialTag: data.officialTag || false,
-          adminTag: data.adminTag || false,
-          vipTag: data.vipTag || false,
-          premiumTag: data.premiumTag || false,
-        }
+            if (data.countryCode) {
+              storedCountryCode = data.countryCode
+              localStorage.setItem('userCountryCode', storedCountryCode)
+            }
 
-        setUser(profileData)
-        await saveProfileToDB(profileData)
-        setEditName(storedName)
-        setEditAge(storedAge || '24')
-        setEditBio(storedBio || '')
-        setEditCountry(matchedCountry.name)
-        setEditCountryCode(matchedCountry.code)
-        setCountryLocked(isCountryLockedInStorage)
+            if (data.countryLocked !== undefined) {
+              isCountryLockedInStorage = data.countryLocked
+              if (data.countryLocked) {
+                localStorage.setItem('userCountryLocked', 'true')
+              }
+            }
 
-        if (storedGender) {
-          setEditGender(
-            storedGender === 'female' || storedGender === '♀'
-              ? 'female'
-              : 'male'
-          )
-          setGenderLocked(true)
-        }
+            if (data.setupComplete) {
+              isCountryLockedInStorage = true
+              localStorage.setItem('userCountryLocked', 'true')
+            }
+
+            if (data.gender) {
+              storedGender = data.gender
+              localStorage.setItem('userGender', storedGender)
+            }
+
+            if (data.age) {
+              storedAge = String(data.age)
+              localStorage.setItem('userAge', storedAge)
+            }
+
+            if (data.albumImages && Array.isArray(data.albumImages)) {
+              setAlbumImages(data.albumImages)
+              localStorage.setItem(
+                'userAlbumImages',
+                JSON.stringify(data.albumImages)
+              )
+            }
+
+            if (!displayAccNum) {
+              displayAccNum = getOrCreateAccountNumber(uid)
+            }
+
+            if (!isValidName(storedName)) {
+              storedName = displayAccNum
+            }
+
+            const matchedCountry = COUNTRIES.find(
+              (c) =>
+                c.code === storedCountryCode ||
+                c.flag === storedCountry ||
+                c.name === storedCountry
+            ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+
+            const profileData = {
+              uid: uid,
+              name: storedName,
+              displayAccountNumber: displayAccNum,
+              photo,
+              coverPhoto,
+              bio: storedBio,
+              location: matchedCountry.name,
+              flag: matchedCountry.flag,
+              countryCode: matchedCountry.code,
+              gender:
+                storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
+              age: storedAge ? parseInt(storedAge) : 24,
+              followers: data.followers || 0,
+              albumImages: data.albumImages || [],
+              officialTag: data.officialTag || false,
+              adminTag: data.adminTag || false,
+              vipTag: data.vipTag || false,
+              premiumTag: data.premiumTag || false,
+            }
+
+            setUser(profileData)
+            await saveProfileToDB(profileData)
+            setEditName(storedName)
+            setEditAge(storedAge || '24')
+            setEditBio(storedBio || '')
+            setEditCountry(matchedCountry.name)
+            setEditCountryCode(matchedCountry.code)
+            setCountryLocked(isCountryLockedInStorage)
+
+            if (storedGender) {
+              setEditGender(
+                storedGender === 'female' || storedGender === '♀'
+                  ? 'female'
+                  : 'male'
+              )
+              setGenderLocked(true)
+            }
           }
         } catch (err) {
           console.warn('MongoDB fetch error in PublicProfile:', err)
@@ -1595,7 +1597,8 @@ export default function PublicProfile({
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl animate-slide-up flex flex-col h-[70vh]">
+          {/* ✅ rounded-t-md kar diya */}
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -1655,11 +1658,12 @@ export default function PublicProfile({
                         Remove
                       </button>
                     )}
+                    {/* ✅ Sirf Camera icon, text hataya */}
                     <button
                       onClick={() => coverInputRef.current?.click()}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
                     >
-                      <Camera size={14} /> Add Photo
+                      <Camera size={16} />
                     </button>
                   </div>
                 </div>
@@ -1680,11 +1684,12 @@ export default function PublicProfile({
                     Album Photos ({albumImages.length}/4)
                   </span>
                   {albumImages.length < 4 && (
+                    // ✅ Sirf Camera icon, text hataya
                     <button
                       onClick={() => albumInputRef.current?.click()}
-                      className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-semibold flex items-center gap-1 hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
                     >
-                      <Camera size={14} /> Add Photo
+                      <Camera size={16} />
                     </button>
                   )}
                 </div>
@@ -1833,7 +1838,6 @@ export default function PublicProfile({
       {/* ===== ACTION SHEET (REPORT & BLOCK) - CORNERS STRICTLY MD ===== */}
       {showActionSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
-          {/* Black backdrop hataya, click pe close hoga */}
           <div
             className="absolute inset-0 bg-transparent pointer-events-auto"
             onClick={() => setShowActionSheet(false)}
@@ -1844,25 +1848,7 @@ export default function PublicProfile({
               <button
                 onClick={() => {
                   setShowActionSheet(false)
-                  setShowReportToast(true)
-                  setTimeout(() => setShowReportToast(false), 2000)
-
-                  // Emit user report
-                  if (!socket.connected) {
-                    socket.connect();
-                  }
-
-                  const currentUserData = getCurrentUserData();
-                  socket.emit("user_report", {
-                    id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                    senderId: (currentUserData as any)?.accountId || currentUserData?.uid || "",
-                    senderName: currentUserData?.name || "User",
-                    senderPhoto: currentUserData?.photo || "",
-                    reportedId: targetUser?.displayAccountNumber || targetUser?.accountId || targetUser?.uid || "",
-                    reportedName: targetUser?.name || "User",
-                    reportedPhoto: targetUser?.image || targetUser?.photo || "",
-                    timestamp: Date.now()
-                  });
+                  setShowUserReport(true) // ✅ Report click pe user report open
                 }}
                 className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
               >
@@ -1916,6 +1902,17 @@ export default function PublicProfile({
         </div>
       )}
 
+      {/* ✅ UserReport Overlay - Report click pe open hoga */}
+      {isOtherUser && showUserReport && targetUser && (
+        <div className="fixed inset-0 z-[100]">
+          <UserReport
+            currentUser={getCurrentUserData()}
+            targetUser={targetUser}
+            onClose={() => setShowUserReport(false)}
+          />
+        </div>
+      )}
+
       <style jsx>{`
         @keyframes slideUp {
           from {
@@ -1931,5 +1928,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-}
-
+  }
