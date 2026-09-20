@@ -2,7 +2,7 @@
 
 import { apiUrl } from "../src/lib/api";
 
-import React { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { socket } from '../src/lib/socket'
 import MessagePage from './MessagePage'
 import MePage from './MePage'
