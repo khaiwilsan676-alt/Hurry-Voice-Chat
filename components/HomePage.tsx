@@ -1,5 +1,5 @@
-'use client'
 
+'use client';
 import { apiUrl } from "../src/lib/api";
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -17,7 +17,7 @@ import InviteFriends from './InviteFriends'
 // ============ MONGODB / INDEXEDDB DATA HELPERS ============
 
 const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
-  const response = await fetch("/api/rooms");
+  const response = await fetch(apiUrl("/api/rooms"));
 
   if (!response.ok) {
     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
@@ -31,7 +31,7 @@ const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
   if (!roomId) return null;
 
   const response = await fetch(
-    `/api/rooms?roomId=${encodeURIComponent(roomId)}`
+    apiUrl(`/api/rooms?roomId=${encodeURIComponent(roomId)}`)
   );
 
   if (!response.ok) {
@@ -44,7 +44,7 @@ const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
 };
 
 const saveRoomToMongoDB = async (roomData: any) => {
-  const response = await fetch("/api/rooms", {
+  const response = await fetch(apiUrl("/api/rooms"), {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUrl } from "../src/lib/api";
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Send, ImageIcon, MoreHorizontal, LogIn, Trash2, Flag, Ban, X, Check, Copy } from 'lucide-react';
 import socket from '../src/lib/socket';
@@ -497,7 +498,7 @@ export default function ChatScreen({
       const endpoint = isBlocked ? '/api/users/unblock' : '/api/users/block';
 
       // Yaha par aapka actual backend call chalega
-      await fetch(endpoint, {
+      await fetch(apiUrl(endpoint), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

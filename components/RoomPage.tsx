@@ -1,4 +1,5 @@
 'use client';
+import { apiUrl } from "../src/lib/api";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import EmojiPicker from './Emojipicker';
@@ -226,7 +227,7 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const res = await fetch(`/api/livekit?room=${roomId}&username=${encodeURIComponent(currentUser.name)}&identity=${userAccountId}`);
+        const res = await fetch(apiUrl(`/api/livekit?room=${roomId}&username=${encodeURIComponent(currentUser.name)}&identity=${userAccountId}`));
         const data = await res.json();
         if (data.token) {
           setLivekitToken(data.token);

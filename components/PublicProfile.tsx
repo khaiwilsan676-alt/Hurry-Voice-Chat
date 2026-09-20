@@ -675,7 +675,7 @@ export default function PublicProfile({
     delete roomUpdateData.coverImage
 
     if (Object.keys(roomUpdateData).length > 0) {
-      const roomResponse = await fetch('/api/rooms', {
+      const roomResponse = await fetch(apiUrl('/api/rooms'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
