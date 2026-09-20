@@ -418,7 +418,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
         
         {/* Fixed/Sticky Top Area (Header + Tabs) */}
-        <div className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col">
+        <div className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 4px)' }}>
           
           <div className="flex items-center justify-between px-3 pt-3 pb-2 w-full">
             <button
