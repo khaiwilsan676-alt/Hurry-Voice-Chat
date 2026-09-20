@@ -438,6 +438,7 @@ export function ChromaImage({
 }) {
   const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
 
+
   useEffect(() => {
     let isMounted = true;
     
@@ -904,6 +905,29 @@ const LiveRoomStats = () => {
 export default function HomePage({ onLogout }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('popular')
   const [appLang, setAppLang] = useState<LanguageCode>('en')
+
+
+  useEffect(() => {
+    let socketInstance: any = null;
+    const handleBanLogout = (data: any) => {
+      const myId = localStorage.getItem('accountNumber');
+      if (myId === data.accountId) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    };
+
+    import('../src/lib/socket').then(({ socket }) => {
+      socketInstance = socket;
+      socketInstance.on('banned_logout', handleBanLogout);
+    });
+
+    return () => {
+      if (socketInstance) {
+        socketInstance.off('banned_logout', handleBanLogout);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const savedLang = localStorage.getItem('appLanguage') as LanguageCode

@@ -3,6 +3,8 @@
 import { apiUrl } from "../src/lib/api";
 
 import { useState, useEffect, useRef } from 'react'
+import { Device } from '@capacitor/device'
+import { socket } from "../src/lib/socket"
 import { ArrowLeft, ArrowRight, Eye, EyeOff, User } from 'lucide-react'
 import { 
   GoogleAuthProvider, 
@@ -162,6 +164,13 @@ const syncUserToMongoDB = async (uid: string, name: string, email: string, photo
     const finalImage = existingImage || photo || '/default-avatar.png'
     const finalCountry = existingCountry || '🇮🇳'
 
+
+    let deviceId = '';
+    try {
+      const deviceIdInfo = await Device.getId();
+      deviceId = deviceIdInfo.identifier;
+    } catch(e) {}
+
     const userData: any = {
       id: uid,
       appLongId: uid,
@@ -173,7 +182,8 @@ const syncUserToMongoDB = async (uid: string, name: string, email: string, photo
       avatar: finalImage,
       accountId: finalAccountId,
       accountNumber: finalAccountId,
-      bio: existingBio || ''
+      bio: existingBio || '',
+      deviceId: deviceId
     }
 
     await saveUserToMongoDB(userData)
@@ -498,6 +508,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [pendingUserData, setPendingUserData] = useState<any>(null)
   const [pendingGender, setPendingGender] = useState<string>('')
   const [checkingNewUser, setCheckingNewUser] = useState(false)
+  const [banMessage, setBanMessage] = useState<string | null>(null)
 
 
   // Preload video
@@ -522,6 +533,33 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   const processLoginSuccess = async (userData: any) => {
     const userId = userData?.id || userData?.uid
+    // BAN CHECK
+    try {
+      const deviceIdInfo = await Device.getId();
+      const deviceId = deviceIdInfo.identifier;
+      const accountId = userData.accountId || userData.accountNumber || (userData.uid ? getOrCreateAccountNumber(userData.uid) : 'N/A');
+
+      const banRes = await fetch(apiUrl('/api/check-ban'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, deviceId })
+      });
+      if (banRes.ok) {
+        const banData = await banRes.json();
+        if (banData.banned) {
+          const type = banData.banData.type || 'Violation';
+          let unbanTimeStr = 'Never';
+          if (banData.banData.unbanTime !== -1) {
+            unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
+          }
+          setBanMessage(`You Can't Login. Your ID has been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
+          setLoading(false);
+          return; // Stop login
+        }
+      }
+    } catch (e) {
+      console.error("Ban check failed:", e);
+    }
     
     if (!userId) {
       if (onLoginSuccess) onLoginSuccess(userData)
@@ -1275,6 +1313,19 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </p>
         </div>
       </div>
+
+      {/* BAN NOTIFICATION CARD */}
+      {banMessage && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-sm px-6 py-3 rounded-full text-center max-w-[90%] shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-2">
+          {banMessage}
+          <button
+            onClick={() => setBanMessage(null)}
+            className="text-xs bg-white/20 px-3 py-1 rounded-full w-fit mx-auto"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   )
   }
