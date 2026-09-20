@@ -495,14 +495,12 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       // First show Google account Name/DP immediately.
       if (mounted) {
         setRoomName(
-          currentUser.name ||
           roomOwner.name ||
           "Room"
         );
 
         setRoomImage(
           roomOwner.image ||
-          currentUser.image ||
           "/default-avatar.png"
         );
       }
@@ -518,14 +516,12 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
         if (cached) {
           setRoomName(
             cached.roomName ||
-            currentUser.name ||
             roomOwner.name ||
             "Room"
           );
 
           setRoomImage(
             cached.roomDp ||
-            currentUser.image ||
             roomOwner.image ||
             "/default-avatar.png"
           );
@@ -911,13 +907,11 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
 
         const updatedName =
           data.roomName ||
-          currentUser.name ||
           roomOwner.name ||
           "Room";
 
         const updatedDp =
           data.roomDp ||
-          currentUser.image ||
           roomOwner.image ||
           "/default-avatar.png";
 
@@ -1585,12 +1579,10 @@ function RoomContent({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFo
       roomId: String(roomId),
       roomName:
         nextRoomName ||
-        currentUser.name ||
         roomOwner.name ||
         "Room",
       roomDp:
         nextRoomImage ||
-        currentUser.image ||
         roomOwner.image ||
         "/default-avatar.png",
       announcement: nextAnnouncement || "",
