@@ -3079,8 +3079,8 @@ const renderMineTab = () => (
 
         {/* Global Rooms Grid */}
 {allRooms.length > 0 ? (
-  <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-    <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 ">
+  <div className="px-3" style={{ marginTop: isAndroid ? '3px' : '12px' }}>
+    <div className="grid grid-cols-2 gap-x-0.5 gap-y-2 ">
       {allRooms.map((room) => (
         <div
           key={room.accountId}
