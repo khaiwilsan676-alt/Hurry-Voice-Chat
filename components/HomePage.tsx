@@ -2879,7 +2879,7 @@ const renderMineTab = () => (
           <img
             src="/file_0000000047308211a02722299d1fda2e.png"
             alt="No data"
-            className="w-40 h-auto object-contain mb-3"
+            className="w-25 h-auto object-contain mb-3"
             draggable="false"
           />
           <p className="text-sm text-gray-400 font-medium">No data</p>
@@ -2938,7 +2938,7 @@ const renderMineTab = () => (
           <img
             src="/file_0000000047308211a02722299d1fda2e.png"
             alt="No data"
-            className="w-40 h-auto object-contain mb-3"
+            className="w-25 h-auto object-contain mb-3"
             draggable="false"
           />
           <p className="text-sm text-gray-400 font-medium">No data</p>
