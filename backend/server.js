@@ -588,19 +588,18 @@ io.on("connection", (socket) => {
   socket.on(
     "room_join",
     ({ roomId, userId, accountId, name, dp, email } = {}) => {
-      if (!roomId || !userId) return;
+      if (!roomId || (!userId && !accountId)) return;
 
       const room = String(roomId);
-      const id = String(userId);
-      const accId = accountId ? String(accountId) : id;
+      const accId = accountId ? String(accountId) : String(userId);
 
-      cancelPendingSeatDisconnect(room, id);
       cancelPendingSeatDisconnect(room, accId);
+      if (userId) cancelPendingSeatDisconnect(room, String(userId));
 
       // Prevent duplicate joins from increasing the live count.
       if (
         socket.roomId === room &&
-        socket.roomUserId === id
+        socket.roomAccountId === accId
       ) {
         const users = getRoomUsers(room);
 
@@ -621,6 +620,8 @@ io.on("connection", (socket) => {
       if (socket.roomId) {
         const oldRoom = String(socket.roomId);
         const oldUser =
+          socket.roomAccountId ||
+          socket.accountId ||
           socket.roomUserId ||
           socket.userId;
 
@@ -648,11 +649,11 @@ io.on("connection", (socket) => {
       socket.join(`room:${room}`);
 
       socket.roomId = room;
-      socket.roomUserId = id;
+      if (userId) socket.roomUserId = String(userId);
       socket.accountId = accId;
       socket.roomAccountId = accId;
 
-      addUserToRoom(room, id, {
+      addUserToRoom(room, accId, {
         name: name || "User",
         image:
           dp ||
@@ -678,10 +679,10 @@ io.on("connection", (socket) => {
         .to(`room:${room}`)
         .emit("room_user_online", {
           roomId: room,
-          userId: id,
+          userId: accId,
           user: {
             accountId: accId,
-            userId: id,
+            userId: userId ? String(userId) : accId,
             name: name || "User",
             image:
               dp ||
@@ -697,7 +698,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "room_leave",
-    ({ roomId, userId } = {}) => {
+    ({ roomId, userId, accountId } = {}) => {
       const room = roomId
         ? String(roomId)
         : socket.roomId;
@@ -705,7 +706,10 @@ io.on("connection", (socket) => {
       if (!room) return;
 
       const id = String(
+        accountId ||
         userId ||
+        socket.roomAccountId ||
+        socket.accountId ||
         socket.roomUserId ||
         socket.userId ||
         ""
@@ -729,6 +733,7 @@ io.on("connection", (socket) => {
       if (socket.roomId === room) {
         socket.roomId = null;
         socket.roomUserId = null;
+        socket.roomAccountId = null;
       }
 
       emitGlobalRoomPresence();
@@ -767,10 +772,10 @@ io.on("connection", (socket) => {
 
     // Only a user who is actually joined to this room can control a seat.
     const isRoomUser =
+      String(socket.roomAccountId || "") === userId ||
+      String(socket.accountId || "") === userId ||
       String(socket.roomUserId || "") === userId ||
       String(socket.userId || "") === userId ||
-      String(socket.accountId || "") === userId ||
-      String(socket.roomAccountId || "") === userId ||
       Boolean(socket.roomId && String(socket.roomId) === roomId);
 
     if (String(socket.roomId || "") !== roomId || !isRoomUser) {
