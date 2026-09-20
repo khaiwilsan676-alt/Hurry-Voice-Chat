@@ -507,7 +507,6 @@ export default function ChatScreen({
 
   const handleEraseEmoji = () => {
     setNewMessage(prev => {
-      // Using Array.from to correctly remove emojis without breaking unicode pairs
       const arr = Array.from(prev);
       arr.pop();
       return arr.join('');
@@ -611,54 +610,67 @@ export default function ChatScreen({
   // ========================= RENDER =========================
   return (
     <div className="fixed inset-0 z-50 bg-[#f0f2f5] flex flex-col">
+      
       {/* ----- Header ----- */}
       <div
-        className="px-4 pb-3 flex items-center gap-3 sticky top-0 z-10"
+        className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
           paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
         }}
       >
-        <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full px-3 py-1">
-          <ArrowLeft size={24} className="text-gray-800" />
-        </button>
+        {/* Left Side: Back Button + Avatar + Name/Status */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {/* Back button ekdum corner me */}
+          <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
+            <ArrowLeft size={24} className="text-gray-800" />
+          </button>
 
-        {/* Name and Online Status in one row */}
-        <div className="flex-1 min-w-0 flex items-center gap-2">
-          <h2 className="text-lg font-bold text-gray-800 truncate">{targetUser.name}</h2>
-          {!isFixedChat && (
-            <span className={`text-xs whitespace-nowrap ${online ? 'text-green-600 font-medium' : 'text-gray-600'}`}>
-              • {online ? 'Online' : 'Offline'}
-            </span>
-          )}
+          <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+            <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
+          </div>
+
+          {/* Name upar, status 2nd row me, dot (•) hata diya */}
+          <div className="flex flex-col min-w-0">
+            <h2 className="text-lg font-bold text-gray-800 truncate leading-tight">{targetUser.name}</h2>
+            {!isFixedChat && (
+              <span className={`text-[11px] font-medium ${online ? 'text-green-600' : 'text-gray-600'}`}>
+                {online ? 'Online' : 'Offline'}
+              </span>
+            )}
+          </div>
         </div>
 
-        {deleteMode ? (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">{selectedMessages.size} selected</span>
-            <button
-              onClick={() => setShowDeleteSelectedConfirm(true)}
-              disabled={selectedMessages.size === 0}
-              className="px-3 py-1.5 bg-red-500 text-white rounded-full text-sm font-medium disabled:opacity-50"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => { setDeleteMode(false); setSelectedMessages(new Set()); }}
-              className="p-1.5 hover:bg-white/30 rounded-full"
-            >
-              <X size={20} className="text-gray-800" />
-            </button>
-          </div>
-        ) : (
-          !isFixedChat && (
-            <div className="relative">
-              <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full px-3 py-1">
-                <AlertTriangle size={24} className="text-red-500" />
+        {/* Right Side: Delete Options / Alert Icon */}
+        <div className="flex-shrink-0 flex items-center pr-1">
+          {deleteMode ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">{selectedMessages.size} selected</span>
+              <button
+                onClick={() => setShowDeleteSelectedConfirm(true)}
+                disabled={selectedMessages.size === 0}
+                className="px-3 py-1 bg-red-500 text-white rounded-full text-sm font-medium disabled:opacity-50"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => { setDeleteMode(false); setSelectedMessages(new Set()); }}
+                className="p-1 hover:bg-white/30 rounded-full"
+              >
+                <X size={20} className="text-gray-800" />
               </button>
             </div>
-          )
-        )}
+          ) : (
+            !isFixedChat && (
+              <div className="relative">
+                {/* Alert Icon Black and ekdum corner me */}
+                <button onClick={() => setShowOptions(!showOptions)} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2">
+                  <AlertTriangle size={24} className="text-black" />
+                </button>
+              </div>
+            )
+          )}
+        </div>
       </div>
 
       {/* ----- Bottom Sheet Options Menu ----- */}
@@ -876,8 +888,9 @@ export default function ChatScreen({
 
           {/* Emoji Keyboard Picker */}
           {showEmojiPicker && (
-            <div className="h-64 bg-gray-100 border-t border-gray-200 flex flex-col pb-5 animate-in slide-in-from-bottom-2 duration-150">
-              <div className="flex-1 overflow-y-auto p-2 grid grid-cols-8 gap-2 content-start text-center">
+            <div className="h-64 bg-gray-100 border-t border-gray-200 relative pb-5 animate-in slide-in-from-bottom-2 duration-150">
+              {/* pb-20 added to not let emojis hide under the floating erase button */}
+              <div className="absolute inset-0 overflow-y-auto p-2 grid grid-cols-8 gap-2 content-start text-center pb-20">
                 {EMOJI_LIST.map((emoji, idx) => (
                   <button 
                     key={idx} 
@@ -888,14 +901,14 @@ export default function ChatScreen({
                   </button>
                 ))}
               </div>
-              <div className="px-4 py-2 border-t border-gray-300 flex justify-end bg-gray-200">
-                <button 
-                  onClick={handleEraseEmoji} 
-                  className="p-2 bg-white hover:bg-gray-100 rounded-lg text-gray-700 shadow-sm transition-colors active:scale-95"
-                >
-                  <Delete size={24} />
-                </button>
-              </div>
+              
+              {/* Floating Overlap Erase Button (Koi alag bottom tab nahi) */}
+              <button 
+                onClick={handleEraseEmoji} 
+                className="absolute bottom-6 right-4 p-3 bg-white rounded-full text-gray-700 shadow-[0_4px_10px_rgba(0,0,0,0.15)] border border-gray-200 transition-colors active:scale-95 z-10"
+              >
+                <Delete size={24} />
+              </button>
             </div>
           )}
         </div>
