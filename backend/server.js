@@ -494,7 +494,9 @@ app.get("/api/users", async (req, res) => {
         orConditions.push(
           { accountId: numericQ },
           { accountNumber: numericQ },
-          { displayUserNumber: numericQ }
+          { displayUserNumber: numericQ },
+          { uid: numericQ },
+          { id: numericQ }
         );
       }
 
@@ -523,7 +525,7 @@ app.get("/api/users", async (req, res) => {
 
       const finalUsers = rankedUsers.length > 0 ? rankedUsers : normalizedUsers;
 
-      if (finalUsers.length === 0 && uid) {
+      if (finalUsers.length === 0 && (uid || q)) {
         return res.status(404).json({ error: "User not found" });
       }
 
