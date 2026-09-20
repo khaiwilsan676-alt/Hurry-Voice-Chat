@@ -869,7 +869,7 @@ const LiveRoomStats = () => {
   }, []);
 
   return (
-    <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1.5 border border-[#FFD700]/40 z-10 shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 z-10">
       <style>
         {`
           @keyframes trackEq {
@@ -886,15 +886,16 @@ const LiveRoomStats = () => {
         `}
       </style>
 
+      {/* 🔢 Number pehle — white color, no S */}
+      <span className="text-white text-[11px] font-extrabold tracking-wider drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+        {count}
+      </span>
+
+      {/* 📊 Track (equalizer bars) baad me */}
       <div className="flex items-end gap-[2px] h-[9px]">
         <div className="track-bar" style={{ animationDuration: '0.8s', animationDelay: '0s' }}></div>
         <div className="track-bar" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }}></div>
         <div className="track-bar" style={{ animationDuration: '1s', animationDelay: '0.4s' }}></div>
-      </div>
-      
-      <div className="flex items-center gap-[3px] text-[#FFD700] text-[10px] font-extrabold tracking-wider">
-        <span>S</span>
-        <span>{count}</span>
       </div>
     </div>
   );
