@@ -2909,7 +2909,7 @@ function RoomContent({
         .scrollbar-none::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleEmojiSelect} />}
+      {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
       {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} />}
 
     </div>

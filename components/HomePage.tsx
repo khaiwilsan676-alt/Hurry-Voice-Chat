@@ -2309,7 +2309,7 @@ useEffect(() => {
       });
 
       await saveUserToMongoDB({
-        id: userUID,
+        id: currentAccountId,
         appLongId: userUID,
         name: userName || defaultRoomName,
         country: localStorage.getItem("userCountry") || "🇮🇳",
@@ -2368,7 +2368,7 @@ useEffect(() => {
       }
 
       const ownerRoomUser: UserCard = {
-        id: userUID,
+        id: currentAccountId,
         accountId: currentAccountId,
         name: ownerName,
         image: ownerDp,
@@ -2762,7 +2762,9 @@ useEffect(() => {
 
     // FIX: Agar room mein active users nahi hain ya count 0 hai, toh hide kar do
     const count = Number(room.activeUserCount ?? 0);
-    if (room.isExplicitlyCreated && count < 0) return false;
+    const rawAcc = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID);
+    const currentUserAccId = typeof rawAcc === 'string' ? rawAcc : (rawAcc as any).fullAccNum;
+    if (count <= 0 && room.accountId !== currentUserAccId && room.id !== currentUserAccId) return false;
 
     // FIX: Duplicate hater - Check karega ki same accountId ya roomId pehle aa chuka hai kya. Agar haan, toh duplicate ko hata dega.
     const firstIndex = self.findIndex(r => {
@@ -3767,8 +3769,8 @@ const renderMineTab = () => (
           <RoomPage
             roomOwner={selectedUser}
             currentUser={{
-              id: userUID,
-              uid: userUID,
+              id: currentAccountId,
+              uid: currentAccountId,
               accountId: (() => {
                 const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
                 return typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
