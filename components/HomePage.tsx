@@ -2343,7 +2343,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   // ============ SIGN IN MODAL ============
   const handleImageClick = () => { setIsSignInModalOpen(true) }
   const handleCloseModal = () => { setIsSignInModalOpen(false) }
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
 
     // Check 24-hour logic
