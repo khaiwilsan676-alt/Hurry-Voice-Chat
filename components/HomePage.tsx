@@ -1,5 +1,5 @@
+'use client'
 
-'use client';
 import { apiUrl } from "../src/lib/api";
 
 import { useState, useEffect, useRef, useCallback } from 'react'
@@ -9,6 +9,8 @@ import MePage from './MePage'
 import { getOrCreateAccountNumber } from './MePage'
 import RoomPage from './RoomPage'
 import PublicProfile from './PublicProfile'
+import MinePage from './MinePage'
+import SearchPage from './SearchPage'
 import { generateStableId } from '../lib/hash'
 import { translations, getTranslation, LanguageCode } from '../lib/translations'
 import DailyCheckInModal from '../components/DailyCheckInModal'
@@ -18,122 +20,85 @@ import { updateWalletBalance } from '../src/lib/walletDB'
 // ============ MONGODB / INDEXEDDB DATA HELPERS ============
 
 const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
-  const response = await fetch(apiUrl("/api/rooms"));
-
+  const response = await fetch("/api/rooms");
   if (!response.ok) {
     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
   }
-
   const result = await response.json();
   return Array.isArray(result?.rooms) ? result.rooms : [];
 };
 
 const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
   if (!roomId) return null;
-
-  const response = await fetch(
-    apiUrl(`/api/rooms?roomId=${encodeURIComponent(roomId)}`)
-  );
-
+  const response = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomId)}`);
   if (!response.ok) {
     if (response.status === 404) return null;
     throw new Error(`MongoDB room fetch failed: ${response.status}`);
   }
-
   const result = await response.json();
   return result?.room || null;
 };
 
 const saveRoomToMongoDB = async (roomData: any) => {
-  const response = await fetch(apiUrl("/api/rooms"), {
+  const response = await fetch("/api/rooms", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(roomData),
   });
-
   if (!response.ok) {
     throw new Error(`MongoDB room save failed: ${response.status}`);
   }
-
   return response.json();
 };
 
 const saveUserToMongoDB = async (userData: any) => {
   const uid = userData.uid || userData.id || userData.appLongId;
-
   if (!uid) {
     throw new Error("Missing user uid");
   }
-
   const response = await fetch(apiUrl("/api/users"), {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...userData,
-      uid,
-    }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...userData, uid }),
   });
-
   if (!response.ok) {
     throw new Error(`MongoDB user save failed: ${response.status}`);
   }
-
   return response.json();
 };
 
 const loadHomeMessagesFromDB = async (userUID: string): Promise<any[]> => {
   if (!userUID || userUID === 'N/A') return [];
-
   try {
     const dbName = `ChatMessagesDB_${userUID}`;
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open(dbName, 1);
-
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result);
-
       request.onupgradeneeded = () => {
         const database = request.result;
-
         if (!database.objectStoreNames.contains("messages")) {
-          const store = database.createObjectStore("messages", {
-            keyPath: "id",
-          });
-
-          store.createIndex("chatId", "chatId", {
-            unique: false,
-          });
-
-          store.createIndex("timestamp", "timestamp", {
-            unique: false,
-          });
+          const store = database.createObjectStore("messages", { keyPath: "id" });
+          store.createIndex("chatId", "chatId", { unique: false });
+          store.createIndex("timestamp", "timestamp", { unique: false });
         }
       };
     });
 
     const transaction = db.transaction(["messages"], "readonly");
     const store = transaction.objectStore("messages");
-
     const messages = await new Promise<any[]>((resolve, reject) => {
       const request = store.getAll();
-
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
-
     return messages;
   } catch (error) {
     console.error("❌ Home messages IndexedDB load error:", error);
     return [];
   }
 };
-
 
 // ============ INDEXEDDB FUNCTIONS ============
 const DB_NAME = 'HurryAppDB';
@@ -147,14 +112,13 @@ const GLOBAL_ROOMS_STORE = 'globalRooms';
 const openDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
       const db = request.result;
       const oldVersion = event.oldVersion;
-      
+
       if (!db.objectStoreNames.contains(ROOM_STORE)) {
         db.createObjectStore(ROOM_STORE, { keyPath: 'accountId' });
       }
@@ -181,16 +145,11 @@ const saveRoomToDB = async (roomData: any) => {
     const db = await openDB();
     const transaction = db.transaction([ROOM_STORE], 'readwrite');
     const store = transaction.objectStore(ROOM_STORE);
-    
     await new Promise<void>((resolve, reject) => {
-      const request = store.put({
-        ...roomData,
-        cachedAt: Date.now(),
-      });
+      const request = store.put({ ...roomData, cachedAt: Date.now() });
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
-
     db.close();
   } catch (error) {
     console.error('❌ Room save error:', error);
@@ -202,13 +161,11 @@ const loadRoomFromDB = async (accountId: string): Promise<any | null> => {
     const db = await openDB();
     const transaction = db.transaction([ROOM_STORE], 'readonly');
     const store = transaction.objectStore(ROOM_STORE);
-
     const room = await new Promise<any | null>((resolve, reject) => {
       const request = store.get(accountId);
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
     return room;
   } catch (error) {
@@ -222,18 +179,13 @@ const saveGlobalRoomsToDB = async (rooms: any[]) => {
     const db = await openDB();
     const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readwrite');
     const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-    
     for (const room of rooms) {
       await new Promise<void>((resolve, reject) => {
-        const request = store.put({
-          ...room,
-          cachedAt: Date.now(),
-        });
+        const request = store.put({ ...room, cachedAt: Date.now() });
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
       });
     }
-
     db.close();
   } catch (error) {
     console.error('❌ Global rooms save error:', error);
@@ -245,13 +197,11 @@ const loadGlobalRoomsFromDB = async (): Promise<any[]> => {
     const db = await openDB();
     const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readonly');
     const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-
     const rooms = await new Promise<any[]>((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
     return rooms;
   } catch (error) {
@@ -265,13 +215,11 @@ const deleteGlobalRoomFromDB = async (accountId: string) => {
     const db = await openDB();
     const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readwrite');
     const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-    
     await new Promise<void>((resolve, reject) => {
       const request = store.delete(accountId);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
-
     db.close();
   } catch (error) {
     console.error('❌ Delete room error:', error);
@@ -283,13 +231,11 @@ const saveRecentToDB = async (recentRooms: any[]) => {
     const db = await openDB();
     const transaction = db.transaction([RECENT_STORE], 'readwrite');
     const store = transaction.objectStore(RECENT_STORE);
-    
     await new Promise<void>((resolve, reject) => {
       const clearRequest = store.clear();
       clearRequest.onsuccess = () => resolve();
       clearRequest.onerror = () => reject(clearRequest.error);
     });
-    
     for (const room of recentRooms) {
       await new Promise<void>((resolve, reject) => {
         const request = store.put(room);
@@ -297,7 +243,6 @@ const saveRecentToDB = async (recentRooms: any[]) => {
         request.onerror = () => reject(request.error);
       });
     }
-
     db.close();
   } catch (error) {
     console.error('❌ Recent save error:', error);
@@ -310,22 +255,16 @@ const loadRecentFromDB = async (): Promise<any[]> => {
     const transaction = db.transaction([RECENT_STORE], 'readonly');
     const store = transaction.objectStore(RECENT_STORE);
     const index = store.index('timestamp');
-
     const recentRooms = await new Promise<any[]>((resolve, reject) => {
       const request = index.getAll();
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
-    
     recentRooms.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    
     const now = Date.now();
     const fiveMinutesAgo = now - (5 * 60 * 1000);
-    const validRooms = recentRooms.filter(room => room.timestamp >= fiveMinutesAgo);
-    
-    return validRooms;
+    return recentRooms.filter(room => room.timestamp >= fiveMinutesAgo);
   } catch (error) {
     console.error('❌ Recent load error:', error);
     return [];
@@ -337,13 +276,11 @@ const saveFollowingToDB = async (followingRooms: any[]) => {
     const db = await openDB();
     const transaction = db.transaction([FOLLOWING_STORE], 'readwrite');
     const store = transaction.objectStore(FOLLOWING_STORE);
-    
     await new Promise<void>((resolve, reject) => {
       const clearRequest = store.clear();
       clearRequest.onsuccess = () => resolve();
       clearRequest.onerror = () => reject(clearRequest.error);
     });
-    
     for (const room of followingRooms) {
       await new Promise<void>((resolve, reject) => {
         const request = store.put(room);
@@ -351,7 +288,6 @@ const saveFollowingToDB = async (followingRooms: any[]) => {
         request.onerror = () => reject(request.error);
       });
     }
-
     db.close();
   } catch (error) {
     console.error('❌ Following save error:', error);
@@ -363,13 +299,11 @@ const loadFollowingFromDB = async (): Promise<any[]> => {
     const db = await openDB();
     const transaction = db.transaction([FOLLOWING_STORE], 'readonly');
     const store = transaction.objectStore(FOLLOWING_STORE);
-
     const followingRooms = await new Promise<any[]>((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result || []);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
     return followingRooms;
   } catch (error) {
@@ -384,13 +318,11 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 
   const handleInput = (index: number, inputValue: string) => {
     const numberValue = inputValue.replace(/[^0-9]/g, '')
-
     if (numberValue) {
       const newDigits = value.split('')
       newDigits[index] = numberValue.slice(-1)
       const newPassword = newDigits.join('').slice(0, 4)
       onChange(newPassword)
-
       if (index < 3 && numberValue) {
         inputRefs.current[index + 1]?.focus()
       }
@@ -423,11 +355,10 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
   )
 }
 
-// Global in-memory cache to prevent re-processing same image multiple times (Anti-Freeze Cache added)
+// Global in-memory cache to prevent re-processing same image multiple times
 const processedImageCache: Record<string, string> = {}
 const processingPromises: Record<string, Promise<string>> = {}
 
-// Ultra-fast Chroma Key green screen remover without WebGL crashes
 export function ChromaImage({
   src,
   alt,
@@ -439,32 +370,26 @@ export function ChromaImage({
 }) {
   const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
 
-
   useEffect(() => {
     let isMounted = true;
-    
     if (processedImageCache[src]) {
       setDataUrl(processedImageCache[src])
       return
     }
-
     if (!processingPromises[src]) {
       processingPromises[src] = new Promise((resolve) => {
         const img = new Image()
         img.crossOrigin = 'anonymous'
         img.src = src
-
         img.onload = () => {
           const canvas = document.createElement('canvas')
           canvas.width = img.naturalWidth || 300
           canvas.height = img.naturalHeight || 300
           const ctx = canvas.getContext('2d', { willReadFrequently: true })
-
           if (ctx) {
             ctx.drawImage(img, 0, 0)
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
             const data = imgData.data
-
             for (let i = 0; i < data.length; i += 4) {
               const r = data[i], g = data[i + 1], b = data[i + 2]
               if (g > 50 && g > r * 1.15 && g > b * 1.15) {
@@ -479,11 +404,9 @@ export function ChromaImage({
         }
       })
     }
-
     processingPromises[src].then((url) => {
       if (isMounted) setDataUrl(url)
     })
-
     return () => { isMounted = false }
   }, [src])
 
@@ -492,15 +415,9 @@ export function ChromaImage({
   }
 
   return (
-    <img
-      src={dataUrl}
-      alt={alt}
-      className={className}
-      draggable="false"
-    />
+    <img src={dataUrl} alt={alt} className={className} draggable="false" />
   )
 }
-
 
 type LeaderboardTab = 'honour' | 'charm' | 'room'
 
@@ -567,9 +484,9 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
             className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Back"
           >
-            <img 
-              src="/file_0000000051d881f5af4f9cf84a56dcd3.png" 
-              alt="Back" 
+            <img
+              src="/file_0000000051d881f5af4f9cf84a56dcd3.png"
+              alt="Back"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
@@ -596,9 +513,9 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
             className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Info"
           >
-            <img 
-              src="/file_0000000073ec820b832b6dafb168dabe.png" 
-              alt="Info" 
+            <img
+              src="/file_0000000073ec820b832b6dafb168dabe.png"
+              alt="Info"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
@@ -611,9 +528,7 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
               key={st.id}
               onClick={() => setActiveSubTab(st.id)}
               className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors"
-              style={{
-                color: activeSubTab === st.id ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
-              }}
+              style={{ color: activeSubTab === st.id ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)' }}
             >
               {st.label}
             </button>
@@ -730,28 +645,15 @@ const BANNERS = [
   { image: '/IMG-20260818-WA0001.jpg' }
 ]
 
-
 type Tab = 'mine' | 'popular'
 type MineTab = 'following' | 'recent'
 type Page = 'home' | 'message' | 'me' | 'room' | 'public_profile' | 'leaderboard'
 type SearchTab = 'user' | 'room'
 
 const CATEGORY_CARDS = [
-  {
-    label: 'Honour',
-    tab: 'honour' as const,
-    bgImage: '/IMG_20260912_144404.png',
-  },
-  {
-    label: 'Charm',
-    tab: 'charm' as const,
-    bgImage: '/IMG_20260912_144324.png',
-  },
-  {
-    label: 'Room',
-    tab: 'room' as const,
-    bgImage: '/IMG_20260912_144347.png',
-  },
+  { label: 'Honour', tab: 'honour' as const, bgImage: '/IMG_20260912_144404.png' },
+  { label: 'Charm', tab: 'charm' as const, bgImage: '/IMG_20260912_144324.png' },
+  { label: 'Room', tab: 'room' as const, bgImage: '/IMG_20260912_144347.png' },
 ];
 
 // ============ SEARCH FUNCTION ============
@@ -766,17 +668,13 @@ async function fetchSearchResults(
   const foundList: GlobalRoom[] = [];
   const addedKeys = new Set<string>();
 
-  // 1. PRIMARY: Direct MongoDB search for matching ID / user / accountId
   try {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 3500);
 
     const response = await fetch(
       apiUrl(`/api/users?search=${encodeURIComponent(query)}&accountId=${encodeURIComponent(query)}&q=${encodeURIComponent(query)}`),
-      {
-        cache: "no-store",
-        signal: controller.signal,
-      }
+      { cache: "no-store", signal: controller.signal }
     );
 
     window.clearTimeout(timeout);
@@ -793,23 +691,18 @@ async function fetchSearchResults(
 
       for (const user of rawUsers) {
         if (!user) continue;
-
         const userId = String(user.id || user.uid || user.appLongId || "");
         let accountId = String(
           user.accountId || user.accountNumber || user.displayUserNumber || user["Account Number"] || ""
         );
-
         if (!accountId || accountId === userId) {
           accountId = getOrCreateAccountNumber(userId).fullAccNum;
         }
-
         const key = accountId || userId;
-
         if (key && !addedKeys.has(key) && !addedKeys.has(userId)) {
           addedKeys.add(key);
           addedKeys.add(userId);
           if (accountId) addedKeys.add(accountId);
-
           foundList.push({
             id: userId || accountId,
             name: user.name || user.displayName || user.userName || "User",
@@ -829,25 +722,17 @@ async function fetchSearchResults(
     console.error("MongoDB user search error:", error);
   }
 
-  // 2. SUPPLEMENT: Match globalRooms / local rooms
   for (const room of globalRooms) {
     const roomId = String(room.id || "");
     const accountId = String(room.accountId || "");
     const name = String(room.name || "");
 
-    const exactMatch =
-      roomId.toLowerCase() === queryLower ||
-      accountId.toLowerCase() === queryLower;
-
-    const partialIdMatch =
-      (accountId && accountId.toLowerCase().includes(queryLower)) ||
-      (roomId && roomId.toLowerCase().includes(queryLower));
-
+    const exactMatch = roomId.toLowerCase() === queryLower || accountId.toLowerCase() === queryLower;
+    const partialIdMatch = (accountId && accountId.toLowerCase().includes(queryLower)) || (roomId && roomId.toLowerCase().includes(queryLower));
     const nameMatch = name.toLowerCase().includes(queryLower);
 
     if (exactMatch || partialIdMatch || nameMatch) {
       const key = `${accountId}_${roomId}`;
-
       if (!addedKeys.has(key) && (!accountId || !addedKeys.has(accountId)) && (!roomId || !addedKeys.has(roomId))) {
         addedKeys.add(key);
         if (accountId) addedKeys.add(accountId);
@@ -859,6 +744,7 @@ async function fetchSearchResults(
 
   return foundList;
 }
+
 // ============ LIVE ROOM STATS COMPONENT ============
 const LiveRoomStats = () => {
   const [count, setCount] = useState(() => Math.floor(Math.random() * 4000) + 1000);
@@ -888,12 +774,10 @@ const LiveRoomStats = () => {
         `}
       </style>
 
-      {/* 🔢 Number pehle — white, no shadow, no S */}
       <span className="text-white text-[11px] font-extrabold tracking-wider">
         {count}
       </span>
 
-      {/* 📊 Track (equalizer bars) baad me — white */}
       <div className="flex items-end gap-[2px] h-[9px]">
         <div className="track-bar" style={{ animationDuration: '0.8s', animationDelay: '0s' }}></div>
         <div className="track-bar" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }}></div>
@@ -902,63 +786,23 @@ const LiveRoomStats = () => {
     </div>
   );
 };
+
 // ============ MAIN COMPONENT ============
 export default function HomePage({ onLogout }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('popular')
   const [appLang, setAppLang] = useState<LanguageCode>('en')
 
-
-  useEffect(() => {
-    let socketInstance: any = null;
-    const handleBanLogout = (data: any) => {
-      const myId = String(localStorage.getItem('accountNumber'));
-      const myUid = String(localStorage.getItem('userUID'));
-
-      if (myId === String(data.accountId) || (data.userId && myUid === String(data.userId))) {
-        localStorage.setItem('recentBanMessage', JSON.stringify({
-          type: data.type || 'Violation',
-          unbanTime: data.unbanTime || -1
-        }));
-
-        if (onLogout) {
-          onLogout();
-        } else {
-          localStorage.clear();
-          window.location.reload();
-        }
-      }
-    };
-
-    import('../src/lib/socket').then(({ socket }) => {
-      socketInstance = socket;
-      socketInstance.on('banned_logout', handleBanLogout);
-    });
-
-    return () => {
-      if (socketInstance) {
-        socketInstance.off('banned_logout', handleBanLogout);
-      }
-    };
-  }, []);
-
   useEffect(() => {
     const savedLang = localStorage.getItem('appLanguage') as LanguageCode
-    if (savedLang) {
-      setAppLang(savedLang)
-    }
-
+    if (savedLang) setAppLang(savedLang)
     const handleLangChange = (e: CustomEvent) => {
-      if (e.detail && e.detail.lang) {
-        setAppLang(e.detail.lang)
-      }
+      if (e.detail && e.detail.lang) setAppLang(e.detail.lang)
     }
-
     window.addEventListener('languageChange', handleLangChange as EventListener)
     return () => window.removeEventListener('languageChange', handleLangChange as EventListener)
   }, [])
 
   const t = getTranslation(appLang)
-
 
   const [activeMineTab, setActiveMineTab] = useState<MineTab>('following')
   const [currentPage, setCurrentPage] = useState<Page>('home')
@@ -994,6 +838,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const notificationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [globalRooms, setGlobalRooms] = useState<GlobalRoom[]>([])
+
+  const globalRoomsRef = useRef<GlobalRoom[]>([]);
+  useEffect(() => { globalRoomsRef.current = globalRooms; }, [globalRooms]);
 
   const [keptRoom, setKeptRoom] = useState<KeptRoomData | null>(null)
   const [enteredFromKept, setEnteredFromKept] = useState(false)
@@ -1060,10 +907,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     fetchUnread();
     const interval = setInterval(fetchUnread, 5000);
 
-    const handleUnreadUpdated = () => {
-      fetchUnread();
-    };
-
+    const handleUnreadUpdated = () => { fetchUnread(); };
     window.addEventListener('unread_count_updated', handleUnreadUpdated);
 
     const saveIncomingMessageToDB = async (msgData: any) => {
@@ -1105,7 +949,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       const timestamp = Number(data.timestamp || Date.now());
 
       const msgObj = {
-        id: String(data.id || `${senderId}_${timestamp}`),
+        id: String(data.id || `${senderId}_${timestamp}_${Math.random().toString(36).slice(2, 7)}`),
         chatId,
         text: String(data.text || ''),
         sender: 'other',
@@ -1121,30 +965,22 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
       saveIncomingMessageToDB(msgObj);
 
-
       if (senderId !== userUID) {
-        const notifsEnabled = localStorage.getItem('appNotifications') !== 'false';
-        if (notifsEnabled) {
-          setTopNotification({
-            id: String(data.id || Date.now()),
-            senderName: data.senderName || 'User',
-            senderPhoto: data.senderPhoto || '/default-avatar.png',
-            text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-            senderId,
-          });
+        setTopNotification({
+          id: String(data.id || Date.now()),
+          senderName: data.senderName || 'User',
+          senderPhoto: data.senderPhoto || '/default-avatar.png',
+          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+          senderId,
+        });
 
-          // Play sound
-          const audio = new Audio('/notification.mp3');
-          audio.play().catch(e => console.error("Error playing sound:", e));
-
-          if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-          notificationTimerRef.current = setTimeout(() => {
-            setTopNotification(null);
-          }, 3800);
-        }
+        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = setTimeout(() => {
+          setTopNotification(null);
+          notificationTimerRef.current = null;
+        }, 3800);
       }
     };
-
 
     const handleIncomingOfficialBroadcast = (data: any) => {
       if (!data?.senderId) return;
@@ -1155,7 +991,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       const timestamp = Number(data.timestamp || Date.now());
 
       const msgObj = {
-        id: String(data.id || `official_${timestamp}`),
+        id: String(data.id || `official_${timestamp}_${Math.random().toString(36).slice(2, 7)}`),
         chatId,
         text: String(data.text || ''),
         sender: 'other',
@@ -1182,6 +1018,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
       notificationTimerRef.current = setTimeout(() => {
         setTopNotification(null);
+        notificationTimerRef.current = null;
       }, 3800);
     };
 
@@ -1191,6 +1028,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
     return () => {
       isMounted = false;
       clearInterval(interval);
+      if (notificationTimerRef.current) {
+        clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = null;
+      }
       window.removeEventListener('unread_count_updated', handleUnreadUpdated);
       socket.off('private_message', handleIncomingPrivateMsg);
       socket.off('official_broadcast_message', handleIncomingOfficialBroadcast);
@@ -1212,9 +1053,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
       const cardsTop = cardsEl.getBoundingClientRect().top;
       const currentGap = cardsTop - dotsBottom;
       const desiredGap = 1.5;
-
       const deltaOffset = desiredGap - currentGap;
-      setCategoryOffset(prev => prev + deltaOffset);
+      setCategoryOffset(deltaOffset);
     };
 
     const timeoutId = setTimeout(adjustOffset, 100);
@@ -1250,13 +1090,13 @@ export default function HomePage({ onLogout }: HomePageProps) {
     setHeight()
     window.addEventListener('resize', setHeight)
     window.addEventListener('orientationchange', setHeight)
-    
+
     const isAndroidDevice = navigator.userAgent.toLowerCase().includes('android');
     if (isAndroidDevice) {
       setTimeout(setHeight, 100);
       setTimeout(setHeight, 300);
     }
-    
+
     return () => {
       window.removeEventListener('resize', setHeight)
       window.removeEventListener('orientationchange', setHeight)
@@ -1286,9 +1126,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
       width: '100%',
       height: '100%',
       parentNode: jitsiContainerRef.current,
-      userInfo: { 
-        displayName: userName || 'Guest', 
-        email: (userUID || 'guest') + '@hurry.app' 
+      userInfo: {
+        displayName: userName || 'Guest',
+        email: (userUID || 'guest') + '@hurry.app'
       },
       configOverrides: {
         startWithAudioMuted: true,
@@ -1323,7 +1163,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     }
 
     try {
-      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI; 
+      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
       const api = new JitsiMeetExternalAPI(domain, options)
       jitsiApiRef.current = api
       jitsiJoinedRef.current = false
@@ -1359,10 +1199,12 @@ export default function HomePage({ onLogout }: HomePageProps) {
   // ============ GLOBAL ROOMS FETCHING ============
   useEffect(() => {
     let isMounted = true;
+
     loadGlobalRoomsFromDB().then(cachedRooms => {
-      if (cachedRooms.length > 0 && isMounted) {
-        const validRooms = cachedRooms.filter(room => 
-          room && 
+      if (!isMounted) return;
+      if (cachedRooms.length > 0) {
+        const validRooms = cachedRooms.filter(room =>
+          room &&
           room.name &&
           room.accountId !== 'undefined' &&
           room.accountId !== 'null' &&
@@ -1377,321 +1219,248 @@ export default function HomePage({ onLogout }: HomePageProps) {
               Number(room.activeUserCount || 0)
             ])
           );
-
           return validRooms.map(room => ({
             ...room,
             activeUserCount:
-              liveCounts.get(
-                String(room.id || room.accountId || '')
-              ) ?? Number(room.activeUserCount || 0)
+              liveCounts.get(String(room.id || room.accountId || '')) ??
+              Number(room.activeUserCount || 0)
           }));
         });
       }
     });
 
     const loadRooms = async () => {
-      const rawRooms = await fetchAllRoomsFromMongoDB();
-      if (!isMounted) return;
-      if (Array.isArray(rawRooms)) {
-        const rooms: GlobalRoom[] = rawRooms.map((data: any) => {
-          const roomId = String(data.ID || data.id || data.roomId || '');
-          const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
-          return {
-            id: roomId,
-            name: data['Room Name'] || data.name || 'User',
-            country: data.Country || data.country || '🇮🇳',
-            image: data['Room dp'] || data.image || '/default-avatar.png',
-            accountId: accId,
-            createdAt: data.createdAt || Date.now(),
-            isLocked: Boolean(data.isLocked),
-            roomPassword: data.roomPassword || null,
-            isExplicitlyCreated: true,
-            activeUserCount: Number(data.activeUserCount || 0)
-          };
-        });
+      try {
+        const rawRooms = await fetchAllRoomsFromMongoDB();
+        if (!isMounted) return;
+        if (Array.isArray(rawRooms)) {
+          const rooms: GlobalRoom[] = rawRooms.map((data: any) => {
+            const roomId = String(data.ID || data.id || data.roomId || '');
+            const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
+            return {
+              id: roomId,
+              name: data['Room Name'] || data.name || 'User',
+              country: data.Country || data.country || '🇮🇳',
+              image: data['Room dp'] || data.image || '/default-avatar.png',
+              accountId: accId,
+              createdAt: data.createdAt || Date.now(),
+              isLocked: Boolean(data.isLocked),
+              roomPassword: data.roomPassword || null,
+              isExplicitlyCreated: true,
+              activeUserCount: Number(data.activeUserCount || 0)
+            };
+          });
 
-        const validRooms = rooms.filter(room =>
-          room.id &&
-          room.accountId !== 'undefined' &&
-          room.accountId !== 'null' &&
-          room.accountId !== '' &&
-          room.accountId !== null &&
-          room.name &&
-          room.name !== 'User'
-        );
-
-        setGlobalRooms(prev => {
-          const liveCounts = new Map(
-            prev.map(room => [
-              String(room.id || room.accountId || ''),
-              Number(room.activeUserCount || 0)
-            ])
+          const validRooms = rooms.filter(room =>
+            room.id &&
+            room.accountId !== 'undefined' &&
+            room.accountId !== 'null' &&
+            room.accountId !== '' &&
+            room.accountId !== null &&
+            room.name &&
+            room.name !== 'User'
           );
 
-          return validRooms.map(room => ({
-            ...room,
-            activeUserCount:
-              liveCounts.get(
-                String(room.id || room.accountId || '')
-              ) ?? Number(room.activeUserCount || 0)
-          }));
-        });
+          setGlobalRooms(prev => {
+            const liveCounts = new Map(
+              prev.map(room => [
+                String(room.id || room.accountId || ''),
+                Number(room.activeUserCount || 0)
+              ])
+            );
+            return validRooms.map(room => ({
+              ...room,
+              activeUserCount:
+                liveCounts.get(String(room.id || room.accountId || '')) ??
+                Number(room.activeUserCount || 0)
+            }));
+          });
 
-        saveGlobalRoomsToDB(validRooms);
+          saveGlobalRoomsToDB(validRooms);
+        }
+      } catch (err) {
+        console.warn('Error fetching rooms from API:', err);
       }
     };
 
     loadRooms();
     const interval = setInterval(loadRooms, 12000);
 
+    const fetchRoomsWithTimeout = async () => {
+      try {
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout')), 3000)
+        );
+        const res: any = await Promise.race([fetchAllRoomsFromMongoDB(), timeoutPromise]);
+        if (!isMounted) return;
+        const roomsArr: any[] = Array.isArray(res) ? res : (res?.rooms || []);
+        if (roomsArr.length > 0) {
+          const validRooms = roomsArr
+            .map((data: any) => {
+              const roomId = String(data.ID || data.id || data.roomId || '');
+              const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
+              return {
+                id: roomId,
+                name: data['Room Name'] || data.name || 'User',
+                country: data.Country || data.country || '🇮🇳',
+                image: data['Room dp'] || data.image || '/default-avatar.png',
+                accountId: accId,
+                createdAt: data.createdAt || Date.now(),
+                isLocked: Boolean(data.isLocked),
+                roomPassword: data.roomPassword || null,
+                isExplicitlyCreated: true,
+                activeUserCount: Number(data.activeUserCount || 0)
+              } as GlobalRoom;
+            })
+            .filter((room: GlobalRoom) =>
+              room &&
+              room.name !== 'User' &&
+              room.name !== 'Hurry Room' &&
+              room.accountId !== 'undefined' &&
+              room.accountId !== 'null' &&
+              room.accountId !== ''
+            );
+          setGlobalRooms(validRooms);
+          validRooms.forEach((room: GlobalRoom) => saveRoomToDB(room));
+        }
+      } catch (err) {
+        console.warn('Error/timeout syncing rooms:', err);
+      }
+    };
+    fetchRoomsWithTimeout();
+
     return () => {
       isMounted = false;
       clearInterval(interval);
     };
-    // Google Sheets API se sync (background) with 3s timeout
-    const fetchRoomsWithTimeout = async () => {
-      try {
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
-        const res: any = await Promise.race([fetchAllRoomsFromMongoDB(), timeoutPromise]);
-        if (res && res.rooms && Array.isArray(res.rooms)) {
-          const validRooms = res.rooms.filter((room: any) =>
-            room &&
-            room.name !== 'User' &&
-            room.name !== 'Hurry Room' &&
-            room.accountId !== 'undefined' &&
-            room.accountId !== 'null' &&
-            room.accountId !== ''
-          );
-          setGlobalRooms(validRooms);
-          validRooms.forEach((room: any) => saveRoomToDB(room));
-        }
-      } catch (err) {
-        console.warn('Error/timeout fetching rooms from Google Sheets:', err);
-      }
-    };
-    fetchRoomsWithTimeout();
   }, []);
 
-  
+  // ============ LIVE USER ONLINE OFFLINE PRESENCE ============
+  useEffect(() => {
+    const handlePresenceStatus = ({ userId, accountId, online }: { userId?: string; accountId?: string; online?: boolean }) => {
+      const key = String(accountId || userId || '');
+      if (!key) return;
+      setUserPresence((prev) => ({ ...prev, [key]: Boolean(online) }));
+    };
 
-// ============ LIVE USER ONLINE OFFLINE PRESENCE ============
-useEffect(() => {
-  const handlePresenceStatus = ({
-    userId,
-    accountId,
-    online,
-  }: {
-    userId?: string;
-    accountId?: string;
-    online?: boolean;
-  }) => {
-    const key = String(accountId || userId || '');
-    if (!key) return;
+    const handleUserOnline = (presenceId: string) => {
+      const key = String(presenceId || '');
+      if (!key) return;
+      setUserPresence((prev) => ({ ...prev, [key]: true }));
+    };
 
-    setUserPresence((prev) => ({
-      ...prev,
-      [key]: Boolean(online),
-    }));
-  };
+    const handleUserOffline = (presenceId: string) => {
+      const key = String(presenceId || '');
+      if (!key) return;
+      setUserPresence((prev) => ({ ...prev, [key]: false }));
+    };
 
-  const handleUserOnline = (presenceId: string) => {
-    const key = String(presenceId || '');
-    if (!key) return;
+    socket.on('presence_status', handlePresenceStatus);
+    socket.on('user_online', handleUserOnline);
+    socket.on('user_offline', handleUserOffline);
 
-    setUserPresence((prev) => ({
-      ...prev,
-      [key]: true,
-    }));
-  };
+    return () => {
+      socket.off('presence_status', handlePresenceStatus);
+      socket.off('user_online', handleUserOnline);
+      socket.off('user_offline', handleUserOffline);
+    };
+  }, []);
 
-  const handleUserOffline = (presenceId: string) => {
-    const key = String(presenceId || '');
-    if (!key) return;
+  // ============ GLOBAL SOCKET.IO ROOM PRESENCE ============
+  useEffect(() => {
+    if (!userUID || userUID === 'N/A') return;
 
-    setUserPresence((prev) => ({
-      ...prev,
-      [key]: false,
-    }));
-  };
+    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
+      if (!Array.isArray(rooms)) return;
 
-  socket.on('presence_status', handlePresenceStatus);
-  socket.on('user_online', handleUserOnline);
-  socket.on('user_offline', handleUserOffline);
-
-  return () => {
-    socket.off('presence_status', handlePresenceStatus);
-    socket.off('user_online', handleUserOnline);
-    socket.off('user_offline', handleUserOffline);
-  };
-}, []);
-
-// ============ GLOBAL SOCKET.IO ROOM PRESENCE ============
-useEffect(() => {
-  if (!userUID || userUID === 'N/A') return;
-
-  const applyGlobalPresence = ({
-    rooms,
-  }: {
-    rooms?: Array<{
-      roomId: string;
-      users?: Array<{
-        accountId?: string;
-        userId?: string;
-        name?: string;
-        image?: string;
-        email?: string;
-      }>;
-      activeUserCount?: number;
-    }>;
-  }) => {
-    if (!Array.isArray(rooms)) return;
-
-    const activeRooms = rooms.filter(
-      (room) =>
-        room &&
-        String(room.roomId || "") &&
-        Number(room.activeUserCount || 0) > 0
-    );
-
-    setGlobalRooms((prev) => {
-      const prevMap = new Map(
-        prev.map((room) => [
-          String(room.id || room.accountId || ""),
-          room,
-        ])
+      const activeRooms = rooms.filter(
+        (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
       );
 
-      const merged = [...prev];
+      setGlobalRooms((prev) => {
+        const prevMap = new Map(prev.map((room) => [String(room.id || room.accountId || ""), room]));
+        const merged = [...prev];
 
-      activeRooms.forEach((liveRoom) => {
-        const roomId = String(liveRoom.roomId || "");
-        if (!roomId) return;
+        activeRooms.forEach((liveRoom) => {
+          const roomId = String(liveRoom.roomId || "");
+          if (!roomId) return;
 
-        const liveUsers = Array.isArray(liveRoom.users)
-          ? liveRoom.users
-          : [];
+          const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
+          const firstUser = liveUsers[0];
+          const existing = prevMap.get(roomId) || prev.find((room) => String(room.accountId || "") === roomId);
 
-        const firstUser = liveUsers[0];
-
-        const existing =
-          prevMap.get(roomId) ||
-          prev.find(
-            (room) =>
-              String(room.accountId || "") === roomId
-          );
-
-        if (existing) {
-          const updated = {
-            ...existing,
-            activeUserCount: Number(
-              liveRoom.activeUserCount || liveUsers.length || 0
-            ),
-          };
-
-          const index = merged.findIndex(
-            (room) =>
-              String(room.id || room.accountId || "") ===
-              String(existing.id || existing.accountId || "")
-          );
-
-          if (index >= 0) {
-            merged[index] = updated;
-          }
-        } else {
-          const numericAccNum =
-            firstUser?.accountId && firstUser.accountId !== roomId
+          if (existing) {
+            const updated = {
+              ...existing,
+              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
+            };
+            const index = merged.findIndex(
+              (room) => String(room.id || room.accountId || "") === String(existing.id || existing.accountId || "")
+            );
+            if (index >= 0) merged[index] = updated;
+          } else {
+            const numericAccNum = firstUser?.accountId && firstUser.accountId !== roomId
               ? firstUser.accountId
               : getOrCreateAccountNumber(roomId).fullAccNum;
 
-          merged.push({
-            id: roomId,
-            accountId: numericAccNum,
-            name: firstUser?.name || "Room",
-            country: "🇮🇳",
-            image:
-              firstUser?.image ||
-              "/default-avatar.png",
-            createdAt: Date.now(),
-            isLocked: false,
-            roomPassword: undefined,
-            isExplicitlyCreated: true,
-            activeUserCount: Number(
-              liveRoom.activeUserCount || liveUsers.length || 0
-            ),
-          });
-        }
+            merged.push({
+              id: roomId,
+              accountId: numericAccNum,
+              name: firstUser?.name || "Room",
+              country: "🇮🇳",
+              image: firstUser?.image || "/default-avatar.png",
+              createdAt: Date.now(),
+              isLocked: false,
+              roomPassword: undefined,
+              isExplicitlyCreated: true,
+              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
+            });
+          }
+        });
+
+        return merged;
       });
 
-      return merged;
-    });
-
-    setSearchResults((prev) =>
-      prev.map((room) => {
-        const roomId = String(room.id || "");
-        const accountId = String(room.accountId || "");
-
-        const liveRoom = activeRooms.find(
-          (item) => {
+      setSearchResults((prev) =>
+        prev.map((room) => {
+          const roomId = String(room.id || "");
+          const accountId = String(room.accountId || "");
+          const liveRoom = activeRooms.find((item) => {
             const liveId = String(item.roomId || "");
             return liveId === roomId || liveId === accountId;
-          }
-        );
+          });
+          return {
+            ...room,
+            activeUserCount: liveRoom
+              ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
+              : 0,
+          };
+        })
+      );
+    };
 
-        return {
-          ...room,
-          activeUserCount: liveRoom
-            ? Number(
-                liveRoom.activeUserCount ||
-                (Array.isArray(liveRoom.users)
-                  ? liveRoom.users.length
-                  : 0)
-              )
-            : 0,
-        };
-      })
-    );
-  };
+    const handleSocketConnect = () => {
+      const accountId = localStorage.getItem('accountNumber') || '';
+      socket.emit('register', { userId: String(userUID), accountId: String(accountId) });
+      socket.emit('global_room_presence_request');
+    };
 
-  const handleSocketConnect = () => {
-    const accountId =
-      localStorage.getItem('accountNumber') || '';
+    socket.on('connect', handleSocketConnect);
+    socket.on('global_room_presence', applyGlobalPresence);
 
-    socket.emit('register', {
-      userId: String(userUID),
-      accountId: String(accountId),
-    });
+    if (socket.connected) {
+      handleSocketConnect();
+    } else {
+      socket.connect();
+    }
 
-    socket.emit('global_room_presence_request');
-  };
+    return () => {
+      socket.off('connect', handleSocketConnect);
+      socket.off('global_room_presence', applyGlobalPresence);
+    };
+  }, [userUID]);
 
-  // LISTENERS FIRST — prevent Socket.IO connection race.
-  socket.on('connect', handleSocketConnect);
-  socket.on(
-    'global_room_presence',
-    applyGlobalPresence
-  );
-
-  // CONNECT ONLY AFTER LISTENERS ARE READY.
-  if (socket.connected) {
-    handleSocketConnect();
-  } else {
-    socket.connect();
-  }
-
-  return () => {
-    socket.off(
-      'connect',
-      handleSocketConnect
-    );
-
-    socket.off(
-      'global_room_presence',
-      applyGlobalPresence
-    );
-  };
-}, [userUID]);
-
-// ============ DRAG CIRCLE INITIAL POSITION ============
+  // ============ DRAG CIRCLE INITIAL POSITION ============
   useEffect(() => {
     if (typeof window !== 'undefined') {
       circleStartPos.current = {
@@ -1752,7 +1521,6 @@ useEffect(() => {
             finalAccNum = accObj.fullAccNum;
           }
 
-          // Strictly verify that the cached myRoom belongs to the current user (by ID or accountId)
           const roomBelongsToCurrentUser =
             (parsed.id && String(parsed.id) === String(uid)) ||
             (parsed.accountId && String(parsed.accountId) === String(finalAccNum));
@@ -1792,7 +1560,6 @@ useEffect(() => {
             localStorage.setItem('myRoom', JSON.stringify(updatedRoom));
             await saveRoomToDB(updatedRoom);
           } else {
-            // Room belongs to a different ID, reset local room state for new user ID
             setIsRoomCreated(false);
             setMyRoom(null);
             localStorage.removeItem('isRoomCreated');
@@ -1805,7 +1572,7 @@ useEffect(() => {
       } else {
         setIsRoomCreated(false)
         setMyRoom(null)
-        
+
         if (storedAccNum) {
           const indexedRoom = await loadRoomFromDB(storedAccNum);
           if (
@@ -1817,13 +1584,8 @@ useEffect(() => {
               ...indexedRoom,
               id: indexedRoom.id || uid,
               accountId: indexedRoom.accountId || storedAccNum,
-              image:
-                indexedRoom.image ||
-                indexedRoom.roomDp ||
-                photo ||
-                '/default-avatar.png'
+              image: indexedRoom.image || indexedRoom.roomDp || photo || '/default-avatar.png'
             };
-
             setIsRoomCreated(true);
             setMyRoom(restoredRoom);
             localStorage.setItem('isRoomCreated', 'true');
@@ -1835,11 +1597,7 @@ useEffect(() => {
 
       const keptRoomData = localStorage.getItem('keptRoom')
       if (keptRoomData) {
-        try {
-          setKeptRoom(JSON.parse(keptRoomData))
-        } catch (e) {
-          setKeptRoom(null)
-        }
+        try { setKeptRoom(JSON.parse(keptRoomData)) } catch (e) { setKeptRoom(null) }
       }
 
       const storedRecent = localStorage.getItem('recentRooms')
@@ -1848,17 +1606,11 @@ useEffect(() => {
           const parsed = JSON.parse(storedRecent);
           const now = Date.now();
           const fiveMinutesAgo = now - (5 * 60 * 1000);
-          
-          const validRecent = parsed.filter((room: RecentRoom) => {
-            return room.timestamp >= fiveMinutesAgo;
-          });
-          
+          const validRecent = parsed.filter((room: RecentRoom) => room.timestamp >= fiveMinutesAgo);
           setRecentRooms(validRecent);
-          
           if (validRecent.length !== parsed.length) {
             localStorage.setItem('recentRooms', JSON.stringify(validRecent));
           }
-          
           saveRecentToDB(validRecent);
         } catch {
           const indexedRecent = await loadRecentFromDB();
@@ -1871,7 +1623,7 @@ useEffect(() => {
 
       const storedFollowing = localStorage.getItem('followingRooms')
       if (storedFollowing) {
-        try { 
+        try {
           const parsed = JSON.parse(storedFollowing);
           setFollowingRooms(parsed);
           saveFollowingToDB(parsed);
@@ -1907,18 +1659,10 @@ useEffect(() => {
     const checkRecentRoomsExpiry = () => {
       const now = Date.now();
       const fiveMinutesAgo = now - (5 * 60 * 1000);
-      
-      setRecentRooms(prev => {
-        const filtered = prev.filter(room => {
-          return room.timestamp >= fiveMinutesAgo;
-        });
-        return filtered;
-      });
+      setRecentRooms(prev => prev.filter(room => room.timestamp >= fiveMinutesAgo));
     };
-
     const interval = setInterval(checkRecentRoomsExpiry, 30000);
     checkRecentRoomsExpiry();
-
     return () => clearInterval(interval);
   }, []);
 
@@ -1930,11 +1674,7 @@ useEffect(() => {
           setKeptRoom(null)
           setEnteredFromKept(false)
         } else {
-          try {
-            setKeptRoom(JSON.parse(e.newValue))
-          } catch {
-            setKeptRoom(null)
-          }
+          try { setKeptRoom(JSON.parse(e.newValue)) } catch { setKeptRoom(null) }
         }
       }
     }
@@ -1953,65 +1693,39 @@ useEffect(() => {
   // ============ INVITE FRIENDS HISTORY BACK HANDLING ============
   useEffect(() => {
     if (!isInviteFriendsOpen) return
-
-    const handlePopState = () => {
-      setIsInviteFriendsOpen(false)
-    }
-
+    const handlePopState = () => { setIsInviteFriendsOpen(false) }
     window.history.pushState({ inviteFriendsModal: true }, '')
     window.addEventListener('popstate', handlePopState)
-
-    return () => {
-      window.removeEventListener('popstate', handlePopState)
-    }
+    return () => { window.removeEventListener('popstate', handlePopState) }
   }, [isInviteFriendsOpen])
 
   // Listen to hardware back press
   useEffect(() => {
     const handleHardwareBack = (e: Event) => {
-      // Allow default behavior (minimize) if we are on the 'home' page
       if (currentPage === 'home') {
-        if (isSearchOpen) {
-           e.preventDefault();
-           setIsSearchOpen(false);
-           return;
-        }
-        if (isInviteFriendsOpen) {
-           e.preventDefault();
-           setIsInviteFriendsOpen(false);
-           return;
-        }
-        return; // Don't prevent default, app will minimize
+        if (isSearchOpen) { e.preventDefault(); setIsSearchOpen(false); return; }
+        if (isInviteFriendsOpen) { e.preventDefault(); setIsInviteFriendsOpen(false); return; }
+        return;
       }
-
-      // If we are not on the 'home' page (e.g. 'me', 'message', 'public_profile', 'leaderboard', 'room' etc)
-      // we shouldn't minimize the app. BUT 'room' page handles its own back button logic to show exit menu.
       if (currentPage !== 'room') {
-         e.preventDefault(); // Prevent minimize app
-
-         if (currentPage === 'public_profile') {
-           handleBackFromPublicProfile();
-         } else if (currentPage === 'leaderboard') {
-           setCurrentPage('home');
-         } else {
-           setCurrentPage('home');
-         }
+        e.preventDefault();
+        if (currentPage === 'public_profile') {
+          handleBackFromPublicProfile();
+        } else if (currentPage === 'leaderboard') {
+          setCurrentPage('home');
+        } else {
+          setCurrentPage('home');
+        }
       }
     };
-
     window.addEventListener('hardwareBackPress', handleHardwareBack);
-
-    return () => {
-      window.removeEventListener('hardwareBackPress', handleHardwareBack);
-    };
+    return () => { window.removeEventListener('hardwareBackPress', handleHardwareBack); };
   }, [currentPage, isSearchOpen, isInviteFriendsOpen]);
 
   // ============ SIGN IN DAY ============
   useEffect(() => {
     const savedDay = localStorage.getItem('signInDay')
-    if (savedDay) {
-      setCurrentSignInDay(parseInt(savedDay))
-    }
+    if (savedDay) setCurrentSignInDay(parseInt(savedDay))
   }, [])
 
   // ============ ADD TO RECENT ============
@@ -2070,8 +1784,7 @@ useEffect(() => {
       const newX = circleStartPos.current.x + deltaX
       const newY = circleStartPos.current.y + deltaY
       setDragPosition({ x: newX, y: newY })
-      const isOverlap = checkOverlap(newX, newY)
-      setIsOverDeleteZone(isOverlap)
+      setIsOverDeleteZone(checkOverlap(newX, newY))
     }
 
     const handleMouseUp = () => {
@@ -2097,8 +1810,7 @@ useEffect(() => {
       const newX = circleStartPos.current.x + deltaX
       const newY = circleStartPos.current.y + deltaY
       setDragPosition({ x: newX, y: newY })
-      const isOverlap = checkOverlap(newX, newY)
-      setIsOverDeleteZone(isOverlap)
+      setIsOverDeleteZone(checkOverlap(newX, newY))
     }
 
     const handleTouchEnd = () => {
@@ -2143,9 +1855,6 @@ useEffect(() => {
     touchEndX.current = e.touches[0].clientX
     const diff = touchEndX.current - touchStartX.current
     setSwipeOffset(diff)
-    if (Math.abs(diff) > 10) {
-      if (e.cancelable) e.preventDefault()
-    }
   }
 
   const handleTouchEnd = () => {
@@ -2197,9 +1906,7 @@ useEffect(() => {
   }
 
   const handleMouseLeave = () => {
-    if (isSwiping) {
-      handleMouseUp()
-    }
+    if (isSwiping) handleMouseUp()
   }
 
   // ============ KEEP ROOM ============
@@ -2253,16 +1960,15 @@ useEffect(() => {
 
       const updatedMyRoom = {
         ...myRoom,
-        id: storedAccNum,
         name: currentRoomName,
         image: currentRoomDp,
-        accountId: storedAccNum
+        accountId: myRoom.accountId || storedAccNum
       };
 
       setMyRoom(updatedMyRoom);
       localStorage.setItem('myRoom', JSON.stringify(updatedMyRoom));
 
-      addToRecent({ 
+      addToRecent({
         name: updatedMyRoom.name,
         image: updatedMyRoom.image,
         accountId: updatedMyRoom.accountId
@@ -2275,7 +1981,7 @@ useEffect(() => {
     const defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
 
     const createdRoomCard: UserCard = {
-      id: storedAccNum,
+      id: userUID,
       accountId: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem('userCountry') || '🇮🇳',
@@ -2294,7 +2000,7 @@ useEffect(() => {
     });
 
     const roomData = {
-      id: storedAccNum,
+      id: userUID,
       name: defaultRoomName,
       country: localStorage.getItem("userCountry") || "🇮🇳",
       countryCode: localStorage.getItem("userCountryCode") || "IN",
@@ -2309,9 +2015,8 @@ useEffect(() => {
 
     try {
       await saveRoomToMongoDB({
-        roomId: storedAccNum,
-        id: storedAccNum,
-        accountId: storedAccNum,
+        roomId: userUID,
+        id: userUID,
         roomName: userName || defaultRoomName,
         roomDp: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",
@@ -2321,7 +2026,7 @@ useEffect(() => {
       });
 
       await saveUserToMongoDB({
-        id: currentAccountId,
+        id: userUID,
         appLongId: userUID,
         name: userName || defaultRoomName,
         country: localStorage.getItem("userCountry") || "🇮🇳",
@@ -2339,10 +2044,10 @@ useEffect(() => {
       return updated;
     });
 
-    addToRecent({ 
-      name: createdRoomCard.name, 
-      image: createdRoomCard.image, 
-      accountId: storedAccNum 
+    addToRecent({
+      name: createdRoomCard.name,
+      image: createdRoomCard.image,
+      accountId: storedAccNum
     })
     setSelectedUser(createdRoomCard)
     setCurrentPage('room')
@@ -2354,21 +2059,14 @@ useEffect(() => {
 
   // ============ USER CARD CLICK ============
   const handleUserCardClick = async (user: UserCard) => {
-    const rawAccNum =
-      localStorage.getItem('accountNumber') ||
-      getOrCreateAccountNumber(userUID)
-
-    const currentAccountId =
-      typeof rawAccNum === 'string'
-        ? rawAccNum
-        : (rawAccNum as any).fullAccNum
+    const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
+    const currentAccountId = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
 
     const isOwner =
       (user.id && String(user.id) === String(userUID)) ||
       (user.accountId && String(user.accountId) === String(currentAccountId)) ||
       (myRoom && (user.id === myRoom.id || user.accountId === myRoom.accountId));
 
-    // If room owner is entering their own room from ANY location
     if (isOwner) {
       let ownerName = myRoom?.name || user.name;
       if (!ownerName || ownerName === 'My Room' || ownerName === 'My room') {
@@ -2380,7 +2078,7 @@ useEffect(() => {
       }
 
       const ownerRoomUser: UserCard = {
-        id: currentAccountId,
+        id: userUID,
         accountId: currentAccountId,
         name: ownerName,
         image: ownerDp,
@@ -2399,21 +2097,13 @@ useEffect(() => {
       return;
     }
 
-    // Always resolve the actual room from the known global room list.
-    const searchAccId = String(user.accountId || user.id || '');
     const foundRoom = globalRooms.find(
       (r) =>
-        String(r.accountId || '') === searchAccId ||
-        String(r.id || '') === searchAccId
+        String(r.id || '') === String(user.id || '') ||
+        String(r.accountId || '') === String(user.accountId || '')
     )
 
-    const canonicalRoomId = String(
-      foundRoom?.accountId ||
-      user.accountId ||
-      foundRoom?.id ||
-      user.id ||
-      ''
-    )
+    const canonicalRoomId = String(foundRoom?.id || user.id || user.accountId || '')
 
     if (!canonicalRoomId) {
       console.error('Room ID missing')
@@ -2423,20 +2113,15 @@ useEffect(() => {
     const roomUser: UserCard = {
       ...user,
       id: canonicalRoomId,
-      accountId: canonicalRoomId,
+      accountId: String(foundRoom?.accountId || user.accountId || canonicalRoomId),
       name:
         foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
           ? foundRoom.name
           : user.name && user.name !== 'My Room' && user.name !== 'My room'
           ? user.name
           : 'Voice Chat Room',
-      image:
-        foundRoom?.image ||
-        user.image ||
-        '/default-avatar.png',
-      isLocked:
-        foundRoom?.isLocked ??
-        user.isLocked,
+      image: foundRoom?.image || user.image || '/default-avatar.png',
+      isLocked: foundRoom?.isLocked ?? user.isLocked,
     }
 
     try {
@@ -2452,11 +2137,7 @@ useEffect(() => {
       if (roomData) {
         if (
           roomData.isLocked &&
-          String(
-            roomData['Room Admin'] ||
-            roomData.accountId ||
-            ''
-          ) !== String(currentAccountId)
+          String(roomData['Room Admin'] || roomData.accountId || '') !== String(currentAccountId)
         ) {
           setSelectedLockedRoom(roomUser)
           setShowRoomPasswordCard(true)
@@ -2464,31 +2145,21 @@ useEffect(() => {
           return
         }
 
-        // MongoDB is the source of truth for room name and DP.
         if (roomData['Room Name'] || roomData.roomName || roomData.name) {
           const rName = roomData['Room Name'] || roomData.roomName || roomData.name;
-          if (rName !== 'My Room' && rName !== 'My room') {
-            roomUser.name = rName;
-          }
+          if (rName !== 'My Room' && rName !== 'My room') roomUser.name = rName;
         }
 
         if (roomData['Room dp'] || roomData.roomDp || roomData.image) {
           const rDp = roomData['Room dp'] || roomData.roomDp || roomData.image;
-          if (rDp !== 'undefined' && rDp !== 'null') {
-            roomUser.image = rDp;
-          }
+          if (rDp !== 'undefined' && rDp !== 'null') roomUser.image = rDp;
         }
 
         roomUser.isLocked = Boolean(roomData.isLocked)
       }
     } catch (e) {
       console.warn('Failed to fetch room data or timed out:', e)
-
-      if (
-        foundRoom &&
-        foundRoom.isLocked &&
-        String(foundRoom.accountId) !== String(currentAccountId)
-      ) {
+      if (foundRoom && foundRoom.isLocked && String(foundRoom.accountId) !== String(currentAccountId)) {
         setSelectedLockedRoom(roomUser)
         setShowRoomPasswordCard(true)
         setEnteredRoomPassword('')
@@ -2497,22 +2168,15 @@ useEffect(() => {
     }
 
     setEnteredFromKept(false)
-
     addToRecent({
       name: roomUser.name,
       image: roomUser.image,
-      accountId:
-        roomUser.accountId ||
-        roomUser.id,
+      accountId: roomUser.accountId || roomUser.id,
       isLocked: roomUser.isLocked
     })
-
     setSelectedUser(roomUser)
     setCurrentPage('room')
-
-    if (isSearchOpen) {
-      setIsSearchOpen(false)
-    }
+    if (isSearchOpen) setIsSearchOpen(false)
   };
 
   // ============ ROOM PASSWORD SUBMIT ============
@@ -2527,9 +2191,7 @@ useEffect(() => {
           addToRecent({ name: selectedLockedRoom.name, image: selectedLockedRoom.image, accountId: selectedLockedRoom.accountId || selectedLockedRoom.id, isLocked: true })
           setSelectedUser(selectedLockedRoom)
           setCurrentPage('room')
-          if (isSearchOpen) {
-            setIsSearchOpen(false)
-          }
+          if (isSearchOpen) setIsSearchOpen(false)
           return;
         } else if (roomData.isLocked) {
           alert('Incorrect Password')
@@ -2548,9 +2210,7 @@ useEffect(() => {
         addToRecent({ name: selectedLockedRoom.name, image: selectedLockedRoom.image, accountId: selectedLockedRoom.accountId || selectedLockedRoom.id, isLocked: true })
         setSelectedUser(selectedLockedRoom)
         setCurrentPage('room')
-        if (isSearchOpen) {
-          setIsSearchOpen(false)
-        }
+        if (isSearchOpen) setIsSearchOpen(false)
       } else {
         alert('Incorrect Password')
       }
@@ -2564,9 +2224,7 @@ useEffect(() => {
     setSelectedUser(user)
     setIsPublicProfileActive(true)
     setCurrentPage('public_profile')
-    if (isSearchOpen) {
-      setIsSearchOpen(false)
-    }
+    if (isSearchOpen) setIsSearchOpen(false)
   }
 
   // ============ BACK FROM ROOM ============
@@ -2589,70 +2247,39 @@ useEffect(() => {
 
   // ============ JOIN ROOM FROM CHAT ============
   const handleJoinRoomFromChat = async (roomId: string) => {
-  try {
-    const id = String(roomId || "");
+    try {
+      const id = String(roomId || "");
+      const foundRoom = globalRooms.find(
+        (r) => String(r.id || "") === id || String(r.accountId || "") === id
+      );
 
-    // FIRST: use already-loaded live/local room.
-    // This makes entering a room instant.
-    const foundRoom = globalRooms.find(
-      (r) =>
-        String(r.id || "") === id ||
-        String(r.accountId || "") === id
-    );
+      if (foundRoom) {
+        handleUserCardClick({
+          id: foundRoom.id || id,
+          accountId: foundRoom.accountId || id,
+          name: foundRoom.name || "User",
+          country: foundRoom.country || "🇮🇳",
+          image: foundRoom.image || "/default-avatar.png",
+        });
+        return;
+      }
 
-    if (foundRoom) {
-      handleUserCardClick({
-        id: foundRoom.id || id,
-        accountId:
-          foundRoom.accountId || id,
-        name: foundRoom.name || "User",
-        country:
-          foundRoom.country || "🇮🇳",
-        image:
-          foundRoom.image ||
-          "/default-avatar.png",
-      });
-      return;
+      const roomData = await fetchRoomFromMongoDB(id);
+      if (roomData) {
+        handleUserCardClick({
+          id: roomData.ID || roomData.id || roomData.roomId || id,
+          accountId: roomData["Room Admin"] || roomData.accountId || id,
+          name: roomData["Room Name"] || roomData.name || "User",
+          country: roomData.Country || roomData.country || "🇮🇳",
+          image: roomData["Room dp"] || roomData.image || "/default-avatar.png",
+        });
+        return;
+      }
+      console.error("Room not found:", id);
+    } catch (error) {
+      console.error("Error joining room:", error);
     }
-
-    // FALLBACK: Mongo only when local room is unavailable.
-    const roomData = await fetchRoomFromMongoDB(id);
-
-    if (roomData) {
-      handleUserCardClick({
-        id:
-          roomData.ID ||
-          roomData.id ||
-          roomData.roomId ||
-          id,
-        accountId:
-          roomData["Room Admin"] ||
-          roomData.accountId ||
-          id,
-        name:
-          roomData["Room Name"] ||
-          roomData.name ||
-          "User",
-        country:
-          roomData.Country ||
-          roomData.country ||
-          "🇮🇳",
-        image:
-          roomData["Room dp"] ||
-          roomData.image ||
-          "/default-avatar.png",
-      });
-      return;
-    }
-
-    console.error("Room not found:", id);
-  } catch (error) {
-    console.error(
-      "Error joining room:",
-      error
-    );
-  }
-};
+  };
 
   // ============ REAL-TIME LIVE SEARCH ============
   const handlePerformSearch = useCallback(async (queryParam?: string) => {
@@ -2668,7 +2295,7 @@ useEffect(() => {
     setHasSearched(false)
 
     try {
-      const results = await fetchSearchResults(queryRaw, globalRooms)
+      const results = await fetchSearchResults(queryRaw, globalRoomsRef.current)
       setSearchResults(results)
       setHasSearched(true)
     } catch (err) {
@@ -2678,9 +2305,8 @@ useEffect(() => {
     } finally {
       setIsSearching(false)
     }
-  }, [searchQuery, globalRooms]);
+  }, [searchQuery]);
 
-  // Real-time live search effect on searchQuery change with debouncing
   useEffect(() => {
     if (!isSearchOpen) return;
 
@@ -2692,9 +2318,8 @@ useEffect(() => {
       return;
     }
 
-    // Instant local filter first for instant UI response
     const queryLower = trimmed.toLowerCase();
-    const immediateLocal = globalRooms.filter(room => {
+    const immediateLocal = globalRoomsRef.current.filter(room => {
       const acc = String(room.accountId || "").toLowerCase();
       const id = String(room.id || "").toLowerCase();
       const name = String(room.name || "").toLowerCase();
@@ -2713,18 +2338,12 @@ useEffect(() => {
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, isSearchOpen, globalRooms, handlePerformSearch]);
+  }, [searchQuery, isSearchOpen, handlePerformSearch]);
 
   // ============ SIGN IN MODAL ============
-  const handleImageClick = () => {
-    setIsSignInModalOpen(true)
-  }
-
-  const handleCloseModal = () => {
-    setIsSignInModalOpen(false)
-  }
-
-  const handleSignIn = async () => {
+  const handleImageClick = () => { setIsSignInModalOpen(true) }
+  const handleCloseModal = () => { setIsSignInModalOpen(false) }
+  const handleSignIn = () => {
     const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
 
     // Check 24-hour logic
@@ -2772,9 +2391,7 @@ useEffect(() => {
   // ============ VIEWPORT META ============
   useEffect(() => {
     const existingMeta = document.querySelector('meta[name="viewport"]')
-    if (existingMeta) {
-      existingMeta.remove()
-    }
+    if (existingMeta) existingMeta.remove()
     const meta = document.createElement('meta')
     meta.name = 'viewport'
     meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
@@ -2789,9 +2406,7 @@ useEffect(() => {
 
   // ============ PAGE EFFECTS ============
   useEffect(() => {
-    if (currentPage !== 'message') {
-      setIsChatOpen(false)
-    }
+    if (currentPage !== 'message') setIsChatOpen(false)
   }, [currentPage])
 
   useEffect(() => {
@@ -2800,269 +2415,43 @@ useEffect(() => {
     }
   }, [currentPage])
 
-   // ============ ALL ROOMS FILTER (DUPLICATE REMOVER & USER > 0) ============
-  const allRooms = globalRooms.filter((room, index, self) => {
-    if (!room || !room.name || room.name === 'My Room' || room.name === 'My room' || room.name === 'User') return false;
-    if (!room.image || /jiys/i.test(room.name)) return false;
-    
-    const accId = String(room.accountId || '').trim();
-    const roomId = String(room.id || '').trim();
-    if (!accId || accId === 'undefined' || accId === 'null') return false;
+  // ============ ALL ROOMS FILTER ============
+  const allRooms = globalRooms.filter((room, index, self) =>
+    room &&
+    room.name &&
+    room.name !== 'My Room' &&
+    room.name !== 'My room' &&
+    room.name !== 'User' &&
+    room.image &&
+    !/jiys/i.test(room.name) &&
+    room.accountId !== 'undefined' &&
+    room.accountId !== 'null' &&
+    room.accountId !== '' &&
+    room.accountId !== null &&
+    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index
+  )
 
-    // FIX: Agar room mein active users nahi hain ya count 0 hai, toh hide kar do
-    const count = Number(room.activeUserCount ?? 0);
-    const rawAcc = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID);
-    const currentUserAccId = typeof rawAcc === 'string' ? rawAcc : (rawAcc as any).fullAccNum;
-    if (count <= 0 && room.accountId !== currentUserAccId && room.id !== currentUserAccId) return false;
-
-    // FIX: Duplicate hater - Check karega ki same accountId ya roomId pehle aa chuka hai kya. Agar haan, toh duplicate ko hata dega.
-    const firstIndex = self.findIndex(r => {
-      const rAcc = String(r.accountId || '').trim();
-      const rId = String(r.id || '').trim();
-      return (rAcc && rAcc === accId) || (rId && rId === roomId);
-    });
-
-    return firstIndex === index;
-  });
-  // ============ RENDER MINE TAB ============
-const renderMineTab = () => (
-  <div className="px-3 -mt-2">
-    <div
-      onClick={handleCardClick}
-      className="rounded-md p-6 flex items-center gap-4 cursor-pointer hover:shadow-lg transition-all mb-6"
-      style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        boxShadow: '0 8px 32px rgba(102, 126, 234, 0.4)',
-      }}
-    >
-      {!isRoomCreated ? (
-        <>
-          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path
-                d="M16 8V24M8 16H24"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="flex flex-col">
-            <h3 className="text-white font-bold text-xl leading-tight">
-              {t.createRoomTitle || 'Embark Your Hurry Journey!'}
-            </h3>
-            <p className="text-white/80 text-sm mt-1 font-medium">
-              {t.createRoomSubtitle || 'Tap to create your room'}
-            </p>
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-white/50">
-            <img
-              src={
-                myRoom?.image && myRoom.image !== 'undefined' && myRoom.image !== 'null'
-                  ? myRoom.image
-                  : (userPhoto || '/default-avatar.png')
-              }
-              alt={myRoom?.name || 'Room Avatar'}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = userPhoto || '/default-avatar.png';
-              }}
-            />
-          </div>
-          <div className="flex flex-col">
-            <h3 className="text-white font-bold text-xl leading-tight">
-              {myRoom?.name && myRoom.name !== 'My Room' && myRoom.name !== 'My room'
-                ? myRoom.name
-                : (userName ? `${userName}'s Room` : 'Voice Chat Room')}
-            </h3>
-            <p className="text-white/80 text-sm mt-1 font-medium">
-              {t.enterRoomSubtitle || 'Tap to enter your room'}
-            </p>
-          </div>
-        </>
-      )}
-    </div>
-
-    <div className="flex gap-3 -mt-5">
-      <button
-        type="button"
-        onClick={() => setActiveMineTab('following')}
-        className={`relative pb-1.5 text-[14px] font-medium transition-colors ${
-          activeMineTab === 'following'
-            ? 'text-gray-900'
-            : 'text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        {t.following}
-        {activeMineTab === 'following' && (
-          <span className="absolute left-0 right-0 -bottom-0 h-0.5 bg-gray-900 rounded-full" />
-        )}
-      </button>
-      <button
-        type="button"
-        onClick={() => setActiveMineTab('recent')}
-        className={`relative pb-1.5 text-[14px] font-medium transition-colors ${
-          activeMineTab === 'recent'
-            ? 'text-gray-900'
-            : 'text-gray-400 hover:text-gray-600'
-        }`}
-      >
-        {t.recent}
-        {activeMineTab === 'recent' && (
-          <span className="absolute left-0 right-0 -bottom-0 h-0.5 bg-gray-900 rounded-full" />
-        )}
-      </button>
-    </div>
-
-    {activeMineTab === 'following' && (
-      followingRooms.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2.5">
-          {followingRooms.map(room => {
-            const user: UserCard = {
-              id: room.accountId,
-              accountId: room.accountId,
-              name: room.name,
-              country: room.country || '🇮🇳',
-              image: room.image,
-              isLocked: room.isLocked
-            }
-            return (
-              <div
-                key={room.accountId}
-                onClick={() => handleUserCardClick(user)}
-                className="relative bg-gray-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-                style={{ height: '180px' }}
-              >
-                <img
-                  src={room.image}
-                  alt={room.name}
-                  className="w-full h-full object-cover"
-                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
-                {room.isLocked && (
-                  <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                    </svg>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">🇮🇳</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-semibold text-xs truncate">
-                        {room.name}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-12">
-          <img
-            src="/file_0000000047308211a02722299d1fda2e.png"
-            alt="No data"
-            className="w-25 h-auto object-contain mb-3"
-            draggable="false"
-          />
-          <p className="text-sm text-gray-400 font-medium">No data</p>
-        </div>
-      )
-    )}
-
-    {activeMineTab === 'recent' && (
-      recentRooms.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2.5">
-          {recentRooms.map(room => {
-            const user: UserCard = {
-              id: room.accountId,
-              accountId: room.accountId,
-              name: room.name,
-              country: room.country || '🇮🇳',
-              image: room.image,
-              isLocked: room.isLocked
-            }
-            return (
-              <div
-                key={room.accountId}
-                onClick={() => handleUserCardClick(user)}
-                className="relative bg-gray-200 rounded-2xl overflow-hidden cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-                style={{ height: '180px' }}
-              >
-                <img
-                  src={room.image}
-                  alt={room.name}
-                  className="w-full h-full object-cover"
-                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                />
-                {room.isLocked && (
-                  <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                    </svg>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">🇮🇳</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-semibold text-xs truncate">
-                        {room.name}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-12">
-          <img
-            src="/file_0000000047308211a02722299d1fda2e.png"
-            alt="No data"
-            className="w-25 h-auto object-contain mb-3"
-            draggable="false"
-          />
-          <p className="text-sm text-gray-400 font-medium">No data</p>
-        </div>
-      )
-    )}
-  </div>
-);
-
- // ============ RENDER POPULAR TAB ============
+  // ============ RENDER POPULAR TAB ============
   const renderPopularTab = () => {
     return (
       <>
-        <div 
+        <div
           ref={categoryCardsRef}
-          className="px-3" 
-          style={{ 
+          className="px-3"
+          style={{
             transform: `translateY(${categoryOffset - 4}px)`,
             marginBottom: `${categoryOffset}px`,
-            position: 'relative', 
+            position: 'relative',
             zIndex: 10,
             willChange: 'transform'
           }}
         >
-          <div 
-            className="flex flex-row justify-between items-center gap-1 select-none" 
-            style={{ 
-              fontFamily: 'Nunito, Inter, sans-serif', 
-              marginBottom: '0px' 
-            }}
+          <div
+            className="flex flex-row justify-between items-center gap-1 select-none"
+            style={{ fontFamily: 'Nunito, Inter, sans-serif', marginBottom: '0px' }}
           >
             {CATEGORY_CARDS.map((card, i) => {
               const isHonour = card.label?.toLowerCase().includes('honour');
-
               return (
                 <div
                   key={card.label}
@@ -3082,14 +2471,12 @@ const renderMineTab = () => (
                     transition: 'transform 420ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 280ms ease, opacity 420ms ease',
                     animation: mounted ? 'cardIn 560ms cubic-bezier(0.22,1,0.36,1) both' : 'none',
                     animationDelay: `${i * 100}ms`,
-                    position: 'relative', 
-                    overflow: 'hidden', 
+                    position: 'relative',
+                    overflow: 'hidden',
                     zIndex: 30
-                    
                   }}
                 >
-                  {/* 1. TOP GOLDEN HEADING (Aur neeche shift kar di) */}
-                  <div 
+                  <div
                     className="relative w-full text-center font-black uppercase tracking-wider select-none z-50 pointer-events-none"
                     style={{
                       paddingTop: '16px',
@@ -3105,17 +2492,15 @@ const renderMineTab = () => (
                     {card.label}
                   </div>
 
-                  {/* 2. CARD IMAGE (Sirf Honour card ke liye scale bada hai) */}
-                  <img 
-                    src={card.bgImage} 
-                    alt={card.label} 
+                  <img
+                    src={card.bgImage}
+                    alt={card.label}
                     className={`absolute inset-0 w-full h-full object-contain z-0 pointer-events-none translate-y-1 ${
                       isHonour ? 'scale-[1.08]' : 'scale-102'
                     }`}
                     draggable="false"
                   />
 
-                  {/* 3. FRAME & ANIMATION */}
                   <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-2">
                     <style dangerouslySetInnerHTML={{ __html: `
                       @keyframes shrinkAndFade {
@@ -3124,39 +2509,34 @@ const renderMineTab = () => (
                         100% { transform: scale(0); opacity: 0; }
                       }
                     `}} />
-                    
-                    <div 
+
+                    <div
                       className="relative w-[85%] mx-auto flex items-center justify-center z-10"
-                      style={{ 
-                        animation: 'shrinkAndFade 5s ease-in-out infinite', 
+                      style={{
+                        animation: 'shrinkAndFade 5s ease-in-out infinite',
                         marginBottom: '0px',
-                        transformOrigin: 'center' 
+                        transformOrigin: 'center'
                       }}
                     >
-                      <img 
-                        src="/file_00000000048882118276c7215012963f.png" 
-                        alt="Frame" 
-                        className="w-full h-auto block z-30"
-                        draggable="false"
-                      />
-                      
+                      <img src="/file_00000000048882118276c7215012963f.png" alt="Frame" className="w-full h-auto block z-30" draggable="false" />
+
                       <div className="absolute inset-0 flex flex-row items-center justify-center z-20">
-                        <img 
-                          src="/logo.png" 
-                          alt="Left" 
-                          className="rounded-full object-cover shadow-sm relative shrink-0" 
+                        <img
+                          src="/logo.png"
+                          alt="Left"
+                          className="rounded-full object-cover shadow-sm relative shrink-0"
                           style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginRight: '3%' }}
                         />
-                        <img 
-                          src="/logo.png" 
-                          alt="Middle" 
-                          className="rounded-full object-cover shadow-md border-[1.5px] border-white/80 relative shrink-0 z-10" 
-                          style={{ width: '32%', height: 'auto', aspectRatio: '1/1', marginBottom: '3%' }} 
+                        <img
+                          src="/logo.png"
+                          alt="Middle"
+                          className="rounded-full object-cover shadow-md border-[1.5px] border-white/80 relative shrink-0 z-10"
+                          style={{ width: '32%', height: 'auto', aspectRatio: '1/1', marginBottom: '3%' }}
                         />
-                        <img 
-                          src="/logo.png" 
-                          alt="Right" 
-                          className="rounded-full object-cover shadow-sm relative shrink-0" 
+                        <img
+                          src="/logo.png"
+                          alt="Right"
+                          className="rounded-full object-cover shadow-sm relative shrink-0"
                           style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginLeft: '3%' }}
                         />
                       </div>
@@ -3168,78 +2548,69 @@ const renderMineTab = () => (
           </div>
         </div>
 
-        {/* Global Rooms Grid */}
-{allRooms.length > 0 ? (
-  <div className="px-3" style={{ marginTop: isAndroid ? '3px' : '12px' }}>
-    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 ">
-      {allRooms.map((room) => (
-        <div
-          key={room.accountId}
-          onClick={() => handleUserCardClick({
-            id: room.id,
-            accountId: room.accountId,
-            name: room.name,
-            country: room.country,
-            image: room.image,
-            isLocked: room.isLocked
-          })}
-          className="cursor-pointer group"
-        >
-          <div 
-            className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-            style={{ height: '170px' }}
-          >
-            <img
-              src={
-                room.image && room.image !== "undefined" && room.image !== "null"
-                  ? room.image
-                  : "/default-avatar.png"
-              }
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/default-avatar.png";
-              }}
-              alt={room.name}
-              className="w-full h-full object-cover"
-              draggable="false"
-            />
-            {room.isLocked && (
-              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                </svg>
-              </div>
-            )}
+        {allRooms.length > 0 ? (
+          <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
+            <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 ">
+              {allRooms.map((room) => (
+                <div
+                  key={room.accountId}
+                  onClick={() => handleUserCardClick({
+                    id: room.id,
+                    accountId: room.accountId,
+                    name: room.name,
+                    country: room.country,
+                    image: room.image,
+                    isLocked: room.isLocked
+                  })}
+                  className="cursor-pointer group"
+                >
+                  <div
+                    className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                    style={{ height: '170px' }}
+                  >
+                    <img
+                      src={
+                        room.image && room.image !== "undefined" && room.image !== "null"
+                          ? room.image
+                          : "/default-avatar.png"
+                      }
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/default-avatar.png";
+                      }}
+                      alt={room.name}
+                      className="w-full h-full object-cover"
+                      draggable="false"
+                    />
+                    {room.isLocked && (
+                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                        </svg>
+                      </div>
+                    )}
 
-            {/* 👇 LIVE ROOM STATS — Golden animation + S number */}
-            <LiveRoomStats />
+                    <LiveRoomStats />
+                  </div>
 
-          </div>
-          
-          <div className="mt-0.5 px-1">
-            <div className="flex items-center gap-0.5">
-              <span className="text-sm">{room.country}</span>
-              <span className="font-semibold text-gray-900 text-sm truncate">
-                {room.name}
-              </span>
+                  <div className="mt-0.5 px-1">
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-sm">{room.country}</span>
+                      <span className="font-semibold text-gray-900 text-sm truncate">
+                        {room.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      ))}
-    </div>
-  </div>
-) : null}
+        ) : null}
       </>
-      );
+    );
   };
-    
-
-
-
-          
 
   // ============ MAIN RETURN ============
   return (
-        
     <div
       className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-100 to-white"
       style={{
@@ -3251,95 +2622,42 @@ const renderMineTab = () => (
         WebkitTouchCallout: 'none'
       }}
     >
-      <div 
-        ref={jitsiContainerRef} 
-        className="absolute inset-0 z-0 opacity-0 pointer-events-none" 
-        style={{ width: '1px', height: '1px' }} 
+      <div
+        ref={jitsiContainerRef}
+        className="absolute inset-0 z-0 opacity-0 pointer-events-none"
+        style={{ width: '1px', height: '1px' }}
       />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&display=swap');
-        * {
-          -webkit-text-size-adjust: 100%;
-          -ms-text-size-adjust: 100%;
-          touch-action: manipulation;
-        }
-        button, a, div, span {
-          touch-action: manipulation;
-        }
-        @keyframes cardIn {
-          0% { opacity: 0; transform: translateY(14px) scale(0.96); }
-          100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes fadeInBanner {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-        }
-        @keyframes deletePulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-        @keyframes modalFadeIn {
-          0% { opacity: 0; transform: scale(0.9); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes modalOverlayIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes slideDownNotif {
-          0% { transform: translateY(-100%) scale(0.95); opacity: 0; }
-          100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
-        .animate-slide-down {
-          animation: slideDownNotif 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes slideUpSheet {
-          0% { transform: translateY(100%); }
-          100% { transform: translateY(0); }
-        }
-        @keyframes popIconAnim {
-          0% { transform: scale(0.7); opacity: 0.5; }
-          60% { transform: scale(1.15); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        .icon-active-anim {
-          animation: popIconAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-          transform-origin: center;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .truncate {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+        * { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; touch-action: manipulation; }
+        button, a, div, span { touch-action: manipulation; }
+        @keyframes cardIn { 0% { opacity: 0; transform: translateY(14px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeInBanner { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); } }
+        @keyframes deletePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes modalFadeIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes modalOverlayIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes slideDownNotif { 0% { transform: translateY(-100%) scale(0.95); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
+        .animate-slide-down { animation: slideDownNotif 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUpSheet { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
+        @keyframes popIconAnim { 0% { transform: scale(0.7); opacity: 0.5; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        .icon-active-anim { animation: popIconAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform-origin: center; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       `}</style>
 
-      {/* Invite Friends Modal */}
       {isInviteFriendsOpen && (
         <div className="fixed inset-0 z-[200]">
           <InviteFriends
             onBack={() => {
               setIsInviteFriendsOpen(false)
-              if (window.history.state?.inviteFriendsModal) {
-                window.history.back()
-              }
+              if (window.history.state?.inviteFriendsModal) window.history.back()
             }}
             onClose={() => {
               setIsInviteFriendsOpen(false)
-              if (window.history.state?.inviteFriendsModal) {
-                window.history.back()
-              }
+              if (window.history.state?.inviteFriendsModal) window.history.back()
             }}
           />
         </div>
@@ -3377,166 +2695,20 @@ const renderMineTab = () => (
       )}
 
       {isSearchOpen && (
-        <div
-          className="fixed inset-0 z-[120] bg-white flex flex-col"
-          style={{
-            animation: 'slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            height: viewportHeight ? 'calc(var(--vh, 1vh) * 100)' : '100vh'
-          }}
-        >
-          <div className="flex items-center gap-2.5 px-4 pb-3 border-b border-gray-100 safe-top">
-            <button
-              onClick={() => setIsSearchOpen(false)}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 active:scale-95 transition-all"
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2D2D2D" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
-            </button>
-            <div className="flex-1 flex items-center bg-gradient-to-r from-gray-100/90 to-blue-50/70 border border-white/60 shadow-inner rounded-full px-4 py-2 backdrop-blur-md">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by ID or name..."
-                className="w-full bg-transparent text-sm font-semibold text-gray-800 placeholder-gray-400 outline-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handlePerformSearch()
-                }}
-              />
-            </div>
-            <button
-              onClick={() => handlePerformSearch()}
-              className="p-2.5 bg-gradient-to-tr from-blue-500 to-indigo-500 text-white rounded-full shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="flex px-4 border-b border-gray-100 mt-1">
-            <button
-              type="button"
-              onClick={() => setActiveSearchTab('user')}
-              className={`py-3 px-6 text-sm font-bold relative transition-colors ${
-                activeSearchTab === 'user' ? 'text-blue-600' : 'text-gray-400'
-              }`}
-            >
-              User
-              {activeSearchTab === 'user' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSearchTab('room')}
-              className={`py-3 px-6 text-sm font-bold relative transition-colors ${
-                activeSearchTab === 'room' ? 'text-blue-600' : 'text-gray-400'
-              }`}
-            >
-              Room
-              {activeSearchTab === 'room' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />
-              )}
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50 hide-scrollbar">
-            {isSearching ? (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p className="text-xs font-semibold">Searching...</p>
-              </div>
-            ) : hasSearched ? (
-              searchResults.length > 0 ? (
-                <div className="flex flex-col gap-3">
-                  {searchResults.map((user) => (
-                    activeSearchTab === 'user' ? (
-                      <div
-                        key={user.accountId}
-                        onClick={() => handleUserProfileClick({
-                          id: user.id || user.accountId,
-                          accountId: user.accountId,
-                          name: user.name,
-                          country: user.country,
-                          image: user.image
-                        })}
-                        className="flex items-center gap-3.5 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer hover:shadow-md"
-                      >
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-100">
-                          <img
-                            src={user.image}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-gray-900 text-sm truncate">{user.name}</span>
-                            <span className="text-xs">{user.country}</span>
-                          </div>
-                          <span className="text-xs text-gray-400 mt-0.5 font-medium">ID: {user.accountId}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        key={user.accountId}
-                        onClick={() => handleUserCardClick({
-                          id: user.id || user.accountId,
-                          accountId: user.accountId,
-                          name: user.name,
-                          country: user.country,
-                          image: user.image,
-                          isLocked: user.isLocked
-                        })}
-                        className="flex items-center gap-3.5 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer hover:shadow-md"
-                      >
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-100">
-                          <img
-                            src={user.image}
-                            alt={user.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-gray-900 text-sm truncate">{user.name}</span>
-                            <span className="text-xs">{user.country}</span>
-                          </div>
-                          <span className="text-xs text-gray-400 mt-0.5 font-medium">ID: {user.accountId}</span>
-                        </div>
-                        <div className="px-3.5 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-xs font-bold rounded-full shadow-sm">
-                          Enter
-                        </div>
-                      </div>
-                    )
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-2 opacity-40">
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
-                  <p className="text-sm font-semibold">No result found</p>
-                  <p className="text-xs text-gray-400 mt-1">Try different ID or name</p>
-                </div>
-              )
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3 opacity-40">
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <p className="text-sm font-semibold mb-1">Search {activeSearchTab === 'user' ? 'Users' : 'Rooms'}</p>
-                <p className="text-xs font-medium text-gray-400">Enter ID or name to find people</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <SearchPage
+          onClose={() => setIsSearchOpen(false)}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeSearchTab={activeSearchTab}
+          setActiveSearchTab={setActiveSearchTab}
+          searchResults={searchResults}
+          hasSearched={hasSearched}
+          isSearching={isSearching}
+          onPerformSearch={handlePerformSearch}
+          onUserProfileClick={handleUserProfileClick}
+          onUserCardClick={handleUserCardClick}
+          viewportHeight={viewportHeight}
+        />
       )}
 
       <DailyCheckInModal
@@ -3550,9 +2722,7 @@ const renderMineTab = () => (
         <div
           ref={deleteZoneRef}
           className="fixed bottom-4 right-4 z-[60] transition-all duration-300"
-          style={{
-            animation: isOverDeleteZone ? 'deletePulse 0.5s ease-in-out infinite' : 'none'
-          }}
+          style={{ animation: isOverDeleteZone ? 'deletePulse 0.5s ease-in-out infinite' : 'none' }}
         >
           <div
             className={`flex items-center justify-center rounded-full transition-all duration-300 ${
@@ -3586,11 +2756,7 @@ const renderMineTab = () => (
           className={`fixed z-50 cursor-grab active:cursor-grabbing group ${
             isDragging ? 'transition-none' : 'transition-all duration-300'
           } ${isOverDeleteZone ? 'opacity-50 scale-75' : 'opacity-100'}`}
-          style={{
-            left: `${dragPosition.x}px`,
-            top: `${dragPosition.y}px`,
-            touchAction: 'none'
-          }}
+          style={{ left: `${dragPosition.x}px`, top: `${dragPosition.y}px`, touchAction: 'none' }}
           onClick={handleKeptRoomClick}
           onMouseDown={handleCircleMouseDown}
           onTouchStart={handleCircleTouchStart}
@@ -3618,32 +2784,25 @@ const renderMineTab = () => (
       )}
 
       {!isChatOpen && currentPage !== 'room' && !isPublicProfileActive && !isSearchOpen && currentPage !== 'leaderboard' && (
-        <div 
+        <div
           className="fixed right-4 z-40"
-          style={{
-            bottom: 'calc(75px + max(env(safe-area-inset-bottom, 0px),16px))'
-          }}
+          style={{ bottom: 'calc(75px + max(env(safe-area-inset-bottom, 0px),16px))' }}
         >
           <img
             src="/IMG_20260916_002115.png"
             alt="Corner decoration"
             className="rounded-none object-contain cursor-pointer hover:scale-105 transition-transform active:scale-95"
-            style={{
-              width: '70px',
-              height: '70px',
-            }}
+            style={{ width: '70px', height: '70px' }}
             onClick={handleImageClick}
           />
         </div>
       )}
 
       <div className="w-full">
-               {currentPage === 'home' && (
+        {currentPage === 'home' && (
           <div
             className="w-full bg-white"
-            style={{
-              minHeight: viewportHeight ? `calc(var(--vh, 1vh) * 100)` : '100vh'
-            }}
+            style={{ minHeight: viewportHeight ? `calc(var(--vh, 1vh) * 100)` : '100vh' }}
           >
             <div
               ref={bannerContainerRef}
@@ -3657,18 +2816,13 @@ const renderMineTab = () => (
                 paddingBottom: '12px'
               }}
             >
-              {/* --- HEADER START --- */}
               <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
-                
-                {/* Left side: Tabs "Mine" and "Popular" */}
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('mine')}
                     className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
-                      activeTab === 'mine'
-                        ? 'font-extrabold text-[#1E1E1E]'
-                        : 'text-[#6E6E6E]'
+                      activeTab === 'mine' ? 'font-extrabold text-[#1E1E1E]' : 'text-[#6E6E6E]'
                     }`}
                   >
                     {t.mine || 'Mine'}
@@ -3683,9 +2837,7 @@ const renderMineTab = () => (
                     type="button"
                     onClick={() => setActiveTab('popular')}
                     className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
-                      activeTab === 'popular'
-                        ? 'font-extrabold text-[#1E1E1E]'
-                        : 'text-[#6E6E6E]'
+                      activeTab === 'popular' ? 'font-extrabold text-[#1E1E1E]' : 'text-[#6E6E6E]'
                     }`}
                   >
                     {t.popular || 'Popular'}
@@ -3697,7 +2849,6 @@ const renderMineTab = () => (
                   </button>
                 </div>
 
-                {/* Right side: Icons (Original Icons) */}
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -3732,76 +2883,88 @@ const renderMineTab = () => (
                   </button>
                 </div>
               </div>
-              {/* --- HEADER END --- */}
 
               {activeTab === 'popular' && (
-  <>
-    <div className="relative">
-      <div
-        ref={bannerRef}
-        className="rounded-md relative overflow-hidden cursor-pointer select-none"
-        style={{
-          height: '100px',
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
-        }}
-        onClick={() => {
-          if (Math.abs(swipeOffset) < 10) {
-            if (currentBanner === 0 || BANNERS[currentBanner]?.image.includes('file_00000000a8b08211bd12c4102d0f9d77')) {
-              setIsInviteFriendsOpen(true)
-            }
-          }
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div
-          key={currentBanner}
-          className="w-full h-full"
-          style={{ animation: isSwiping ? 'none' : 'fadeInBanner 400ms ease-out' }}
-        >
-          <img
-            src={BANNERS[currentBanner].image}
-            alt="Banner"
-            className="w-full h-full object-cover rounded-md pointer-events-none"
-            draggable="false"
-          />
-        </div>
-      </div>
+                <>
+                  <div className="relative">
+                    <div
+                      ref={bannerRef}
+                      className="rounded-md relative overflow-hidden cursor-pointer select-none"
+                      style={{
+                        height: '100px',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
+                        transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+                        touchAction: 'pan-y',
+                      }}
+                      onClick={() => {
+                        if (Math.abs(swipeOffset) < 10) {
+                          if (currentBanner === 0 || BANNERS[currentBanner]?.image.includes('file_00000000a8b08211bd12c4102d0f9d77')) {
+                            setIsInviteFriendsOpen(true)
+                          }
+                        }
+                      }}
+                      onTouchStart={handleTouchStart}
+                      onTouchMove={handleTouchMove}
+                      onTouchEnd={handleTouchEnd}
+                      onMouseDown={handleMouseDown}
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div
+                        key={currentBanner}
+                        className="w-full h-full"
+                        style={{ animation: isSwiping ? 'none' : 'fadeInBanner 400ms ease-out' }}
+                      >
+                        <img
+                          src={BANNERS[currentBanner].image}
+                          alt="Banner"
+                          className="w-full h-full object-cover rounded-md pointer-events-none"
+                          draggable="false"
+                        />
+                      </div>
+                    </div>
 
-      {/* Dots ab banner ke UPAR overlap karenge, bottom pe */}
-      <div
-        ref={bannerDotsRef}
-        className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
-        style={{ bottom: '6px', minHeight: '6px' }}
-      >
-        {BANNERS.map((_, index) => (
-          <div
-            key={index}
-            className={`w-1.5 h-1.5 rounded-full transition-all ${
-              index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
-            }`}
-          />
-        ))}
-      </div>
-    </div>
-  </>
-)}
+                    <div
+                      ref={bannerDotsRef}
+                      className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
+                      style={{ bottom: '6px', minHeight: '6px' }}
+                    >
+                      {BANNERS.map((_, index) => (
+                        <div
+                          key={index}
+                          className={`w-1.5 h-1.5 rounded-full transition-all ${
+                            index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
-            {activeTab === 'mine' ? renderMineTab() : renderPopularTab()}
+            {activeTab === 'mine' ? (
+              <MinePage
+                t={t}
+                isRoomCreated={isRoomCreated}
+                myRoom={myRoom}
+                userPhoto={userPhoto}
+                userName={userName}
+                onCardClick={handleCardClick}
+                activeMineTab={activeMineTab}
+                setActiveMineTab={setActiveMineTab}
+                followingRooms={followingRooms}
+                recentRooms={recentRooms}
+                onUserCardClick={handleUserCardClick}
+              />
+            ) : renderPopularTab()}
           </div>
         )}
-
 
         {currentPage === 'message' && (
           <MessagePage onChatOpen={setIsChatOpen} onJoinRoom={handleJoinRoomFromChat} />
@@ -3818,8 +2981,8 @@ const renderMineTab = () => (
           <RoomPage
             roomOwner={selectedUser}
             currentUser={{
-              id: currentAccountId,
-              uid: currentAccountId,
+              id: userUID,
+              uid: userUID,
               accountId: (() => {
                 const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
                 return typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
@@ -3864,18 +3027,16 @@ const renderMineTab = () => (
       </div>
 
       {!isChatOpen && currentPage !== 'room' && !isPublicProfileActive && !isSearchOpen && currentPage !== 'leaderboard' && (
-        <div 
+        <div
           className="fixed bottom-0 left-0 right-0 flex justify-center z-30 bg-white"
-          style={{
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)'
-          }}
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex justify-around items-center bg-white border-t border-zinc-100 shadow-lg px-3 py-1.5 w-full h-[65px]">
             <button
               onClick={() => setCurrentPage('home')}
               className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
             >
-              <svg 
+              <svg
                 key={currentPage === 'home' ? 'home-active' : 'home-inactive'}
                 className={currentPage === 'home' ? 'icon-active-anim' : ''}
                 width="30" height="30" viewBox="0 0 36 36" fill="none"
@@ -3887,18 +3048,8 @@ const renderMineTab = () => (
                   strokeWidth="2.4"
                   strokeLinejoin="round"
                 />
-                <path
-                  d="M12.2 14.2C13.3 12.6 14.9 12.1 16.8 13.4"
-                  stroke="#1D1D1F"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M11.2 20.8C12.5 24.2 21 25.6 24.3 20.2"
-                  stroke="#1D1D1F"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
+                <path d="M12.2 14.2C13.3 12.6 14.9 12.1 16.8 13.4" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round" />
+                <path d="M11.2 20.8C12.5 24.2 21 25.6 24.3 20.2" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
               <span className={`text-[12px] ${currentPage === 'home' ? 'font-semibold text-black' : 'text-gray-500'}`}>
                 {t.home}
@@ -3910,7 +3061,7 @@ const renderMineTab = () => (
               className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
             >
               <div className="relative">
-                <svg 
+                <svg
                   key={currentPage === 'message' ? 'message-active' : 'message-inactive'}
                   className={currentPage === 'message' ? 'icon-active-anim' : ''}
                   width="30" height="30" viewBox="0 0 36 36" fill="none"
@@ -3929,7 +3080,7 @@ const renderMineTab = () => (
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white shadow-sm animate-pulse">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}
@@ -3943,7 +3094,7 @@ const renderMineTab = () => (
               onClick={() => setCurrentPage('me')}
               className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
             >
-              <svg 
+              <svg
                 key={currentPage === 'me' ? 'me-active' : 'me-inactive'}
                 className={currentPage === 'me' ? 'icon-active-anim' : ''}
                 width="30" height="30" viewBox="0 0 36 36" fill="none"
@@ -3966,4 +3117,4 @@ const renderMineTab = () => (
       )}
     </div>
   )
-}
+              }
