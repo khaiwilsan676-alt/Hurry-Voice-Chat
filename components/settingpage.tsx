@@ -27,6 +27,10 @@ export default function SettingPage({
   const [showAboutView, setShowAboutView] = useState(false)
 
   useEffect(() => {
+    const savedNotifications = localStorage.getItem('appNotifications');
+    if (savedNotifications !== null) {
+      setIsNotificationsEnabled(savedNotifications === 'true');
+    }
     const savedLang = localStorage.getItem('appLanguage') as LanguageCode
     if (savedLang) {
       setAppLang(savedLang)
@@ -45,7 +49,11 @@ export default function SettingPage({
   const t = getTranslation(appLang)
 
   const toggleSwitch = () => {
-    setIsNotificationsEnabled((prev) => !prev)
+    setIsNotificationsEnabled((prev) => {
+      const newVal = !prev;
+      localStorage.setItem('appNotifications', String(newVal));
+      return newVal;
+    });
   }
 
   const handleLogout = async () => {
