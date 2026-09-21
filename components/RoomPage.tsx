@@ -1628,47 +1628,32 @@ function RoomContent({
   };
 
 
-  const handleEmojiSelect = (emojiData: any) => {
-    handleSeatEmoji(emojiData);
-  };
+    const handleSeatEmoji = async (emojiData: any) => {
+    if (!hasSeat || !currentUserSeat) return;
 
-  const handleClearChat = async () => {
-    const clearTime = Date.now();
-    clearedAtRef.current = clearTime;
-    setMessages([]);
+    const sendTimestamp = Date.now();
+    const seatNum = currentUserSeat.number;
 
-    socket.emit("room_clear_chat", {
-      roomId,
+    setSeats(prev => prev.map(s => s.number === seatNum ? {
+      ...s,
+      gif: {
+        src: emojiData.src,
+        timestamp: sendTimestamp,
+      }
+    } : s));
+
+    emitSeatAction("emoji", seatNum, {
+      src: emojiData.src,
+      timestamp: sendTimestamp,
     });
 
-    try {
-      const db = await openRoomMessagesDB();
-      const transaction = db.transaction(
-        [ROOM_MESSAGES_STORE],
-        "readwrite"
-      );
-      const store = transaction.objectStore(ROOM_MESSAGES_STORE);
-      const index = store.index("roomId");
-      const request = index.openCursor(roomId);
-
-      request.onsuccess = () => {
-        const cursor = request.result;
-
-        if (cursor) {
-          cursor.delete();
-          cursor.continue();
-        } else {
-          db.close();
-        }
-      };
-
-      request.onerror = () => {
-        console.error("IndexedDB clear chat error:", request.error);
-        db.close();
-      };
-    } catch (err) {
-      console.error("Clear chat error:", err);
-    }
+    // 5 second ka timer wapas laga diya hai, ab emoji 5 second baad apne aap hat jayega
+    setTimeout(() => {
+      setSeats(prev => prev.map(s => s.number === seatNum ? {
+        ...s,
+        gif: undefined
+      } : s));
+    }, 5000);
   };
 
   const liveUserCount = roomUsers.length;
@@ -1696,7 +1681,7 @@ function RoomContent({
 
     if (micMode === 5) {
       return (
-        <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '70px' } as React.CSSProperties}>
+        <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '85px' } as React.CSSProperties}>
           <div className="flex justify-center">{renderSeatItems([1])}</div>
           <div className="flex justify-around items-center w-full px-0">{renderSeatItems([2, 3, 4, 5])}</div>
         </div>
@@ -2114,7 +2099,7 @@ function RoomContent({
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
-                      <div className="flex flex-col bg-black/10 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
+                      <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
                         <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
                         <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                       </div>
@@ -2146,7 +2131,7 @@ function RoomContent({
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div className="px-2 py-1.5 rounded-xl bg-black/10 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                        <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
                           <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
                         </div>
                       </div>
@@ -2161,7 +2146,7 @@ function RoomContent({
 
         {/* Footer Controls */}
         <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-          <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center justify-between gap-1 ">
             <button
               onClick={openChatInput}
               aria-label="Say Hi Chat"
@@ -2871,7 +2856,7 @@ function RoomContent({
           --header-follow-btn-size: 22px;
           --header-follow-icon-size: 14px;
           --header-count-size: 11px;
-          --footer-btn-size: 52px;
+          --footer-btn-size: 47px;
           --footer-icon-size: 30px;
           --footer-input-text: 13px;
           --announcement-text-size: 13px;
@@ -3054,7 +3039,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 draggable={false}
               />
               <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center z-10"
-                style={{ width: '70%', height: '70%' }}>
+                style={{ width: '71%', height: '71%' }}>
                 
                 <img
                   src={user.image || "/default-avatar.png"}
