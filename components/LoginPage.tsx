@@ -539,7 +539,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   // Auto close ban message after 3 seconds
   useEffect(() => {
     if (banMessage) {
-      const timer = setTimeout(() => setBanMessage(null), 3000);
+      const timer = setTimeout(() => setBanMessage(null), 5000);
       return () => clearTimeout(timer);
     }
   }, [banMessage]);
@@ -1383,7 +1383,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       {/* BAN NOTIFICATION CARD - auto closes in 3s, no close button */}
       {banMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap min-w-[280px] max-w-[90vw]">
+        <div className="fixed bottom-[10vh] left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap min-w-[280px] max-w-[90vw]">
           {banMessage}
         </div>
       )}
