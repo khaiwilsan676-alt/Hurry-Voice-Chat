@@ -213,22 +213,7 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const res = await fetch(apiUrl(`/api/livekit?room=${roomId}&username=${encodeURIComponent(currentUser.name)}&identity=${userAccountId}`));
-        const data = await res.json();
-        if (data.token) {
-          setLivekitToken(data.token);
-        }
-      } catch (err) {
-        console.error("Error fetching LiveKit token:", err);
-      }
-    };
-    if (roomId && currentUser.name && userAccountId !== "guest") {
-      fetchToken();
-    }
-  }, [roomId, currentUser.name, userAccountId]);
+
 
   return (
     <RoomVoiceJitsi
@@ -502,7 +487,7 @@ function RoomContent({
           jitsiApi.executeCommand("setAudioMute", !desiredState);
         }
       }
-    }, [currentUserSeat?.isMuted, hasSeat]);
+    }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
     let mounted = true;
 
     useEffect(() => {
