@@ -518,6 +518,23 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     video.preload = 'auto';
   }, []);
 
+  // Check recent ban on mount
+  useEffect(() => {
+    const recentBanStr = localStorage.getItem('recentBanMessage');
+    if (recentBanStr) {
+      try {
+        const banData = JSON.parse(recentBanStr);
+        const type = banData.type || 'Violation';
+        let unbanTimeStr = 'Never';
+        if (banData.unbanTime && banData.unbanTime !== -1) {
+          unbanTimeStr = new Date(banData.unbanTime).toLocaleString();
+        }
+        setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+      } catch (e) {}
+      localStorage.removeItem('recentBanMessage');
+    }
+  }, []);
+
   const handleGenderContinue = (gender: string) => {
     setPendingGender(gender)
     setShowGenderPage(false)
@@ -552,7 +569,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           if (banData.banData.unbanTime !== -1) {
             unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
           }
-          setBanMessage(`You Account Have been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
+          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
           setLoading(false);
           return; // Stop login
         }
@@ -1316,11 +1333,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       {/* BAN NOTIFICATION CARD */}
       {banMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-sm px-6 py-3 rounded-full text-center max-w-[90%] shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-2">
-          {banMessage}
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-3 min-w-[280px]">
+          <span className="font-medium">{banMessage}</span>
           <button
             onClick={() => setBanMessage(null)}
-            className="text-xs bg-white/20 px-3 py-1 rounded-full w-fit mx-auto"
+            className="text-xs bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-full w-fit mx-auto transition-colors"
           >
             Close
           </button>

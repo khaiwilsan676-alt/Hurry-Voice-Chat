@@ -1611,7 +1611,12 @@ app.post("/api/bans", async (req, res) => {
       { $set: data },
       { upsert: true }
     );
-    io.emit('banned_logout', { accountId: data.accountId });
+    io.emit('banned_logout', {
+      accountId: data.accountId,
+      userId: data.userId,
+      type: data.type,
+      unbanTime: data.unbanTime
+    });
     res.json({ success: true });
   } catch (err) {
     console.error("POST /api/bans error:", err);

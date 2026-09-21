@@ -1,0 +1,179 @@
+Wait, let's verify `Device` in `app/page.tsx`.
+Currently, `app/page.tsx` does NOT import `Device`. I should import it dynamically or at the top.
+Also, the ban check in `LoginPage.tsx` is already correctly showing a bottom popup, but we need to ensure the styling is strictly `bg-black/90` or `bg-black/10` as requested. The prompt says "Black/10 back card" which probably means `bg-black/90` with maybe `backdrop-blur-sm` or just a semi-transparent black card. The current style is `bg-black/80`. I'll change it to `bg-black/90` to make it a bit darker but still slightly transparent.
+Text requested: "Your Account Has been ban Due to lllegal ect Jo bhi Types hai wo hoga Unban Time idhr likhdene bss samjhaa"
+So:
+```tsx
+  Your Account Has been ban Due to {type}
+  Unban Time: {unbanTimeStr}
+```
+Yes, this matches perfectly.
+
+Is `userId` stored in bans?
+`ownerban.tsx`:
+```tsx
+    const payload = {
+      accountId: targetUser.accountId,
+      userId: targetUser.id || targetUser.uid,
+      type: timeOption,
+      unbanTime: unbanTimestamp,
+      description: description,
+      ipAddress: tUser.lastIp || '',
+      deviceId: tUser.lastDeviceId || ''
+    }
+```
+Yes, `userId` is in the payload. So `backend/server.js` stores it.
+
+Let's modify `backend/server.js`:
+```javascript
+<<<<<<< SEARCH
+    io.emit('banned_logout', { accountId: data.accountId });
+=======
+    io.emit('banned_logout', { accountId: data.accountId, userId: data.userId, type: data.type, unbanTime: data.unbanTime });
+>>>>>>> REPLACE
+```
+
+In `components/HomePage.tsx`:
+```tsx
+<<<<<<< SEARCH
+    const handleBanLogout = (data: any) => {
+      const myId = localStorage.getItem('accountNumber');
+      if (myId === data.accountId) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    };
+=======
+    const handleBanLogout = (data: any) => {
+      const myId = String(localStorage.getItem('accountNumber'));
+      const myUid = String(localStorage.getItem('userUID'));
+      if (myId === String(data.accountId) || (data.userId && myUid === String(data.userId))) {
+        localStorage.setItem('recentBanMessage', JSON.stringify({
+          type: data.type || 'Violation',
+          unbanTime: data.unbanTime || -1
+        }));
+        if (onLogout) {
+          onLogout();
+        } else {
+          localStorage.clear();
+          window.location.reload();
+        }
+      }
+    };
+>>>>>>> REPLACE
+```
+
+Wait, `onLogout` in `app/page.tsx` unmounts `HomePage` and mounts `LoginPage`.
+In `LoginPage.tsx`, we need to read `recentBanMessage` on mount:
+```tsx
+  useEffect(() => {
+    const recentBanStr = localStorage.getItem('recentBanMessage');
+    if (recentBanStr) {
+      try {
+        const banData = JSON.parse(recentBanStr);
+        const type = banData.type || 'Violation';
+        let unbanTimeStr = 'Never';
+        if (banData.unbanTime && banData.unbanTime !== -1) {
+          unbanTimeStr = new Date(banData.unbanTime).toLocaleString();
+        }
+        setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+      } catch (e) {}
+      localStorage.removeItem('recentBanMessage');
+    }
+  }, []);
+```
+
+Also modify the existing ban check message in `LoginPage.tsx`:
+```tsx
+<<<<<<< SEARCH
+          setBanMessage(`You Account Have been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
+=======
+          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+>>>>>>> REPLACE
+```
+
+Let's modify `app/page.tsx` to include the initial ban check:
+```tsx
+<<<<<<< SEARCH
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsLoggedIn(true)
+        setLoading(false)
+      } else {
+        // Fallback to LocalStorage Check
+        const userUID = localStorage.getItem('userUID')
+        const userEmail = localStorage.getItem('userEmail')
+        const userPhone = localStorage.getItem('userPhone')
+
+        if (userUID || userEmail || userPhone) {
+          setIsLoggedIn(true)
+        } else {
+          setIsLoggedIn(false)
+        }
+        setLoading(false)
+      }
+    });
+
+    return () => unsubscribe();
+  }, [])
+=======
+  useEffect(() => {
+    const checkUserStatus = async (user: any, fallbackUid?: string) => {
+      const uid = user ? user.uid : fallbackUid;
+      const accountId = localStorage.getItem('accountNumber');
+      if (uid || accountId) {
+        try {
+          const { Device } = await import('@capacitor/device');
+          const deviceIdInfo = await Device.getId();
+          const deviceId = deviceIdInfo.identifier;
+          const { apiUrl } = await import('@/src/lib/api');
+          const res = await fetch(apiUrl('/api/check-ban'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId: accountId || 'N/A', deviceId })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.banned) {
+              localStorage.setItem('recentBanMessage', JSON.stringify(data.banData));
+              handleLogout();
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Ban check failed:", e);
+        }
+      }
+      setIsLoggedIn(true);
+      setLoading(false);
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        checkUserStatus(user);
+      } else {
+        // Fallback to LocalStorage Check
+        const userUID = localStorage.getItem('userUID')
+        const userEmail = localStorage.getItem('userEmail')
+        const userPhone = localStorage.getItem('userPhone')
+
+        if (userUID || userEmail || userPhone) {
+          checkUserStatus(null, userUID);
+        } else {
+          setIsLoggedIn(false)
+          setLoading(false)
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [])
+>>>>>>> REPLACE
+```
+
+Wait, `handleLogout` is defined below the `useEffect` in `app/page.tsx`!
+I can't call `handleLogout` before it's initialized because it's a `const`.
+Ah, `handleLogout` is declared as a `const` arrow function.
+Let's change `handleLogout` to be inside a `useCallback` or just change the `useEffect` to use the logic directly. Or I can declare `handleLogout` before `useEffect` or as a `function handleLogout() {}`.
+Yes, change `const handleLogout = async () => { ... }` to `async function handleLogout() { ... }` and place it above `useEffect`.
