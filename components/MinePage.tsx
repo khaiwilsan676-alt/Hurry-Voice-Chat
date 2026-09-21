@@ -110,7 +110,7 @@ export default function MinePage({
               <h3 className="text-white font-bold text-xl leading-tight">
                 {myRoom?.name && myRoom.name !== 'My Room' && myRoom.name !== 'My room'
                   ? myRoom.name
-                  : (userName ? `${userName}'s Room` : 'Voice Chat Room')}
+                  : ("hurry User@")}
               </h3>
               <p className="text-white/80 text-sm mt-1 font-medium">
                 {t.enterRoomSubtitle || 'Tap to enter your room'}
