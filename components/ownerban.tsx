@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { MoreVertical, X } from 'lucide-react'
+import { MoreVertical, X, ChevronDown } from 'lucide-react'
 import { apiUrl } from "@/src/lib/api"
 
 export default function OwnerBan() {
@@ -19,11 +19,15 @@ export default function OwnerBan() {
   const [isUnbanConfirmOpen, setIsUnbanConfirmOpen] = useState(false)
   const [unbanReason, setUnbanReason] = useState('')
 
+  // Custom Dropdown State (To control which list is open)
+  const [openDropdown, setOpenDropdown] = useState('')
+
   // Ban form fields
   const [inlineUserId, setInlineUserId] = useState('') 
   const [description, setDescription] = useState('')
   const [banType, setBanType] = useState('Illegal')
-  const [banBy, setBanBy] = useState('Official staff') // Member state
+  const [banBy, setBanBy] = useState('Official staff')
+  const [memberName, setMemberName] = useState('') 
   const [timeOption, setTimeOption] = useState('2Hours')
   const [customTime, setCustomTime] = useState('')
   const [unbanTimeStr, setUnbanTimeStr] = useState('')
@@ -73,8 +77,10 @@ export default function OwnerBan() {
     setDescription('')
     setBanType('Illegal')
     setBanBy('Official staff')
+    setMemberName('')
     setTimeOption('2Hours')
     setCustomTime('')
+    setOpenDropdown('')
   }
 
   const calculateUnbanTime = () => {
@@ -132,6 +138,7 @@ export default function OwnerBan() {
             userImage: tUser.image || tUser.avatar,
             type: banType,
             banBy: banBy,
+            memberName: memberName,
             timeOption: timeOption,
             customTime: customTime,
             banTime: now.getTime(),
@@ -148,6 +155,7 @@ export default function OwnerBan() {
           if (resBan.ok) {
             setInlineUserId('')
             setDescription('')
+            setMemberName('')
             fetchBans()
             alert("Banned successfully")
           }
@@ -184,6 +192,7 @@ export default function OwnerBan() {
       userImage: targetUser.image || targetUser.avatar,
       type: banType,
       banBy: banBy,
+      memberName: memberName,
       timeOption: timeOption,
       customTime: customTime,
       banTime: now.getTime(),
@@ -260,65 +269,98 @@ export default function OwnerBan() {
           />
         </div>
 
-        {/* Member Section (Bina dropdown ke, chote cards me options) */}
+        {/* CUSTOM DROPDOWN: Member */}
         <div>
           <div className="font-semibold mb-1">Member</div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setBanBy('Head')}
-              className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
-                banBy === 'Head' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-              }`}
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-member' ? '' : 'inline-member')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
             >
-              Head
-            </button>
-            <button
-              type="button"
-              onClick={() => setBanBy('Official staff')}
-              className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
-                banBy === 'Official staff' 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-              }`}
-            >
-              Official staff
-            </button>
+              <span>{banBy}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-member' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['Head', 'Official staff'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setBanBy(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Name of the member Input */}
         <div>
-          <div className="font-semibold mb-1">Types</div>
-          <select
-            value={banType}
-            onChange={(e) => setBanType(e.target.value)}
-            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
-          >
-            <option value="Illegal">Illegal</option>
-            <option value="Violence">Violence</option>
-            <option value="Fraud">Fraud</option>
-            <option value="Abusing">Abusing</option>
-            <option value="Fake official">Fake official</option>
-            <option value="Others">Others</option>
-          </select>
+          <div className="font-semibold mb-1">Name of the member</div>
+          <input
+            type="text"
+            value={memberName}
+            onChange={(e) => setMemberName(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Enter member name"
+          />
         </div>
 
+        {/* CUSTOM DROPDOWN: Types */}
+        <div>
+          <div className="font-semibold mb-1">Types</div>
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-types' ? '' : 'inline-types')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+            >
+              <span>{banType}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-types' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['Illegal', 'Violence', 'Fraud', 'Abusing', 'Fake official', 'Others'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setBanType(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* CUSTOM DROPDOWN: Time */}
         <div>
           <div className="font-semibold mb-1">Time</div>
-          <select
-            value={timeOption}
-            onChange={(e) => setTimeOption(e.target.value)}
-            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
-          >
-            <option value="2Hours">2Hours</option>
-            <option value="24Hours">24Hours</option>
-            <option value="7 Days">7 Days</option>
-            <option value="Custom">Custom</option>
-            <option value="Permanent">Permanent</option>
-            <option value="Device Ban">Device Ban</option>
-          </select>
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-time' ? '' : 'inline-time')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+            >
+              <span>{timeOption}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-time' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['2Hours', '24Hours', '7 Days', 'Custom', 'Permanent', 'Device Ban'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setTimeOption(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Custom Time Input */}
           {timeOption === 'Custom' && (
             <input
               type="number"
@@ -341,11 +383,11 @@ export default function OwnerBan() {
           onClick={submitInlineBan}
           className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
         >
-          Submit Ban
+          Ban
         </button>
       </div>
 
-      {/* SEARCH INPUT BAR - w-full edge-to-edge kar diya hai */}
+      {/* SEARCH INPUT BAR - Edge to edge w-full */}
       <div className="flex gap-2 mb-8 items-center w-full border-t border-slate-200 dark:border-slate-800 pt-6">
         <input
           type="text"
@@ -411,7 +453,7 @@ export default function OwnerBan() {
         </table>
       </div>
 
-      {/* OLD BAN FORM MODAL */}
+      {/* OLD BAN FORM MODAL (Same custom dropdown logic applied here too) */}
       {isBanFormOpen && targetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-md w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-none border-none relative">
@@ -449,65 +491,96 @@ export default function OwnerBan() {
                 />
               </div>
 
-              {/* Member Section Modal ke andar bhi same style me kar diya taaki dono jagah acha lage */}
+              {/* Modal CUSTOM DROPDOWN: Member */}
               <div>
                 <div className="font-semibold mb-1">Member</div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setBanBy('Head')}
-                    className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
-                      banBy === 'Head' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                    }`}
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-member' ? '' : 'modal-member')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
                   >
-                    Head
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setBanBy('Official staff')}
-                    className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
-                      banBy === 'Official staff' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
-                    }`}
-                  >
-                    Official staff
-                  </button>
+                    <span>{banBy}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-member' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['Head', 'Official staff'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setBanBy(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div>
-                <div className="font-semibold mb-1">Types</div>
-                <select 
-                  value={banType} 
-                  onChange={(e) => setBanType(e.target.value)} 
-                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
-                >
-                  <option value="Illegal">Illegal</option>
-                  <option value="Violence">Violence</option>
-                  <option value="Fraud">Fraud</option>
-                  <option value="Abusing">Abusing</option>
-                  <option value="Fake official">Fake official</option>
-                  <option value="Others">Others</option>
-                </select>
+                <div className="font-semibold mb-1">Name of the member</div>
+                <input
+                  type="text"
+                  value={memberName}
+                  onChange={(e) => setMemberName(e.target.value)}
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+                  placeholder="Enter member name"
+                />
               </div>
 
+              {/* Modal CUSTOM DROPDOWN: Types */}
+              <div>
+                <div className="font-semibold mb-1">Types</div>
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-types' ? '' : 'modal-types')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <span>{banType}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-types' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['Illegal', 'Violence', 'Fraud', 'Abusing', 'Fake official', 'Others'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setBanType(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal CUSTOM DROPDOWN: Time */}
               <div>
                 <div className="font-semibold mb-1">Time</div>
-                <select 
-                  value={timeOption} 
-                  onChange={(e) => setTimeOption(e.target.value)} 
-                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
-                >
-                  <option value="2Hours">2Hours</option>
-                  <option value="24Hours">24Hours</option>
-                  <option value="7 Days">7 Days</option>
-                  <option value="Custom">Custom</option>
-                  <option value="Permanent">Permanent</option>
-                  <option value="Device Ban">Device Ban</option>
-                </select>
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-time' ? '' : 'modal-time')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <span>{timeOption}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-time' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['2Hours', '24Hours', '7 Days', 'Custom', 'Permanent', 'Device Ban'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setTimeOption(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {timeOption === 'Custom' && (
                   <input 
                     type="number" 
@@ -530,7 +603,7 @@ export default function OwnerBan() {
                 onClick={submitBan} 
                 className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
               >
-                Submit Ban
+                Ban
               </button>
             </div>
           </div>
@@ -557,7 +630,7 @@ export default function OwnerBan() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">Type:</span> <span className="font-medium">{selectedBan.type}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Description:</span> <span className="font-medium text-right max-w-[200px]">{selectedBan.description || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Ban By:</span> <span className="font-medium">{selectedBan.banBy}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Ban By:</span> <span className="font-medium">{selectedBan.banBy} {selectedBan.memberName ? `(${selectedBan.memberName})` : ''}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Time Option:</span> <span className="font-medium">{selectedBan.timeOption} {selectedBan.customTime ? `(${selectedBan.customTime}h)` : ''}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Ban Date:</span> <span className="font-medium">{new Date(selectedBan.banTime).toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Unban Date:</span> <span className="font-medium">{selectedBan.unbanTime === -1 ? 'Never' : new Date(selectedBan.unbanTime).toLocaleString()}</span></div>
