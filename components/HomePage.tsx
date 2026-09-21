@@ -2751,22 +2751,28 @@ useEffect(() => {
     }
   }, [currentPage])
 
-  // ============ ALL ROOMS FILTER ============
-  const allRooms = globalRooms.filter((room, index, self) =>
-    room && 
-    room.name && 
-    room.name !== 'My Room' &&
-    room.name !== 'My room' &&
-    room.name !== 'User' &&
-    room.image && 
-    !/jiys/i.test(room.name) && 
-    room.accountId !== 'undefined' &&
-    room.accountId !== 'null' &&
-    room.accountId !== '' &&
-    room.accountId !== null &&
-    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index
-  )
+   // ============ ALL ROOMS FILTER (DUPLICATE REMOVER & USER > 0) ============
+  const allRooms = globalRooms.filter((room, index, self) => {
+    if (!room || !room.name || room.name === 'My Room' || room.name === 'My room' || room.name === 'User') return false;
+    if (!room.image || /jiys/i.test(room.name)) return false;
+    
+    const accId = String(room.accountId || '').trim();
+    const roomId = String(room.id || '').trim();
+    if (!accId || accId === 'undefined' || accId === 'null') return false;
 
+    // FIX: Agar room mein active users nahi hain ya count 0 hai, toh hide kar do
+    const count = Number(room.activeUserCount ?? 0);
+    if (room.isExplicitlyCreated && count < 0) return false;
+
+    // FIX: Duplicate hater - Check karega ki same accountId ya roomId pehle aa chuka hai kya. Agar haan, toh duplicate ko hata dega.
+    const firstIndex = self.findIndex(r => {
+      const rAcc = String(r.accountId || '').trim();
+      const rId = String(r.id || '').trim();
+      return (rAcc && rAcc === accId) || (rId && rId === roomId);
+    });
+
+    return firstIndex === index;
+  });
   // ============ RENDER MINE TAB ============
 const renderMineTab = () => (
   <div className="px-3 -mt-2">
