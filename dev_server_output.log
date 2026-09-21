@@ -1,0 +1,22 @@
+
+> my-project@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 524ms
+
+○ Compiling / ...
+ GET / 200 in 15.7s (next.js: 15.1s, application-code: 627ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 126ms (next.js: 77ms, application-code: 49ms)
+ GET /video-thumbnail.jpg 404 in 2.1s (next.js: 1777ms, application-code: 289ms)
