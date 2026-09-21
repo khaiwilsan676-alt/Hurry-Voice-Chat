@@ -1103,53 +1103,6 @@ io.on("connection", (socket) => {
     );
   });
 
-  socket.on("send_gift", async (data = {}) => {
-    try {
-      const { roomId, senderId, receiverId, giftId, giftName, giftImage, coinsValue, multiplier, totalCoins } = data;
-      if (!db || !roomId || !senderId || !receiverId || !coinsValue || !totalCoins) return;
-
-      const senderWallet = await db.collection("wallets").findOne({ accountId: String(senderId) });
-      if (!senderWallet || senderWallet.coins < totalCoins) {
-        socket.emit("gift_failed", { error: "Insufficient coins" });
-        return;
-      }
-
-      const totalDiamonds = Math.floor((totalCoins / 100) * 40);
-
-      // Deduct coins from sender
-      await db.collection("wallets").updateOne(
-        { accountId: String(senderId) },
-        { $inc: { coins: -Number(totalCoins) } }
-      );
-
-      // Add diamonds to receiver
-      await db.collection("wallets").updateOne(
-        { accountId: String(receiverId) },
-        { $inc: { diamonds: Number(totalDiamonds) } },
-        { upsert: true }
-      );
-
-      // Broadcast the gift to everyone in the room
-      io.to(`room:${roomId}`).emit("receive_gift", {
-        roomId,
-        senderId,
-        receiverId,
-        giftId,
-        giftName,
-        giftImage,
-        coinsValue,
-        multiplier,
-        totalCoins,
-        totalDiamonds,
-        timestamp: Date.now()
-      });
-
-    } catch (err) {
-      console.error("send_gift error:", err);
-      socket.emit("gift_failed", { error: "Server error" });
-    }
-  });
-
   socket.on("room_clear_chat", (data = {}) => {
     const roomId = data?.roomId ? String(data.roomId) : "";
     if (!roomId) return;
