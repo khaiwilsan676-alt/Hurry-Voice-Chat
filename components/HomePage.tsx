@@ -2526,40 +2526,46 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   })}
                   className="cursor-pointer group"
                 >
-                  <div
-                    className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-                    style={{ height: '170px' }}
-                  >
-               <img
-  src={...}
-  alt={`Rank ${index + 1}`}
-  className="absolute inset-0 w-full h-full pointer-events-none z-10"
-  style={{
-    objectFit: 'contain',
-    transform: 'scale(1.4) translateY(-12%)',
-    transformOrigin: 'center center',
-  }}
-  draggable="false"
-/>
-{(index === 0 || index === 1 || index === 2) && (
+                 
+<div
+  className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+  style={{ height: '170px' }}
+>
   <img
     src={
-      index === 0
-        ? "/file_00000000ae44820b9ec9f5aa2805038d.png"
-        : index === 1
-        ? "/file_000000008a84820b906415bebf7ceee5.png"
-        : "/file_00000000b494820b999573b6a8af890a.png"
+      room.image && room.image !== "undefined" && room.image !== "null"
+        ? room.image
+        : "/default-avatar.png"
     }
-    alt={`Rank ${index + 1}`}
-    className="absolute inset-0 w-full h-full pointer-events-none z-10"
-    style={{
-      objectFit: 'contain',
-      transform: 'scale(1.4) translateY(-12%)',
-      transformOrigin: 'center center',
+    onError={(e) => {
+      (e.target as HTMLImageElement).src = "/default-avatar.png";
     }}
+    alt={room.name}
+    className="w-full h-full object-cover"
     draggable="false"
   />
-)}                    {room.isLocked && (
+
+  {(index === 0 || index === 1 || index === 2) && (
+    <img
+      src={
+        index === 0
+          ? "/file_00000000ae44820b9ec9f5aa2805038d.png"
+          : index === 1
+          ? "/file_000000008a84820b906415bebf7ceee5.png"
+          : "/file_00000000b494820b999573b6a8af890a.png"
+      }
+      alt={`Rank ${index + 1}`}
+      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      style={{
+        objectFit: 'contain',
+        transform: 'scale(1.4) translateY(-12%)',
+        transformOrigin: 'center center',
+      }}
+      draggable="false"
+    />
+  )}
+  
+                    {room.isLocked && (
                       <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
                         <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
                           <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
