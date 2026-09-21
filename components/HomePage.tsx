@@ -2512,7 +2512,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
         {allRooms.length > 0 ? (
           <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-            <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 ">
+            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1 ">
               {allRooms.map((room, index) => (
                 <div
                   key={room.accountId}
@@ -2556,10 +2556,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
     alt={`Rank ${index + 1}`}
     className="absolute pointer-events-none z-10"
 style={{
-  width: '180%',
-  height: '180%',
+  width: '200%',
+  height: '200%',
   left: '-0%',
-  top: '-28%',
+  top: '-36%',
   objectFit: 'contain',
 }}
   />
