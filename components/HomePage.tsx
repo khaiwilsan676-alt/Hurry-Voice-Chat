@@ -2556,10 +2556,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
     alt={`Rank ${index + 1}`}
     className="absolute pointer-events-none z-10"
 style={{
-  width: '200%',
-  height: '200%',
+  width: '240%',
+  height: '250%',
   left: '-0%',
-  top: '-36%',
+  top: '-60%',
   objectFit: 'contain',
 }}
   />
