@@ -517,8 +517,44 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     video.preload = 'auto';
   }, []);
 
-  // Check recent ban on mount
+  // NEW FIX: Background silent API check exactly when app loads
   useEffect(() => {
+    const checkBanSilently = async () => {
+      try {
+        const deviceIdInfo = await Device.getId();
+        const deviceId = deviceIdInfo.identifier;
+        const accountId = localStorage.getItem("accountNumber") || '';
+
+        const banRes = await fetch(apiUrl('/api/check-ban'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountId, deviceId }) 
+        });
+        
+        if (banRes.ok) {
+          const banData = await banRes.json();
+          if (banData.banned) {
+            const type = banData.banData?.type || 'Violation';
+            let unbanTimeStr = 'Never';
+            if (banData.banData?.unbanTime !== -1) {
+              unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
+            }
+            const exactMessage = `Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`;
+            
+            // Save immediately to local storage to block clicks instantly
+            localStorage.setItem('isAppDeviceBanned', 'true');
+            localStorage.setItem('appDeviceBanMessage', exactMessage);
+          } else {
+            localStorage.removeItem('isAppDeviceBanned');
+            localStorage.removeItem('appDeviceBanMessage');
+          }
+        }
+      } catch (e) {
+        console.error("Silent ban check failed:", e);
+      }
+    };
+    
+    // Check old recent message as well
     const recentBanStr = localStorage.getItem('recentBanMessage');
     if (recentBanStr) {
       try {
@@ -528,10 +564,14 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         if (banData.unbanTime && banData.unbanTime !== -1) {
           unbanTimeStr = new Date(banData.unbanTime).toLocaleString();
         }
-        setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+        const exactMessage = `Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`;
+        localStorage.setItem('isAppDeviceBanned', 'true');
+        localStorage.setItem('appDeviceBanMessage', exactMessage);
       } catch (e) {}
       localStorage.removeItem('recentBanMessage');
     }
+
+    checkBanSilently();
   }, []);
 
   // Auto-hide ban message after 3 seconds
@@ -543,36 +583,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       return () => clearTimeout(timer);
     }
   }, [banMessage]);
-
-  // NAYA FUNCTION: Pre-login Device & Account Ban Check
-  const handlePreLoginBanCheck = async () => {
-    try {
-      const deviceIdInfo = await Device.getId();
-      const deviceId = deviceIdInfo.identifier;
-      const accountId = localStorage.getItem("accountNumber") || ''; 
-
-      const banRes = await fetch(apiUrl('/api/check-ban'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accountId, deviceId }) 
-      });
-      if (banRes.ok) {
-        const banData = await banRes.json();
-        if (banData.banned) {
-          const type = banData.banData.type || 'Violation';
-          let unbanTimeStr = 'Never';
-          if (banData.banData.unbanTime !== -1) {
-            unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
-          }
-          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
-          return true; // Is Banned
-        }
-      }
-    } catch (e) {
-      console.error("Pre-login ban check failed:", e);
-    }
-    return false; // Not Banned
-  };
 
   const handleGenderContinue = (gender: string) => {
     setPendingGender(gender)
@@ -666,17 +676,15 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   // Direct Google Login - No sheet
   const handleGoogleLogin = async () => {
-    if (banMessage) return; // Ignore click if ban message is showing
+    // INSTANT LOCAL CHECK (BUTTON COMPLETELY DEAD IF BANNED)
+    if (localStorage.getItem('isAppDeviceBanned') === 'true') {
+      const msg = localStorage.getItem('appDeviceBanMessage') || "Your Account has been banned.";
+      setBanMessage(msg);
+      return; // Stop code right here. Google won't open.
+    }
     
     setLoading(true);
     setAuthError(null);
-
-    // BANNED USER CHECK BEFORE GOOGLE POPUP
-    const isDeviceBanned = await handlePreLoginBanCheck();
-    if (isDeviceBanned) {
-      setLoading(false);
-      return; // Stop here!
-    }
 
     try {
       const result = await FirebaseAuthentication.signInWithGoogle();
@@ -1307,7 +1315,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       <div className="relative z-10 w-full flex flex-col items-center justify-between min-h-screen">
         
-        {/* LOGO & NAME (Moved Down) */}
+        {/* LOGO & NAME */}
         <div className="flex flex-col items-center" style={{ marginTop: '20vh' }}>
           <div className="mb-0.5">
             <img 
@@ -1319,7 +1327,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           <h1 className="text-3xl font-bold text-white tracking-wide drop-shadow-lg">Hurry</h1>
         </div>
 
-        {/* BUTTONS SPACER (Moved Down) */}
+        {/* BUTTONS SPACER */}
         <div style={{ marginTop: '25vh' }}></div>
 
         <div className="w-full flex flex-col items-center gap-4 mb-6">
@@ -1349,31 +1357,22 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </button>
 
           <button
-            onClick={async () => {
-              if (banMessage) return; 
-              setLoading(true);
-              const isBanned = await handlePreLoginBanCheck();
-              setLoading(false);
-              if (!isBanned) {
-                setShowLoginPage(true); 
+            onClick={() => {
+              // INSTANT LOCAL CHECK (BUTTON COMPLETELY DEAD IF BANNED)
+              if (localStorage.getItem('isAppDeviceBanned') === 'true') {
+                const msg = localStorage.getItem('appDeviceBanMessage') || "Your Account has been banned.";
+                setBanMessage(msg);
+                return; // Stop code right here. Login page won't open.
               }
+              setShowLoginPage(true); 
             }}
             disabled={loading}
             className="w-70 bg-blue-600 rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-white disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {loading ? (
-              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-            ) : (
-              <>
-                <User size={22} />
-                <span className="font-semibold text-base">
-                  Login with Account
-                </span>
-              </>
-            )}
+            <User size={22} />
+            <span className="font-semibold text-base">
+              Login with Account
+            </span>
           </button>
         </div>
 
@@ -1393,7 +1392,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
       </div>
 
-      {/* BAN NOTIFICATION CARD (Original UI classes restored) */}
+      {/* BAN NOTIFICATION CARD */}
       {banMessage && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-3 min-w-[280px]">
           <span className="font-medium">{banMessage}</span>
