@@ -1607,28 +1607,7 @@ function RoomContent({
     if (onBack) onBack();
   };
 
-    const handleSeatEmoji = async (emojiData: any) => {
-    if (!hasSeat || !currentUserSeat) return;
-
-    const sendTimestamp = Date.now();
-    const seatNum = currentUserSeat.number;
-
-    setSeats(prev => prev.map(s => s.number === seatNum ? {
-      ...s,
-      gif: {
-        src: emojiData.src,
-        timestamp: sendTimestamp,
-      }
-    } : s));
-
-    emitSeatAction("emoji", seatNum, {
-      src: emojiData.src,
-      timestamp: sendTimestamp,
-    });
-  };
-
-
-    const handleSeatEmoji = async (emojiData: any) => {
+   const handleSeatEmoji = async (emojiData: any) => {
     if (!hasSeat || !currentUserSeat) return;
 
     const sendTimestamp = Date.now();
@@ -1647,7 +1626,7 @@ function RoomContent({
       timestamp: sendTimestamp,
     });
 
-    // 5 second ka timer wapas laga diya hai, ab emoji 5 second baad apne aap hat jayega
+    // 5 second baad emoji apne aap remove ho jayega
     setTimeout(() => {
       setSeats(prev => prev.map(s => s.number === seatNum ? {
         ...s,
@@ -1656,6 +1635,7 @@ function RoomContent({
     }, 5000);
   };
 
+ 
   const liveUserCount = roomUsers.length;
   const selectedSeatData = selectedSeat !== null ? seats.find(s => s.number === selectedSeat) : null;
   const isSelectedSeatMySeat = selectedSeatData ? isCurrentUsersSeat(selectedSeatData) : false;
