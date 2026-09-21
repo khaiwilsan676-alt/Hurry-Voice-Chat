@@ -53,10 +53,11 @@ export default function OwnerBan() {
   }
 
   const handleSearch = async () => {
-    if (!searchId.trim()) return
+    const trimmedId = searchId.trim()
+    if (!trimmedId) return
     setSearching(true)
     try {
-      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}`))
+      const res = await fetch(apiUrl(`/api/users?search=${encodeURIComponent(trimmedId)}`))
       if (res.ok) {
         const data = await res.json()
         if (data.users && data.users.length > 0) {
@@ -66,9 +67,12 @@ export default function OwnerBan() {
         } else {
           alert('User not found')
         }
+      } else {
+        alert('User not found')
       }
     } catch (e) {
       console.error(e)
+      alert("Error searching user")
     }
     setSearching(false)
   }
@@ -105,7 +109,8 @@ export default function OwnerBan() {
   }
 
   const submitInlineBan = async () => {
-    if (!inlineUserId.trim()) {
+    const trimmedId = inlineUserId.trim();
+    if (!trimmedId) {
       alert("Please enter User ID");
       return;
     }
@@ -126,7 +131,7 @@ export default function OwnerBan() {
     }
 
     try {
-      const resUser = await fetch(apiUrl(`/api/users?accountId=${inlineUserId}`))
+      const resUser = await fetch(apiUrl(`/api/users?search=${encodeURIComponent(trimmedId)}`))
       if (resUser.ok) {
         const data = await resUser.json()
         if (data.users && data.users.length > 0) {
@@ -158,13 +163,18 @@ export default function OwnerBan() {
             setMemberName('')
             fetchBans()
             alert("Banned successfully")
+          } else {
+            alert("Failed to ban user")
           }
         } else {
           alert('User not found')
         }
+      } else {
+        alert('User not found')
       }
     } catch (e) {
       console.error(e)
+      alert("Error searching user")
     }
   }
 
@@ -211,9 +221,12 @@ export default function OwnerBan() {
       if (res.ok) {
         setIsBanFormOpen(false)
         fetchBans()
+      } else {
+        alert("Failed to ban user")
       }
     } catch (e) {
       console.error(e)
+      alert("Error banning user")
     }
   }
 
