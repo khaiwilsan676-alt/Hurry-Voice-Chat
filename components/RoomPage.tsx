@@ -476,15 +476,21 @@ function RoomContent({
     const desiredAudioStateRef = useRef<boolean | null>(null);
 
     useEffect(() => {
+      if (!jitsiApi) return; // Wait until API is ready
+
       const isMuted = currentUserSeat?.isMuted ?? true;
       const isInSeat = hasSeat;
       const desiredState = isInSeat && !isMuted;
 
-      if (desiredAudioStateRef.current !== desiredState) {
+      // Always sync state if the API just became ready or if desired state changed
+      if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
         desiredAudioStateRef.current = desiredState;
 
-        if (jitsiApi) {
+        try {
+          console.log("Synchronizing Jitsi microphone state:", desiredState ? "unmuted" : "muted");
           jitsiApi.executeCommand("setAudioMute", !desiredState);
+        } catch (e) {
+          console.error("Failed to sync Jitsi audio state:", e);
         }
       }
     }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
