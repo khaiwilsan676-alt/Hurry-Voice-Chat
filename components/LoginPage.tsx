@@ -607,6 +607,19 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
           }
           setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+
+          // Force immediately signout and clearing so they don't stay logged in behind the scenes
+          try {
+            await auth.signOut();
+          } catch(e) {}
+
+          localStorage.removeItem('userEmail')
+          localStorage.removeItem('userPhone')
+          localStorage.removeItem("userName")
+          localStorage.removeItem("userUID")
+          localStorage.removeItem("userPhoto")
+          localStorage.removeItem("accountNumber")
+
           setLoading(false);
           return; // Stop login
         }
@@ -751,6 +764,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     e.preventDefault();
     setAuthError(null);
     
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return;
+    }
+
     if (!email || !password || password.length < 6) {
       setAuthError("Password must be at least 6 characters long.");
       return;
@@ -866,6 +884,11 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     e.preventDefault();
     setAuthError(null);
     
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return;
+    }
+
     if (!email || !password || password.length < 6) {
       setAuthError("Password must be at least 6 characters long.");
       return;
