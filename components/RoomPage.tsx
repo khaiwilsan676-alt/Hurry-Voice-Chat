@@ -494,77 +494,76 @@ function RoomContent({
         }
       }
     }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
+      useEffect(() => {
     let mounted = true;
-
-    useEffect(() => {
 
     const loadRoomSettings = async () => {
       if (!roomId) return;
 
-      // First show Google account Name/DP immediately.
-      if (mounted) {
-        setRoomName(
-          roomOwner.name ||
-          "Room"
-        );
-
-        setRoomImage(
-          roomOwner.image ||
-          "/default-avatar.png"
-        );
-      }
-
+      // STEP 1: Pehle Local DB se check karo (for fast loading)
       try {
-        const cached =
-          await loadRoomSettingsFromIndexedDB(
-            String(roomId)
-          );
-
+        const cached = await loadRoomSettingsFromIndexedDB(String(roomId));
         if (!mounted) return;
 
         if (cached) {
-          setRoomName(
-            cached.roomName ||
-            roomOwner.name ||
-            "Room"
-          );
-
-          setRoomImage(
-            cached.roomDp ||
-            roomOwner.image ||
-            "/default-avatar.png"
-          );
-
-          setRoomAnnouncement(
-            cached.announcement || ""
-          );
-
-          setMicMode(
-            Number(cached.micMode || 0)
-          );
-
-          if (
-            cached.theme &&
-            THEME_BACKGROUNDS[cached.theme]
-          ) {
-            setBackgroundImage(
-              THEME_BACKGROUNDS[cached.theme]
-            );
+          if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
+          if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomImage(cached.roomDp);
+          if (cached.announcement) setRoomAnnouncement(cached.announcement);
+          if (cached.micMode) setMicMode(Number(cached.micMode));
+          if (cached.theme && THEME_BACKGROUNDS[cached.theme]) {
+            setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
           }
-
-          setIsLocked(
-            Boolean(cached.isLocked)
-          );
-
-          setRoomPassword(
-            cached.roomPassword || ""
-          );
+          if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
+          if (cached.roomPassword) setRoomPassword(cached.roomPassword);
+        } else {
+          // Fallback if no cache
+          setRoomName(roomOwner.name || "Room");
+          setRoomImage(roomOwner.image || "/default-avatar.png");
         }
       } catch (err) {
-        console.error(
-          "Room settings IndexedDB load error:",
-          err
-        );
+        console.error("Room settings IndexedDB load error:", err);
+      }
+
+      // STEP 2: Hamesha MongoDB API se fresh Room Settings fetch karo
+      try {
+        const response = await fetch(apiUrl(`/api/rooms?roomId=${roomId}`));
+        if (response.ok) {
+          const result = await response.json();
+          const dbRoom = result?.room;
+
+          if (dbRoom && mounted) {
+            const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
+            const realDp = dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
+
+            if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") {
+              setRoomName(realName);
+            }
+            if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") {
+              setRoomImage(realDp);
+            }
+
+            if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
+            if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
+            if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
+            if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
+            if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
+
+            // Save exact DB settings to local IndexedDB
+            await saveRoomSettingsToIndexedDB({
+              roomId: String(roomId),
+              roomName: realName || roomName,
+              roomDp: realDp || roomImage,
+              announcement: dbRoom.announcement || "",
+              micMode: Number(dbRoom.micMode || 15),
+              theme: dbRoom.theme || "mood-light",
+              isLocked: Boolean(dbRoom.isLocked),
+              roomPassword: dbRoom.roomPassword || "",
+              updatedAt: Date.now()
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to fetch fresh room settings from MongoDB", e);
       }
     };
 
@@ -573,13 +572,8 @@ function RoomContent({
     return () => {
       mounted = false;
     };
-  }, [
-    roomId,
-    currentUser.name,
-    currentUser.image,
-    roomOwner.name,
-    roomOwner.image
-  ]);
+  }, [roomId, roomOwner.name, roomOwner.image]);
+
 
   useEffect(() => {
     setSeats(prev => {
@@ -903,98 +897,42 @@ function RoomContent({
       roomId,
     });
 
-
-  socket.on(
+    socket.on(
       "room_settings_updated",
       async (data: any) => {
-        if (
-          !data ||
-          String(data.roomId) !== String(roomId)
-        ) {
+        if (!data || String(data.roomId) !== String(roomId)) {
           return;
         }
 
-        const updatedName =
-          data.roomName ||
-          roomOwner.name ||
-          "Room";
-
-        const updatedDp =
-          data.roomDp ||
-          roomOwner.image ||
-          "/default-avatar.png";
-
-        setRoomName(updatedName);
-        setRoomImage(updatedDp);
-        setRoomAnnouncement(
-          data.announcement || ""
-        );
-
-        if (
-          data.micMode !== undefined
-        ) {
-          setMicMode(
-            Number(data.micMode)
-          );
+        if (data.roomName) setRoomName(data.roomName);
+        if (data.roomDp) setRoomImage(data.roomDp);
+        
+        if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
+        if (data.micMode !== undefined) setMicMode(Number(data.micMode));
+        if (data.theme && THEME_BACKGROUNDS[data.theme]) {
+          setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
         }
-
-        if (
-          data.theme &&
-          THEME_BACKGROUNDS[data.theme]
-        ) {
-          setBackgroundImage(
-            THEME_BACKGROUNDS[data.theme]
-          );
-        }
-
-        if (
-          data.isLocked !== undefined
-        ) {
-          setIsLocked(
-            Boolean(data.isLocked)
-          );
-        }
-
-        if (
-          data.roomPassword !== undefined
-        ) {
-          setRoomPassword(
-            data.roomPassword || ""
-          );
-        }
+        if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
+        if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
 
         try {
           await saveRoomSettingsToIndexedDB({
             roomId: String(roomId),
-            roomName: updatedName,
-            roomDp: updatedDp,
-            announcement:
-              data.announcement || "",
-            micMode: Number(
-              data.micMode || 0
-            ),
-            theme:
-              data.theme ||
-              "mood-light",
-            isLocked: Boolean(
-              data.isLocked
-            ),
-            roomPassword:
-              data.roomPassword || "",
-            updatedAt:
-              Number(
-                data.updatedAt ||
-                Date.now()
-              ),
+            roomName: data.roomName || roomName,
+            roomDp: data.roomDp || roomImage,
+            announcement: data.announcement || "",
+            micMode: Number(data.micMode || 15),
+            theme: data.theme || "mood-light",
+            isLocked: Boolean(data.isLocked),
+            roomPassword: data.roomPassword || "",
+            updatedAt: Number(data.updatedAt || Date.now()),
           });
         } catch (err) {
-          console.error(
-            "Realtime room settings IndexedDB save error:",
-            err
-          );
+          console.error("Realtime room settings IndexedDB save error:", err);
         }
       }
     );
+
 
     socket.on(
       "room_seats",
@@ -1669,7 +1607,7 @@ function RoomContent({
     if (onBack) onBack();
   };
 
-  const handleSeatEmoji = async (emojiData: any) => {
+    const handleSeatEmoji = async (emojiData: any) => {
     if (!hasSeat || !currentUserSeat) return;
 
     const sendTimestamp = Date.now();
@@ -1687,14 +1625,8 @@ function RoomContent({
       src: emojiData.src,
       timestamp: sendTimestamp,
     });
-
-    setTimeout(() => {
-      setSeats(prev => prev.map(s => s.number === seatNum ? {
-        ...s,
-        gif: undefined
-      } : s));
-    }, 3500);
   };
+
 
   const handleEmojiSelect = (emojiData: any) => {
     handleSeatEmoji(emojiData);
@@ -1764,7 +1696,7 @@ function RoomContent({
 
     if (micMode === 5) {
       return (
-        <div className="flex flex-col gap-2.5 w-full px-0">
+        <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '70px' } as React.CSSProperties}>
           <div className="flex justify-center">{renderSeatItems([1])}</div>
           <div className="flex justify-around items-center w-full px-0">{renderSeatItems([2, 3, 4, 5])}</div>
         </div>
@@ -2176,13 +2108,13 @@ function RoomContent({
                   {msg.type === 'join' ? (
                     <div className="flex items-start gap-1.5 px-1">
                       <div
-                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
+                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
                         onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
-                      <div className="flex flex-col bg-white/10 rounded-md px-2 py-0.5 border border-white/10 shadow-sm">
+                      <div className="flex flex-col bg-black/10 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
                         <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
                         <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                       </div>
@@ -2190,7 +2122,7 @@ function RoomContent({
                   ) : msg.imageUrl ? (
                     <div className="flex items-start gap-2" style={{ height: 'calc(4 * 1.8rem)' }}>
                       <div
-                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
+                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
                         onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                       >
@@ -2198,7 +2130,7 @@ function RoomContent({
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-white/20 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
+                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
                           <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} />
                         </div>
                       </div>
@@ -2214,7 +2146,7 @@ function RoomContent({
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div className="px-2 py-1.5 rounded-xl bg-white/15 text-white rounded-tl-sm mt-0.5 border border-white/10 shadow-sm">
+                        <div className="px-2 py-1.5 rounded-xl bg-black/10 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
                           <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
                         </div>
                       </div>
@@ -2229,7 +2161,7 @@ function RoomContent({
 
         {/* Footer Controls */}
         <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-          <div className="flex items-center justify-between gap-0.5">
+          <div className="flex items-center justify-between gap-1">
             <button
               onClick={openChatInput}
               aria-label="Say Hi Chat"
