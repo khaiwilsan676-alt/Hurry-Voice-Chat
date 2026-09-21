@@ -2554,8 +2554,14 @@ export default function HomePage({ onLogout }: HomePageProps) {
         : "/file_00000000b494820b999573b6a8af890a.png"
     }
     alt={`Rank ${index + 1}`}
-    className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
-    draggable="false"
+    className="absolute pointer-events-none z-10"
+style={{
+  width: '180%',
+  height: '180%',
+  left: '-10%',
+  top: '-10%',
+  objectFit: 'contain',
+}}
   />
 )}
                     {room.isLocked && (
