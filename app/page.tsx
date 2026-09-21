@@ -10,50 +10,11 @@ export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsLoggedIn(true)
-        setLoading(false)
-      } else {
-        // Fallback to LocalStorage Check
-        const userUID = localStorage.getItem('userUID')
-        const userEmail = localStorage.getItem('userEmail')
-        const userPhone = localStorage.getItem('userPhone')
-
-        if (userUID || userEmail || userPhone) {
-          setIsLoggedIn(true)
-        } else {
-          setIsLoggedIn(false)
-        }
-        setLoading(false)
-      }
-    });
-
-    return () => unsubscribe();
-  }, [])
-
-  useEffect(() => {
-    // Poll for forceLogout from owner panel
-    const intervalId = setInterval(() => {
-      const uid = localStorage.getItem("userUID")
-      if (uid) {
-        const forceLogout = localStorage.getItem(`forceLogout_${uid}`)
-        if (forceLogout) {
-          // Detected a force logout
-          handleLogout()
-        }
-      }
-    }, 1000)
-
-    return () => clearInterval(intervalId)
-  }, [])
-
   const handleLoginSuccess = (credentials?: any) => {
     setIsLoggedIn(true)
   }
 
-  const handleLogout = async () => {
+  async function handleLogout() {
     const uid = localStorage.getItem("userUID")
 
     try {
@@ -82,7 +43,77 @@ export default function Page() {
     }
 
     setIsLoggedIn(false)
+    setLoading(false)
   }
+
+  useEffect(() => {
+    const checkUserStatus = async (user: any, fallbackUid?: string) => {
+      const uid = user ? user.uid : fallbackUid;
+      const accountId = localStorage.getItem('accountNumber');
+      if (uid || accountId) {
+        try {
+          const { Device } = await import('@capacitor/device');
+          const deviceIdInfo = await Device.getId();
+          const deviceId = deviceIdInfo.identifier;
+          const { apiUrl } = await import('@/src/lib/api');
+          const res = await fetch(apiUrl('/api/check-ban'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accountId: accountId || 'N/A', deviceId })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.banned) {
+              localStorage.setItem('recentBanMessage', JSON.stringify(data.banData));
+              handleLogout();
+              return;
+            }
+          }
+        } catch (e) {
+          console.error("Ban check failed:", e);
+        }
+      }
+      setIsLoggedIn(true);
+      setLoading(false);
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        checkUserStatus(user);
+      } else {
+        // Fallback to LocalStorage Check
+        const userUID = localStorage.getItem('userUID')
+        const userEmail = localStorage.getItem('userEmail')
+        const userPhone = localStorage.getItem('userPhone')
+
+        if (userUID || userEmail || userPhone) {
+          checkUserStatus(null, userUID);
+        } else {
+          setIsLoggedIn(false)
+          setLoading(false)
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [])
+
+  useEffect(() => {
+    // Poll for forceLogout from owner panel
+    const intervalId = setInterval(() => {
+      const uid = localStorage.getItem("userUID")
+      if (uid) {
+        const forceLogout = localStorage.getItem(`forceLogout_${uid}`)
+        if (forceLogout) {
+          // Detected a force logout
+          handleLogout()
+        }
+      }
+    }, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
 
   // Background Theme Style (Top 30vh Blue fading into 70vh White)
   const themeStyle = {

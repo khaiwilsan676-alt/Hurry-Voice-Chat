@@ -910,10 +910,21 @@ export default function HomePage({ onLogout }: HomePageProps) {
   useEffect(() => {
     let socketInstance: any = null;
     const handleBanLogout = (data: any) => {
-      const myId = localStorage.getItem('accountNumber');
-      if (myId === data.accountId) {
-        localStorage.clear();
-        window.location.reload();
+      const myId = String(localStorage.getItem('accountNumber'));
+      const myUid = String(localStorage.getItem('userUID'));
+
+      if (myId === String(data.accountId) || (data.userId && myUid === String(data.userId))) {
+        localStorage.setItem('recentBanMessage', JSON.stringify({
+          type: data.type || 'Violation',
+          unbanTime: data.unbanTime || -1
+        }));
+
+        if (onLogout) {
+          onLogout();
+        } else {
+          localStorage.clear();
+          window.location.reload();
+        }
       }
     };
 
