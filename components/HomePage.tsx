@@ -2342,7 +2342,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   // ============ SIGN IN MODAL ============
   const handleImageClick = () => { setIsSignInModalOpen(true) }
   const handleCloseModal = () => { setIsSignInModalOpen(false) }
-  const handleSignIn = async () => {
+  const handleSignIn = () => {
     const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
     setCurrentSignInDay(nextDay)
     localStorage.setItem('signInDay', nextDay.toString())
