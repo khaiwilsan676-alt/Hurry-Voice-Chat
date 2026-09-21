@@ -56,7 +56,7 @@ export default function OwnerBan() {
     if (!searchId.trim()) return
     setSearching(true)
     try {
-      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}&online=true`))
+      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}`))
       if (res.ok) {
         const data = await res.json()
         if (data.users && data.users.length > 0) {
@@ -64,7 +64,7 @@ export default function OwnerBan() {
           setIsBanFormOpen(true)
           resetBanForm()
         } else {
-          alert('User is not online or not found')
+          alert('User not found')
         }
       }
     } catch (e) {
@@ -126,7 +126,7 @@ export default function OwnerBan() {
     }
 
     try {
-      const resUser = await fetch(apiUrl(`/api/users?accountId=${inlineUserId}&online=true`))
+      const resUser = await fetch(apiUrl(`/api/users?accountId=${inlineUserId}`))
       if (resUser.ok) {
         const data = await resUser.json()
         if (data.users && data.users.length > 0) {
@@ -160,7 +160,7 @@ export default function OwnerBan() {
             alert("Banned successfully")
           }
         } else {
-          alert('User is not online or not found')
+          alert('User not found')
         }
       }
     } catch (e) {
