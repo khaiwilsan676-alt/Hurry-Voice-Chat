@@ -13,6 +13,7 @@ import { generateStableId } from '../lib/hash'
 import { translations, getTranslation, LanguageCode } from '../lib/translations'
 import DailyCheckInModal from '../components/DailyCheckInModal'
 import InviteFriends from './InviteFriends'
+import { updateWalletBalance } from '../src/lib/walletDB'
 
 // ============ MONGODB / INDEXEDDB DATA HELPERS ============
 
@@ -2723,12 +2724,49 @@ useEffect(() => {
     setIsSignInModalOpen(false)
   }
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
+
+    // Check 24-hour logic
+    const lastSignIn = localStorage.getItem('lastSignInTime');
+    if (lastSignIn) {
+      const msSinceLast = Date.now() - parseInt(lastSignIn, 10);
+      const hoursSinceLast = msSinceLast / (1000 * 60 * 60);
+      if (hoursSinceLast < 24) {
+        alert(`You have already claimed today's reward! Please come back in ${Math.ceil(24 - hoursSinceLast)} hours.`);
+        setIsSignInModalOpen(false);
+        return;
+      }
+    }
+
+    // Reward amounts based on day (referencing DailyCheckInModal logic)
+    let rewardCoins = 0;
+    if (currentSignInDay === 1 || currentSignInDay === 2) rewardCoins = 5000;
+    else if (currentSignInDay === 4 || currentSignInDay === 5) rewardCoins = 10000;
+    else if (currentSignInDay === 7) rewardCoins = 15000;
+    else if (currentSignInDay === 3 || currentSignInDay === 6) rewardCoins = 0; // x2 days logic not mapped to coins directly here, maybe 0 for now.
+
+    if (rewardCoins > 0) {
+      try {
+        await updateWalletBalance(rewardCoins);
+        alert(`Day ${currentSignInDay} reward claimed: ${rewardCoins} coins! 🎉`);
+      } catch (err) {
+        console.error('Failed to claim reward', err);
+        alert('Failed to claim reward. Please try again.');
+        return; // do not advance day if failed
+      }
+    } else {
+      alert(`Day ${currentSignInDay} reward claimed! 🎉`);
+    }
+
+    // After 24 hrs next check-in can happen - for this implementation we simply increment the day in localStorage
     setCurrentSignInDay(nextDay)
     localStorage.setItem('signInDay', nextDay.toString())
+
+    // Also save the time of claim to enforce 24hr logic.
+    localStorage.setItem('lastSignInTime', Date.now().toString());
+
     setIsSignInModalOpen(false)
-    alert(`Day ${currentSignInDay} reward claimed! 🎉`)
   }
 
   // ============ VIEWPORT META ============
