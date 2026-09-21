@@ -535,6 +535,16 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     }
   }, []);
 
+  // Auto-hide ban message after 3 seconds
+  useEffect(() => {
+    if (banMessage) {
+      const timer = setTimeout(() => {
+        setBanMessage(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [banMessage]);
+
   const handleGenderContinue = (gender: string) => {
     setPendingGender(gender)
     setShowGenderPage(false)
@@ -1103,6 +1113,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         <video 
           autoPlay 
           loop 
+          muted
           playsInline
           preload="auto"
           poster="/video-thumbnail.jpg"
@@ -1257,7 +1268,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <div className="relative z-10 w-full flex flex-col items-center justify-between min-h-screen">
         
 
-        <div className="flex flex-col items-center" style={{ marginTop: '10vh' }}>
+        {/* LOGO & NAME (Moved Down) */}
+        <div className="flex flex-col items-center" style={{ marginTop: '20vh' }}>
           <div className="mb-0.5">
             <img 
               src="/logo.png" 
@@ -1268,7 +1280,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           <h1 className="text-3xl font-bold text-white tracking-wide drop-shadow-lg">Hurry</h1>
         </div>
 
-        <div style={{ marginTop: '18vh' }}></div>
+        {/* BUTTONS SPACER (Moved Down) */}
+        <div style={{ marginTop: '25vh' }}></div>
 
         <div className="w-full flex flex-col items-center gap-4 mb-6">
           <button
@@ -1331,18 +1344,13 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
       </div>
 
-      {/* BAN NOTIFICATION CARD */}
+      {/* BAN NOTIFICATION CARD (No Close Button, 2 Rows due to whitespace-pre-wrap and \n) */}
       {banMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-3 min-w-[280px]">
-          <span className="font-medium">{banMessage}</span>
-          <button
-            onClick={() => setBanMessage(null)}
-            className="text-xs bg-white/20 hover:bg-white/30 px-4 py-1.5 rounded-full w-fit mx-auto transition-colors"
-          >
-            Close
-          </button>
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 min-w-[280px]">
+          <span className="font-medium whitespace-pre-wrap">{banMessage}</span>
         </div>
       )}
     </div>
   )
-  }
+}
+
