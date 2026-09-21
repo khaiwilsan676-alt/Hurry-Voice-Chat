@@ -2530,20 +2530,17 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
                     style={{ height: '170px' }}
                   >
-                   <img
-  src={
-    room.image && room.image !== "undefined" && room.image !== "null"
-      ? room.image
-      : "/default-avatar.png"
-  }
-  onError={(e) => {
-    (e.target as HTMLImageElement).src = "/default-avatar.png";
+               <img
+  src={...}
+  alt={`Rank ${index + 1}`}
+  className="absolute inset-0 w-full h-full pointer-events-none z-10"
+  style={{
+    objectFit: 'contain',
+    transform: 'scale(1.4) translateY(-12%)',
+    transformOrigin: 'center center',
   }}
-  alt={room.name}
-  className="w-full h-full object-contain"
   draggable="false"
 />
-
 {(index === 0 || index === 1 || index === 2) && (
   <img
     src={
