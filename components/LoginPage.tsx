@@ -516,7 +516,61 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     const video = document.createElement('video');
     video.src = '/VID_20260804_011114_027_bsl.mp4';
     video.preload = 'auto';
+    video.muted = true;
   }, []);
+
+  // Check recent ban on mount
+  useEffect(() => {
+    const recentBanStr = localStorage.getItem('recentBanMessage');
+    if (recentBanStr) {
+      try {
+        const banData = JSON.parse(recentBanStr);
+        const type = banData.type || 'Violation';
+        let unbanTimeStr = 'Never';
+        if (banData.unbanTime && banData.unbanTime !== -1) {
+          unbanTimeStr = new Date(banData.unbanTime).toLocaleString();
+        }
+        setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+      } catch (e) {}
+      localStorage.removeItem('recentBanMessage');
+    }
+  }, []);
+
+  // Auto close ban message after 3 seconds
+  useEffect(() => {
+    if (banMessage) {
+      const timer = setTimeout(() => setBanMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [banMessage]);
+
+  // Pre-login ban check (device based) - called on button clicks
+  const checkBanBeforeLogin = async (): Promise<boolean> => {
+    try {
+      const deviceIdInfo = await Device.getId();
+      const deviceId = deviceIdInfo.identifier;
+      const banRes = await fetch(apiUrl('/api/check-ban'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId })
+      });
+      if (banRes.ok) {
+        const banData = await banRes.json();
+        if (banData.banned) {
+          const type = banData.banData.type || 'Violation';
+          let unbanTimeStr = 'Never';
+          if (banData.banData.unbanTime !== -1) {
+            unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
+          }
+          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.error("Pre-login ban check failed:", e);
+    }
+    return false;
+  };
 
   const handleGenderContinue = (gender: string) => {
     setPendingGender(gender)
@@ -552,7 +606,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           if (banData.banData.unbanTime !== -1) {
             unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
           }
-          setBanMessage(`You Can't Login. Your ID has been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
+          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
           setLoading(false);
           return; // Stop login
         }
@@ -610,8 +664,15 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   // Direct Google Login - No sheet
   const handleGoogleLogin = async () => {
-    setLoading(true);
     setAuthError(null);
+
+    // First, check ban before proceeding
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return; // show ban message, stop login
+    }
+
+    setLoading(true);
 
     try {
       const result = await FirebaseAuthentication.signInWithGoogle();
@@ -659,6 +720,15 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Login with Account button click handler (with ban pre-check)
+  const handleLoginWithAccountClick = async () => {
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return; // show ban message, don't open login page
+    }
+    setShowLoginPage(true);
   };
 
   const checkOfficialCredentials = async (emailStr: string, passwordStr: string) => {
@@ -949,6 +1019,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           autoPlay 
           loop 
           playsInline
+          muted
           preload="auto"
           poster="/video-thumbnail.jpg"
           onLoadedData={() => setVideoLoaded(true)}
@@ -1087,6 +1158,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           autoPlay 
           loop 
           playsInline
+          muted
           preload="auto"
           poster="/video-thumbnail.jpg"
           onLoadedData={() => setVideoLoaded(true)}
@@ -1226,6 +1298,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         autoPlay 
         loop 
         playsInline
+        muted
         preload="auto"
         poster="/video-thumbnail.jpg"
         onLoadedData={() => setVideoLoaded(true)}
@@ -1240,7 +1313,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <div className="relative z-10 w-full flex flex-col items-center justify-between min-h-screen">
         
 
-        <div className="flex flex-col items-center" style={{ marginTop: '10vh' }}>
+        {/* Logo pushed down */}
+        <div className="flex flex-col items-center" style={{ marginTop: '16vh' }}>
           <div className="mb-0.5">
             <img 
               src="/logo.png" 
@@ -1251,17 +1325,14 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           <h1 className="text-3xl font-bold text-white tracking-wide drop-shadow-lg">Hurry</h1>
         </div>
 
-        <div style={{ marginTop: '18vh' }}></div>
+        <div style={{ marginTop: '14vh' }}></div>
 
-        <div className="w-full flex flex-col items-center gap-4 mb-6">
+        {/* Buttons pushed down - 3D effect removed, flat design */}
+        <div className="w-full flex flex-col items-center gap-4 mb-2">
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-70 bg-white/90 backdrop-blur-md rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              boxShadow: '0 4px 0 #e0e0e0, 0 6px 20px rgba(0,0,0,0.2), inset 0 -2px 4px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,0.8)',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%)',
-            }}
+            className="w-70 bg-white rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
           >
             {loading ? (
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -1284,12 +1355,8 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </button>
 
           <button
-            onClick={() => setShowLoginPage(true)}
-            className="w-70 rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-white"
-            style={{
-              boxShadow: '0 4px 0 #1d4ed8, 0 6px 20px rgba(37,99,235,0.4), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.2)',
-              background: 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)',
-            }}
+            onClick={handleLoginWithAccountClick}
+            className="w-70 rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-white bg-blue-600 hover:bg-blue-700 shadow-md"
           >
             <User size={22} />
             <span className="font-semibold text-base">
@@ -1298,7 +1365,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </button>
         </div>
 
-        <div className="w-full max-w-sm text-center pb-8">
+        <div className="w-full max-w-sm text-center pb-4">
           <p className="text-xs text-white/80 drop-shadow">
             Login means you agree to the{' '}
             <span className="text-white font-medium">Terms of Service</span>
@@ -1314,16 +1381,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
       </div>
 
-      {/* BAN NOTIFICATION CARD */}
+      {/* BAN NOTIFICATION CARD - auto closes in 3s, no close button */}
       {banMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-sm px-6 py-3 rounded-full text-center max-w-[90%] shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-2">
+        <div className="fixed bottom-[10vh] left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap min-w-[280px] max-w-[90vw]">
           {banMessage}
-          <button
-            onClick={() => setBanMessage(null)}
-            className="text-xs bg-white/20 px-3 py-1 rounded-full w-fit mx-auto"
-          >
-            Close
-          </button>
         </div>
       )}
     </div>

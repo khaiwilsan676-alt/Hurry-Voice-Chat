@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { MoreVertical, X } from 'lucide-react'
+import { MoreVertical, X, ChevronDown } from 'lucide-react'
 import { apiUrl } from "@/src/lib/api"
 
 export default function OwnerBan() {
@@ -19,11 +19,16 @@ export default function OwnerBan() {
   const [isUnbanConfirmOpen, setIsUnbanConfirmOpen] = useState(false)
   const [unbanReason, setUnbanReason] = useState('')
 
+  // Custom Dropdown State (To control which list is open)
+  const [openDropdown, setOpenDropdown] = useState('')
+
   // Ban form fields
+  const [inlineUserId, setInlineUserId] = useState('') 
   const [description, setDescription] = useState('')
   const [banType, setBanType] = useState('Illegal')
-  const [banBy, setBanBy] = useState('Official')
-  const [timeOption, setTimeOption] = useState('2Hrs')
+  const [banBy, setBanBy] = useState('Official staff')
+  const [memberName, setMemberName] = useState('') 
+  const [timeOption, setTimeOption] = useState('2Hours')
   const [customTime, setCustomTime] = useState('')
   const [unbanTimeStr, setUnbanTimeStr] = useState('')
 
@@ -48,10 +53,11 @@ export default function OwnerBan() {
   }
 
   const handleSearch = async () => {
-    if (!searchId.trim()) return
+    const trimmedId = searchId.trim()
+    if (!trimmedId) return
     setSearching(true)
     try {
-      const res = await fetch(apiUrl(`/api/users?accountId=${searchId}`))
+      const res = await fetch(apiUrl(`/api/users?search=${encodeURIComponent(trimmedId)}`))
       if (res.ok) {
         const data = await res.json()
         if (data.users && data.users.length > 0) {
@@ -61,9 +67,12 @@ export default function OwnerBan() {
         } else {
           alert('User not found')
         }
+      } else {
+        alert('User not found')
       }
     } catch (e) {
       console.error(e)
+      alert("Error searching user")
     }
     setSearching(false)
   }
@@ -71,9 +80,11 @@ export default function OwnerBan() {
   const resetBanForm = () => {
     setDescription('')
     setBanType('Illegal')
-    setBanBy('Official')
-    setTimeOption('2Hrs')
+    setBanBy('Official staff')
+    setMemberName('')
+    setTimeOption('2Hours')
     setCustomTime('')
+    setOpenDropdown('')
   }
 
   const calculateUnbanTime = () => {
@@ -85,9 +96,9 @@ export default function OwnerBan() {
     const now = new Date()
     let msToAdd = 0
 
-    if (timeOption === '2Hrs') msToAdd = 2 * 60 * 60 * 1000
-    else if (timeOption === '24hrs') msToAdd = 24 * 60 * 60 * 1000
-    else if (timeOption === '7Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+    if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+    else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+    else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
     else if (timeOption === 'Custom') {
       const hours = parseInt(customTime) || 0
       msToAdd = hours * 60 * 60 * 1000
@@ -97,6 +108,76 @@ export default function OwnerBan() {
     setUnbanTimeStr(unbanDate.toLocaleString())
   }
 
+  const submitInlineBan = async () => {
+    const trimmedId = inlineUserId.trim();
+    if (!trimmedId) {
+      alert("Please enter User ID");
+      return;
+    }
+
+    const now = new Date()
+    let unbanTimestamp = -1
+
+    if (timeOption !== 'Permanent' && timeOption !== 'Device Ban') {
+      let msToAdd = 0
+      if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+      else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+      else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+      else if (timeOption === 'Custom') {
+        const hours = parseInt(customTime) || 0
+        msToAdd = hours * 60 * 60 * 1000
+      }
+      unbanTimestamp = now.getTime() + msToAdd
+    }
+
+    try {
+      const resUser = await fetch(apiUrl(`/api/users?search=${encodeURIComponent(trimmedId)}`))
+      if (resUser.ok) {
+        const data = await resUser.json()
+        if (data.users && data.users.length > 0) {
+          const tUser = data.users[0]
+          const payload = {
+            accountId: tUser.accountId,
+            userId: tUser.id || tUser.uid,
+            userName: tUser.name,
+            userImage: tUser.image || tUser.avatar,
+            type: banType,
+            banBy: banBy,
+            memberName: memberName,
+            timeOption: timeOption,
+            customTime: customTime,
+            banTime: now.getTime(),
+            unbanTime: unbanTimestamp,
+            description: description,
+            ipAddress: tUser.lastIp || '',
+            deviceId: tUser.lastDeviceId || ''
+          }
+          const resBan = await fetch(apiUrl('/api/bans'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
+            body: JSON.stringify(payload)
+          })
+          if (resBan.ok) {
+            setInlineUserId('')
+            setDescription('')
+            setMemberName('')
+            fetchBans()
+            alert("Banned successfully")
+          } else {
+            alert("Failed to ban user")
+          }
+        } else {
+          alert('User not found')
+        }
+      } else {
+        alert('User not found')
+      }
+    } catch (e) {
+      console.error(e)
+      alert("Error searching user")
+    }
+  }
+
   const submitBan = async () => {
     if (!targetUser) return
     const now = new Date()
@@ -104,9 +185,9 @@ export default function OwnerBan() {
 
     if (timeOption !== 'Permanent' && timeOption !== 'Device Ban') {
       let msToAdd = 0
-      if (timeOption === '2Hrs') msToAdd = 2 * 60 * 60 * 1000
-      else if (timeOption === '24hrs') msToAdd = 24 * 60 * 60 * 1000
-      else if (timeOption === '7Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+      if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+      else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+      else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
       else if (timeOption === 'Custom') {
         const hours = parseInt(customTime) || 0
         msToAdd = hours * 60 * 60 * 1000
@@ -121,27 +202,31 @@ export default function OwnerBan() {
       userImage: targetUser.image || targetUser.avatar,
       type: banType,
       banBy: banBy,
+      memberName: memberName,
       timeOption: timeOption,
       customTime: customTime,
       banTime: now.getTime(),
       unbanTime: unbanTimestamp,
       description: description,
-      ipAddress: targetUser.lastIp || '', // Captured during login on backend
-      deviceId: targetUser.lastDeviceId || '' // Captured during login on backend
+      ipAddress: targetUser.lastIp || '',
+      deviceId: targetUser.lastDeviceId || ''
     }
 
     try {
       const res = await fetch(apiUrl('/api/bans'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+        headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
         body: JSON.stringify(payload)
       })
       if (res.ok) {
         setIsBanFormOpen(false)
         fetchBans()
+      } else {
+        alert("Failed to ban user")
       }
     } catch (e) {
       console.error(e)
+      alert("Error banning user")
     }
   }
 
@@ -154,7 +239,7 @@ export default function OwnerBan() {
     try {
       const res = await fetch(apiUrl('/api/bans/unban'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+        headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
         body: JSON.stringify({ accountId: selectedBan.accountId, reason: unbanReason })
       })
       if (res.ok) {
@@ -172,11 +257,154 @@ export default function OwnerBan() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto w-full text-slate-900 dark:text-slate-100">
       <h2 className="text-2xl font-bold mb-4">Ban</h2>
 
-      {/* Search Input */}
-      <div className="flex gap-2 mb-8 items-center max-w-sm">
+      {/* NEW ON-SCREEN BAN FORM */}
+      <div className="mb-8 max-w-sm space-y-4">
+        
+        <div>
+          <div className="font-semibold mb-1">User ID</div>
+          <input
+            type="text"
+            value={inlineUserId}
+            onChange={(e) => setInlineUserId(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Enter ID"
+          />
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Description</div>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Reason of ban"
+          />
+        </div>
+
+        {/* CUSTOM DROPDOWN: Member */}
+        <div>
+          <div className="font-semibold mb-1">Member</div>
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-member' ? '' : 'inline-member')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+            >
+              <span>{banBy}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-member' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['Head', 'Official staff'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setBanBy(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Name of the member Input */}
+        <div>
+          <div className="font-semibold mb-1">Name of the member</div>
+          <input
+            type="text"
+            value={memberName}
+            onChange={(e) => setMemberName(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Enter member name"
+          />
+        </div>
+
+        {/* CUSTOM DROPDOWN: Types */}
+        <div>
+          <div className="font-semibold mb-1">Types</div>
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-types' ? '' : 'inline-types')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+            >
+              <span>{banType}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-types' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['Illegal', 'Violence', 'Fraud', 'Abusing', 'Fake official', 'Others'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setBanType(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* CUSTOM DROPDOWN: Time */}
+        <div>
+          <div className="font-semibold mb-1">Time</div>
+          <div className="relative">
+            <div 
+              onClick={() => setOpenDropdown(openDropdown === 'inline-time' ? '' : 'inline-time')}
+              className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+            >
+              <span>{timeOption}</span>
+              <ChevronDown className="w-4 h-4 text-slate-500" />
+            </div>
+            {openDropdown === 'inline-time' && (
+              <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                {['2Hours', '24Hours', '7 Days', 'Custom', 'Permanent', 'Device Ban'].map(opt => (
+                  <div 
+                    key={opt} 
+                    onClick={() => { setTimeOption(opt); setOpenDropdown(''); }}
+                    className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                  >
+                    {opt}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Custom Time Input */}
+          {timeOption === 'Custom' && (
+            <input
+              type="number"
+              placeholder="Enter hours"
+              value={customTime}
+              onChange={(e) => setCustomTime(e.target.value)}
+              className="w-full p-2 mt-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            />
+          )}
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Unban Time</div>
+          <div className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none text-slate-500">
+            {unbanTimeStr || 'N/A'}
+          </div>
+        </div>
+
+        <button
+          onClick={submitInlineBan}
+          className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
+        >
+          Ban
+        </button>
+      </div>
+
+      {/* SEARCH INPUT BAR - Edge to edge w-full */}
+      <div className="flex gap-2 mb-8 items-center w-full border-t border-slate-200 dark:border-slate-800 pt-6">
         <input
           type="text"
-          placeholder="Enter ID Number"
+          placeholder="Search by ID Number (Optional)"
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           className="flex-1 p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
@@ -184,7 +412,7 @@ export default function OwnerBan() {
         <button
           onClick={handleSearch}
           disabled={searching}
-          className="p-2 bg-blue-600 text-white rounded-lg px-4"
+          className="p-2 bg-blue-600 text-white rounded-lg px-4 whitespace-nowrap"
         >
           {searching ? '...' : 'Search'}
         </button>
@@ -192,7 +420,6 @@ export default function OwnerBan() {
 
       <h3 className="text-lg font-semibold mb-4">Banned Users</h3>
 
-      {/* List without cards, just text titles */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -239,67 +466,156 @@ export default function OwnerBan() {
         </table>
       </div>
 
-      {/* BAN FORM MODAL */}
+      {/* OLD BAN FORM MODAL (Same custom dropdown logic applied here too) */}
       {isBanFormOpen && targetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-xl relative">
+          <div className="bg-white dark:bg-slate-900 rounded-md w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-none border-none relative">
+            
             <button onClick={() => setIsBanFormOpen(false)} className="absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-white">
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold mb-6 text-center border-b pb-4 dark:border-slate-800">User</h2>
+            
+            <h2 className="text-xl font-bold mb-6 text-center">Add</h2>
 
             <div className="flex flex-col items-center gap-2 mb-6">
               <img src={targetUser.image || targetUser.avatar || '/default-avatar.png'} alt="user" className="w-16 h-16 rounded-full object-cover" />
               <div className="font-semibold">{targetUser.name || 'Unknown'}</div>
-              <div className="text-sm text-slate-500">ID: {targetUser.accountId}</div>
             </div>
 
             <div className="space-y-4">
               <div>
+                <div className="font-semibold mb-1">User ID</div>
+                <input 
+                  type="text" 
+                  value={targetUser.accountId} 
+                  readOnly 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                />
+              </div>
+
+              <div>
                 <div className="font-semibold mb-1">Description</div>
-                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent" placeholder="Enter reason detail..." />
+                <input 
+                  type="text" 
+                  value={description} 
+                  onChange={(e) => setDescription(e.target.value)} 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                  placeholder="Reason of ban" 
+                />
+              </div>
+
+              {/* Modal CUSTOM DROPDOWN: Member */}
+              <div>
+                <div className="font-semibold mb-1">Member</div>
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-member' ? '' : 'modal-member')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <span>{banBy}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-member' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['Head', 'Official staff'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setBanBy(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
-                <div className="font-semibold mb-1">Type ban reason</div>
-                <select value={banType} onChange={(e) => setBanType(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
-                  <option value="Illegal">Illegal</option>
-                  <option value="Violence">Violence</option>
-                  <option value="Fake official">Fake official</option>
-                  <option value="Abusing">Abusing</option>
-                  <option value="Other's">Other's</option>
-                </select>
+                <div className="font-semibold mb-1">Name of the member</div>
+                <input
+                  type="text"
+                  value={memberName}
+                  onChange={(e) => setMemberName(e.target.value)}
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+                  placeholder="Enter member name"
+                />
               </div>
 
+              {/* Modal CUSTOM DROPDOWN: Types */}
               <div>
-                <div className="font-semibold mb-1">Ban By</div>
-                <select value={banBy} onChange={(e) => setBanBy(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
-                  <option value="Head">Head</option>
-                  <option value="Official">Official</option>
-                </select>
+                <div className="font-semibold mb-1">Types</div>
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-types' ? '' : 'modal-types')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <span>{banType}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-types' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['Illegal', 'Violence', 'Fraud', 'Abusing', 'Fake official', 'Others'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setBanType(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
+              {/* Modal CUSTOM DROPDOWN: Time */}
               <div>
                 <div className="font-semibold mb-1">Time</div>
-                <select value={timeOption} onChange={(e) => setTimeOption(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
-                  <option value="2Hrs">2Hrs</option>
-                  <option value="24hrs">24hrs</option>
-                  <option value="7Days">7Days</option>
-                  <option value="Custom">Custom</option>
-                  <option value="Permanent">Permanent</option>
-                  <option value="Device Ban">Device Ban</option>
-                </select>
+                <div className="relative">
+                  <div 
+                    onClick={() => setOpenDropdown(openDropdown === 'modal-time' ? '' : 'modal-time')}
+                    className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md flex justify-between items-center cursor-pointer select-none"
+                  >
+                    <span>{timeOption}</span>
+                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                  </div>
+                  {openDropdown === 'modal-time' && (
+                    <div className="absolute top-full left-0 w-full mt-1 bg-slate-200 dark:bg-slate-700 rounded-md z-50 overflow-hidden">
+                      {['2Hours', '24Hours', '7 Days', 'Custom', 'Permanent', 'Device Ban'].map(opt => (
+                        <div 
+                          key={opt} 
+                          onClick={() => { setTimeOption(opt); setOpenDropdown(''); }}
+                          className="p-2 hover:bg-slate-300 dark:hover:bg-slate-600 cursor-pointer"
+                        >
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {timeOption === 'Custom' && (
-                  <input type="number" placeholder="Enter hours" value={customTime} onChange={(e) => setCustomTime(e.target.value)} className="w-full p-2 mt-2 border rounded-lg dark:border-slate-700 bg-transparent" />
+                  <input 
+                    type="number" 
+                    placeholder="Enter hours" 
+                    value={customTime} 
+                    onChange={(e) => setCustomTime(e.target.value)} 
+                    className="w-full p-2 mt-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                  />
                 )}
               </div>
 
               <div>
-                <div className="font-semibold mb-1 text-slate-500">Unban time</div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm">{unbanTimeStr || 'N/A'}</div>
+                <div className="font-semibold mb-1">Unban Time</div>
+                <div className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none text-slate-500">
+                  {unbanTimeStr || 'N/A'}
+                </div>
               </div>
 
-              <button onClick={submitBan} className="w-full bg-red-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-red-700">
+              <button 
+                onClick={submitBan} 
+                className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
+              >
                 Ban
               </button>
             </div>
@@ -307,7 +623,7 @@ export default function OwnerBan() {
         </div>
       )}
 
-      {/* DETAIL MODAL (3-dot menu click) */}
+      {/* DETAIL MODAL */}
       {isDetailModalOpen && selectedBan && !isUnbanConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 text-slate-900 dark:text-white shadow-xl relative">
@@ -327,7 +643,7 @@ export default function OwnerBan() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between"><span className="text-slate-500">Type:</span> <span className="font-medium">{selectedBan.type}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Description:</span> <span className="font-medium text-right max-w-[200px]">{selectedBan.description || 'N/A'}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Ban By:</span> <span className="font-medium">{selectedBan.banBy}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Ban By:</span> <span className="font-medium">{selectedBan.banBy} {selectedBan.memberName ? `(${selectedBan.memberName})` : ''}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Time Option:</span> <span className="font-medium">{selectedBan.timeOption} {selectedBan.customTime ? `(${selectedBan.customTime}h)` : ''}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Ban Date:</span> <span className="font-medium">{new Date(selectedBan.banTime).toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Unban Date:</span> <span className="font-medium">{selectedBan.unbanTime === -1 ? 'Never' : new Date(selectedBan.unbanTime).toLocaleString()}</span></div>
@@ -369,3 +685,4 @@ export default function OwnerBan() {
     </div>
   )
 }
+
