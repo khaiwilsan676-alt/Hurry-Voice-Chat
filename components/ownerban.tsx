@@ -23,7 +23,7 @@ export default function OwnerBan() {
   const [description, setDescription] = useState('')
   const [banType, setBanType] = useState('Illegal')
   const [banBy, setBanBy] = useState('Official')
-  const [timeOption, setTimeOption] = useState('2Hrs')
+  const [timeOption, setTimeOption] = useState('2Hours')
   const [customTime, setCustomTime] = useState('')
   const [unbanTimeStr, setUnbanTimeStr] = useState('')
 
@@ -72,7 +72,7 @@ export default function OwnerBan() {
     setDescription('')
     setBanType('Illegal')
     setBanBy('Official')
-    setTimeOption('2Hrs')
+    setTimeOption('2Hours')
     setCustomTime('')
   }
 
@@ -85,9 +85,9 @@ export default function OwnerBan() {
     const now = new Date()
     let msToAdd = 0
 
-    if (timeOption === '2Hrs') msToAdd = 2 * 60 * 60 * 1000
-    else if (timeOption === '24hrs') msToAdd = 24 * 60 * 60 * 1000
-    else if (timeOption === '7Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+    if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+    else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+    else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
     else if (timeOption === 'Custom') {
       const hours = parseInt(customTime) || 0
       msToAdd = hours * 60 * 60 * 1000
@@ -104,9 +104,9 @@ export default function OwnerBan() {
 
     if (timeOption !== 'Permanent' && timeOption !== 'Device Ban') {
       let msToAdd = 0
-      if (timeOption === '2Hrs') msToAdd = 2 * 60 * 60 * 1000
-      else if (timeOption === '24hrs') msToAdd = 24 * 60 * 60 * 1000
-      else if (timeOption === '7Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+      if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+      else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+      else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
       else if (timeOption === 'Custom') {
         const hours = parseInt(customTime) || 0
         msToAdd = hours * 60 * 60 * 1000
@@ -126,8 +126,8 @@ export default function OwnerBan() {
       banTime: now.getTime(),
       unbanTime: unbanTimestamp,
       description: description,
-      ipAddress: targetUser.lastIp || '', // Captured during login on backend
-      deviceId: targetUser.lastDeviceId || '' // Captured during login on backend
+      ipAddress: targetUser.lastIp || '',
+      deviceId: targetUser.lastDeviceId || ''
     }
 
     try {
@@ -242,65 +242,101 @@ export default function OwnerBan() {
       {/* BAN FORM MODAL */}
       {isBanFormOpen && targetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-xl relative">
+          <div className="bg-white dark:bg-slate-900 rounded-md w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-none border-none relative">
+            
             <button onClick={() => setIsBanFormOpen(false)} className="absolute top-4 right-4 text-slate-500 hover:text-slate-800 dark:hover:text-white">
               <X className="w-6 h-6" />
             </button>
-            <h2 className="text-xl font-bold mb-6 text-center border-b pb-4 dark:border-slate-800">User</h2>
+            
+            <h2 className="text-xl font-bold mb-6 text-center">Add</h2>
 
             <div className="flex flex-col items-center gap-2 mb-6">
               <img src={targetUser.image || targetUser.avatar || '/default-avatar.png'} alt="user" className="w-16 h-16 rounded-full object-cover" />
               <div className="font-semibold">{targetUser.name || 'Unknown'}</div>
-              <div className="text-sm text-slate-500">ID: {targetUser.accountId}</div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <div className="font-semibold mb-1">Description</div>
-                <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent" placeholder="Enter reason detail..." />
+                <div className="font-semibold mb-1">User ID</div>
+                <input 
+                  type="text" 
+                  value={targetUser.accountId} 
+                  readOnly 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                />
               </div>
 
               <div>
-                <div className="font-semibold mb-1">Type ban reason</div>
-                <select value={banType} onChange={(e) => setBanType(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
+                <div className="font-semibold mb-1">Description</div>
+                <input 
+                  type="text" 
+                  value={description} 
+                  onChange={(e) => setDescription(e.target.value)} 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                  placeholder="Reason of ban" 
+                />
+              </div>
+
+              <div>
+                <div className="font-semibold mb-1">Types</div>
+                <select 
+                  value={banType} 
+                  onChange={(e) => setBanType(e.target.value)} 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
+                >
                   <option value="Illegal">Illegal</option>
                   <option value="Violence">Violence</option>
-                  <option value="Fake official">Fake official</option>
+                  <option value="Fraud">Fraud</option>
                   <option value="Abusing">Abusing</option>
-                  <option value="Other's">Other's</option>
+                  <option value="Fake official">Fake official</option>
+                  <option value="Others">Others</option>
                 </select>
               </div>
 
-              <div>
-                <div className="font-semibold mb-1">Ban By</div>
-                <select value={banBy} onChange={(e) => setBanBy(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
-                  <option value="Head">Head</option>
+              {/* Ban By hidden visually as requested to keep it simple */}
+              <div className="hidden">
+                <select value={banBy} onChange={(e) => setBanBy(e.target.value)}>
                   <option value="Official">Official</option>
                 </select>
               </div>
 
               <div>
                 <div className="font-semibold mb-1">Time</div>
-                <select value={timeOption} onChange={(e) => setTimeOption(e.target.value)} className="w-full p-2 border rounded-lg dark:border-slate-700 bg-transparent">
-                  <option value="2Hrs">2Hrs</option>
-                  <option value="24hrs">24hrs</option>
-                  <option value="7Days">7Days</option>
+                <select 
+                  value={timeOption} 
+                  onChange={(e) => setTimeOption(e.target.value)} 
+                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
+                >
+                  <option value="2Hours">2Hours</option>
+                  <option value="24Hours">24Hours</option>
+                  <option value="7 Days">7 Days</option>
                   <option value="Custom">Custom</option>
                   <option value="Permanent">Permanent</option>
                   <option value="Device Ban">Device Ban</option>
                 </select>
                 {timeOption === 'Custom' && (
-                  <input type="number" placeholder="Enter hours" value={customTime} onChange={(e) => setCustomTime(e.target.value)} className="w-full p-2 mt-2 border rounded-lg dark:border-slate-700 bg-transparent" />
+                  <input 
+                    type="number" 
+                    placeholder="Enter hours" 
+                    value={customTime} 
+                    onChange={(e) => setCustomTime(e.target.value)} 
+                    className="w-full p-2 mt-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none" 
+                  />
                 )}
               </div>
 
               <div>
-                <div className="font-semibold mb-1 text-slate-500">Unban time</div>
-                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm">{unbanTimeStr || 'N/A'}</div>
+                <div className="font-semibold mb-1">Unban Time</div>
+                <div className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none text-slate-500">
+                  {unbanTimeStr || 'N/A'}
+                </div>
               </div>
 
-              <button onClick={submitBan} className="w-full bg-red-600 text-white font-bold py-3 rounded-lg mt-4 hover:bg-red-700">
-                Ban
+              <button 
+                onClick={submitBan} 
+                className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
+              >
+                Submit Ban
               </button>
             </div>
           </div>
@@ -369,3 +405,4 @@ export default function OwnerBan() {
     </div>
   )
 }
+
