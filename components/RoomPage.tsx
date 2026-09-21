@@ -395,16 +395,6 @@ function RoomContent({
 
   const [showChatInput, setShowChatInput] = useState(false);
   const [roomUsers, setRoomUsers] = useState<RoomUser[]>([]);
-  const [roomCupCount, setRoomCupCount] = useState(0);
-  const [activeGifts, setActiveGifts] = useState<{ id: string, image: string, seatNumber: number }[]>([]);
-
-  const showGiftAnimation = (image: string, seatNumber: number) => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setActiveGifts(prev => [...prev, { id, image, seatNumber }]);
-    setTimeout(() => {
-      setActiveGifts(prev => prev.filter(g => g.id !== id));
-    }, 3000); // Animation duration
-  };
 
   const getInitialSeats = (mode: number): Seat[] => {
     const seats: Seat[] = [];
@@ -1018,24 +1008,6 @@ function RoomContent({
       "room_chat_cleared",
       handleRoomChatCleared
     );
-
-    socket.on("receive_gift", (data) => {
-      if (String(data.roomId) === String(roomId)) {
-        setRoomCupCount(prev => prev + data.totalCoins);
-
-        setSeats((currentSeats) => {
-          const receiverSeat = currentSeats.find(s => s.user && s.user.accountId === data.receiverId);
-          if (receiverSeat) {
-            showGiftAnimation(data.giftImage, receiverSeat.number);
-          }
-          return currentSeats;
-        });
-      }
-    });
-
-    socket.on("gift_failed", (data) => {
-      alert(`Gift failed: ${data.error}`);
-    });
 
       setRoomUsers(prev => {
       const exists = prev.some(
@@ -1684,29 +1656,16 @@ function RoomContent({
     const renderSeatItems = (seatNumbers: number[]) => {
       return seatNumbers.map(num => {
         const seat = seats.find(s => s.number === num);
-        const hasActiveGift = activeGifts.find(g => g.seatNumber === num);
-
         return (
-          <div key={num} className="relative">
-            <SeatItem
-              seatNumber={num}
-              seatData={seat}
-              onClick={handleSeatClick(num)}
-              onAvatarClick={handleSeatAvatarClick(seat!)}
-              accountId={userAccountId}
-              roomOwnerId={roomOwnerId}
-            />
-            {hasActiveGift && (
-              <div
-                className="absolute inset-0 z-50 pointer-events-none flex items-center justify-center animate-gift-drop"
-                style={{
-                  animation: 'giftDropAndFade 3s ease-out forwards'
-                }}
-              >
-                <img src={hasActiveGift.image} className="w-16 h-16 object-contain" alt="Gift" />
-              </div>
-            )}
-          </div>
+          <SeatItem
+            key={num}
+            seatNumber={num}
+            seatData={seat}
+            onClick={handleSeatClick(num)}
+            onAvatarClick={handleSeatAvatarClick(seat!)}
+            accountId={userAccountId}
+            roomOwnerId={roomOwnerId}
+          />
         );
       });
     };
@@ -2003,11 +1962,6 @@ function RoomContent({
               ID:{roomOwner.accountId || ''}
             </p>
             </div>
-          </div>
-
-          <div className="flex items-center ml-2 bg-black/20 rounded-full px-2 py-0.5 pointer-events-none">
-            <img src="/file_00000000e56882119c217d508b6733dc.png" className="w-3 h-3 mr-1 object-cover" alt="Cup" />
-            <span className="text-white text-xs font-bold">{roomCupCount}</span>
           </div>
 
           <div className="flex items-center gap-0.5">
@@ -2556,10 +2510,6 @@ function RoomContent({
             if (profileUser) handleLeaveUserSeat(profileUser.accountId);
             setShowUserProfile(false);
           }}
-          onSendGift={() => {
-            setShowUserProfile(false);
-            setShowGiftPicker(true);
-          }}
         />
       )}
 
@@ -2964,7 +2914,6 @@ function RoomContent({
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes waveBehind { 0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.9; } 50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
         @keyframes voicePulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.08); } }
-        @keyframes giftDropAndFade { 0% { transform: translateY(-50px) scale(0); opacity: 0; } 20% { transform: translateY(0) scale(1.5); opacity: 1; } 80% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-20px) scale(0); opacity: 0; } }
         .wave-ripple { animation: waveBehind 1.2s ease-out infinite; }
         .wave-ripple-delayed { animation: waveBehind 1.2s ease-out 0.4s infinite; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
@@ -2972,7 +2921,7 @@ function RoomContent({
       `}</style>
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
-      {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} roomId={roomId} senderId={userAccountId} receiverId={profileUser?.accountId || roomOwner.accountId || roomOwner.id || ""} />}
+      {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} />}
 
     </div>
   );
