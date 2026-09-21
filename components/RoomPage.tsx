@@ -2071,7 +2071,7 @@ function RoomContent({
               {messages.map((msg) => (
                 <div key={msg.id} className="leading-[1.8rem]">
                   {msg.type === 'join' ? (
-                    <div className="flex items-start gap-1.5 px-1">
+                    <div className="flex items-start gap-1.5 px-1 max-w-[76℅]">
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
@@ -2085,7 +2085,7 @@ function RoomContent({
                       </div>
                     </div>
                   ) : msg.imageUrl ? (
-                    <div className="flex items-start gap-2" style={{ height: 'calc(4 * 1.8rem)' }}>
+                    <div className="flex items-start gap-2 max-w-[76℅]" style={{ height: 'calc(4 * 1.8rem)' }}>
                       <div
                         className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
                         style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
@@ -2864,7 +2864,7 @@ function RoomContent({
             --header-icon-size: 22px;
             --header-room-img-size: 38px;
             --header-room-name-size: 15px;
-            --footer-btn-size: 46px;
+            --footer-btn-size: 42px;
             --footer-icon-size: 26px;
           }
         }
