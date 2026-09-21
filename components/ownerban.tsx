@@ -23,7 +23,7 @@ export default function OwnerBan() {
   const [inlineUserId, setInlineUserId] = useState('') 
   const [description, setDescription] = useState('')
   const [banType, setBanType] = useState('Illegal')
-  const [banBy, setBanBy] = useState('Official')
+  const [banBy, setBanBy] = useState('Official staff') // Member state
   const [timeOption, setTimeOption] = useState('2Hours')
   const [customTime, setCustomTime] = useState('')
   const [unbanTimeStr, setUnbanTimeStr] = useState('')
@@ -72,7 +72,7 @@ export default function OwnerBan() {
   const resetBanForm = () => {
     setDescription('')
     setBanType('Illegal')
-    setBanBy('Official')
+    setBanBy('Official staff')
     setTimeOption('2Hours')
     setCustomTime('')
   }
@@ -238,8 +238,6 @@ export default function OwnerBan() {
       {/* NEW ON-SCREEN BAN FORM */}
       <div className="mb-8 max-w-sm space-y-4">
         
-        {/* Title hata diya gaya hai */}
-
         <div>
           <div className="font-semibold mb-1">User ID</div>
           <input
@@ -260,6 +258,35 @@ export default function OwnerBan() {
             className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
             placeholder="Reason of ban"
           />
+        </div>
+
+        {/* Member Section (Bina dropdown ke, chote cards me options) */}
+        <div>
+          <div className="font-semibold mb-1">Member</div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setBanBy('Head')}
+              className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
+                banBy === 'Head' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+              }`}
+            >
+              Head
+            </button>
+            <button
+              type="button"
+              onClick={() => setBanBy('Official staff')}
+              className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
+                banBy === 'Official staff' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+              }`}
+            >
+              Official staff
+            </button>
+          </div>
         </div>
 
         <div>
@@ -318,7 +345,8 @@ export default function OwnerBan() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-8 items-center max-w-sm border-t border-slate-200 dark:border-slate-800 pt-6">
+      {/* SEARCH INPUT BAR - w-full edge-to-edge kar diya hai */}
+      <div className="flex gap-2 mb-8 items-center w-full border-t border-slate-200 dark:border-slate-800 pt-6">
         <input
           type="text"
           placeholder="Search by ID Number (Optional)"
@@ -329,7 +357,7 @@ export default function OwnerBan() {
         <button
           onClick={handleSearch}
           disabled={searching}
-          className="p-2 bg-blue-600 text-white rounded-lg px-4"
+          className="p-2 bg-blue-600 text-white rounded-lg px-4 whitespace-nowrap"
         >
           {searching ? '...' : 'Search'}
         </button>
@@ -421,6 +449,35 @@ export default function OwnerBan() {
                 />
               </div>
 
+              {/* Member Section Modal ke andar bhi same style me kar diya taaki dono jagah acha lage */}
+              <div>
+                <div className="font-semibold mb-1">Member</div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBanBy('Head')}
+                    className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
+                      banBy === 'Head' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    Head
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBanBy('Official staff')}
+                    className={`flex-1 py-2 px-3 rounded-md shadow-none border-none outline-none transition-colors duration-200 text-sm font-medium ${
+                      banBy === 'Official staff' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    }`}
+                  >
+                    Official staff
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <div className="font-semibold mb-1">Types</div>
                 <select 
@@ -434,12 +491,6 @@ export default function OwnerBan() {
                   <option value="Abusing">Abusing</option>
                   <option value="Fake official">Fake official</option>
                   <option value="Others">Others</option>
-                </select>
-              </div>
-
-              <div className="hidden">
-                <select value={banBy} onChange={(e) => setBanBy(e.target.value)}>
-                  <option value="Official">Official</option>
                 </select>
               </div>
 
