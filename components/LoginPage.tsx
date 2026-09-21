@@ -510,7 +510,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const [checkingNewUser, setCheckingNewUser] = useState(false)
   const [banMessage, setBanMessage] = useState<string | null>(null)
 
-
   // Preload video
   useEffect(() => {
     const video = document.createElement('video');
@@ -545,6 +544,36 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     }
   }, [banMessage]);
 
+  // NAYA FUNCTION: Pre-login Device & Account Ban Check
+  const handlePreLoginBanCheck = async () => {
+    try {
+      const deviceIdInfo = await Device.getId();
+      const deviceId = deviceIdInfo.identifier;
+      const accountId = localStorage.getItem("accountNumber") || ''; 
+
+      const banRes = await fetch(apiUrl('/api/check-ban'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId, deviceId }) 
+      });
+      if (banRes.ok) {
+        const banData = await banRes.json();
+        if (banData.banned) {
+          const type = banData.banData.type || 'Violation';
+          let unbanTimeStr = 'Never';
+          if (banData.banData.unbanTime !== -1) {
+            unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
+          }
+          setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
+          return true; // Is Banned
+        }
+      }
+    } catch (e) {
+      console.error("Pre-login ban check failed:", e);
+    }
+    return false; // Not Banned
+  };
+
   const handleGenderContinue = (gender: string) => {
     setPendingGender(gender)
     setShowGenderPage(false)
@@ -560,7 +589,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   const processLoginSuccess = async (userData: any) => {
     const userId = userData?.id || userData?.uid
-    // BAN CHECK
+    // FINAL BAN CHECK 
     try {
       const deviceIdInfo = await Device.getId();
       const deviceId = deviceIdInfo.identifier;
@@ -581,7 +610,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           }
           setBanMessage(`Your Account Has been ban Due to ${type}\nUnban Time: ${unbanTimeStr}`);
           setLoading(false);
-          return; // Stop login
+          return; // Stop login completely
         }
       }
     } catch (e) {
@@ -637,8 +666,17 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
   // Direct Google Login - No sheet
   const handleGoogleLogin = async () => {
+    if (banMessage) return; // Ignore click if ban message is showing
+    
     setLoading(true);
     setAuthError(null);
+
+    // BANNED USER CHECK BEFORE GOOGLE POPUP
+    const isDeviceBanned = await handlePreLoginBanCheck();
+    if (isDeviceBanned) {
+      setLoading(false);
+      return; // Stop here!
+    }
 
     try {
       const result = await FirebaseAuthentication.signInWithGoogle();
@@ -975,6 +1013,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         <video 
           autoPlay 
           loop 
+          muted
           playsInline
           preload="auto"
           poster="/video-thumbnail.jpg"
@@ -1253,6 +1292,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       <video 
         autoPlay 
         loop 
+        muted
         playsInline
         preload="auto"
         poster="/video-thumbnail.jpg"
@@ -1267,7 +1307,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
       <div className="relative z-10 w-full flex flex-col items-center justify-between min-h-screen">
         
-
         {/* LOGO & NAME (Moved Down) */}
         <div className="flex flex-col items-center" style={{ marginTop: '20vh' }}>
           <div className="mb-0.5">
@@ -1288,10 +1327,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-70 bg-white/90 backdrop-blur-md rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              boxShadow: '0 4px 0 #e0e0e0, 0 6px 20px rgba(0,0,0,0.2), inset 0 -2px 4px rgba(0,0,0,0.05), inset 0 2px 4px rgba(255,255,255,0.8)',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f5f5f5 100%)',
-            }}
           >
             {loading ? (
               <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -1314,17 +1349,31 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </button>
 
           <button
-            onClick={() => setShowLoginPage(true)}
-            className="w-70 rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-white"
-            style={{
-              boxShadow: '0 4px 0 #1d4ed8, 0 6px 20px rgba(37,99,235,0.4), inset 0 -2px 4px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.2)',
-              background: 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)',
+            onClick={async () => {
+              if (banMessage) return; 
+              setLoading(true);
+              const isBanned = await handlePreLoginBanCheck();
+              setLoading(false);
+              if (!isBanned) {
+                setShowLoginPage(true); 
+              }
             }}
+            disabled={loading}
+            className="w-70 bg-blue-600 rounded-full p-3.5 flex items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer text-white disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <User size={22} />
-            <span className="font-semibold text-base">
-              Login with Account
-            </span>
+            {loading ? (
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : (
+              <>
+                <User size={22} />
+                <span className="font-semibold text-base">
+                  Login with Account
+                </span>
+              </>
+            )}
           </button>
         </div>
 
@@ -1344,10 +1393,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
       </div>
 
-      {/* BAN NOTIFICATION CARD (No Close Button, 2 Rows due to whitespace-pre-wrap and \n) */}
+      {/* BAN NOTIFICATION CARD (Original UI classes restored) */}
       {banMessage && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 min-w-[280px]">
-          <span className="font-medium whitespace-pre-wrap">{banMessage}</span>
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-sm text-white text-sm px-6 py-4 rounded-xl text-center shadow-lg z-50 whitespace-pre-wrap flex flex-col gap-3 min-w-[280px]">
+          <span className="font-medium">{banMessage}</span>
         </div>
       )}
     </div>
