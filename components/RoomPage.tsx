@@ -458,6 +458,20 @@ function RoomContent({
 
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
 
+  const handleClearChat = () => {
+    if (!roomId) return;
+
+    const timestamp = Date.now();
+    clearedAtRef.current = timestamp;
+    setMessages([]);
+
+    socket.emit("room_clear_chat", {
+      roomId,
+      timestamp,
+    });
+  };
+
+
   const [roomGiftCount, setRoomGiftCount] = useState<number>(0);
 
   useEffect(() => {
