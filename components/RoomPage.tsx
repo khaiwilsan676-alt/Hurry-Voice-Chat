@@ -1552,12 +1552,23 @@ function RoomContent({
       String(roomOwner.accountId) === String(currentUser.accountId);
 
     if (isOwnerOfRoom) {
+      let existingMyRoom: any = {};
+      try {
+        const rawMyRoom = localStorage.getItem('myRoom');
+        if (rawMyRoom) {
+          existingMyRoom = JSON.parse(rawMyRoom);
+        }
+      } catch (e) {
+        console.error("Error parsing myRoom from localStorage", e);
+      }
+
       const updatedMyRoomCard = {
+        ...existingMyRoom,
         id: currentUser.id || roomId,
         accountId: currentUser.accountId || roomOwner.accountId,
         name: roomSettings.roomName,
         image: roomSettings.roomDp,
-        country: localStorage.getItem('userCountry') || '🇮🇳'
+        country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
       };
       localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
       window.dispatchEvent(new Event('storage'));

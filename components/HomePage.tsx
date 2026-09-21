@@ -1762,9 +1762,9 @@ useEffect(() => {
             let actualName = parsed.name;
             let actualDp = parsed.image || parsed.roomDp || photo || '/default-avatar.png';
 
-            if (uid) {
+            if (finalAccNum) {
               try {
-                const mongoRoom = await fetchRoomFromMongoDB(uid);
+                const mongoRoom = await fetchRoomFromMongoDB(finalAccNum);
                 if (mongoRoom) {
                   const mName = mongoRoom['Room Name'] || mongoRoom.roomName || mongoRoom.name;
                   const mDp = mongoRoom['Room dp'] || mongoRoom.roomDp || mongoRoom.image;
@@ -1924,6 +1924,13 @@ useEffect(() => {
   // ============ KEPT ROOM STORAGE CHANGE ============
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'myRoom') {
+        if (e.newValue) {
+          try {
+            setMyRoom(JSON.parse(e.newValue));
+          } catch {}
+        }
+      }
       if (e.key === 'keptRoom') {
         if (!e.newValue) {
           setKeptRoom(null)
@@ -2250,11 +2257,26 @@ useEffect(() => {
         currentRoomDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png';
       }
 
+      let finalRoomName = currentRoomName;
+      let finalRoomDp = currentRoomDp;
+
+      try {
+        const mongoRoom = await fetchRoomFromMongoDB(storedAccNum);
+        if (mongoRoom) {
+          const mName = mongoRoom['Room Name'] || mongoRoom.roomName || mongoRoom.name;
+          const mDp = mongoRoom['Room dp'] || mongoRoom.roomDp || mongoRoom.image;
+          if (mName && mName !== 'My Room' && mName !== 'My room' && mName !== 'User') finalRoomName = mName;
+          if (mDp && mDp !== 'undefined' && mDp !== 'null') finalRoomDp = mDp;
+        }
+      } catch (err) {
+        console.warn('Error fetching room from MongoDB in create room check:', err);
+      }
+
       const updatedMyRoom = {
         ...myRoom,
         id: storedAccNum,
-        name: currentRoomName,
-        image: currentRoomDp,
+        name: finalRoomName,
+        image: finalRoomDp,
         accountId: storedAccNum
       };
 
@@ -2271,14 +2293,27 @@ useEffect(() => {
       return;
     }
 
-    const defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
+    let defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
+    let defaultRoomDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png'
+
+    try {
+      const mongoRoom = await fetchRoomFromMongoDB(storedAccNum);
+      if (mongoRoom) {
+        const mName = mongoRoom['Room Name'] || mongoRoom.roomName || mongoRoom.name;
+        const mDp = mongoRoom['Room dp'] || mongoRoom.roomDp || mongoRoom.image;
+        if (mName && mName !== 'My Room' && mName !== 'My room' && mName !== 'User') defaultRoomName = mName;
+        if (mDp && mDp !== 'undefined' && mDp !== 'null') defaultRoomDp = mDp;
+      }
+    } catch (err) {
+      console.warn('Error fetching room from MongoDB in create room check:', err);
+    }
 
     const createdRoomCard: UserCard = {
       id: storedAccNum,
       accountId: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem('userCountry') || '🇮🇳',
-      image: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png'
+      image: defaultRoomDp
     }
 
     localStorage.setItem('isRoomCreated', 'true')
