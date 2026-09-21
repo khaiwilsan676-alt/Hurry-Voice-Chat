@@ -2513,7 +2513,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         {allRooms.length > 0 ? (
           <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
             <div className="grid grid-cols-2 gap-x-1 gap-y-1.5 ">
-              {allRooms.map((room) => (
+              {allRooms.map((room, index) => (
                 <div
                   key={room.accountId}
                   onClick={() => handleUserCardClick({
@@ -2530,19 +2530,34 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
                     style={{ height: '170px' }}
                   >
-                    <img
-                      src={
-                        room.image && room.image !== "undefined" && room.image !== "null"
-                          ? room.image
-                          : "/default-avatar.png"
-                      }
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/default-avatar.png";
-                      }}
-                      alt={room.name}
-                      className="w-full h-full object-cover"
-                      draggable="false"
-                    />
+                   <img
+  src={
+    room.image && room.image !== "undefined" && room.image !== "null"
+      ? room.image
+      : "/default-avatar.png"
+  }
+  onError={(e) => {
+    (e.target as HTMLImageElement).src = "/default-avatar.png";
+  }}
+  alt={room.name}
+  className="w-full h-full object-cover"
+  draggable="false"
+/>
+
+{(index === 0 || index === 1 || index === 2) && (
+  <img
+    src={
+      index === 0
+        ? "/file_00000000ae44820b9ec9f5aa2805038d.png"
+        : index === 1
+        ? "/file_000000008a84820b906415bebf7ceee5.png"
+        : "/file_00000000b494820b999573b6a8af890a.png"
+    }
+    alt={`Rank ${index + 1}`}
+    className="absolute inset-0 w-full h-full object-cover pointer-events-none z-10"
+    draggable="false"
+  />
+)}
                     {room.isLocked && (
                       <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
                         <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
