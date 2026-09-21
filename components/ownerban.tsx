@@ -154,7 +154,7 @@ export default function OwnerBan() {
           }
           const resBan = await fetch(apiUrl('/api/bans'), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+            headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
             body: JSON.stringify(payload)
           })
           if (resBan.ok) {
@@ -215,7 +215,7 @@ export default function OwnerBan() {
     try {
       const res = await fetch(apiUrl('/api/bans'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+        headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
         body: JSON.stringify(payload)
       })
       if (res.ok) {
@@ -239,7 +239,7 @@ export default function OwnerBan() {
     try {
       const res = await fetch(apiUrl('/api/bans/unban'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+        headers: { 'Content-Type': 'application/json', 'x-requester-id': '100003' },
         body: JSON.stringify({ accountId: selectedBan.accountId, reason: unbanReason })
       })
       if (res.ok) {

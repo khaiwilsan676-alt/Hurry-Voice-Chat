@@ -552,7 +552,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
           if (banData.banData.unbanTime !== -1) {
             unbanTimeStr = new Date(banData.banData.unbanTime).toLocaleString();
           }
-          setBanMessage(`You Can't Login. Your ID has been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
+          setBanMessage(`You Account Have been ban Due to ${type}. Unban time: ${unbanTimeStr}`);
           setLoading(false);
           return; // Stop login
         }
