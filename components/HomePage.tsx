@@ -2541,7 +2541,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       (e.target as HTMLImageElement).src = "/default-avatar.png";
     }}
     alt={room.name}
-    className="w-full h-full object-cover"
+    className="w-full h-full object-contain"
     draggable="false"
   />
 
@@ -2555,10 +2555,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
           : "/file_00000000b494820b999573b6a8af890a.png"
       }
       alt={`Rank ${index + 1}`}
-      className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      className="absolute inset-0 w-full h-full pointer-events-none z-40"
       style={{
         objectFit: 'contain',
-        transform: 'scale(1.1) translateY(-12%)',
+        transform: 'scale(1.0) translateY(-4%)',
         transformOrigin: 'center center',
       }}
       draggable="false"
