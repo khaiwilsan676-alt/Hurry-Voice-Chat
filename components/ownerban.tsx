@@ -20,6 +20,7 @@ export default function OwnerBan() {
   const [unbanReason, setUnbanReason] = useState('')
 
   // Ban form fields
+  const [inlineUserId, setInlineUserId] = useState('') 
   const [description, setDescription] = useState('')
   const [banType, setBanType] = useState('Illegal')
   const [banBy, setBanBy] = useState('Official')
@@ -97,6 +98,68 @@ export default function OwnerBan() {
     setUnbanTimeStr(unbanDate.toLocaleString())
   }
 
+  const submitInlineBan = async () => {
+    if (!inlineUserId.trim()) {
+      alert("Please enter User ID");
+      return;
+    }
+
+    const now = new Date()
+    let unbanTimestamp = -1
+
+    if (timeOption !== 'Permanent' && timeOption !== 'Device Ban') {
+      let msToAdd = 0
+      if (timeOption === '2Hours') msToAdd = 2 * 60 * 60 * 1000
+      else if (timeOption === '24Hours') msToAdd = 24 * 60 * 60 * 1000
+      else if (timeOption === '7 Days') msToAdd = 7 * 24 * 60 * 60 * 1000
+      else if (timeOption === 'Custom') {
+        const hours = parseInt(customTime) || 0
+        msToAdd = hours * 60 * 60 * 1000
+      }
+      unbanTimestamp = now.getTime() + msToAdd
+    }
+
+    try {
+      const resUser = await fetch(apiUrl(`/api/users?accountId=${inlineUserId}&online=true`))
+      if (resUser.ok) {
+        const data = await resUser.json()
+        if (data.users && data.users.length > 0) {
+          const tUser = data.users[0]
+          const payload = {
+            accountId: tUser.accountId,
+            userId: tUser.id || tUser.uid,
+            userName: tUser.name,
+            userImage: tUser.image || tUser.avatar,
+            type: banType,
+            banBy: banBy,
+            timeOption: timeOption,
+            customTime: customTime,
+            banTime: now.getTime(),
+            unbanTime: unbanTimestamp,
+            description: description,
+            ipAddress: tUser.lastIp || '',
+            deviceId: tUser.lastDeviceId || ''
+          }
+          const resBan = await fetch(apiUrl('/api/bans'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-requester-id': localStorage.getItem('accountNumber') || '' },
+            body: JSON.stringify(payload)
+          })
+          if (resBan.ok) {
+            setInlineUserId('')
+            setDescription('')
+            fetchBans()
+            alert("Banned successfully")
+          }
+        } else {
+          alert('User is not online or not found')
+        }
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const submitBan = async () => {
     if (!targetUser) return
     const now = new Date()
@@ -172,11 +235,93 @@ export default function OwnerBan() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto w-full text-slate-900 dark:text-slate-100">
       <h2 className="text-2xl font-bold mb-4">Ban</h2>
 
-      {/* Search Input */}
-      <div className="flex gap-2 mb-8 items-center max-w-sm">
+      {/* NEW ON-SCREEN BAN FORM */}
+      <div className="mb-8 max-w-sm space-y-4">
+        
+        {/* Title hata diya gaya hai */}
+
+        <div>
+          <div className="font-semibold mb-1">User ID</div>
+          <input
+            type="text"
+            value={inlineUserId}
+            onChange={(e) => setInlineUserId(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Enter ID"
+          />
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Description</div>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            placeholder="Reason of ban"
+          />
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Types</div>
+          <select
+            value={banType}
+            onChange={(e) => setBanType(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
+          >
+            <option value="Illegal">Illegal</option>
+            <option value="Violence">Violence</option>
+            <option value="Fraud">Fraud</option>
+            <option value="Abusing">Abusing</option>
+            <option value="Fake official">Fake official</option>
+            <option value="Others">Others</option>
+          </select>
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Time</div>
+          <select
+            value={timeOption}
+            onChange={(e) => setTimeOption(e.target.value)}
+            className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none cursor-pointer"
+          >
+            <option value="2Hours">2Hours</option>
+            <option value="24Hours">24Hours</option>
+            <option value="7 Days">7 Days</option>
+            <option value="Custom">Custom</option>
+            <option value="Permanent">Permanent</option>
+            <option value="Device Ban">Device Ban</option>
+          </select>
+          {timeOption === 'Custom' && (
+            <input
+              type="number"
+              placeholder="Enter hours"
+              value={customTime}
+              onChange={(e) => setCustomTime(e.target.value)}
+              className="w-full p-2 mt-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none"
+            />
+          )}
+        </div>
+
+        <div>
+          <div className="font-semibold mb-1">Unban Time</div>
+          <div className="w-full p-2 bg-slate-100 dark:bg-slate-800 rounded-md shadow-none border-none outline-none text-slate-500">
+            {unbanTimeStr || 'N/A'}
+          </div>
+        </div>
+
+        <button
+          onClick={submitInlineBan}
+          className="w-full bg-blue-600 text-white font-bold py-3 rounded-md mt-4 shadow-none border-none"
+        >
+          Submit Ban
+        </button>
+      </div>
+
+      <div className="flex gap-2 mb-8 items-center max-w-sm border-t border-slate-200 dark:border-slate-800 pt-6">
         <input
           type="text"
-          placeholder="Enter ID Number"
+          placeholder="Search by ID Number (Optional)"
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
           className="flex-1 p-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
@@ -192,7 +337,6 @@ export default function OwnerBan() {
 
       <h3 className="text-lg font-semibold mb-4">Banned Users</h3>
 
-      {/* List without cards, just text titles */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -239,7 +383,7 @@ export default function OwnerBan() {
         </table>
       </div>
 
-      {/* BAN FORM MODAL */}
+      {/* OLD BAN FORM MODAL */}
       {isBanFormOpen && targetUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-md w-full max-w-md p-6 overflow-y-auto max-h-[90vh] text-slate-900 dark:text-white shadow-none border-none relative">
@@ -293,7 +437,6 @@ export default function OwnerBan() {
                 </select>
               </div>
 
-              {/* Ban By hidden visually as requested to keep it simple */}
               <div className="hidden">
                 <select value={banBy} onChange={(e) => setBanBy(e.target.value)}>
                   <option value="Official">Official</option>
@@ -343,7 +486,7 @@ export default function OwnerBan() {
         </div>
       )}
 
-      {/* DETAIL MODAL (3-dot menu click) */}
+      {/* DETAIL MODAL */}
       {isDetailModalOpen && selectedBan && !isUnbanConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-md p-6 text-slate-900 dark:text-white shadow-xl relative">
