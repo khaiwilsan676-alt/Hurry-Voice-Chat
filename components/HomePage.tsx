@@ -2558,8 +2558,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
 style={{
   width: '180%',
   height: '180%',
-  left: '-10%',
-  top: '-10%',
+  left: '-0%',
+  top: '-28%',
   objectFit: 'contain',
 }}
   />
