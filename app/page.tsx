@@ -49,30 +49,54 @@ export default function Page() {
   useEffect(() => {
     const checkUserStatus = async (user: any, fallbackUid?: string) => {
       const uid = user ? user.uid : fallbackUid;
-      const accountId = localStorage.getItem('accountNumber');
+      let accountId = localStorage.getItem('accountNumber');
+
       if (uid || accountId) {
         try {
+          const { apiUrl } = await import('@/src/lib/api');
+
+          if (!accountId && uid) {
+             const userRes = await fetch(apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`));
+             if (userRes.ok) {
+               const userData = await userRes.json();
+               if (userData?.user?.accountId) {
+                 accountId = userData.user.accountId;
+               }
+             }
+             if (!accountId) {
+                let hash = 0
+                for (let i = 0; i < uid.length; i++) {
+                  hash = (hash << 5) - hash + uid.charCodeAt(i)
+                  hash |= 0
+                }
+                const positiveHash = Math.abs(hash)
+                accountId = String(10000000 + (positiveHash % 90000000))
+             }
+          }
+
           const { Device } = await import('@capacitor/device');
           const deviceIdInfo = await Device.getId();
           const deviceId = deviceIdInfo.identifier;
-          const { apiUrl } = await import('@/src/lib/api');
+
           const res = await fetch(apiUrl('/api/check-ban'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ accountId: accountId || 'N/A', deviceId })
           });
+
           if (res.ok) {
             const data = await res.json();
             if (data.banned) {
               localStorage.setItem('recentBanMessage', JSON.stringify(data.banData));
               handleLogout();
-              return;
+              return; // MUST RETURN TO PREVENT SETTING isLoggedIn to true
             }
           }
         } catch (e) {
           console.error("Ban check failed:", e);
         }
       }
+
       setIsLoggedIn(true);
       setLoading(false);
     };
