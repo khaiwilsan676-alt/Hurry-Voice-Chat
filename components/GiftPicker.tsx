@@ -4,8 +4,25 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 
-export default function GiftPicker({ onClose }: { onClose: () => void }) {
+import { socket } from '../src/lib/socket';
+import { getWalletBalance } from '../src/lib/walletDB';
+
+export default function GiftPicker({ onClose, roomId, senderId, receiverId }: { onClose: () => void, roomId: string, senderId: string, receiverId: string }) {
   const [activeTab, setActiveTab] = useState("Hot");
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    getWalletBalance().then(res => setWalletBalance(res.coins));
+
+    const handleWalletChanged = (e: any) => {
+      if (e.detail) {
+        setWalletBalance(e.detail.coins || 0);
+      }
+    };
+    window.addEventListener('walletBalanceChanged', handleWalletChanged);
+    return () => window.removeEventListener('walletBalanceChanged', handleWalletChanged);
+  }, []);
+
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
   const [showMultipliers, setShowMultipliers] = useState(false);
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
@@ -49,6 +66,39 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
   };
 
   const currentGifts = getCurrentGifts();
+
+  const handleSendGift = () => {
+    if (!selectedGift) {
+      alert("Please select a gift");
+      return;
+    }
+    const gift = currentGifts.find((g) => g.id === selectedGift);
+    if (!gift) return;
+
+    const mult = parseInt(selectedMultiplier.replace("×", ""));
+    const totalCoins = gift.coins * mult;
+
+    if (walletBalance < totalCoins) {
+      alert("Insufficient balance. Please recharge your coins.");
+      return;
+    }
+
+    socket.emit("send_gift", {
+      roomId,
+      senderId,
+      receiverId,
+      giftId: gift.id,
+      giftName: gift.name,
+      giftImage: gift.image,
+      coinsValue: gift.coins,
+      multiplier: mult,
+      totalCoins
+    });
+
+    // Update optimistically or fetch again, wait for backend/server.js to process and update via wallet_balance event if needed
+    getWalletBalance().then(res => window.dispatchEvent(new CustomEvent('walletBalanceChanged', { detail: res })));
+    onClose();
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -249,7 +299,7 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
                 sizes="20px"
               />
             </div>
-            <span className="text-[10px] font-bold text-yellow-300 tracking-wide">66457</span>
+            <span className="text-[10px] font-bold text-yellow-300 tracking-wide">{walletBalance}</span>
           </div>
 
           <div className="flex items-center gap-1.5 relative">
@@ -281,7 +331,7 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
               <ChevronUp className={`w-3 h-3 transition-transform ${showMultipliers ? "rotate-180" : ""}`} />
             </button>
             <button
-              onClick={() => console.log(`Sent Gift ID: ${selectedGift} with ${selectedMultiplier}`)}
+              onClick={handleSendGift}
               className="send-btn text-white font-bold text-xs px-4 py-1.5 rounded-full transition-all active:scale-95"
             >
               Send

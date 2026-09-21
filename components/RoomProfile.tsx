@@ -217,6 +217,7 @@ interface RoomProfileProps {
   onMute?: () => void
   onLock?: () => void
   onKickOut?: () => void
+  onSendGift?: () => void
 }
 
 export default function RoomProfile({
@@ -232,7 +233,8 @@ export default function RoomProfile({
   onThirdAction,
   onMute,
   onLock,
-  onKickOut
+  onKickOut,
+  onSendGift
 }: RoomProfileProps) {
   // Default values
   const displayName = user.name || 'User'
@@ -602,13 +604,16 @@ export default function RoomProfile({
                 </button>
 
                 <button
-                  onClick={onThirdAction}
+                  onClick={() => {
+                    if (onSendGift) onSendGift();
+                    else if (onThirdAction) onThirdAction();
+                  }}
                   className="flex items-center gap-1.5 group active:scale-95 transition-all"
-                  aria-label="Additional action"
+                  aria-label="Send Gift"
                 >
                   <img
                     src="/file_000000008e508208b1353ae33e2abef9.png"
-                    alt="Action"
+                    alt="Gift"
                     className="w-8 h-8 object-contain rounded-full group-hover:scale-110 transition-transform"
                   />
                 </button>
