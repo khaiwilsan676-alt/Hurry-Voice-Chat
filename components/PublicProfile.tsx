@@ -18,7 +18,6 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 
-
 // Import the WebRTC ChatScreen component
 import ChatScreen from './ChatScreen' // adjust path if necessary
 import UserReport from './userreport' // ✅ Import kiya userreport.tsx
@@ -1299,12 +1298,12 @@ export default function PublicProfile({
 
   return (
     <div
-      className={`w-full bg-white min-h-screen text-gray-900 relative ${
+      className={`w-full bg-black min-h-screen text-gray-100 relative ${
         isOtherUser ? 'pb-24' : 'pb-10'
       }`}
     >
       {/* Cover Image & Header Section */}
-      <div className="relative w-full h-[350px] bg-gray-800">
+      <div className="relative w-full h-[350px] bg-gray-900">
         {user.coverPhoto ? (
           <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />
         ) : user.photo ? (
@@ -1314,6 +1313,9 @@ export default function PublicProfile({
             {avatarLetter}
           </div>
         )}
+
+        {/* ✅ MIXING GRADIENT OVERLAY (Fades Cover to Black) */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none z-0" />
 
         {/* --- Top Icons Header Wrapper --- */}
         <div 
@@ -1338,13 +1340,13 @@ export default function PublicProfile({
         </div>
 
         {/* Avatar with WebGL Shader Overlay */}
-        <div className="absolute bottom-12 left-6 flex items-center z-30">
-          <div className="relative w-24 h-24 rounded-full shadow-lg border-3 border-white bg-gray-700">
+        <div className="absolute bottom-12 left-6 flex items-center z-20">
+          <div className="relative w-24 h-24 rounded-full shadow-lg border-2 border-black bg-gray-800">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-gray-600 flex items-center justify-center text-4xl text-white font-bold">
+                <div className="w-full h-full bg-gray-700 flex items-center justify-center text-4xl text-white font-bold">
                   {avatarLetter}
                 </div>
               )}
@@ -1370,11 +1372,11 @@ export default function PublicProfile({
         </div>
       </div>
 
-      {/* Profile Info Details Section */}
-      <div className="relative bg-white rounded-xl -mt-6 px-3 pt-6 z-20">
+      {/* Profile Info Details Section ✅ (Removed rounded curves, changed bg to black) */}
+      <div className="relative bg-black -mt-6 px-3 pt-6 z-20">
 
         <div className="flex flex-wrap items-center gap-0.5">
-          <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
+          <h1 className="text-2xl font-bold text-white tracking-wide">{finalDisplayName}</h1>
           <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-0.5 whitespace-nowrap">
             {user.gender} {user.age}
           </span>
@@ -1423,21 +1425,21 @@ export default function PublicProfile({
                     {user.displayAccountNumber}
                   </span>
                 </span>
-                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
+                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-200">
                   <Copy size={12} />
                 </button>
               </>
             ) : (
               <>
-                <span className="text-gray-500">ID:{getDisplayID()}</span>
-                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
+                <span className="text-gray-400">ID:{getDisplayID()}</span>
+                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-200">
                   <Copy size={12} />
                 </button>
               </>
             )}
           </div>
-          <span className="text-gray-300">|</span>
-          <span className="text-gray-500">{user.followers} Fans</span>
+          <span className="text-gray-700">|</span>
+          <span className="text-gray-400">{user.followers} Fans</span>
         </div>
 
         <div className="mt-1 flex items-center gap-1 -ml-2">
@@ -1453,34 +1455,34 @@ export default function PublicProfile({
           <img src="/1785486414756.png" alt="" className="h-6 w-auto object-contain" />
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-gray-600 mt-3">
-          <MapPin size={14} className="text-gray-400" />
+        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-3">
+          <MapPin size={14} className="text-gray-500" />
           <span className="text-base">{user.flag}</span>
-          <span className="text-gray-500">{user.location || 'India'}</span>
+          <span className="text-gray-400">{user.location || 'India'}</span>
         </div>
 
         {/* Bio Section */}
         <div className="flex items-start gap-2 mt-2">
           <button
             onClick={!isOtherUser ? handleOpenEditSheet : undefined}
-            className={`mt-0.5 shrink-0 ${isOtherUser ? 'text-gray-400' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`mt-0.5 shrink-0 ${isOtherUser ? 'text-gray-600' : 'text-gray-500 hover:text-gray-300'}`}
           >
             <Edit3 size={14} />
           </button>
           {user.bio ? (
-            <p className="text-xs text-gray-500 italic">{user.bio}</p>
+            <p className="text-xs text-gray-400 italic">{user.bio}</p>
           ) : (
-            <p className="text-xs text-gray-400 italic">
+            <p className="text-xs text-gray-500 italic">
               {isOtherUser ? 'No bio added yet' : 'Add bio...'}
             </p>
           )}
         </div>
 
-        <div className="flex gap-0 mt-4 border-b border-gray-200">
+        <div className="flex gap-0 mt-4 border-b border-gray-800">
           <button
             onClick={() => setActiveTab('profile')}
             className={`px-6 py-2 text-sm font-semibold transition-colors relative ${
-              activeTab === 'profile' ? 'text-blue-500' : 'text-gray-500'
+              activeTab === 'profile' ? 'text-blue-500' : 'text-gray-400'
             }`}
           >
             Profile
@@ -1494,16 +1496,16 @@ export default function PublicProfile({
       {/* Content Tabs Section */}
       <div className="px-5 mt-6 space-y-4">
         <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
+          <h3 className="text-sm font-bold text-gray-200 mb-2 flex justify-between items-center">
             Albums
-            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/4</span>
+            <span className="text-xs text-gray-500 font-normal">{albumImages.length}/4</span>
           </h3>
           {albumImages.length > 0 ? (
             <div className="flex gap-2 overflow-x-auto">
               {albumImages.map((img, index) => (
                 <div
                   key={index}
-                  className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-20 h-20 rounded-xl overflow-hidden bg-gray-900 shrink-0 cursor-pointer hover:opacity-90 transition-opacity border border-gray-800"
                   onClick={() => setFullImageView(img)}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
@@ -1511,40 +1513,40 @@ export default function PublicProfile({
               ))}
             </div>
           ) : (
-            <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-100">
+            <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
               <img
                 src="/IMG_20260726_225835.jpg"
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover opacity-80"
               />
             </div>
           )}
         </div>
 
         <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Vehicle</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
+          <h3 className="text-sm font-bold text-gray-200 mb-2">Vehicle</h3>
+          <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
             <img src="/1785091443553.png" alt="" className="w-full h-full object-cover" />
           </div>
         </div>
 
         <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Medal</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
+          <h3 className="text-sm font-bold text-gray-200 mb-2">Medal</h3>
+          <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
             <img src="/1785091431545.png" alt="" className="w-full h-full object-cover" />
           </div>
         </div>
 
         <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Frame</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
+          <h3 className="text-sm font-bold text-gray-200 mb-2">Frame</h3>
+          <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
             <img src="/1785091457562.png" alt="" className="w-full h-full object-cover" />
           </div>
         </div>
 
         <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Gift</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
+          <h3 className="text-sm font-bold text-gray-200 mb-2">Gift</h3>
+          <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800">
             <img src="/1785091520912.png" alt="" className="w-full h-full object-cover" />
           </div>
         </div>
@@ -1552,10 +1554,10 @@ export default function PublicProfile({
 
       {/* Bottom Action Bar for Other User */}
       {isOtherUser && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-6 py-3.5 border-t border-gray-100 flex items-center justify-between gap-4 max-w-md mx-auto shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-black/95 backdrop-blur-md px-6 py-3.5 border-t border-gray-800 flex items-center justify-between gap-4 max-w-md mx-auto shadow-lg">
           <button
             onClick={handleToggleFollow}
-            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ff5874] to-[#ff6b8b] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-pink-200"
+            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ff5874] to-[#ff6b8b] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-pink-900/40"
           >
             <Heart className="w-6 h-6 fill-white stroke-none" />
             <span>{isFollowing ? 'Following' : 'Follow'}</span>
@@ -1563,7 +1565,7 @@ export default function PublicProfile({
 
           <button
             onClick={() => setShowChat(true)}
-            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#1dc4e9] to-[#1de9b6] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-cyan-200"
+            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#1dc4e9] to-[#1de9b6] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-cyan-900/40"
           >
             <MessageCircle className="w-6 h-6 fill-white stroke-none" />
             <span>Chat</span>
@@ -1574,36 +1576,35 @@ export default function PublicProfile({
       {/* Full Image View Modal */}
       {fullImageView && (
         <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4"
           onClick={() => setFullImageView(null)}
         >
           <button
             onClick={() => setFullImageView(null)}
-            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors"
+            className="absolute top-4 right-4 text-white bg-white/10 rounded-full p-2 hover:bg-white/20 transition-colors"
           >
             <X size={24} />
           </button>
           <img
             src={fullImageView}
             alt=""
-            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}
 
-      {/* Edit Profile Bottom Sheet */}
+      {/* Edit Profile Bottom Sheet (Dark Mode) */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
+          <div className="absolute inset-0 bg-black/70" onClick={handleCloseEditSheet}></div>
 
-          {/* ✅ rounded-t-md kar diya */}
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+          <div className="relative bg-[#111111] w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh] shadow-2xl border-t border-gray-800">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
               <button onClick={handleCloseEditSheet}>
-                <ArrowLeft size={24} className="text-gray-700" />
+                <ArrowLeft size={24} className="text-gray-300" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">Edit Information</h2>
+              <h2 className="text-lg font-bold text-white">Edit Information</h2>
               <div className="w-6"></div>
             </div>
 
@@ -1631,15 +1632,15 @@ export default function PublicProfile({
               />
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Avatar</span>
+                <span className="text-sm font-medium text-gray-300">Avatar</span>
                 <div
                   onClick={() => avatarInputRef.current?.click()}
-                  className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
+                  className="w-14 h-14 rounded-full overflow-hidden bg-gray-800 border-2 border-gray-600 cursor-pointer"
                 >
                   {user.photo ? (
                     <img src={user.photo} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center text-xl text-white font-bold">
                       {avatarLetter}
                     </div>
                   )}
@@ -1648,27 +1649,26 @@ export default function PublicProfile({
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Background Cover</span>
+                  <span className="text-sm font-medium text-gray-300">Background Cover</span>
                   <div className="flex items-center gap-2">
                     {user.coverPhoto && (
                       <button
                         onClick={handleRemoveCoverPhoto}
-                        className="px-2 py-1 rounded-lg bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition-colors"
+                        className="px-2 py-1 rounded-lg bg-red-900/30 text-red-400 text-xs font-semibold hover:bg-red-900/50 transition-colors"
                       >
                         Remove
                       </button>
                     )}
-                    {/* ✅ Sirf Camera icon, text hataya */}
                     <button
                       onClick={() => coverInputRef.current?.click()}
-                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-900/30 text-blue-400 flex items-center justify-center hover:bg-blue-900/50 transition-colors"
                     >
                       <Camera size={16} />
                     </button>
                   </div>
                 </div>
                 {user.coverPhoto && (
-                  <div className="w-full h-20 rounded-xl overflow-hidden border border-gray-200">
+                  <div className="w-full h-20 rounded-xl overflow-hidden border border-gray-700">
                     <img
                       src={user.coverPhoto}
                       alt=""
@@ -1680,14 +1680,13 @@ export default function PublicProfile({
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-gray-300">
                     Album Photos ({albumImages.length}/4)
                   </span>
                   {albumImages.length < 4 && (
-                    // ✅ Sirf Camera icon, text hataya
                     <button
                       onClick={() => albumInputRef.current?.click()}
-                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
+                      className="p-2 rounded-lg bg-blue-900/30 text-blue-400 flex items-center justify-center hover:bg-blue-900/50 transition-colors"
                     >
                       <Camera size={16} />
                     </button>
@@ -1699,7 +1698,7 @@ export default function PublicProfile({
                     {albumImages.map((img, idx) => (
                       <div
                         key={idx}
-                        className="relative w-full h-16 rounded-xl overflow-hidden border border-gray-200 group"
+                        className="relative w-full h-16 rounded-xl overflow-hidden border border-gray-700 group"
                       >
                         <img src={img} alt="" className="w-full h-full object-cover" />
                         <button
@@ -1715,23 +1714,23 @@ export default function PublicProfile({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Name</span>
+                <span className="text-sm font-medium text-gray-300">Name</span>
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
+                  className="text-sm text-white text-right bg-transparent border-b border-gray-800 focus:border-blue-500 outline-none px-2 py-1 w-48 placeholder-gray-600"
                   placeholder="Enter name"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Age</span>
+                <span className="text-sm font-medium text-gray-300">Age</span>
                 <input
                   type="number"
                   value={editAge}
                   onChange={(e) => setEditAge(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
+                  className="text-sm text-white text-right bg-transparent border-b border-gray-800 focus:border-blue-500 outline-none px-2 py-1 w-48 placeholder-gray-600"
                   placeholder="0"
                   min="0"
                   max="150"
@@ -1739,20 +1738,20 @@ export default function PublicProfile({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Bio</span>
+                <span className="text-sm font-medium text-gray-300">Bio</span>
                 {showBioInput ? (
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
                       value={editBio}
                       onChange={(e) => setEditBio(e.target.value)}
-                      className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-36"
+                      className="text-sm text-white text-right bg-transparent border-b border-gray-800 focus:border-blue-500 outline-none px-2 py-1 w-36 placeholder-gray-600"
                       placeholder="Add bio"
                       autoFocus
                     />
                     <button
                       onClick={handleBioSave}
-                      className="text-xs text-blue-500 font-medium"
+                      className="text-xs text-blue-400 font-medium"
                     >
                       Save
                     </button>
@@ -1760,7 +1759,7 @@ export default function PublicProfile({
                 ) : (
                   <button
                     onClick={() => setShowBioInput(true)}
-                    className="flex items-center gap-1 text-sm text-gray-400"
+                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-300"
                   >
                     <span className="max-w-[180px] truncate">
                       {editBio || 'Add bio'}
@@ -1771,19 +1770,19 @@ export default function PublicProfile({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Country</span>
+                <span className="text-sm font-medium text-gray-300">Country</span>
                 <select
                   value={editCountry}
                   onChange={handleCountrySelect}
                   disabled={countryLocked}
                   className={`text-sm text-right outline-none px-2 py-1 bg-transparent border-b w-48 ${
                     countryLocked
-                      ? 'text-gray-400 border-transparent cursor-not-allowed'
-                      : 'text-gray-900 border-gray-200 focus:border-blue-500'
+                      ? 'text-gray-600 border-transparent cursor-not-allowed'
+                      : 'text-white border-gray-800 focus:border-blue-500'
                   }`}
                 >
                   {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.name}>
+                    <option key={c.code} value={c.name} className="bg-black text-white">
                       {c.flag} {c.name}
                     </option>
                   ))}
@@ -1791,17 +1790,17 @@ export default function PublicProfile({
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Gender</span>
+                <span className="text-sm font-medium text-gray-300">Gender</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleGenderSelect('male')}
                     disabled={genderLocked && editGender !== 'male'}
                     className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                       editGender === 'male'
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-blue-600 text-white'
                         : genderLocked
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gray-900 text-gray-600 cursor-not-allowed'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
                     ♂ Male
@@ -1811,10 +1810,10 @@ export default function PublicProfile({
                     disabled={genderLocked && editGender !== 'female'}
                     className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                       editGender === 'female'
-                        ? 'bg-pink-500 text-white'
+                        ? 'bg-pink-600 text-white'
                         : genderLocked
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gray-900 text-gray-600 cursor-not-allowed'
+                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
                     ♀ Female
@@ -1823,10 +1822,10 @@ export default function PublicProfile({
               </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-white border-t border-gray-100 shrink-0">
+            <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-[#111111] border-t border-gray-800 shrink-0">
               <button
                 onClick={handleSaveEdit}
-                className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 transition-colors"
               >
                 Save Changes
               </button>
@@ -1835,22 +1834,22 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== ACTION SHEET (REPORT & BLOCK) - CORNERS STRICTLY MD ===== */}
+      {/* ===== ACTION SHEET (REPORT & BLOCK) ===== */}
       {showActionSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
           <div
-            className="absolute inset-0 bg-transparent pointer-events-auto"
+            className="absolute inset-0 bg-black/50 pointer-events-auto"
             onClick={() => setShowActionSheet(false)}
           ></div>
 
-          <div className="relative bg-black w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto">
+          <div className="relative bg-[#111] w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto border-t border-gray-800">
             <div className="flex flex-col text-white px-4">
               <button
                 onClick={() => {
                   setShowActionSheet(false)
-                  setShowUserReport(true) // ✅ Report click pe user report open
+                  setShowUserReport(true)
                 }}
-                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium hover:bg-gray-800 rounded-md"
               >
                 Report
               </button>
@@ -1860,7 +1859,7 @@ export default function PublicProfile({
                   setShowActionSheet(false)
                   alert('Block user')
                 }}
-                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
+                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium hover:bg-gray-800 mb-2 rounded-md text-red-500"
               >
                 Block
               </button>
@@ -1869,7 +1868,7 @@ export default function PublicProfile({
             <div className="px-4 mt-2">
               <button
                 onClick={() => setShowActionSheet(false)}
-                className="w-full bg-blue-500 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-600 active:scale-[0.98] transition-all"
+                className="w-full bg-gray-800 text-white py-3.5 rounded-xl font-semibold hover:bg-gray-700 active:scale-[0.98] transition-all"
               >
                 Cancel
               </button>
@@ -1878,9 +1877,9 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== REPORT SUCCESSFUL TOAST (CHOTA CARD) ===== */}
+      {/* ===== REPORT SUCCESSFUL TOAST ===== */}
       {showReportToast && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-white text-black text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
           Report Successful
         </div>
       )}
@@ -1902,7 +1901,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ UserReport Overlay - Report click pe open hoga */}
+      {/* UserReport Overlay */}
       {isOtherUser && showUserReport && targetUser && (
         <div className="fixed inset-0 z-[100]">
           <UserReport
@@ -1928,4 +1927,5 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-  }
+}
+
