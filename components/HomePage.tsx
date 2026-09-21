@@ -1109,21 +1109,30 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
       saveIncomingMessageToDB(msgObj);
 
-      if (senderId !== userUID) {
-        setTopNotification({
-          id: String(data.id || Date.now()),
-          senderName: data.senderName || 'User',
-          senderPhoto: data.senderPhoto || '/default-avatar.png',
-          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-          senderId,
-        });
 
-        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-        notificationTimerRef.current = setTimeout(() => {
-          setTopNotification(null);
-        }, 3800);
+      if (senderId !== userUID) {
+        const notifsEnabled = localStorage.getItem('appNotifications') !== 'false';
+        if (notifsEnabled) {
+          setTopNotification({
+            id: String(data.id || Date.now()),
+            senderName: data.senderName || 'User',
+            senderPhoto: data.senderPhoto || '/default-avatar.png',
+            text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+            senderId,
+          });
+
+          // Play sound
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(e => console.error("Error playing sound:", e));
+
+          if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+          notificationTimerRef.current = setTimeout(() => {
+            setTopNotification(null);
+          }, 3800);
+        }
       }
     };
+
 
     const handleIncomingOfficialBroadcast = (data: any) => {
       if (!data?.senderId) return;
@@ -3863,7 +3872,7 @@ const renderMineTab = () => (
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white shadow-sm animate-pulse">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}

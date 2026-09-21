@@ -217,21 +217,11 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
               : (msg.text || existing.lastMessage);
           existing.lastTimestamp = msgTime;
 
-          if (
-            (!existing.otherUser.name ||
-              existing.otherUser.name === 'User') &&
-            otherName &&
-            otherName !== 'User'
-          ) {
+          if (otherName && otherName !== 'User') {
             existing.otherUser.name = otherName;
           }
 
-          if (
-            (!existing.otherUser.photo ||
-              existing.otherUser.photo === '/default-avatar.png') &&
-            otherPhoto &&
-            otherPhoto !== '/default-avatar.png'
-          ) {
+          if (otherPhoto && otherPhoto !== '/default-avatar.png') {
             existing.otherUser.photo = otherPhoto;
           }
         }
