@@ -458,6 +458,22 @@ function RoomContent({
 
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
 
+  const [roomGiftCount, setRoomGiftCount] = useState<number>(0);
+
+  useEffect(() => {
+    const handleRoomGiftCount = (data: { roomId?: string; count?: number }) => {
+      if (String(data?.roomId || "") !== String(roomId || "")) return;
+      setRoomGiftCount(Number(data?.count || 0));
+    };
+
+    socket.on("room_gift_count", handleRoomGiftCount);
+
+    return () => {
+      socket.off("room_gift_count", handleRoomGiftCount);
+    };
+  }, [roomId]);
+
+
   const displayRoomName = roomName
     ? (roomName.length > 6 ? roomName.substring(0, 6) + '...' : roomName)
     : 'Room';
@@ -2106,7 +2122,7 @@ function RoomContent({
                 className="font-bold text-[13px] leading-none tracking-tight"
                 style={{ color: '#eef3a3' }}
               >
-                0
+                {roomGiftCount}
               </span>
               <svg
                 viewBox="0 0 24 24"

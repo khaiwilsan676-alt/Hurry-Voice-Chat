@@ -630,6 +630,118 @@ app.put("/api/users", async (req, res) => {
   }
 });
 
+
+// ==================== MONGODB WALLET API ====================
+
+app.get("/api/wallet", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const accountId = String(req.query.accountId || "").trim();
+
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing accountId" });
+    }
+
+    const users = db.collection("users");
+
+    const user = await users.findOne({
+      $or: [
+        { accountId },
+        { accountNumber: accountId },
+        { displayUserNumber: accountId }
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (typeof user.coins !== "number") {
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { coins: 82927 } }
+      );
+      user.coins = 82927;
+    }
+
+    return res.json({
+      success: true,
+      accountId,
+      coins: user.coins
+    });
+  } catch (error) {
+    console.error("GET /api/wallet error:", error);
+    return res.status(500).json({ error: "Failed to fetch wallet" });
+  }
+});
+
+app.post("/api/wallet", async (req, res) => {
+  try {
+    if (!db) {
+      return res.status(503).json({ error: "MongoDB is not connected" });
+    }
+
+    const accountId = String(req.body?.accountId || "").trim();
+    const amount = Number(req.body?.amount);
+
+    if (!accountId) {
+      return res.status(400).json({ error: "Missing accountId" });
+    }
+
+    if (!Number.isSafeInteger(amount) || amount === 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+
+    const users = db.collection("users");
+
+    const user = await users.findOne({
+      $or: [
+        { accountId },
+        { accountNumber: accountId },
+        { displayUserNumber: accountId }
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (typeof user.coins !== "number") {
+      await users.updateOne(
+        { _id: user._id },
+        { $set: { coins: 82927 } }
+      );
+    }
+
+    const filter = {
+      _id: user._id,
+      ...(amount < 0 ? { coins: { $gte: Math.abs(amount) } } : {})
+    };
+
+    const updated = await users.findOneAndUpdate(
+      filter,
+      { $inc: { coins: amount } },
+      { returnDocument: "after" }
+    );
+
+    if (!updated) {
+      return res.status(400).json({ error: "Insufficient coins" });
+    }
+
+    return res.json({
+      success: true,
+      accountId,
+      coins: Number(updated.coins || 0)
+    });
+  } catch (error) {
+    console.error("POST /api/wallet error:", error);
+    return res.status(500).json({ error: "Failed to update wallet" });
+  }
+});
+
 app.get("/api/privateMessages", async (req, res) => {
   try {
     if (!db) {
@@ -820,6 +932,13 @@ io.on("connection", (socket) => {
       socket.emit("room_seats", {
         roomId: room,
         seats: getRoomSeats(room),
+      });
+
+      getRoomGiftCount(room).then((count) => {
+        socket.emit("room_gift_count", {
+          roomId: room,
+          count: Number(count || 0),
+        });
       });
 
       socket

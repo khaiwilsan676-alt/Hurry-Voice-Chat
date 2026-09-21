@@ -35,8 +35,33 @@ async function removeOnlineStatus(userId) {
   }
 }
 
+async function getRoomGiftCount(roomId) {
+  if (!redis) return 0;
+
+  try {
+    const value = await redis.get(`room:gifts:${String(roomId)}`);
+    return Number(value || 0);
+  } catch (error) {
+    console.error("Failed to get room gift count:", error.message);
+    return 0;
+  }
+}
+
+async function incrementRoomGiftCount(roomId) {
+  if (!redis) return 1;
+
+  try {
+    return Number(await redis.incr(`room:gifts:${String(roomId)}`));
+  } catch (error) {
+    console.error("Failed to increment room gift count:", error.message);
+    return 1;
+  }
+}
+
 module.exports = {
   redis,
   setOnlineStatus,
   removeOnlineStatus,
+  getRoomGiftCount,
+  incrementRoomGiftCount,
 };
