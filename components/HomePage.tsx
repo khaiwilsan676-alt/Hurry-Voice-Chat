@@ -2558,7 +2558,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       className="absolute inset-0 w-full h-full pointer-events-none z-40"
       style={{
         objectFit: 'contain',
-        transform: 'scale(0.9) translateY(5%)',
+        transform: 'scale(0.98) translateY(5%)',
         transformOrigin: 'center center',
       }}
       draggable="false"
