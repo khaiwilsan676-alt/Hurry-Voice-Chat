@@ -378,11 +378,7 @@ function RoomContent({
   const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
-  const [roomImage, setRoomImage] = useState<string>(
-    roomOwner.image && roomOwner.image !== "undefined" && roomOwner.image !== "null"
-      ? roomOwner.image
-      : "/default-avatar.png"
-  );
+  const [roomImage, setRoomImage] = useState<string>("/IMG_20260921_210113.png");
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -517,8 +513,8 @@ function RoomContent({
           if (cached.roomPassword) setRoomPassword(cached.roomPassword);
         } else {
           // Fallback if no cache
-          setRoomName(roomOwner.name || "Room");
-          setRoomImage(roomOwner.image || "/default-avatar.png");
+          setRoomName("hurry User@");
+          setRoomImage("/IMG_20260921_210113.png");
         }
       } catch (err) {
         console.error("Room settings IndexedDB load error:", err);
@@ -1125,7 +1121,7 @@ function RoomContent({
   const clearedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (joinMessageSentRef.current || userAccountId === "guest" || !currentUser.name) return;
+    if (joinMessageSentRef.current || userAccountId === "guest") return;
     joinMessageSentRef.current = true;
     sendMessageToSocket('Enter the Room', undefined, 'join');
   }, [userAccountId, currentUser.name, roomId]);
@@ -1525,13 +1521,9 @@ function RoomContent({
     const roomSettings: RoomSettingsCache = {
       roomId: String(roomId),
       roomName:
-        nextRoomName ||
-        roomOwner.name ||
-        "Room",
+        nextRoomName || "hurry User@",
       roomDp:
-        nextRoomImage ||
-        roomOwner.image ||
-        "/default-avatar.png",
+        nextRoomImage || "/IMG_20260921_210113.png",
       announcement: nextAnnouncement || "",
       micMode: Number(nextMicMode || 0),
       theme: nextTheme || "mood-light",
@@ -1602,12 +1594,10 @@ function RoomContent({
     const roomData = {
       name:
         roomName ||
-        roomOwner.name ||
-        "Room",
+        "hurry User@",
       image:
         roomImage ||
-        roomOwner.image ||
-        "/default-avatar.png",
+        "/IMG_20260921_210113.png",
       accountId: keptAccId,
       id: roomId,
       roomId,
@@ -2577,7 +2567,7 @@ function RoomContent({
               </svg>
             </button>
             <div className="h-full overflow-y-auto">
-              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomOwner.name, roomImage: roomOwner.image }} />
+              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "hurry User@", roomImage: roomImage || "/IMG_20260921_210113.png" }} />
             </div>
           </div>
         </div>

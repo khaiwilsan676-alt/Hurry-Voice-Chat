@@ -1238,9 +1238,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
             const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
             return {
               id: roomId,
-              name: data['Room Name'] || data.name || 'User',
+              name: data['Room Name'] || data.name || 'hurry User@',
               country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || data.image || '/default-avatar.png',
+              image: data['Room dp'] || data.image || '/IMG_20260921_210113.png',
               accountId: accId,
               createdAt: data.createdAt || Date.now(),
               isLocked: Boolean(data.isLocked),
@@ -1300,9 +1300,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
               const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
               return {
                 id: roomId,
-                name: data['Room Name'] || data.name || 'User',
+                name: data['Room Name'] || data.name || 'hurry User@',
                 country: data.Country || data.country || '🇮🇳',
-                image: data['Room dp'] || data.image || '/default-avatar.png',
+                image: data['Room dp'] || data.image || '/IMG_20260921_210113.png',
                 accountId: accId,
                 createdAt: data.createdAt || Date.now(),
                 isLocked: Boolean(data.isLocked),
@@ -1528,7 +1528,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
             setIsRoomCreated(true)
 
             let actualName = parsed.name;
-            let actualDp = parsed.image || parsed.roomDp || photo || '/default-avatar.png';
+            let actualDp = parsed.image || parsed.roomDp || '/IMG_20260921_210113.png';
 
             if (uid) {
               try {
@@ -1545,7 +1545,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
             }
 
             if (!actualName || actualName === 'My Room' || actualName === 'My room') {
-              actualName = name ? `${name}'s Room` : 'Voice Chat Room';
+              actualName = 'hurry User@';
             }
 
             const updatedRoom = {
@@ -1583,7 +1583,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
               ...indexedRoom,
               id: indexedRoom.id || uid,
               accountId: indexedRoom.accountId || storedAccNum,
-              image: indexedRoom.image || indexedRoom.roomDp || photo || '/default-avatar.png'
+              image: indexedRoom.image || indexedRoom.roomDp || '/IMG_20260921_210113.png'
             };
             setIsRoomCreated(true);
             setMyRoom(restoredRoom);
@@ -1950,11 +1950,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
     if (isRoomCreated && myRoom) {
       let currentRoomName = myRoom.name;
       if (!currentRoomName || currentRoomName === 'My Room' || currentRoomName === 'My room') {
-        currentRoomName = userName ? `${userName}'s Room` : 'Voice Chat Room';
+        currentRoomName = 'hurry User@';
       }
       let currentRoomDp = myRoom.image;
       if (!currentRoomDp || currentRoomDp === 'undefined' || currentRoomDp === 'null' || currentRoomDp === '/default-avatar.png') {
-        currentRoomDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png';
+        currentRoomDp = '/IMG_20260921_210113.png';
       }
 
       const updatedMyRoom = {
@@ -1977,14 +1977,14 @@ export default function HomePage({ onLogout }: HomePageProps) {
       return;
     }
 
-    const defaultRoomName = userName ? `${userName}'s Room` : "Voice Chat Room"
+    const defaultRoomName = 'hurry User@'
 
     const createdRoomCard: UserCard = {
       id: userUID,
       accountId: storedAccNum,
       name: defaultRoomName,
       country: localStorage.getItem('userCountry') || '🇮🇳',
-      image: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png'
+      image: '/IMG_20260921_210113.png'
     }
 
     localStorage.setItem('isRoomCreated', 'true')
@@ -2017,7 +2017,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         roomId: userUID,
         id: userUID,
         roomName: userName || defaultRoomName,
-        roomDp: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
+        roomDp: '/IMG_20260921_210113.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",
         roomAdmin: storedAccNum,
         message: `${userName || defaultRoomName}'s Room Notice`,
@@ -2029,7 +2029,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         appLongId: userUID,
         name: userName || defaultRoomName,
         country: localStorage.getItem("userCountry") || "🇮🇳",
-        image: userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png',
+        image: '/IMG_20260921_210113.png',
         accountId: storedAccNum
       });
     } catch (e) {
@@ -2069,7 +2069,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     if (isOwner) {
       let ownerName = myRoom?.name || user.name;
       if (!ownerName || ownerName === 'My Room' || ownerName === 'My room') {
-        ownerName = userName ? `${userName}'s Room` : 'Voice Chat Room';
+        ownerName = 'hurry User@';
       }
       let ownerDp = myRoom?.image || user.image;
       if (!ownerDp || ownerDp === 'undefined' || ownerDp === 'null' || ownerDp === '/default-avatar.png') {
@@ -2117,9 +2117,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
         foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
           ? foundRoom.name
           : user.name && user.name !== 'My Room' && user.name !== 'My room'
-          ? user.name
-          : 'Voice Chat Room',
-      image: foundRoom?.image || user.image || '/default-avatar.png',
+          : 'hurry User@',
+      image: foundRoom?.image || '/IMG_20260921_210113.png',
       isLocked: foundRoom?.isLocked ?? user.isLocked,
     }
 
@@ -2268,9 +2267,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
         handleUserCardClick({
           id: roomData.ID || roomData.id || roomData.roomId || id,
           accountId: roomData["Room Admin"] || roomData.accountId || id,
-          name: roomData["Room Name"] || roomData.name || "User",
+          name: roomData["Room Name"] || roomData.name || "hurry User@",
           country: roomData.Country || roomData.country || "🇮🇳",
-          image: roomData["Room dp"] || roomData.image || "/default-avatar.png",
+          image: roomData["Room dp"] || roomData.image || "/IMG_20260921_210113.png",
         });
         return;
       }
@@ -2390,7 +2389,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
     room.accountId !== 'null' &&
     room.accountId !== '' &&
     room.accountId !== null &&
-    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index
+    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index &&
+    (Number(room.activeUserCount || 0) > 0 || String(room.accountId) === String(localStorage.getItem('accountNumber') || (typeof userUID !== 'undefined' && userUID ? getOrCreateAccountNumber(userUID).fullAccNum : '')))
   )
 
   // ============ RENDER POPULAR TAB ============
