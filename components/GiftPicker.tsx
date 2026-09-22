@@ -116,6 +116,7 @@ export interface Gift {
   video?: string;
   videoStyle?: "fade" | "pure";
   noMask?: boolean;
+  sideFade?: boolean;
 }
 
 interface Seat {
@@ -179,6 +180,15 @@ export default function GiftPicker({
       video: "/gemini_generated_video_89e836bd~2.mp4",
       videoStyle: "pure",
       noMask: true,
+    },
+    {
+      id: 3,
+      name: "Arab King",
+      coins: 500000,
+      image: "/image_d9df9625~2.jpg",
+      video: "/gemini_generated_video_17e19680~2.mp4",
+      videoStyle: "fade",
+      sideFade: true,
     },
   ];
 
@@ -336,8 +346,8 @@ export default function GiftPicker({
 
   // ============================================================
   // 🎬 VIDEO
-  //   fade → Teddy (purana, fullscreen + top/bottom mask)
-  //   pure → Autumn's Embrace (thoda bada + black remove mix)
+  //   fade → Teddy / Arab King (fullscreen + top/bottom mask)
+  //   pure → Autumn's Embrace (screen blend, black removed)
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
@@ -582,19 +592,28 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* Image box — noMask wale gift ka size chota + object-contain (no cut) */}
+                {/* Image box */}
                 <div
                   className={`relative mb-1 overflow-hidden ${
                     gift.noMask ? "w-15 h-15" : "w-16 h-16"
-                  }`}
+                  } ${gift.sideFade ? "rounded-xl" : ""}`}
                   style={
                     activeTab === "Hot" && !gift.noMask
-                      ? {
-                          WebkitMaskImage:
-                            "radial-gradient(circle, black 40%, transparent 80%)",
-                          maskImage:
-                            "radial-gradient(circle, black 40%, transparent 80%)",
-                        }
+                      ? gift.sideFade
+                        ? {
+                            // Arab King → only side borders fade, rounded corners
+                            WebkitMaskImage:
+                              "linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)",
+                            maskImage:
+                              "linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)",
+                          }
+                        : {
+                            // Teddy / default → radial fade
+                            WebkitMaskImage:
+                              "radial-gradient(circle, black 40%, transparent 80%)",
+                            maskImage:
+                              "radial-gradient(circle, black 40%, transparent 80%)",
+                          }
                       : {}
                   }
                 >
@@ -602,7 +621,9 @@ export default function GiftPicker({
                     src={gift.image}
                     alt={gift.name}
                     fill
-                    className={gift.noMask ? "object-contain" : "object-cover"}
+                    className={`${gift.noMask ? "object-contain" : "object-cover"} ${
+                      gift.sideFade ? "rounded-xl" : ""
+                    }`}
                     sizes={gift.noMask ? "44px" : "64px"}
                     priority={gift.id === 1}
                   />
@@ -702,4 +723,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-                  }
+      }
