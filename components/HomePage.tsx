@@ -2542,7 +2542,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   (e.target as HTMLImageElement).src = "/default-avatar.png";
                 }}
                 alt={room.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
                 draggable="false"
               />
             </div>
