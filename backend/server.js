@@ -1075,6 +1075,21 @@ io.on("connection", (socket) => {
             ),
           },
         });
+
+        // Clear the emoji automatically after 5 seconds to sync across all clients
+        setTimeout(() => {
+          const currentSeats = roomSeats.get(roomId);
+          if (currentSeats) {
+            const seat = currentSeats.get(seatNumber);
+            if (seat && seat.gif) {
+              currentSeats.set(seatNumber, {
+                ...seat,
+                gif: undefined,
+              });
+              emitRoomSeats(roomId);
+            }
+          }
+        }, 5000);
       }
     }
 
