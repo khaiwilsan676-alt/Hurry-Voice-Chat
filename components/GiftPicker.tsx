@@ -4,7 +4,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 
-export default function GiftPicker({ onClose }: { onClose: () => void }) {
+interface Seat {
+  number: number;
+  isOccupied: boolean;
+  user?: { name: string; image: string; accountId: string };
+}
+
+export default function GiftPicker({ onClose, seats = [] }: { onClose: () => void, seats?: Seat[] }) {
   const [activeTab, setActiveTab] = useState("Hot");
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
   const [showMultipliers, setShowMultipliers] = useState(false);
@@ -177,8 +183,21 @@ export default function GiftPicker({ onClose }: { onClose: () => void }) {
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col justify-between rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
         {/* TOP: "All" */}
-        <div className="flex items-center justify-end border-b border-white/10 pb-1">
-          <span className="text-sm font-semibold text-gray-300">All</span>
+        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 mr-2">
+            {seats.filter(seat => seat.isOccupied && seat.user).map(seat => (
+              <div key={seat.number} className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden border border-white/20 relative">
+                <Image
+                  src={seat.user!.image || "/IMG_20260921_210113.png"}
+                  alt={seat.user!.name || "User"}
+                  fill
+                  className="object-cover"
+                  sizes="32px"
+                />
+              </div>
+            ))}
+          </div>
+          <span className="text-sm font-semibold text-gray-300 whitespace-nowrap shrink-0">All</span>
         </div>
 
         {/* TABS – gap=1 */}
