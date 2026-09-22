@@ -428,7 +428,7 @@ export default function Fourgride({
                 {/* Lucky Bag - Column 1 */}
                 <div className="flex flex-col items-center">
                   <button
-                    onClick={() => setShowLuckyBag(true)} // <-- Yahan onClick me state change laga di
+                    onClick={(e) => { e.stopPropagation(); setShowLuckyBag(true); }} // <-- Yahan onClick me state change laga di
                     className="transition-transform hover:scale-105"
                   >
                     <img src="/file_0000000059188243809d59b7ad44a4a2.png" alt="Lucky bag" className="w-12 h-12 object-contain" />
