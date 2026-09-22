@@ -2015,7 +2015,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     try {
       await saveRoomToMongoDB({
         roomId: userUID,
-        id: userUID,
+        id: userUID, 
         roomName: userName || defaultRoomName,
         roomDp: '/IMG_20260921_210113.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",
@@ -2118,6 +2118,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           ? foundRoom.name
           : user.name && user.name !== 'My Room' && user.name !== 'My room'
           : 'hurry User@',
+          ? user.name 
       image: foundRoom?.image || '/IMG_20260921_210113.png',
       isLocked: foundRoom?.isLocked ?? user.isLocked,
     }
@@ -2524,27 +2525,28 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     image: room.image,
                     isLocked: room.isLocked
                   })}
-                  className="cursor-pointer group"
-                >
-                 
-<div
-  className="relative bg-gray-200 rounded-md overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                 <div
+  className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
   style={{ height: '170px' }}
 >
-  <img
-    src={
-      room.image && room.image !== "undefined" && room.image !== "null"
-        ? room.image
-        : "/default-avatar.png"
-    }
-    onError={(e) => {
-      (e.target as HTMLImageElement).src = "/default-avatar.png";
-    }}
-    alt={room.name}
-    className="w-full h-full object-contain"
-    draggable="false"
-  />
+  {/* 1. Room Image Container - इसमें overflow-hidden रखा है ताकि कार्ड के corners गोल रहें */}
+  <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+    <img
+      src={
+        room.image && room.image !== "undefined" && room.image !== "null"
+          ? room.image
+          : "/default-avatar.png"
+      }
+      onError={(e) => {
+        (e.target as HTMLImageElement).src = "/default-avatar.png";
+      }}
+      alt={room.name}
+      className="w-full h-full object-contain"
+      draggable="false"
+    />
+  </div>
 
+  {/* 2. Rank Image Overlay - अब यह मेन div के बाहर जा सकती है और बिल्कुल नहीं कटेगी */}
   {(index === 0 || index === 1 || index === 2) && (
     <img
       src={
@@ -2558,12 +2560,14 @@ export default function HomePage({ onLogout }: HomePageProps) {
       className="absolute inset-0 w-full h-full pointer-events-none z-40"
       style={{
         objectFit: 'contain',
-        transform: 'scale(0.98) translateY(5%)',
+        transform: 'scale(1.0) translateY(5%)', // अगर इमेज को थोड़ा बड़ा करना हो तो scale(1.1) कर सकते हैं
         transformOrigin: 'center center',
       }}
       draggable="false"
     />
   )}
+</div>
+
   
                     {room.isLocked && (
                       <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
@@ -3064,7 +3068,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white shadow-sm animate-pulse">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}
