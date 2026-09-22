@@ -35,7 +35,92 @@ type WinMode = 'single' | 'mix_big' | 'mix_small';
 
 let hasInitialLoaded = false;
 
-// 1. WebGL Shader: White Background remover
+// ==========================================
+// SHARED WALLET DB (Same as Wallet.tsx)
+// ==========================================
+const SHARED_DB = 'FruitPartyDB';
+const SHARED_STORE = 'GameState';
+const DEFAULT_BALANCE = 82927;
+
+const initWalletDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject('No window');
+    const request = indexedDB.open(SHARED_DB, 2);
+    request.onupgradeneeded = (e: any) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(SHARED_STORE)) {
+        db.createObjectStore(SHARED_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+const loadWalletBalance = async (): Promise<number> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(SHARED_STORE, 'readonly');
+      const req = tx.objectStore(SHARED_STORE).get('user_data');
+      req.onsuccess = () => {
+        if (req.result && typeof req.result.balance === 'number') {
+          resolve(req.result.balance);
+        } else {
+          resolve(DEFAULT_BALANCE);
+        }
+      };
+      req.onerror = () => resolve(DEFAULT_BALANCE);
+    });
+  } catch {
+    return DEFAULT_BALANCE;
+  }
+};
+
+// delta positive = add, negative = deduct
+const updateWalletBalance = async (delta: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result;
+        const current = data?.balance ?? DEFAULT_BALANCE;
+        const next = Math.max(0, current + delta);
+        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Wallet update failed', e);
+  }
+};
+
+// ==========================================
+// WILDPARTY HISTORY DB (sirf round history)
+// ==========================================
+const WP_DB = 'WildPartyGameDB';
+const WP_VERSION = 3;
+
+const initHistoryDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(WP_DB, WP_VERSION);
+    request.onupgradeneeded = (e: any) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('roundHistory')) {
+        db.createObjectStore('roundHistory', { keyPath: 'roundNo' });
+      }
+    };
+    request.onsuccess = (e: any) => resolve(e.target.result);
+    request.onerror = (e) => reject(e);
+  });
+
+// ==========================================
+// WebGL Shader: White Background remover
+// ==========================================
 function LoadingShaderImage({ src, className }: { src: string; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -60,11 +145,9 @@ function LoadingShaderImage({ src, className }: { src: string; className?: strin
       precision mediump float;
       varying vec2 v_texCoord;
       uniform sampler2D u_image;
-
       void main() {
         vec4 color = texture2D(u_image, v_texCoord);
         if (color.a < 0.1) discard;
-
         if (color.r > 0.88 && color.g > 0.88 && color.b > 0.88) {
           discard;
         } else {
@@ -143,7 +226,9 @@ function LoadingShaderImage({ src, className }: { src: string; className?: strin
   return <canvas ref={canvasRef} className={`${className || ''} block bg-transparent`} />;
 }
 
-// 2. Green Screen Remover
+// ==========================================
+// Green Screen Remover
+// ==========================================
 function GreenScreenImage({ src, className }: { src: string; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -192,26 +277,22 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   const [progress, setProgress] = useState(hasInitialLoaded ? 100 : 0);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Global Engine States
   const [currentRoundNo, setCurrentRoundNo] = useState<number>(1);
   const [gamePhase, setGamePhase] = useState<'betting' | 'spinning' | 'result'>('betting');
   const [countdown, setCountdown] = useState<number>(30);
   const [activeHighlightIndex, setActiveHighlightIndex] = useState<number | null>(null);
 
-  // Sheets
   const [showHistorySheet, setShowHistorySheet] = useState<boolean>(false);
   const [showRulesSheet, setShowRulesSheet] = useState<boolean>(false);
   const [showWinnerSheet, setShowWinnerSheet] = useState<boolean>(false);
   const [winnerCountdown, setWinnerCountdown] = useState<number>(5);
 
-  // Results
   const [winMode, setWinMode] = useState<WinMode>('single');
   const [roundHistory, setRoundHistory] = useState<RoundHistoryRecord[]>([]);
   const [winnerAnimal, setWinnerAnimal] = useState<AnimalItem | null>(null);
   const [roundWinningAmount, setRoundWinningAmount] = useState<number>(0);
   const [roundBetAmount, setRoundBetAmount] = useState<number>(0);
 
-  // Balance & Betting
   const [balance, setBalance] = useState<number>(0);
   const [bets, setBets] = useState<{ [key: string]: number }>({});
   const [lastBets, setLastBets] = useState<{ [key: string]: number }>({});
@@ -241,7 +322,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   ];
 
   // ============================
-  // WEB AUDIO API (Mast Spin Sound Engine)
+  // WEB AUDIO API
   // ============================
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscRef = useRef<OscillatorNode | null>(null);
@@ -265,24 +346,6 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       gainRef.current.gain.setTargetAtTime(isMuted ? 0 : 0.15, audioCtxRef.current.currentTime, 0.1);
     }
   }, [isMuted]);
-  // ============================
-
-  const initIndexedDB = (): Promise<IDBDatabase> => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open('WildPartyGameDB', 3);
-      request.onupgradeneeded = (e: any) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains('userState')) {
-          db.createObjectStore('userState', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('roundHistory')) {
-          db.createObjectStore('roundHistory', { keyPath: 'roundNo' });
-        }
-      };
-      request.onsuccess = (e: any) => resolve(e.target.result);
-      request.onerror = (e) => reject(e);
-    });
-  };
 
   const get5AMResetBoundary = () => {
     const now = new Date();
@@ -294,19 +357,9 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     return resetTime.getTime();
   };
 
-  const saveBalanceToDB = async (val: number) => {
-    try {
-      const db = await initIndexedDB();
-      const tx = db.transaction('userState', 'readwrite');
-      tx.objectStore('userState').put({ id: 'current_balance', value: val });
-    } catch (err) {
-      console.error('IndexedDB Save Balance Error:', err);
-    }
-  };
-
   const saveRoundToDB = async (record: RoundHistoryRecord) => {
     try {
-      const db = await initIndexedDB();
+      const db = await initHistoryDB();
       const tx = db.transaction('roundHistory', 'readwrite');
       tx.objectStore('roundHistory').put(record);
     } catch (err) {
@@ -316,19 +369,13 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
   const loadDataFromDB = async () => {
     try {
-      const db = await initIndexedDB();
-      const resetBoundary = get5AMResetBoundary();
+      // Shared wallet balance
+      const bal = await loadWalletBalance();
+      setBalance(bal);
 
-      const txUser = db.transaction('userState', 'readonly');
-      const balReq = txUser.objectStore('userState').get('current_balance');
-      balReq.onsuccess = () => {
-        if (balReq.result && typeof balReq.result.value === 'number') {
-          setBalance(balReq.result.value);
-        } else {
-          saveBalanceToDB(0);
-          setBalance(0);
-        }
-      };
+      // Round history local DB se
+      const db = await initHistoryDB();
+      const resetBoundary = get5AMResetBoundary();
 
       const txHistory = db.transaction('roundHistory', 'readwrite');
       const historyStore = txHistory.objectStore('roundHistory');
@@ -354,6 +401,21 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   useEffect(() => {
     loadDataFromDB();
   }, []);
+
+  // Real-time sync — betting phase me har 1.5s
+  useEffect(() => {
+    if (loading || gamePhase !== 'betting') return;
+    let alive = true;
+    const sync = async () => {
+      const bal = await loadWalletBalance();
+      if (alive) setBalance(bal);
+    };
+    const id = setInterval(sync, 1500);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [loading, gamePhase]);
 
   useEffect(() => {
     if (hasInitialLoaded) {
@@ -430,8 +492,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   useEffect(() => {
     if (loading) return;
 
-    // Total Duration set to 47 seconds per cycle (30 Bet + 10 Spin + 7 Result/Hold)
-    const roundDuration = 47; 
+    const roundDuration = 47;
     const resetBoundary = get5AMResetBoundary();
 
     const syncTick = () => {
@@ -444,18 +505,15 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       targetOutcomeRef.current = determineRoundOutcome(calculatedRoundNo);
 
       if (secondInCycle < 30) {
-        // 30 seconds ki betting
         setGamePhase('betting');
         setCountdown(30 - secondInCycle);
         setWinnerAnimal(null);
-        setShowWinnerSheet(false); // Ensure winner page closes properly yahan aake
+        setShowWinnerSheet(false);
       } else if (secondInCycle < 40) {
-        // 10 seconds ka spinning
         setGamePhase('spinning');
         setCountdown(40 - secondInCycle);
         setShowWinnerSheet(false);
       } else {
-        // Baki 7 seconds ka Result phase
         setGamePhase('result');
         setCountdown(47 - secondInCycle);
 
@@ -477,7 +535,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       if (gamePhase === 'betting') {
         setActiveHighlightIndex(null);
       }
-      
+
       if (oscRef.current && audioCtxRef.current) {
         const ctx = audioCtxRef.current;
         if (gainRef.current) {
@@ -520,18 +578,17 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     }
 
     const resetBoundary = get5AMResetBoundary();
-    const roundDuration = 47; // Update round duration here as well
+    const roundDuration = 47;
     const targetIdx = targetOutcomeRef.current.winnerIndex;
 
     const animFrame = setInterval(() => {
       const now = Date.now();
       const elapsedMs = now - resetBoundary;
       const cycleMs = elapsedMs % (roundDuration * 1000);
-      const spinTimeMs = cycleMs - 30000; 
+      const spinTimeMs = cycleMs - 30000;
 
       if (spinTimeMs < 0) return;
 
-      // 10000ms (10s) ka hi spin ab chalega pehle ke 15s ke comparison me
       if (spinTimeMs >= 10000) {
         setActiveHighlightIndex(targetIdx);
         if (oscRef.current && audioCtxRef.current) {
@@ -539,28 +596,28 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           gainRef.current?.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
           const osc = oscRef.current;
           setTimeout(() => {
-             try { osc.stop(); } catch(e){}
+            try { osc.stop(); } catch (e) {}
           }, 100);
           oscRef.current = null;
         }
       } else {
-        const progress = spinTimeMs / 10000; 
+        const progress = spinTimeMs / 10000;
         const easeOut = 1 - Math.pow(1 - progress, 3);
-        const finalStepsCount = 120 + targetIdx; // Changed from 160 to make it slightly smoother for 10s timeframe
+        const finalStepsCount = 120 + targetIdx;
         const currentStep = Math.floor(easeOut * finalStepsCount);
-        
+
         setActiveHighlightIndex(currentStep % 8);
 
         if (oscRef.current && filterRef.current && gainRef.current && audioCtxRef.current) {
           const ctx = audioCtxRef.current;
-          const newFreq = 600 - (500 * easeOut); 
-          const newFilterFreq = 1500 - (1000 * easeOut); 
-          const newVol = 0.15 - (0.15 * easeOut); 
-          
-          if(!isMuted) {
-             oscRef.current.frequency.setTargetAtTime(newFreq, ctx.currentTime, 0.1);
-             filterRef.current.frequency.setTargetAtTime(newFilterFreq, ctx.currentTime, 0.1);
-             gainRef.current.gain.setTargetAtTime(newVol, ctx.currentTime, 0.1);
+          const newFreq = 600 - 500 * easeOut;
+          const newFilterFreq = 1500 - 1000 * easeOut;
+          const newVol = 0.15 - 0.15 * easeOut;
+
+          if (!isMuted) {
+            oscRef.current.frequency.setTargetAtTime(newFreq, ctx.currentTime, 0.1);
+            filterRef.current.frequency.setTargetAtTime(newFilterFreq, ctx.currentTime, 0.1);
+            gainRef.current.gain.setTargetAtTime(newVol, ctx.currentTime, 0.1);
           }
         }
       }
@@ -622,19 +679,16 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
       setRoundWinningAmount(totalWinnings);
 
-      // Yahan 1.5 Second (1500ms) ka perfect delay (hold) before Winner Sheet
-      setTimeout(() => {
+      setTimeout(async () => {
         if (totalWinnings > 0) {
-          setBalance((prevBal) => {
-            const newBal = prevBal + totalWinnings;
-            saveBalanceToDB(newBal);
-            return newBal;
-          });
+          // UI update
+          setBalance((prev) => prev + totalWinnings);
+          // DB write — ek hi baar, functional updater ke bahar
+          await updateWalletBalance(totalWinnings);
         }
         setWinnerCountdown(5);
         setShowWinnerSheet(true);
       }, 1500);
-
     } else if (gamePhase === 'betting') {
       if (Object.keys(bets).length > 0) {
         setLastBets(bets);
@@ -646,7 +700,6 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   useEffect(() => {
     if (!showWinnerSheet) return;
 
-    // Timer strictly set to 1000ms tak ki ye precise 5 sec tak hi show ho
     const timer = setInterval(() => {
       setWinnerCountdown((prev) => {
         if (prev <= 1) {
@@ -656,19 +709,19 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
         }
         return prev - 1;
       });
-    }, 1000); 
+    }, 1000);
 
     return () => clearInterval(timer);
   }, [showWinnerSheet]);
 
-  const handleAnimalBet = (animalAlt: string) => {
-    initAudioCtx(); 
+  const handleAnimalBet = async (animalAlt: string) => {
+    initAudioCtx();
     if (gamePhase !== 'betting') return;
     if (balance < selectedChip.value) return;
 
     const newBalance = balance - selectedChip.value;
     setBalance(newBalance);
-    saveBalanceToDB(newBalance);
+    await updateWalletBalance(-selectedChip.value);
 
     setBets((prev) => ({
       ...prev,
@@ -676,15 +729,15 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     }));
   };
 
-  const handleRepeatBet = () => {
-    initAudioCtx(); 
+  const handleRepeatBet = async () => {
+    initAudioCtx();
     if (gamePhase !== 'betting') return;
     const totalRepeatCost = Object.values(lastBets).reduce((acc, curr) => acc + curr, 0);
     if (totalRepeatCost === 0 || balance < totalRepeatCost) return;
 
     const newBalance = balance - totalRepeatCost;
     setBalance(newBalance);
-    saveBalanceToDB(newBalance);
+    await updateWalletBalance(-totalRepeatCost);
 
     setBets((prev) => {
       const updated = { ...prev };
@@ -709,9 +762,9 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     const seed2 = (roundNo * 17) % 50 + 1;
     const seed3 = (roundNo * 23) % 50 + 1;
     return [
-        { name: "Rahul", avatar: `https://i.pravatar.cc/150?img=${seed1}`, win: 500000 + (seed1 * 1000) },
-        { name: "Aman", avatar: `https://i.pravatar.cc/150?img=${seed2}`, win: 200000 + (seed2 * 1000) },
-        { name: "Neha", avatar: `https://i.pravatar.cc/150?img=${seed3}`, win: 100000 + (seed3 * 1000) }
+      { name: 'Rahul', avatar: `https://i.pravatar.cc/150?img=${seed1}`, win: 500000 + seed1 * 1000 },
+      { name: 'Aman', avatar: `https://i.pravatar.cc/150?img=${seed2}`, win: 200000 + seed2 * 1000 },
+      { name: 'Neha', avatar: `https://i.pravatar.cc/150?img=${seed3}`, win: 100000 + seed3 * 1000 },
     ];
   };
 
@@ -808,7 +861,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
             <div className="absolute top-2 left-2 z-30 flex items-center gap-1">
               <button
                 onClick={() => {
-                  initAudioCtx(); 
+                  initAudioCtx();
                   setIsMuted(!isMuted);
                 }}
                 aria-label="Sound Toggle"
@@ -830,9 +883,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                 aria-label="Help Rules"
                 className="w-6 h-6 rounded-md flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.6)] active:scale-95 transition-all duration-150"
               >
-                <span className="text-white font-extrabold text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">
-                  ?
-                </span>
+                <span className="text-white font-extrabold text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]">?</span>
               </button>
             </div>
 
@@ -889,15 +940,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
                   if (isMixBig) {
                     return (
-                      <div
-                        key={`${record.roundNo}-${idx}`}
-                        className="relative w-6 h-6 flex-shrink-0 flex items-center justify-center"
-                      >
-                        <img
-                          src="/file_00000000330c8211b80be136b631b3e0.png"
-                          alt="Left Circle Icon"
-                          className="w-full h-full object-contain"
-                        />
+                      <div key={`${record.roundNo}-${idx}`} className="relative w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                        <img src="/file_00000000330c8211b80be136b631b3e0.png" alt="Left Circle Icon" className="w-full h-full object-contain" />
                         <div className="absolute -top-0.5 left-0 w-3 h-3">
                           <GreenScreenImage src="/IMG_20260822_011151.png" className="w-full h-full object-cover" />
                         </div>
@@ -916,15 +960,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
                   if (isMixSmall) {
                     return (
-                      <div
-                        key={`${record.roundNo}-${idx}`}
-                        className="relative w-6 h-6 flex-shrink-0 flex items-center justify-center"
-                      >
-                        <img
-                          src="/file_00000000330c8211b80be136b631b3e0.png"
-                          alt="Right Circle Icon"
-                          className="w-full h-full object-contain"
-                        />
+                      <div key={`${record.roundNo}-${idx}`} className="relative w-6 h-6 flex-shrink-0 flex items-center justify-center">
+                        <img src="/file_00000000330c8211b80be136b631b3e0.png" alt="Right Circle Icon" className="w-full h-full object-contain" />
                         <div className="absolute -top-0.5 left-0 w-3 h-3">
                           <GreenScreenImage src="/IMG_20260822_011118.png" className="w-full h-full object-cover" />
                         </div>
@@ -943,10 +980,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
                   const matchedAnimal = animals.find((a) => a.alt === record.winnerAlt);
                   return (
-                    <div
-                      key={`${record.roundNo}-${idx}`}
-                      className="w-6 h-6 flex-shrink-0 flex items-center justify-center"
-                    >
+                    <div key={`${record.roundNo}-${idx}`} className="w-6 h-6 flex-shrink-0 flex items-center justify-center">
                       {matchedAnimal && (
                         <GreenScreenImage src={matchedAnimal.src} className="w-full h-full object-contain" />
                       )}
@@ -976,10 +1010,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           ) : (
             <div className="relative w-80 h-80 flex items-center justify-center pointer-events-auto">
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <GreenScreenImage
-                  src="/1787344138649~2.jpg"
-                  className="w-full h-full object-contain"
-                />
+                <GreenScreenImage src="/1787344138649~2.jpg" className="w-full h-full object-contain" />
               </div>
 
               <div className="absolute z-30 flex flex-col items-center justify-center text-center pointer-events-none px-4">
@@ -1122,10 +1153,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                         : 'hover:scale-95 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'
                     }`}
                   >
-                    <GreenScreenImage
-                      src={chip.src}
-                      className="w-full h-full object-contain rounded-full"
-                    />
+                    <GreenScreenImage src={chip.src} className="w-full h-full object-contain rounded-full" />
                   </button>
                 );
               })}
@@ -1133,13 +1161,11 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           </div>
         )}
 
-        {/* 48vh Winner Bottom Sheet with User Specific Details */}
+        {/* Winner Bottom Sheet */}
         {showWinnerSheet && (
           <div className="absolute inset-x-0 bottom-0 h-[48vh] bg-[#0c0c0e]/95 backdrop-blur-xl rounded-t-xl shadow-[0_-10px_30px_rgba(0,0,0,0.95)] z-50 flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
-            
             <div className="w-full flex items-start justify-between px-3 pt-4">
-              <div className="flex items-center gap-5 mt-3"> 
-                
+              <div className="flex items-center gap-5 mt-3">
                 <div className="flex-shrink-0 flex items-center justify-center">
                   {winMode === 'single' && winnerAnimal && (
                     <div className="w-24 h-24 flex items-center justify-center scale-110 drop-shadow-[0_0_20px_rgba(255,215,0,0.6)]">
@@ -1186,19 +1212,14 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               </div>
 
               <div className="pr-1 pt-2">
-                <span className="text-white font-black text-xs tracking-tight">
-                  {winnerCountdown}s
-                </span>
+                <span className="text-white font-black text-xs tracking-tight">{winnerCountdown}s</span>
               </div>
             </div>
 
             <div className="w-full flex-1 flex flex-col items-center justify-end pb-10">
-              
               <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-8- drop-shadow-md" />
-              
+
               <div className="flex items-end justify-center gap-2 w-full px-1">
-                
-                {/* Top 2 (Left) */}
                 <div className="flex flex-col items-center mb-14">
                   <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[1].avatar} className="w-15 h-15 rounded-full object-cover" />
@@ -1211,7 +1232,6 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                 </div>
 
-                {/* Top 1 (Center) */}
                 <div className="flex flex-col items-center mb-15">
                   <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[0].avatar} className="w-18 h-18 rounded-full object-cover" />
@@ -1224,7 +1244,6 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                   </div>
                 </div>
 
-                {/* Top 3 (Right) */}
                 <div className="flex flex-col items-center mb-14">
                   <div className="relative w-22 h-22 flex items-center justify-center mb-1">
                     <img src={fakePodiumUsers[2].avatar} className="w-15 h-15 rounded-full object-cover" />
@@ -1236,10 +1255,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
                     <span className="text-yellow-400 font-bold text-[10px]">{fakePodiumUsers[2].win.toLocaleString()}</span>
                   </div>
                 </div>
-
               </div>
             </div>
-
           </div>
         )}
 
@@ -1279,9 +1296,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               ) : (
                 [...roundHistory].reverse().map((record) => (
                   <div key={record.roundNo} className="grid grid-cols-9 items-center gap-1 py-1.5">
-                    <span className="text-[10px] font-bold text-white/70 text-center">
-                      #{record.roundNo}
-                    </span>
+                    <span className="text-[10px] font-bold text-white/70 text-center">#{record.roundNo}</span>
                     {animals.map((animal) => {
                       const isWinner =
                         record.winnerAlt === animal.alt ||
@@ -1371,5 +1386,4 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
       </div>
     </div>
   );
-}
-
+     }

@@ -6,169 +6,324 @@ interface SellerCenterProps {
   onBack?: () => void;
 }
 
-// Custom Hook jo WebGL Shader se image ka white background strictly remove karta hai (PURE ORIGINAL)
-function useProcessedShaderImage(src: string) {
-  const [processedSrc, setProcessedSrc] = useState<string>(src);
+// ==========================================
+// SHARED WALLET DB (Same as Wallet / WildParty / GiftPicker / Store)
+// ==========================================
+const SHARED_DB = 'FruitPartyDB';
+const SHARED_STORE = 'GameState';
+const DEFAULT_BALANCE = 0;
 
-  useEffect(() => {
-    const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, premultipliedAlpha: false });
-    if (!gl) return;
-
-    const vsSource = `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
-      void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
+const initWalletDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject('No window');
+    const request = indexedDB.open(SHARED_DB, 2);
+    request.onupgradeneeded = (e: any) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(SHARED_STORE)) {
+        db.createObjectStore(SHARED_STORE);
       }
-    `;
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
 
-    const fsSource = `
-      precision mediump float;
-      varying vec2 v_texCoord;
-      uniform sampler2D u_image;
-      void main() {
-        vec4 color = texture2D(u_image, v_texCoord);
-        if (color.r > 0.9 && color.g > 0.9 && color.b > 0.9) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+const loadWalletBalance = async (): Promise<number> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(SHARED_STORE, 'readonly');
+      const req = tx.objectStore(SHARED_STORE).get('user_data');
+      req.onsuccess = () => {
+        if (req.result && typeof req.result.balance === 'number') {
+          resolve(req.result.balance);
         } else {
-          gl_FragColor = color;
+          resolve(DEFAULT_BALANCE);
         }
-      }
-    `;
+      };
+      req.onerror = () => resolve(DEFAULT_BALANCE);
+    });
+  } catch {
+    return DEFAULT_BALANCE;
+  }
+};
 
-    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      return shader;
-    };
+// delta positive = add, negative = deduct
+const updateWalletBalance = async (delta: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result;
+        const current = data?.balance ?? DEFAULT_BALANCE;
+        const next = Math.max(0, current + delta);
+        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Wallet update failed', e);
+  }
+};
 
-    const vertShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    if (!vertShader || !fragShader) return;
+// ==========================================
+// Shared WebGL white-removal (single context, cached)
+// ==========================================
+const processedCache = new Map<string, Promise<string>>();
 
-    const program = gl.createProgram();
-    if (!program) return;
-    gl.attachShader(program, vertShader);
-    gl.attachShader(program, fragShader);
-    gl.linkProgram(program);
-    gl.useProgram(program);
+let glCanvas: HTMLCanvasElement | null = null;
+let glCtx: WebGLRenderingContext | null = null;
+let glTex: WebGLTexture | null = null;
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1,  1, -1, -1,  1,
-      -1,  1,  1, -1,  1,  1,
-    ]), gl.STATIC_DRAW);
+const VS = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`;
 
-    const posAttrLocation = gl.getAttribLocation(program, 'a_position');
-    gl.enableVertexAttribArray(posAttrLocation);
-    gl.vertexAttribPointer(posAttrLocation, 2, gl.FLOAT, false, 0, 0);
+const FS = `
+precision mediump float;
+uniform sampler2D u_image;
+varying vec2 v_texCoord;
+void main() {
+  vec4 color = texture2D(u_image, v_texCoord);
+  if (color.r > 0.9 && color.g > 0.9 && color.b > 0.9) {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+  } else {
+    gl_FragColor = color;
+  }
+}`;
 
-    const texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      0, 1,  1, 1,  0, 0,
-      0, 0,  1, 1,  1, 0,
-    ]), gl.STATIC_DRAW);
-
-    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const image = new Image();
-    image.crossOrigin = 'anonymous';
-    image.src = src;
-    image.onload = () => {
-      canvas.width = image.width;
-      canvas.height = image.height;
-      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-      const texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-      const dataUrl = canvas.toDataURL('image/png');
-      setProcessedSrc(dataUrl);
-    };
-  }, [src]);
-
-  return processedSrc;
+function compile(gl: WebGLRenderingContext, type: number, src: string) {
+  const s = gl.createShader(type)!;
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
 }
 
+function ensureGL(): WebGLRenderingContext | null {
+  if (glCtx) return glCtx;
+  if (typeof document === 'undefined') return null;
+
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl', {
+    premultipliedAlpha: false,
+    alpha: true,
+    preserveDrawingBuffer: true,
+    antialias: false,
+  }) as WebGLRenderingContext | null;
+  if (!gl) return null;
+
+  const program = gl.createProgram()!;
+  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VS));
+  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
+  const posLoc = gl.getAttribLocation(program, 'a_position');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]),
+    gl.STATIC_DRAW
+  );
+  const texLoc = gl.getAttribLocation(program, 'a_texCoord');
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  glCanvas = canvas;
+  glCtx = gl;
+  glTex = tex;
+  return gl;
+}
+
+function processImage(src: string): Promise<string> {
+  const hit = processedCache.get(src);
+  if (hit) return hit;
+
+  const p = new Promise<string>((resolve, reject) => {
+    const gl = ensureGL();
+    if (!gl || !glCanvas) return reject(new Error('no webgl'));
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        glCanvas!.width = img.width || 120;
+        glCanvas!.height = img.height || 120;
+        gl.viewport(0, 0, glCanvas!.width, glCanvas!.height);
+
+        gl.bindTexture(gl.TEXTURE_2D, glTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        resolve(glCanvas!.toDataURL('image/png'));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
+
+  processedCache.set(src, p);
+  return p;
+}
+
+function CleanedCoinImage({ src, className = '' }: { src: string; className?: string }) {
+  const [url, setUrl] = useState<string>(src);
+  useEffect(() => {
+    let alive = true;
+    processImage(src)
+      .then((u) => alive && setUrl(u))
+      .catch(() => alive && setUrl(src));
+    return () => {
+      alive = false;
+    };
+  }, [src]);
+  return <img src={url} alt="Coin" className={className} draggable={false} />;
+}
+
+// ==========================================
+// Main Component
+// ==========================================
 export default function SellerCenter({ onBack }: SellerCenterProps) {
-  // State to toggle between 'seller' and 'record' (Details) pages
   const [currentView, setCurrentView] = useState<'seller' | 'record'>('seller');
-  
-  // State for Sales Method selection (User or Seller)
   const [salesMethod, setSalesMethod] = useState<'user' | 'seller'>('user');
 
-  // WebGL Shader se white background hataya hua coin image (Logic ekdam same)
-  const cleanedCoinIcon = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
+  // Shared wallet balance
+  const [balance, setBalance] = useState<number>(0);
 
-  // Dummy transactions logic unchanged
+  // Transfer form
+  const [targetId, setTargetId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [transferring, setTransferring] = useState(false);
+
+  // Real-time sync from shared wallet
+  useEffect(() => {
+    let alive = true;
+    const sync = async () => {
+      const bal = await loadWalletBalance();
+      if (alive) setBalance(bal);
+    };
+    sync();
+    const id = setInterval(sync, 1500);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  // Transfer handler — deducts from shared wallet
+  const handleTransfer = async () => {
+    if (transferring) return;
+
+    const amt = parseInt(amount.replace(/,/g, ''), 10);
+
+    if (!targetId.trim()) {
+      alert('Please enter the ID');
+      return;
+    }
+    if (!amt || amt <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+    if (balance < amt) {
+      alert('Insufficient balance');
+      return;
+    }
+
+    setTransferring(true);
+    setBalance((b) => b - amt); // optimistic UI
+    await updateWalletBalance(-amt);
+    setTransferring(false);
+
+    setTargetId('');
+    setAmount('');
+    alert(`Transferred ${amt.toLocaleString()} coins to ${targetId}`);
+  };
+
+  const amountNum = parseInt(amount, 10) || 0;
+  const isTransferDisabled =
+    transferring || !targetId.trim() || amountNum <= 0 || amountNum > balance;
+
+  // Dummy transactions
   const transactions = [
     {
       id: 1,
-      transferTo: "💫FAKE SMILE🦅",
-      nameColor: "text-yellow-500",
-      date: "09/04/2026 19:16",
-      amount: "-6,450,000",
-      balance: "2,204,251,179",
-      userId: "116943047"
+      transferTo: '💫FAKE SMILE🦅',
+      nameColor: 'text-yellow-500',
+      date: '09/04/2026 19:16',
+      amount: '-6,450,000',
+      balance: '2,204,251,179',
+      userId: '116943047',
     },
     {
       id: 2,
-      transferTo: "🇮🇳Indian_Tiger🇮🇳",
-      nameColor: "text-green-500",
-      date: "09/04/2026 19:10",
-      amount: "-2,150,000",
-      balance: "2,210,701,179",
-      userId: "116943047"
+      transferTo: '🇮🇳Indian_Tiger🇮🇳',
+      nameColor: 'text-green-500',
+      date: '09/04/2026 19:10',
+      amount: '-2,150,000',
+      balance: '2,210,701,179',
+      userId: '116943047',
     },
     {
       id: 3,
-      transferTo: "🖤KING—⭐",
-      nameColor: "text-yellow-400",
-      date: "09/04/2026 19:06",
-      amount: "-2,150,000",
-      balance: "2,212,851,179",
-      userId: "116943047"
+      transferTo: '🖤KING—⭐',
+      nameColor: 'text-yellow-400',
+      date: '09/04/2026 19:06',
+      amount: '-2,150,000',
+      balance: '2,212,851,179',
+      userId: '116943047',
     },
     {
       id: 4,
-      transferTo: "Asael🖤",
-      nameColor: "text-yellow-500",
-      date: "09/04/2026 18:52",
-      amount: "-2,150,000",
-      balance: "2,215,001,179",
-      userId: "116943047"
-    }
+      transferTo: 'Asael🖤',
+      nameColor: 'text-yellow-500',
+      date: '09/04/2026 18:52',
+      amount: '-2,150,000',
+      balance: '2,215,001,179',
+      userId: '116943047',
+    },
   ];
 
-  // 1. RECORD VIEW (Details UI)
+  // ================= RECORD VIEW =================
   if (currentView === 'record') {
     return (
       <div className="w-full min-h-screen bg-white font-sans text-gray-800 flex flex-col">
-        {/* Header with Safe Area applied for Android/iOS Status Bar */}
         <div className="bg-white sticky top-0 z-50">
           <div className="w-full h-[env(safe-area-inset-top)] bg-white"></div>
           <div className="flex items-center px-4 py-3">
             <button onClick={() => setCurrentView('seller')} className="p-1 cursor-pointer">
               <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-black fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
-                {/* Strict Left Arrow */}
                 <line x1="19" y1="12" x2="5" y2="12"></line>
                 <polyline points="12 19 5 12 12 5"></polyline>
               </svg>
@@ -179,11 +334,10 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
           </div>
         </div>
 
-        {/* Search Bar */}
         <div className="px-4 py-2">
           <div className="relative flex items-center">
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Please input the user id"
               className="w-full bg-[#f2f2f2] rounded-full px-5 py-2.5 text-sm outline-none text-gray-800 placeholder-gray-500"
             />
@@ -194,7 +348,6 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
           </div>
         </div>
 
-        {/* Filter Area */}
         <div className="px-4 py-3 flex items-center">
           <span className="text-[15px] font-bold text-gray-800">Order Type</span>
           <span className="text-[15px] font-bold text-gray-800 ml-2 cursor-pointer flex items-center">
@@ -205,7 +358,6 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
           </span>
         </div>
 
-        {/* Transaction List */}
         <div className="flex flex-col px-4 pb-8">
           {transactions.map((tx) => (
             <div key={tx.id} className="flex justify-between items-start border-b border-gray-100 py-4">
@@ -225,7 +377,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
               </div>
 
               <div className="flex items-center space-x-1 pt-8">
-                <img src={cleanedCoinIcon} alt="Coin" className="w-4 h-4 object-contain" />
+                <CleanedCoinImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
                 <span className="text-[14px] font-bold text-gray-800">{tx.amount}</span>
               </div>
             </div>
@@ -235,17 +387,14 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
     );
   }
 
-  // 2. SELLER CENTER VIEW (Flat Pure White UI - No Cards)
+  // ================= SELLER CENTER VIEW =================
   return (
     <div className="w-full min-h-screen bg-white font-sans text-gray-800 flex flex-col">
-      
-      {/* Header with Safe Area applied for Android/iOS Status Bar */}
       <div className="bg-white sticky top-0 z-50">
         <div className="w-full h-[env(safe-area-inset-top)] bg-white"></div>
         <div className="flex items-center px-4 py-3">
           <button onClick={onBack} className="p-1 cursor-pointer">
             <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-black fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
-              {/* Strict Left Arrow */}
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
@@ -255,20 +404,19 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
       </div>
 
       <div className="px-4 pb-8 space-y-2">
-        
-        {/* Profile Info Section (No Card) */}
+        {/* Profile Info */}
         <div className="w-full py-4 flex flex-col">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
               <img src="https://i.pravatar.cc/150?u=nawab" alt="Profile" className="w-full h-full object-cover" />
             </div>
-            
+
             <div className="flex flex-col">
               <span className="text-[15px] font-bold text-gray-800">꧁Ks༒Prad...</span>
               <div className="flex items-center space-x-1 mt-0.5">
                 <span className="text-[12px] text-gray-400">ID:116943047</span>
                 <svg viewBox="0 0 24 24" className="w-3 h-3 fill-gray-400">
-                  <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                  <path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
                 </svg>
               </div>
             </div>
@@ -281,7 +429,6 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
             <div className="flex items-center text-gray-800 text-[14px] font-medium">
               +91 9837152239
               <svg viewBox="0 0 24 24" className="w-4 h-4 ml-1 stroke-black fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round">
-                {/* Right chevron for navigation */}
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </div>
@@ -290,37 +437,35 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
           <div className="flex items-center justify-between py-1.5 mt-1">
             <span className="text-[14px] text-gray-800 font-medium">Payment Method</span>
             <div className="flex items-center text-gray-800 text-[14px] font-medium">
-              {/* Real Emoji Flag */}
               <span className="mr-1 text-[18px] leading-none">🇮🇳</span>
               <svg viewBox="0 0 24 24" className="w-4 h-4 ml-1 stroke-black fill-none stroke-[2] stroke-linecap-round stroke-linejoin-round">
-                {/* Right chevron for navigation */}
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </div>
         </div>
 
-        {/* Divider to separate Profile and Transfer Form clearly */}
         <div className="w-full h-2 bg-gray-50 rounded-full my-2"></div>
 
-        {/* Transfer Action Section (No Card) */}
+        {/* Transfer Section */}
         <div className="w-full py-4 flex flex-col">
-          
-          {/* Top Balance Area & Details Button */}
+          {/* Balance */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex flex-col">
               <div className="flex items-center space-x-1.5 mb-1">
-                <img src={cleanedCoinIcon} alt="Coin" className="w-6 h-6 object-contain" />
-                <span className="text-[22px] font-extrabold text-gray-800">2,167</span>
+                <CleanedCoinImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-6 h-6 object-contain" />
+                <span className="text-[22px] font-extrabold text-gray-800">
+                  {balance.toLocaleString()}
+                </span>
               </div>
               <span className="text-[12px] text-gray-400 font-medium">Available Balance</span>
             </div>
-            <button 
-              onClick={() => setCurrentView('record')} 
+            <button
+              onClick={() => setCurrentView('record')}
               className="flex items-center text-blue-400 text-[13px] font-bold cursor-pointer"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 mr-0.5 fill-current">
-                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
               </svg>
               Details
             </button>
@@ -331,17 +476,18 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
           <div className="flex items-center justify-between mb-6">
             <span className="text-[13px] text-gray-500 font-medium">Total Balance:</span>
             <div className="flex items-center space-x-1">
-              <img src={cleanedCoinIcon} alt="Coin" className="w-4 h-4 object-contain" />
-              <span className="text-[14px] font-bold text-gray-800">2,167</span>
+              <CleanedCoinImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
+              <span className="text-[14px] font-bold text-gray-800">
+                {balance.toLocaleString()}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center space-x-6 mb-6">
             <span className="text-[13px] text-gray-800 font-bold">Sales method:</span>
-            
+
             <div className="flex items-center space-x-4">
-              {/* User Radio */}
-              <label 
+              <label
                 className="flex items-center space-x-1.5 cursor-pointer"
                 onClick={() => setSalesMethod('user')}
               >
@@ -351,8 +497,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
                 <span className="text-[14px] text-gray-800 font-medium">User</span>
               </label>
 
-              {/* Seller Radio */}
-              <label 
+              <label
                 className="flex items-center space-x-1.5 cursor-pointer"
                 onClick={() => setSalesMethod('seller')}
               >
@@ -364,13 +509,16 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
             </div>
           </div>
 
+          {/* User/Seller ID */}
           <div className="flex flex-col mb-4 space-y-2">
             <label className="text-[13px] font-bold text-gray-800">
               {salesMethod === 'user' ? 'User ID:' : 'Seller ID:'}
             </label>
             <div className="relative flex items-center bg-[#f7f8fa] rounded-xl overflow-hidden px-4 py-3.5">
-              <input 
-                type="text" 
+              <input
+                type="text"
+                value={targetId}
+                onChange={(e) => setTargetId(e.target.value)}
                 placeholder="Please input the id"
                 className="flex-1 bg-transparent text-[14px] outline-none text-gray-800 placeholder-gray-400"
               />
@@ -380,24 +528,34 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
             </div>
           </div>
 
+          {/* Amount */}
           <div className="flex flex-col mb-8 space-y-2">
             <label className="text-[13px] font-bold text-gray-800">Amount:</label>
             <div className="relative flex items-center bg-[#f7f8fa] rounded-xl overflow-hidden px-4 py-3.5">
-              <input 
-                type="number" 
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
                 placeholder="Please input the number"
                 className="flex-1 bg-transparent text-[14px] outline-none text-gray-800 placeholder-gray-400"
               />
             </div>
+            {amount && amountNum > balance && (
+              <span className="text-[11px] text-red-500 font-medium px-1">
+                Insufficient balance
+              </span>
+            )}
           </div>
 
-          <button className="w-full bg-blue-300 hover:bg-blue-400 text-white font-bold text-[16px] py-3.5 rounded-full transition-colors cursor-pointer">
-            Transfer
+          <button
+            onClick={handleTransfer}
+            disabled={isTransferDisabled}
+            className="w-full bg-blue-300 hover:bg-blue-400 disabled:bg-blue-200 disabled:cursor-not-allowed text-white font-bold text-[16px] py-3.5 rounded-full transition-colors cursor-pointer"
+          >
+            {transferring ? 'Transferring...' : 'Transfer'}
           </button>
-
         </div>
       </div>
     </div>
   );
-}
-
+    }

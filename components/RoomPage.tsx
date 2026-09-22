@@ -2927,7 +2927,7 @@ const sendMessageToSocket = async (
       `}</style>
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
-      {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} />}
+      {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} seats={seats} />}
 
     </div>
   );

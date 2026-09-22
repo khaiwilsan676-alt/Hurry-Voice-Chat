@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react'
 
 // ==========================================
-// IndexedDB Logic for Wallet Sync
+// Shared Wallet DB (Same as GiftPicker / WildParty / Store / SellerCenter)
 // ==========================================
 const DB_NAME = 'FruitPartyDB';
 const STORE_NAME = 'GameState';
+const DEFAULT_BALANCE = 0;
 
 async function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -30,20 +31,19 @@ async function loadBalanceFromDB(): Promise<number> {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const req = tx.objectStore(STORE_NAME).get('user_data');
       req.onsuccess = () => {
-        if (req.result && req.result.balance !== undefined) {
+        if (req.result && typeof req.result.balance === 'number') {
           resolve(req.result.balance);
         } else {
-          resolve(82927); // Default balance agar DB me kuch na ho
+          resolve(DEFAULT_BALANCE);
         }
       };
-      req.onerror = () => resolve(82927);
+      req.onerror = () => resolve(DEFAULT_BALANCE);
     });
-  } catch (e) {
-    return 82927;
+  } catch {
+    return DEFAULT_BALANCE;
   }
 }
 
-// Ye naya function add kiya hai coins add karne ke liye
 async function addCoinsToDB(amountToAdd: number): Promise<void> {
   try {
     const db = await initDB();
@@ -53,247 +53,231 @@ async function addCoinsToDB(amountToAdd: number): Promise<void> {
       const req = store.get('user_data');
 
       req.onsuccess = () => {
-        let data = req.result;
-        if (!data) {
-          data = { balance: 82927 + amountToAdd };
-        } else {
-          data.balance = (data.balance || 82927) + amountToAdd;
-        }
-        const putReq = store.put(data, 'user_data');
+        const data = req.result;
+        const current = data?.balance ?? DEFAULT_BALANCE;
+        const next = Math.max(0, current + amountToAdd);
+        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
         putReq.onsuccess = () => resolve();
         putReq.onerror = () => reject(putReq.error);
       };
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
-    console.error("Failed to add coins to DB", e);
+    console.error("Failed to update coins in DB", e);
   }
 }
 
-export async function deductCoinsFromDB(amountToDeduct: number): Promise<boolean> {
-  try {
-    const db = await initDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get('user_data');
+// ==========================================
+// Shared single-context WebGL white-removal processor
+// ==========================================
+const processedCache = new Map<string, Promise<string>>()
 
-      req.onsuccess = () => {
-        let data = req.result;
-        let currentBalance = data ? (data.balance || 82927) : 82927;
+let glCanvas: HTMLCanvasElement | null = null
+let glCtx: WebGLRenderingContext | null = null
+let glTex: WebGLTexture | null = null
+let glThresholdLoc: WebGLUniformLocation | null = null
 
-        if (currentBalance >= amountToDeduct) {
-            if (!data) {
-              data = { balance: currentBalance - amountToDeduct };
-            } else {
-              data.balance = currentBalance - amountToDeduct;
-            }
-            const putReq = store.put(data, 'user_data');
-            putReq.onsuccess = () => resolve(true);
-            putReq.onerror = () => reject(putReq.error);
-        } else {
-            resolve(false);
-        }
-      };
-      req.onerror = () => reject(req.error);
-    });
-  } catch (e) {
-    console.error("Failed to deduct coins from DB", e);
-    return false;
+const VS = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`
+
+const FS = `
+precision mediump float;
+uniform sampler2D u_image;
+uniform float u_threshold;
+varying vec2 v_texCoord;
+void main() {
+  vec4 color = texture2D(u_image, v_texCoord);
+  if (color.r > u_threshold && color.g > u_threshold && color.b > u_threshold) {
+    discard;
   }
+  float brightness = (color.r + color.g + color.b) / 3.0;
+  float a = color.a;
+  if (brightness > u_threshold - 0.08) {
+    a *= clamp((u_threshold - brightness) / 0.08, 0.0, 1.0);
+  }
+  gl_FragColor = vec4(color.rgb * a, a);
+}`
+
+function compile(gl: WebGLRenderingContext, type: number, src: string) {
+  const s = gl.createShader(type)!
+  gl.shaderSource(s, src)
+  gl.compileShader(s)
+  return s
 }
 
+function ensureGL(): WebGLRenderingContext | null {
+  if (glCtx) return glCtx
+  if (typeof document === 'undefined') return null
 
-// --- WebGL Shader to strictly remove White Background & Fix UV Inversion ---
+  const canvas = document.createElement('canvas')
+  const gl = canvas.getContext('webgl', {
+    premultipliedAlpha: true,
+    alpha: true,
+    preserveDrawingBuffer: true,
+    antialias: false,
+  }) as WebGLRenderingContext | null
+  if (!gl) return null
+
+  const program = gl.createProgram()!
+  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VS))
+  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FS))
+  gl.linkProgram(program)
+  gl.useProgram(program)
+
+  const posBuf = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf)
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW,
+  )
+  const posLoc = gl.getAttribLocation(program, 'a_position')
+  gl.enableVertexAttribArray(posLoc)
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0)
+
+  const texBuf = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf)
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]),
+    gl.STATIC_DRAW,
+  )
+  const texLoc = gl.getAttribLocation(program, 'a_texCoord')
+  gl.enableVertexAttribArray(texLoc)
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0)
+
+  const tex = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, tex)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
+
+  glCanvas = canvas
+  glCtx = gl
+  glTex = tex
+  glThresholdLoc = gl.getUniformLocation(program, 'u_threshold')
+  return gl
+}
+
+function processImage(src: string, threshold: number): Promise<string> {
+  const key = `${src}|${threshold}`
+  const hit = processedCache.get(key)
+  if (hit) return hit
+
+  const p = new Promise<string>((resolve, reject) => {
+    const gl = ensureGL()
+    if (!gl || !glCanvas) return reject(new Error('no webgl'))
+
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      try {
+        glCanvas!.width = img.width || 120
+        glCanvas!.height = img.height || 120
+        gl.viewport(0, 0, glCanvas!.width, glCanvas!.height)
+
+        gl.bindTexture(gl.TEXTURE_2D, glTex)
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+        gl.uniform1f(glThresholdLoc, threshold)
+
+        gl.clearColor(0, 0, 0, 0)
+        gl.clear(gl.COLOR_BUFFER_BIT)
+        gl.drawArrays(gl.TRIANGLES, 0, 6)
+
+        resolve(glCanvas!.toDataURL('image/png'))
+      } catch (e) {
+        reject(e)
+      }
+    }
+    img.onerror = reject
+    img.src = src
+  })
+
+  processedCache.set(key, p)
+  return p
+}
+
 function WhiteColorRemovalShader({
   imageSrc,
   className = '',
   threshold = 0.88,
+  alt = '',
 }: {
   imageSrc: string
   className?: string
   threshold?: number
+  alt?: string
 }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true })
-    if (!gl) return
-
-    const vsSource = `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
-      void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
-      }
-    `
-
-    const fsSource = `
-      precision mediump float;
-      uniform sampler2D u_image;
-      uniform float u_threshold;
-      varying vec2 v_texCoord;
-      void main() {
-        vec4 color = texture2D(u_image, v_texCoord);
-        if (color.r > u_threshold && color.g > u_threshold && color.b > u_threshold) {
-          discard;
-        } else {
-          float brightness = (color.r + color.g + color.b) / 3.0;
-          if (brightness > u_threshold - 0.08) {
-            float alphaFactor = (u_threshold - brightness) / 0.08;
-            gl_FragColor = vec4(color.rgb, color.a * clamp(alphaFactor, 0.0, 1.0));
-          } else {
-            gl_FragColor = color;
-          }
-        }
-      }
-    `
-
-    function createShader(gl: WebGLRenderingContext, type: number, source: string) {
-      const shader = gl.createShader(type)
-      if (!shader) return null
-      gl.shaderSource(shader, source)
-      gl.compileShader(shader)
-      return shader
-    }
-
-    const vs = createShader(gl, gl.VERTEX_SHADER, vsSource)
-    const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource)
-    if (!vs || !fs) return
-
-    const program = gl.createProgram()
-    if (!program) return
-    gl.attachShader(program, vs)
-    gl.attachShader(program, fs)
-    gl.linkProgram(program)
-    gl.useProgram(program)
-
-    const posBuffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -1, -1,
-         1, -1,
-        -1,  1,
-        -1,  1,
-         1, -1,
-         1,  1,
-      ]),
-      gl.STATIC_DRAW
-    )
-
-    const posAttr = gl.getAttribLocation(program, 'a_position')
-    gl.enableVertexAttribArray(posAttr)
-    gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0)
-
-    const texBuffer = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer)
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        0, 1,
-        1, 1,
-        0, 0,
-        0, 0,
-        1, 1,
-        1, 0,
-      ]),
-      gl.STATIC_DRAW
-    )
-
-    const texAttr = gl.getAttribLocation(program, 'a_texCoord')
-    gl.enableVertexAttribArray(texAttr)
-    gl.vertexAttribPointer(texAttr, 2, gl.FLOAT, false, 0, 0)
-
-    const thresholdLoc = gl.getUniformLocation(program, 'u_threshold')
-    gl.uniform1f(thresholdLoc, threshold)
-
-    const texture = gl.createTexture()
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
-    img.src = imageSrc
-    img.onload = () => {
-      if (!canvas) return
-      canvas.width = img.width || 120
-      canvas.height = img.height || 120
-      gl.viewport(0, 0, canvas.width, canvas.height)
-
-      gl.bindTexture(gl.TEXTURE_2D, texture)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-
-      gl.clearColor(0, 0, 0, 0)
-      gl.clear(gl.COLOR_BUFFER_BIT)
-      gl.drawArrays(gl.TRIANGLES, 0, 6)
+    let alive = true
+    processImage(imageSrc, threshold)
+      .then((u) => alive && setUrl(u))
+      .catch(() => alive && setUrl(imageSrc))
+    return () => {
+      alive = false
     }
   }, [imageSrc, threshold])
 
-  return <canvas ref={canvasRef} className={className} />
+  if (!url) return <div className={className} aria-hidden />
+  return <img src={url} alt={alt} className={className} draggable={false} />
 }
 
+// ==========================================
+// Main Wallet Component
+// ==========================================
 interface WalletProps {
   onBack: () => void
-  initialTab?: 'coins' | 'diamond' | 'wallet' | 'diamonds'
+  initialTab?: 'wallet' | 'diamonds'
 }
 
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
-  const [mounted, setMounted] = useState(false)
-  const [activeTab, setActiveTab] = useState<'wallet' | 'diamonds'>(
-    initialTab === 'diamond' || initialTab === 'diamonds' ? 'diamonds' : 'wallet'
-  )
+  const [activeTab, setActiveTab] = useState<'wallet' | 'diamonds'>(initialTab)
   const [diamonds, setDiamonds] = useState('')
   const [coins, setCoins] = useState('')
   const [selectedPercentage, setSelectedPercentage] = useState('100%')
-  
-  // Real-time Balance State
-  const [walletBalance, setWalletBalance] = useState<number>(0)
 
-  useEffect(() => {
-    const id = setTimeout(() => setMounted(true), 30)
-    return () => clearTimeout(id)
-  }, [])
+  // Balance — null = not loaded yet (avoids 0 flash)
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
 
-  // DB se Real-time balance sync karne ka logic
+  // Real-time balance sync from IndexedDB
   useEffect(() => {
-    let isMounted = true;
-    
+    let isMounted = true
+
     const fetchBalance = async () => {
-      const bal = await loadBalanceFromDB();
-      if (isMounted) {
-        setWalletBalance(bal);
-      }
-    };
+      const bal = await loadBalanceFromDB()
+      if (isMounted) setWalletBalance(bal)
+    }
 
-    fetchBalance(); // Pehli baar load hote hi balance update karega
-
-    // Har 1 second me IndexedDB check karega real-time update ke liye
-    const intervalId = setInterval(fetchBalance, 1000);
+    fetchBalance()
+    const intervalId = setInterval(fetchBalance, 1000)
 
     return () => {
-      isMounted = false;
-      clearInterval(intervalId);
-    };
-  }, []);
+      isMounted = false
+      clearInterval(intervalId)
+    }
+  }, [])
 
   const handleDiamondChange = (value: string) => {
     setDiamonds(value)
     const diamondNum = parseFloat(value) || 0
-    const coinValue = (diamondNum * 33 / 100).toFixed(0)
+    const coinValue = ((diamondNum * 33) / 100).toFixed(0)
     setCoins(coinValue)
   }
 
   const handleCoinChange = (value: string) => {
     setCoins(value)
     const coinNum = parseFloat(value) || 0
-    const diamondValue = (coinNum * 100 / 33).toFixed(0)
+    const diamondValue = ((coinNum * 100) / 33).toFixed(0)
     setDiamonds(diamondValue)
   }
 
@@ -301,12 +285,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     setSelectedPercentage(pct)
   }
 
-  // Handle USD 1 Button Click logic
+  // Buy coins — optimistic UI + DB persist + read-back
   const handleBuyCoins = async (amount: number) => {
-    // UI mein turant update ke liye (Optimistic update)
-    setWalletBalance((prev) => prev + amount)
-    // DB me background mein update karne ke liye
+    setWalletBalance((prev) => (prev ?? 0) + amount)
     await addCoinsToDB(amount)
+    setWalletBalance(await loadBalanceFromDB())
   }
 
   return (
@@ -317,9 +300,10 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
-        background: activeTab === 'wallet' 
-          ? 'linear-gradient(180deg, #F3C663 0%, #FFFDF9 35%, #FFFDF9 100%)'
-          : 'linear-gradient(180deg, #F97394 0%, #FFFDF9 35%, #FFFDF9 100%)',
+        background:
+          activeTab === 'wallet'
+            ? 'linear-gradient(180deg, #F3C663 0%, #FFFDF9 35%, #FFFDF9 100%)'
+            : 'linear-gradient(180deg, #F97394 0%, #FFFDF9 35%, #FFFDF9 100%)',
       }}
     >
       <style>{`
@@ -360,7 +344,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         </button>
       </div>
 
-      {/* TABS (Coins / Diamonds) */}
+      {/* TABS */}
       <div className="flex justify-center gap-12 py-1 flex-shrink-0 z-20">
         <div className="flex flex-col items-center">
           <button
@@ -417,8 +401,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 current balance
               </span>
               <p className="text-3xl font-black text-amber-950 tracking-tight">
-                {/* Yahan Real Time Coins Update Honge DB Se */}
-                {walletBalance.toLocaleString()}
+                {walletBalance === null ? '—' : walletBalance.toLocaleString()}
               </p>
             </div>
 
@@ -433,7 +416,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                   boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
                 }}
               >
-                {/* Top left small bonus tag - Emoji Hatakar Image Laga di gayi */}
+                {/* Bonus tag */}
                 <div className="absolute -top-2 left-2 z-10 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-extrabold rounded shadow-xs flex items-center gap-1">
                   +20,000
                   <div className="w-2.5 h-2.5">
@@ -464,8 +447,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                   1,000,000
                 </span>
 
-                {/* USD Button - OnClick pe function call kiya gaya */}
-                <button 
+                {/* USD Button */}
+                <button
                   onClick={() => handleBuyCoins(1000000)}
                   className="w-full py-2 bg-amber-300 hover:bg-amber-400 font-bold text-amber-950 text-xs rounded-lg shadow-xs active:scale-95 transition-transform"
                 >
@@ -603,5 +586,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       </div>
     </div>
   )
-}
-
+    }

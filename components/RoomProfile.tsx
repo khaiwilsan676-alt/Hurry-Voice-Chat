@@ -517,7 +517,7 @@ export default function RoomProfile({
             <div className="flex items-center justify-center gap-0.5 mt-1.5">
               <div className="relative inline-flex items-center">
                 <img
-                  src="/1785137410522.png"
+                  src="/IMG_20260917_220530.png"
                   alt="Level"
                   className="h-6 w-auto object-contain"
                 />

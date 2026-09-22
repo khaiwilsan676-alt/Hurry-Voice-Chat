@@ -8,9 +8,9 @@ import { deductCoinsFromDB } from "./Wallet";
 interface StoreItem {
   id: string;
   name: string;
-  image: string; 
-  tryVideo?: string; 
-  removeGreen?: boolean; 
+  image: string;
+  tryVideo?: string;
+  removeGreen?: boolean;
   tab: string;
   stars: number;
   price: string;
@@ -18,6 +18,96 @@ interface StoreItem {
   isOwned?: boolean;
 }
 
+// ==========================================
+// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// ==========================================
+const SHARED_DB = 'FruitPartyDB';
+const SHARED_STORE = 'GameState';
+const DEFAULT_BALANCE = 82927;
+
+const initWalletDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject('No window');
+    const request = indexedDB.open(SHARED_DB, 2);
+    request.onupgradeneeded = (e: any) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(SHARED_STORE)) {
+        db.createObjectStore(SHARED_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[] }> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(SHARED_STORE, 'readonly');
+      const req = tx.objectStore(SHARED_STORE).get('user_data');
+      req.onsuccess = () => {
+        const data = req.result;
+        resolve({
+          balance: typeof data?.balance === 'number' ? data.balance : DEFAULT_BALANCE,
+          ownedItems: Array.isArray(data?.ownedItems) ? data.ownedItems : [],
+        });
+      };
+      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [] });
+    });
+  } catch {
+    return { balance: DEFAULT_BALANCE, ownedItems: [] };
+  }
+};
+
+// delta positive = add, negative = deduct
+const updateWalletBalance = async (delta: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result;
+        const current = data?.balance ?? DEFAULT_BALANCE;
+        const next = Math.max(0, current + delta);
+        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Wallet update failed', e);
+  }
+};
+
+// Add item id to ownedItems array (persist)
+const addOwnedItemToDB = async (itemId: string): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result || {};
+        const current: string[] = Array.isArray(data.ownedItems) ? data.ownedItems : [];
+        if (!current.includes(itemId)) current.push(itemId);
+        const putReq = store.put({ ...data, ownedItems: current }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Owned item save failed', e);
+  }
+};
+
+// ==========================================
+// STATIC DATA
+// ==========================================
 const tabData = [
   { id: "Vehicle", label: "Vehicle", icon: "/IMG_20260913_090019.png" },
   { id: "Avatar Frame", label: "Frame", icon: "/IMG_20260913_090057.png" },
@@ -28,22 +118,22 @@ const tabData = [
 
 const allStoreItems: StoreItem[] = [
   // Vehicle
-  { 
-    id: "v1", 
-    name: "Leopard Roar", 
-    image: "/IMG_20260905_222412.jpg", 
-    tryVideo: "/VID_20260905_095157_269_bsl.mp4", 
-    removeGreen: true, 
-    tab: "Vehicle", 
-    stars: 5, 
-    price: "1,000,000", 
-    duration: "5D" 
+  {
+    id: "v1",
+    name: "Leopard Roar",
+    image: "/IMG_20260905_222412.jpg",
+    tryVideo: "/VID_20260905_095157_269_bsl.mp4",
+    removeGreen: true,
+    tab: "Vehicle",
+    stars: 5,
+    price: "1,000,000",
+    duration: "5D",
   },
 
   // Avatar Frame
   { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D" },
   { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
-  { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" }, 
+  { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
 
   // Theme
   { id: "t1", name: "Seafood", image: "/IMG-20260904-WA0004.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
@@ -52,233 +142,241 @@ const allStoreItems: StoreItem[] = [
   { id: "t4", name: "Night Sky", image: "/IMG-20260904-WA0007.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t5", name: "Seafood", image: "/IMG-20260904-WA0040.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t6", name: "Night Sky", image: "/IMG-20260904-WA0041.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
-  
+
   // Chat Bubble
   { id: "c1", name: "1", image: "/file_000000003d888211822aa6837fe5013c.png", tab: "Chat Bubble", stars: 4, price: "500,000", duration: "3D" },
-  { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" }, 
-  { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" }, 
-  { id: "c4", name: "4", image: "/IMG_20260920_122831.png", tab: "Chat Bubble", stars: 4, price: "246,000", duration: "3D" }, 
-  { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" }, 
-  { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" }, 
-  
+  { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" },
+  { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" },
+  { id: "c4", name: "4", image: "/IMG_20260920_122831.png", tab: "Chat Bubble", stars: 4, price: "246,000", duration: "3D" },
+  { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" },
+  { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" },
+
   // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
 ];
 
-function WebGLCoinIcon({ src }: { src: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, alpha: true });
-    if (!gl) return;
+// ==========================================
+// SHARED WebGL WHITE-REMOVAL (single context)
+// ==========================================
+const processedCache = new Map<string, Promise<string>>();
 
-    const vsSource = `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
-      void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
+let glCanvas: HTMLCanvasElement | null = null;
+let glCtx: WebGLRenderingContext | null = null;
+let glTex: WebGLTexture | null = null;
+
+const VS = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`;
+
+const FS = `
+precision mediump float;
+uniform sampler2D u_image;
+varying vec2 v_texCoord;
+void main() {
+  vec4 color = texture2D(u_image, v_texCoord);
+  float lum = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+  if (lum > 0.85 && color.r > 0.8 && color.g > 0.8 && color.b > 0.8) {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+  } else {
+    gl_FragColor = color;
+  }
+}`;
+
+function compile(gl: WebGLRenderingContext, type: number, src: string) {
+  const s = gl.createShader(type)!;
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
+}
+
+function ensureGL(): WebGLRenderingContext | null {
+  if (glCtx) return glCtx;
+  if (typeof document === 'undefined') return null;
+
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl', {
+    premultipliedAlpha: false,
+    alpha: true,
+    preserveDrawingBuffer: true,
+    antialias: false,
+  }) as WebGLRenderingContext | null;
+  if (!gl) return null;
+
+  const program = gl.createProgram()!;
+  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VS));
+  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
+  const posLoc = gl.getAttribLocation(program, 'a_position');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]),
+    gl.STATIC_DRAW
+  );
+  const texLoc = gl.getAttribLocation(program, 'a_texCoord');
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  glCanvas = canvas;
+  glCtx = gl;
+  glTex = tex;
+  return gl;
+}
+
+function processWhiteRemoval(src: string): Promise<string> {
+  const hit = processedCache.get(src);
+  if (hit) return hit;
+
+  const p = new Promise<string>((resolve, reject) => {
+    const gl = ensureGL();
+    if (!gl || !glCanvas) return reject(new Error('no webgl'));
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        glCanvas!.width = img.width || 120;
+        glCanvas!.height = img.height || 120;
+        gl.viewport(0, 0, glCanvas!.width, glCanvas!.height);
+
+        gl.bindTexture(gl.TEXTURE_2D, glTex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        resolve(glCanvas!.toDataURL('image/png'));
+      } catch (e) {
+        reject(e);
       }
-    `;
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
 
-    const fsSource = `
-      precision mediump float;
-      varying vec2 v_texCoord;
-      uniform sampler2D u_image;
-      void main() {
-        vec4 color = texture2D(u_image, v_texCoord);
-        float lum = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-        if (lum > 0.85 && color.r > 0.8 && color.g > 0.8 && color.b > 0.8) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        } else {
-          gl_FragColor = color;
+  processedCache.set(src, p);
+  return p;
+}
+
+function WebGLCoinIcon({ src, className = 'w-full h-full object-contain' }: { src: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    processWhiteRemoval(src)
+      .then((u) => alive && setUrl(u))
+      .catch(() => alive && setUrl(src));
+    return () => {
+      alive = false;
+    };
+  }, [src]);
+  if (!url) return <div className={className} aria-hidden />;
+  return <img src={url} alt="Coin" className={className} draggable={false} />;
+}
+
+// ==========================================
+// WebGL Image Avatar (green removal - static image)
+// ==========================================
+const avatarCache = new Map<string, Promise<string>>();
+
+function processGreenRemovalImage(src: string): Promise<string> {
+  const hit = avatarCache.get(src);
+  if (hit) return hit;
+
+  const p = new Promise<string>((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = src;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) return reject(new Error('no ctx'));
+      ctx.drawImage(img, 0, 0);
+
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const isGreen = g > 65 && g > r * 1.15 && g > b * 1.15;
+        if (isGreen) {
+          data[i + 3] = 0;
+        } else if (g > Math.max(r, b)) {
+          data[i + 1] = Math.max(r, b);
         }
       }
-    `;
-
-    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      return shader;
+      ctx.putImageData(imgData, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
     };
+    img.onerror = reject;
+  });
 
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    if (!vertexShader || !fragmentShader) return;
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1,  1, -1, -1,  1,
-      -1,  1,  1, -1,  1,  1,
-    ]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      0, 1,  1, 1,  0, 0,
-      0, 0,  1, 1,  1, 0,
-    ]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const texture = gl.createTexture();
-    const image = new window.Image();
-    image.crossOrigin = "anonymous";
-    image.src = src;
-    image.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-    };
-  }, [src]);
-
-  return <canvas ref={canvasRef} width={64} height={64} className="w-full h-full object-contain" />;
+  avatarCache.set(src, p);
+  return p;
 }
 
-function WebGLImageAvatar({ src }: { src: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+function WebGLImageAvatar({ src, className = 'w-full h-full object-contain' }: { src: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const gl = canvas.getContext("webgl", { preserveDrawingBuffer: true, alpha: true });
-    if (!gl) return;
-
-    const vsSource = `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
-      void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
-      }
-    `;
-
-    // Updated fragment shader with perfectly smooth mix logic instead of discard
-    const fsSource = `
-      precision mediump float;
-      varying vec2 v_texCoord;
-      uniform sampler2D u_image;
-      
-      void main() {
-        vec4 color = texture2D(u_image, v_texCoord);
-        float maxRB = max(color.r, color.b);
-        float greenness = color.g - maxRB;
-        
-        // Blend factor nikal rahe hai greenness ke hisaab se
-        float blend = smoothstep(0.04, 0.12, greenness);
-        
-        // Spill suppression taaki edges green na dikhein
-        vec4 despilled = color;
-        despilled.g = min(despilled.g, maxRB + 0.05);
-        
-        // Seedha mix() use karke color aur pure transparency (0,0,0,0) ko blend kar rahe hai
-        gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
-      }
-    `;
-
-    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      return shader;
-    };
-
-    const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    if (!vertexShader || !fragmentShader) return;
-
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    gl.useProgram(program);
-
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
-
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1,  1, -1, -1,  1,
-      -1,  1,  1, -1,  1,  1,
-    ]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      0, 0,  1, 0,  0, 1,
-      0, 1,  1, 0,  1, 1,
-    ]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-
-    const texture = gl.createTexture();
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    
-    const image = new window.Image();
-    image.crossOrigin = "anonymous";
-    image.src = src;
-    image.onload = () => {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    let alive = true;
+    processGreenRemovalImage(src)
+      .then((u) => alive && setUrl(u))
+      .catch(() => alive && setUrl(src));
+    return () => {
+      alive = false;
     };
   }, [src]);
-
-  return <canvas ref={canvasRef} width={256} height={256} className="w-full h-full object-contain" />;
+  if (!url) return <div className={className} aria-hidden />;
+  return <img src={url} alt="Avatar" className={className} draggable={false} />;
 }
 
+// ==========================================
+// WebGL Video Avatar (green removal - video)
+// ==========================================
 function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehicleModal?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl", { preserveDrawingBuffer: false, alpha: true });
+    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: false, alpha: true });
     if (!gl) return;
 
-    const video = document.createElement("video");
+    const video = document.createElement('video');
     video.src = src;
-    video.crossOrigin = "anonymous";
+    video.crossOrigin = 'anonymous';
     video.loop = true;
     video.muted = !isVehicleModal;
     video.playsInline = true;
-    video.play().catch(e => console.log("Video auto-play prevented:", e));
+    video.play().catch((e) => console.log('Video autoplay prevented:', e));
 
     const vsSource = `
       attribute vec2 a_position;
@@ -290,34 +388,26 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
       }
     `;
 
-    // Main update yaha par hai for Video: discard remove kar diya aur smooth mix() daal diya
     const fsSource = `
       precision mediump float;
       varying vec2 v_texCoord;
       uniform sampler2D u_image;
-      
       void main() {
         vec4 color = texture2D(u_image, v_texCoord);
         float maxRB = max(color.r, color.b);
         float greenness = color.g - maxRB;
-        
-        // Smoothstep s humein ek proper blending ratio mil raha hai
         float blend = smoothstep(0.04, 0.15, greenness);
-        
-        // Green spill suppression taaki corners sharp/green na aaye
         vec4 despilled = color;
         despilled.g = min(despilled.g, maxRB + 0.05);
-        
-        // Mix function seedha original color ko transparent (0 alpha) k sath mix kar raha hai
         gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
       }
     `;
 
-    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-      const shader = gl.createShader(type);
+    const createShader = (glCtx: WebGLRenderingContext, type: number, source: string) => {
+      const shader = glCtx.createShader(type);
       if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
+      glCtx.shaderSource(shader, source);
+      glCtx.compileShader(shader);
       return shader;
     };
 
@@ -326,19 +416,20 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
     if (!vertexShader || !fragmentShader) return;
 
     const program = gl.createProgram();
+    if (!program) return;
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
     gl.useProgram(program);
 
-    const positionLocation = gl.getAttribLocation(program, "a_position");
-    const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
+    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1,  1, -1, -1,  1,
-      -1,  1,  1, -1,  1,  1,
+      -1, -1, 1, -1, -1, 1,
+      -1, 1, 1, -1, 1, 1,
     ]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
@@ -346,8 +437,8 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
     const texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      0, 0,  1, 0,  0, 1,
-      0, 1,  1, 0,  1, 1,
+      0, 0, 1, 0, 0, 1,
+      0, 1, 1, 0, 1, 1,
     ]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
@@ -358,16 +449,13 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     let animationFrameId: number;
-
     const render = () => {
       if (video.readyState >= video.HAVE_CURRENT_DATA) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-        
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
@@ -375,13 +463,12 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
       }
       animationFrameId = requestAnimationFrame(render);
     };
-
     render();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
       video.pause();
-      video.removeAttribute("src");
+      video.removeAttribute('src');
       video.load();
       gl.deleteTexture(texture);
       gl.deleteBuffer(positionBuffer);
@@ -393,58 +480,76 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
   return <canvas ref={canvasRef} width={512} height={512} className="w-full h-full object-contain" />;
 }
 
-export default function StorePage({ onBack, initialView = "store" }: { onBack: () => void; initialView?: "store" | "bag" }) {
+// ==========================================
+// Main Component
+// ==========================================
+export default function StorePage({
+  onBack,
+  initialView = "store",
+}: {
+  onBack: () => void;
+  initialView?: "store" | "bag";
+}) {
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
 
-  const [ownedItems, setOwnedItems] = useState<string[]>([]);
-  const [equippedItems, setEquippedItems] = useState<{ [key: string]: string }>({});
+  // Shared wallet
+  const [balance, setBalance] = useState<number>(0);
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(
+    new Set(allStoreItems.filter((i) => i.isOwned).map((i) => i.id))
+  );
+  const [buying, setBuying] = useState<string | null>(null);
 
+  // Real-time sync
   useEffect(() => {
-    const loadedOwned = localStorage.getItem('ownedStoreItems');
-    if (loadedOwned) {
-      setOwnedItems(JSON.parse(loadedOwned));
-    }
-    const vehicle = localStorage.getItem('equipped_Vehicle');
-    const frame = localStorage.getItem('equipped_Avatar Frame');
-    const theme = localStorage.getItem('equipped_Theme');
-    const bubble = localStorage.getItem('equipped_Chat Bubble');
-    setEquippedItems({
-      ...(vehicle && {'Vehicle': vehicle}),
-      ...(frame && {'Avatar Frame': frame}),
-      ...(theme && {'Theme': theme}),
-      ...(bubble && {'Chat Bubble': bubble})
-    });
+    let alive = true;
+    const sync = async () => {
+      const { balance: bal, ownedItems } = await loadWalletData();
+      if (!alive) return;
+      setBalance(bal);
+      setOwnedIds((prev) => {
+        const next = new Set(prev);
+        ownedItems.forEach((id) => next.add(id));
+        return next;
+      });
+    };
+    sync();
+    const id = setInterval(sync, 1500);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
   }, []);
 
+  const parsePrice = (p: string) => parseInt(p.replace(/,/g, ''), 10) || 0;
+
+  // Buy handler
   const handleBuy = async (item: StoreItem) => {
-    const priceStr = item.price.replace(/,/g, '');
-    const price = parseInt(priceStr, 10);
-    if (isNaN(price)) return;
+    if (buying) return;
+    const cost = parsePrice(item.price);
 
-    const success = await deductCoinsFromDB(price);
-    if (success) {
-      const updatedOwned = [...ownedItems, item.id];
-      setOwnedItems(updatedOwned);
-      localStorage.setItem('ownedStoreItems', JSON.stringify(updatedOwned));
-      alert(`Successfully purchased ${item.name}!`);
-    } else {
-      alert("Not enough coins!");
+    if (balance < cost) {
+      alert('Insufficient balance');
+      return;
     }
+
+    setBuying(item.id);
+    // Optimistic UI
+    setBalance((b) => b - cost);
+    setOwnedIds((prev) => new Set(prev).add(item.id));
+
+    await updateWalletBalance(-cost);
+    await addOwnedItemToDB(item.id);
+
+    setBuying(null);
   };
 
-  const handleEquip = (item: StoreItem) => {
-    localStorage.setItem(`equipped_${item.tab}`, item.image);
-    setEquippedItems(prev => ({...prev, [item.tab]: item.image}));
-    alert(`${item.name} equipped!`);
-  };
-
-
-  const displayedItems = allStoreItems.filter(item => {
+  const displayedItems = allStoreItems.filter((item) => {
+    const isOwned = ownedIds.has(item.id);
     if (currentView === "bag") {
-      return (item.isOwned || ownedItems.includes(item.id)) && item.tab === activeTab;
+      return isOwned && item.tab === activeTab;
     }
     return item.tab === activeTab;
   });
@@ -460,10 +565,12 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
-        
-        {/* Fixed/Sticky Top Area (Header + Tabs) */}
-        <div className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 4px)' }}>
-          
+
+        {/* Sticky Header */}
+        <div
+          className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col"
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 4px)' }}
+        >
           <div className="flex items-center justify-between px-3 pt-3 pb-2 w-full">
             <button
               type="button"
@@ -478,12 +585,12 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             >
               <ArrowLeft size={26} strokeWidth={2} />
             </button>
-            
+
             <h1 className="text-[18px] font-bold text-black absolute left-1/2 -translate-x-1/2 z-0">
               {currentView === "store" ? "Store" : "Bag"}
             </h1>
 
-            <button 
+            <button
               type="button"
               onClick={() => setCurrentView(currentView === "store" ? "bag" : "store")}
               className="font-bold text-[#1d4ed8] text-[15px] z-10 hover:opacity-80 transition-opacity pr-1"
@@ -492,11 +599,21 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             </button>
           </div>
 
+          {/* Balance Badge */}
+          <div className="px-3 -mt-1 mb-2 flex items-center gap-1.5">
+            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+              <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+            </div>
+            <span className="text-[13px] font-bold text-gray-800">
+              {balance.toLocaleString()}
+            </span>
+          </div>
+
           {/* Category Tabs */}
-          <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-3 mb-3 overflow-hidden shrink-0 w-full">
+          <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-1 mb-3 overflow-hidden shrink-0 w-full">
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
-              
+
               return (
                 <button
                   key={tab.id}
@@ -516,7 +633,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                       />
                     </div>
                   )}
-                  
+
                   <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
                     <div className="relative w-10 h-10">
                       <Image
@@ -536,7 +653,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
           </div>
         </div>
 
-        {/* Scrollable Bottom Area (Grid & ID View) */}
+        {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto no-scrollbar w-full pb-10">
           {activeTab === "ID" ? (
             <div className="px-3 py-2 flex flex-col gap-3 h-full">
@@ -547,7 +664,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                 </div>
               </div>
 
-              <button 
+              <button
                 type="button"
                 className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center"
               >
@@ -560,6 +677,9 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                 const isTheme = item.tab === "Theme";
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
+                const cost = parsePrice(item.price);
+                const canAfford = balance >= cost;
+                const isOwned = ownedIds.has(item.id);
 
                 return (
                   <div
@@ -581,7 +701,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                     )}
 
                     <div className="flex items-center justify-between w-full z-10 mb-2">
-                      <button 
+                      <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -592,8 +712,8 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                           }
                         }}
                         className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
-                          isTheme 
-                            ? "text-white border-white bg-white/20" 
+                          isTheme
+                            ? "text-white border-white bg-white/20"
                             : "text-[#1d4ed8] border-[#1d4ed8]"
                         }`}
                       >
@@ -652,26 +772,24 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                       <button
                         type="button"
                         onClick={() => {
-                          if (currentView === "bag") {
-                            handleEquip(item);
+                          if (currentView === "bag" || isOwned) {
+                            console.log('Equip', item.id);
                           } else {
-                            if (!item.isOwned && !ownedItems.includes(item.id)) {
-                              handleBuy(item);
-                            }
+                            handleBuy(item);
                           }
                         }}
-                        className={`flex-1 h-full text-white text-[12px] font-bold flex items-center justify-center transition-colors ${
-                          currentView === "bag" && equippedItems[item.tab] === item.image
-                            ? "bg-green-600 hover:bg-green-700"
-                            : (item.isOwned || ownedItems.includes(item.id)) && currentView !== "bag"
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-[#1d4ed8] hover:bg-blue-800"
-                        }`}
-                        disabled={(item.isOwned || ownedItems.includes(item.id)) && currentView !== "bag"}
+                        disabled={
+                          (currentView === "store" && !isOwned && (!canAfford || buying === item.id))
+                        }
+                        className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {currentView === "bag"
-                          ? (equippedItems[item.tab] === item.image ? "Equipped" : "Equip")
-                          : ((item.isOwned || ownedItems.includes(item.id)) ? "Owned" : "Buy")}
+                        {buying === item.id
+                          ? '...'
+                          : currentView === "bag" || isOwned
+                          ? 'Equip'
+                          : !canAfford
+                          ? 'No Coins'
+                          : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -683,11 +801,11 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                   {currentView === "bag" ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-[120px] h-[120px] mb-2">
-                        <Image 
-                          src="/file_0000000047308211a02722299d1fda2e.png" 
-                          alt="No data" 
-                          fill 
-                          className="object-contain" 
+                        <Image
+                          src="/file_0000000047308211a02722299d1fda2e.png"
+                          alt="No data"
+                          fill
+                          className="object-contain"
                         />
                       </div>
                       <span className="text-gray-400 text-sm font-medium">No data</span>
@@ -702,9 +820,9 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
         </div>
       </div>
 
-      {/* FULL WIDE VEHICLE & FRAME TRY MODAL */}
+      {/* Vehicle & Frame Try Modal */}
       {tryCenterItem && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
           onClick={() => setTryCenterItem(null)}
         >
@@ -714,7 +832,7 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             ) : tryCenterItem.image.endsWith('.mp4') ? (
               <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
             ) : tryCenterItem.removeGreen ? (
-               <WebGLImageAvatar src={tryCenterItem.image} />
+              <WebGLImageAvatar src={tryCenterItem.image} />
             ) : (
               <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
             )}
@@ -730,11 +848,10 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
         </div>
       )}
 
-      {/* THEME TRY OVERLAY MODAL */}
+      {/* Theme Try Modal */}
       {tryThemeItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
           <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            
             <button
               type="button"
               onClick={() => setTryThemeItem(null)}
@@ -759,11 +876,9 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
             <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
               {tryThemeItem.name}
             </div>
-
           </div>
         </div>
       )}
     </div>
   );
-}
-
+            }
