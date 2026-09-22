@@ -2524,6 +2524,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                     image: room.image,
                     isLocked: room.isLocked
                   })}
+                  >
                  <div
   className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
   style={{ height: '170px' }}
