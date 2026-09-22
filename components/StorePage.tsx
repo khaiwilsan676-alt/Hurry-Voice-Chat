@@ -39,7 +39,7 @@ const initWalletDB = (): Promise<IDBDatabase> =>
     request.onerror = () => reject(request.error);
   });
 
-const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[] }> => {
+const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]; equippedItems: string[] }> => {
   try {
     const db = await initWalletDB();
     return new Promise((resolve) => {
@@ -50,12 +50,13 @@ const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]
         resolve({
           balance: typeof data?.balance === 'number' ? data.balance : DEFAULT_BALANCE,
           ownedItems: Array.isArray(data?.ownedItems) ? data.ownedItems : [],
+          equippedItems: Array.isArray(data?.equippedItems) ? data.equippedItems : [],
         });
       };
-      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [] });
+      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [] });
     });
   } catch {
-    return { balance: DEFAULT_BALANCE, ownedItems: [] };
+    return { balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [] };
   }
 };
 
@@ -102,6 +103,27 @@ const addOwnedItemToDB = async (itemId: string): Promise<void> => {
     });
   } catch (e) {
     console.error('Owned item save failed', e);
+  }
+};
+
+// Persist equipped items
+const saveEquippedItemsToDB = async (equipped: string[]): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result || {};
+        const putReq = store.put({ ...data, equippedItems: equipped }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Equipped save failed', e);
   }
 };
 
@@ -300,43 +322,122 @@ function WebGLCoinIcon({ src, className = 'w-full h-full object-contain' }: { sr
 }
 
 // ==========================================
-// WebGL Image Avatar (green removal - static image)
+// WebGL Image Avatar (green removal - smooth transparency + despill)
 // ==========================================
 const avatarCache = new Map<string, Promise<string>>();
+
+let imgGlCanvas: HTMLCanvasElement | null = null;
+let imgGlCtx: WebGLRenderingContext | null = null;
+let imgGlTex: WebGLTexture | null = null;
+
+const IMG_VS = `
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+varying vec2 v_texCoord;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+  v_texCoord = a_texCoord;
+}`;
+
+const IMG_FS = `
+precision mediump float;
+varying vec2 v_texCoord;
+uniform sampler2D u_image;
+void main() {
+  vec4 color = texture2D(u_image, v_texCoord);
+  float maxRB = max(color.r, color.b);
+  float greenness = color.g - maxRB;
+  float blend = smoothstep(0.04, 0.15, greenness);
+  vec4 despilled = color;
+  despilled.g = min(despilled.g, maxRB + 0.05);
+  gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
+}`;
+
+function ensureImageGL(): WebGLRenderingContext | null {
+  if (imgGlCtx) return imgGlCtx;
+  if (typeof document === 'undefined') return null;
+
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl', {
+    premultipliedAlpha: false,
+    alpha: true,
+    preserveDrawingBuffer: true,
+    antialias: false,
+  }) as WebGLRenderingContext | null;
+  if (!gl) return null;
+
+  const program = gl.createProgram()!;
+  gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, IMG_VS));
+  gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, IMG_FS));
+  gl.linkProgram(program);
+  gl.useProgram(program);
+
+  const posBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
+  const posLoc = gl.getAttribLocation(program, 'a_position');
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const texBuf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
+    gl.STATIC_DRAW
+  );
+  const texLoc = gl.getAttribLocation(program, 'a_texCoord');
+  gl.enableVertexAttribArray(texLoc);
+  gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
+
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+  imgGlCanvas = canvas;
+  imgGlCtx = gl;
+  imgGlTex = tex;
+  return gl;
+}
 
 function processGreenRemovalImage(src: string): Promise<string> {
   const hit = avatarCache.get(src);
   if (hit) return hit;
 
   const p = new Promise<string>((resolve, reject) => {
+    const gl = ensureImageGL();
+    if (!gl || !imgGlCanvas) return reject(new Error('no webgl'));
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.src = src;
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth || img.width;
-      canvas.height = img.naturalHeight || img.height;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) return reject(new Error('no ctx'));
-      ctx.drawImage(img, 0, 0);
+      try {
+        imgGlCanvas!.width = img.naturalWidth || img.width || 256;
+        imgGlCanvas!.height = img.naturalHeight || img.height || 256;
+        gl.viewport(0, 0, imgGlCanvas!.width, imgGlCanvas!.height);
 
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const isGreen = g > 65 && g > r * 1.15 && g > b * 1.15;
-        if (isGreen) {
-          data[i + 3] = 0;
-        } else if (g > Math.max(r, b)) {
-          data[i + 1] = Math.max(r, b);
-        }
+        gl.bindTexture(gl.TEXTURE_2D, imgGlTex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        resolve(imgGlCanvas!.toDataURL('image/png'));
+      } catch (e) {
+        reject(e);
       }
-      ctx.putImageData(imgData, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
     };
     img.onerror = reject;
+    img.src = src;
   });
 
   avatarCache.set(src, p);
@@ -500,13 +601,14 @@ export default function StorePage({
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
     new Set(allStoreItems.filter((i) => i.isOwned).map((i) => i.id))
   );
+  const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
   // Real-time sync
   useEffect(() => {
     let alive = true;
     const sync = async () => {
-      const { balance: bal, ownedItems } = await loadWalletData();
+      const { balance: bal, ownedItems, equippedItems } = await loadWalletData();
       if (!alive) return;
       setBalance(bal);
       setOwnedIds((prev) => {
@@ -514,6 +616,7 @@ export default function StorePage({
         ownedItems.forEach((id) => next.add(id));
         return next;
       });
+      setEquippedIds(new Set(equippedItems));
     };
     sync();
     const id = setInterval(sync, 1500);
@@ -544,6 +647,22 @@ export default function StorePage({
     await addOwnedItemToDB(item.id);
 
     setBuying(null);
+  };
+
+  // Equip / Unequip toggle (one equipped item per tab)
+  const handleEquipToggle = async (item: StoreItem) => {
+    const next = new Set(equippedIds);
+    if (next.has(item.id)) {
+      next.delete(item.id);
+    } else {
+      // Remove any other equipped item from the same tab
+      allStoreItems.forEach((it) => {
+        if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
+      });
+      next.add(item.id);
+    }
+    setEquippedIds(next);
+    await saveEquippedItemsToDB(Array.from(next));
   };
 
   const displayedItems = allStoreItems.filter((item) => {
@@ -597,16 +716,6 @@ export default function StorePage({
             >
               {currentView === "store" ? "Bag" : "Store"}
             </button>
-          </div>
-
-          {/* Balance Badge */}
-          <div className="px-3 -mt-1 mb-2 flex items-center gap-1.5">
-            <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-              <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-            </div>
-            <span className="text-[13px] font-bold text-gray-800">
-              {balance.toLocaleString()}
-            </span>
           </div>
 
           {/* Category Tabs */}
@@ -677,9 +786,8 @@ export default function StorePage({
                 const isTheme = item.tab === "Theme";
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
-                const cost = parsePrice(item.price);
-                const canAfford = balance >= cost;
                 const isOwned = ownedIds.has(item.id);
+                const isEquipped = equippedIds.has(item.id);
 
                 return (
                   <div
@@ -772,23 +880,19 @@ export default function StorePage({
                       <button
                         type="button"
                         onClick={() => {
-                          if (currentView === "bag" || isOwned) {
-                            console.log('Equip', item.id);
+                          if (isOwned) {
+                            handleEquipToggle(item);
                           } else {
                             handleBuy(item);
                           }
                         }}
-                        disabled={
-                          (currentView === "store" && !isOwned && (!canAfford || buying === item.id))
-                        }
+                        disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {buying === item.id
                           ? '...'
-                          : currentView === "bag" || isOwned
-                          ? 'Equip'
-                          : !canAfford
-                          ? 'No Coins'
+                          : isOwned
+                          ? (isEquipped ? 'Equipped' : 'Equip')
                           : 'Buy'}
                       </button>
                     </div>
@@ -881,4 +985,4 @@ export default function StorePage({
       )}
     </div>
   );
-            }
+        }
