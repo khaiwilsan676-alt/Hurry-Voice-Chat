@@ -430,22 +430,6 @@ export default function GiftPicker({
             onClose();
           }}
           className="w-full h-full object-cover"
-          style={{
-            background: "transparent",
-
-            // ONLY TOP + BOTTOM TRANSPARENT FADE
-            WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 1.5vh, black 5vh, black calc(100% - 5vh), rgba(0,0,0,0.15) calc(100% - 1.5vh), transparent 100%)",
-
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 1.5vh, black 5vh, black calc(100% - 5vh), rgba(0,0,0,0.15) calc(100% - 1.5vh), transparent 100%)",
-
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-
-            WebkitMaskSize: "100% 100%",
-            maskSize: "100% 100%",
-          }}
         />
       </div>
     );
