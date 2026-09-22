@@ -2510,114 +2510,90 @@ export default function HomePage({ onLogout }: HomePageProps) {
           </div>
         </div>
 
-        {allRooms.length > 0 ? (
-          <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1 ">
-             {allRooms.map((room, index) => (
-  <div
-    key={room.accountId}
-    onClick={() =>
-      handleUserCardClick({
-        id: room.id,
-        accountId: room.accountId,
-        name: room.name,
-        country: room.country,
-        image: room.image,
-        isLocked: room.isLocked,
-      })
-    }
-  >
-    <div
-      className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-      style={{ height: '170px' }}
-    >
-      {/* 1. Room Image Container */}
-      <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
-        <img
-          src={
-            room.image && room.image !== "undefined" && room.image !== "null"
-              ? room.image
-              : "/default-avatar.png"
+       {allRooms.length > 0 ? (
+  <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
+    <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
+      {allRooms.map((room, index) => (
+        <div
+          key={room.accountId}
+          onClick={() =>
+            handleUserCardClick({
+              id: room.id,
+              accountId: room.accountId,
+              name: room.name,
+              country: room.country,
+              image: room.image,
+              isLocked: room.isLocked,
+            })
           }
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = "/default-avatar.png";
-          }}
-          alt={room.name}
-          className="w-full h-full object-contain"
-          draggable="false"
-        />
-      </div>
+        >
+          <div
+            className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+            style={{ height: '170px' }}
+          >
+            <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+              <img
+                src={
+                  room.image && room.image !== "undefined" && room.image !== "null"
+                    ? room.image
+                    : "/default-avatar.png"
+                }
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/default-avatar.png";
+                }}
+                alt={room.name}
+                className="w-full h-full object-contain"
+                draggable="false"
+              />
+            </div>
 
-      {/* 2. Rank Frame + Top-Right Badge (only for top 3) */}
-      {(index === 0 || index === 1 || index === 2) && (
-        <>
-          {/* RANK FRAME */}
-          <img
-            src={
-              index === 0
-                ? "/file_0000000013ac8211903828e8d6ac9c45.png"
-                : index === 1
-                ? "/file_00000000b4188243a6f421d828066052.png"
-                : "/file_00000000a86081f4beacc1be6fa83580.png"
-            }
-            alt={`Rank ${index + 1} frame`}
-            className="absolute inset-0 w-full h-full pointer-events-none z-40"
-            style={{
-              objectFit: 'contain',
-              transform: 'scale(1.14, 1.25)',
-              transformOrigin: 'center center',
-            }}
-            draggable="false"
-          />
+            {/* Top 3 badge only (frame removed) */}
+            {(index === 0 || index === 1 || index === 2) && (
+              <img
+                src={
+                  index === 0
+                    ? "/IMG_20260922_112156.png"
+                    : index === 1
+                    ? "/IMG_20260922_112129.png"
+                    : "/IMG_20260922_112110.png"
+                }
+                alt={`Rank ${index + 1} badge`}
+                className="absolute pointer-events-none z-50"
+                style={{
+                  top: '-11px',
+                  right: '-6px',
+                  width: '55px',
+                  height: '55px',
+                  objectFit: 'contain',
+                }}
+                draggable="false"
+              />
+            )}
 
-          {/* TOP-RIGHT OVERLAPPING BADGE */}
-          <img
-            src={
-              index === 0
-                ? "/IMG_20260922_112156.png"
-                : index === 1
-                ? "/IMG_20260922_112129.png"
-                : "/IMG_20260922_112110.png"
-            }
-            alt={`Rank ${index + 1} badge`}
-            className="absolute pointer-events-none z-50"
-            style={{
-              top: '-11px',
-              right: '-6px',
-              width: '55px',
-              height: '55px',
-              objectFit: 'contain',
-            }}
-            draggable="false"
-          />
-        </>
-      )}
+            {room.isLocked && (
+              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50 z-50">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" />
+                </svg>
+              </div>
+            )}
 
-  
-                    {room.isLocked && (
-                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                        </svg>
-                      </div>
-                    )}
+            <LiveRoomStats />
+          </div>
 
-                    <LiveRoomStats />
-                  </div>
-
-                  <div className="mt-0.5 px-1">
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-sm">{room.country}</span>
-                      <span className="font-semibold text-gray-900 text-sm truncate">
-                        {room.name}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <div className="mt-0.5 px-1">
+            <div className="flex items-center gap-0.5">
+              <span className="text-sm">{room.country}</span>
+              <span className="font-semibold text-gray-900 text-sm truncate">
+                {room.name}
+              </span>
             </div>
           </div>
-        ) : null}
+        </div>
+      ))}
+    </div>
+  </div>
+) : null}
       </>
     );
   };
