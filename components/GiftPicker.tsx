@@ -114,6 +114,8 @@ export interface Gift {
   coins: number;
   image: string;
   video?: string;
+  videoStyle?: "fade" | "pure"; // fade = Teddy (purana), pure = naya (mix/black remove)
+  noMask?: boolean; // image pe koi radial mask nahi
 }
 
 interface Seat {
@@ -139,7 +141,9 @@ export default function GiftPicker({
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [sending, setSending] = useState(false);
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<
+    { src: string; style: "fade" | "pure" } | null
+  >(null);
 
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -165,6 +169,16 @@ export default function GiftPicker({
       coins: 70000,
       image: "/IMG_20260922_142150.jpg",
       video: "/VID_20260921_011932.mp4",
+      videoStyle: "fade", // purana Teddy — sirf top/bottom fade
+    },
+    {
+      id: 2,
+      name: "Autumn's Embrace ",
+      coins: 54900,
+      image: "/IMG_20260922_182259.png",
+      video: "/gemini_generated_video_89e836bd~2.mp4",
+      videoStyle: "pure", // naya — sirf black remove mix, no fade
+      noMask: true, // image pe koi radial mask nahi
     },
   ];
 
@@ -272,7 +286,10 @@ export default function GiftPicker({
     setSending(false);
 
     if (selectedGiftObj.video) {
-      setPlayingVideo(selectedGiftObj.video);
+      setPlayingVideo({
+        src: selectedGiftObj.video,
+        style: selectedGiftObj.videoStyle ?? "fade",
+      });
     } else {
       onClose();
     }
@@ -318,35 +335,74 @@ export default function GiftPicker({
   };
 
   // ============================================================
-  // 🎬 VIDEO — fullscreen size (pehle jaisa), Top zyada fade, Bottom same
+  // 🎬 VIDEO
+  //   fade → Teddy (purana, sirf top/bottom mask)
+  //   pure → naya (sirf black remove mix, no fade)
   // ============================================================
   if (playingVideo) {
+    const isFade = playingVideo.style === "fade";
+
     return (
-      <div
-        className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
-        style={{ background: "transparent" }}
-      >
-        <video
-          src={playingVideo}
-          autoPlay
-          playsInline
-          onEnded={() => {
-            setPlayingVideo(null);
-            onClose();
-          }}
-          onError={() => {
-            setPlayingVideo(null);
-            onClose();
-          }}
-          className="w-full h-full object-cover"
-          style={{
-            WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
-            maskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
-          }}
-        />
-      </div>
+      <>
+        {/* remove-black filter sirf naye (pure) video ke liye */}
+        {!isFade && (
+          <svg
+            style={{ width: 0, height: 0, position: "absolute" }}
+            aria-hidden="true"
+          >
+            <filter id="remove-black" colorInterpolationFilters="sRGB">
+              <feColorMatrix
+                type="matrix"
+                values="
+                  1 0 0 0 0
+                  0 1 0 0 0
+                  0 0 1 0 0
+                  1.5 1.5 1.5 0 -0.2
+                "
+              />
+            </filter>
+          </svg>
+        )}
+
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
+          style={{ background: "transparent" }}
+        >
+          <video
+            src={playingVideo.src}
+            autoPlay
+            playsInline
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            onEnded={() => {
+              setPlayingVideo(null);
+              onClose();
+            }}
+            onError={() => {
+              setPlayingVideo(null);
+              onClose();
+            }}
+            className="w-full h-full object-cover"
+            style={
+              isFade
+                ? {
+                    // 🐻 Teddy — purana exactly same
+                    WebkitMaskImage:
+                      "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
+                    maskImage:
+                      "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
+                  }
+                : {
+                    // 🌹 Naya — sirf black remove mix, koi fade nahi
+                    mixBlendMode: "screen",
+                    backgroundColor: "transparent",
+                    filter: "url(#remove-black)",
+                  }
+            }
+          />
+        </div>
+      </>
     );
   }
 
@@ -525,11 +581,11 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* Hot tab → radial mask (pehle jaisa) | Lucky/others → koi mask nahi */}
+                {/* Hot tab → radial mask (agar noMask nahi hai) | Lucky/others → koi mask nahi */}
                 <div
                   className="relative w-16 h-16 mb-1 overflow-hidden"
                   style={
-                    activeTab === "Hot"
+                    activeTab === "Hot" && !gift.noMask
                       ? {
                           WebkitMaskImage:
                             "radial-gradient(circle, black 40%, transparent 80%)",
@@ -643,4 +699,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-    }
+     }
