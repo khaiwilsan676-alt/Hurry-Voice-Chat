@@ -267,9 +267,9 @@ export default function GiftPicker({
           }}
           className="w-full h-full object-cover"
           style={{
-            // Ekdum strict fade on top and bottom without any sharp lines
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+            // Ekdum strict 3vh transparent fade on top and bottom
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3vh, black calc(100% - 3vh), transparent 100%)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, black 3vh, black calc(100% - 3vh), transparent 100%)",
           }}
         />
       </div>
@@ -316,13 +316,14 @@ export default function GiftPicker({
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
         {/* ============================================================ */}
-        {/* ALL DROPDOWN MENU (Top Right) */}
+        {/* ALL DROPDOWN MENU (Top Right) - Color updated to match Send button */}
         {/* ============================================================ */}
         <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
           <div className="relative">
             <button
               onClick={() => setShowTargetMenu(!showTargetMenu)}
-              className="flex items-center gap-1.5 bg-[#31c4d3] text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
+              className="flex items-center gap-1.5 text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
+              style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}
             >
               {selectionLabel === "All" ? (
                 <SolidMicIcon className="w-3.5 h-3.5" />
@@ -343,7 +344,7 @@ export default function GiftPicker({
                 <div className="relative z-10 flex flex-col py-1.5">
                   <button
                     onClick={handleAllOnMic}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#31c4d3] w-full text-left"
+                    className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#3b82f6] w-full text-left"
                   >
                     <SolidMicIcon className="w-4 h-4" />
                     <span className="text-[14px] tracking-wide font-medium">All on mic</span>
@@ -362,7 +363,7 @@ export default function GiftPicker({
         </div>
         {/* ============================================================ */}
 
-        {/* ✅ FIXED HEIGHT AVATAR LIST — Koi jumping up-down nahi hogi empty hone pe */}
+        {/* ✅ FIXED HEIGHT AVATAR LIST - Avatar Circle border color updated to match Send button */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
             .filter((seat) => seat.isOccupied && seat.user)
@@ -373,7 +374,7 @@ export default function GiftPicker({
                   key={seat.user!.accountId}
                   onClick={() => handleAvatarClick(seat.user!.accountId)}
                   className={`relative w-11 h-11 flex-shrink-0 rounded-full cursor-pointer transition-all duration-200 border-[2.5px] ${
-                    isSelected ? "border-[#31c4d3]" : "border-transparent"
+                    isSelected ? "border-[#3b82f6]" : "border-transparent"
                   }`}
                 >
                   <Image
@@ -419,12 +420,12 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* ✅ GIFT IMAGE WITH RADIAL BLEND FIX (Koi border nahi, ekdum background me mix) */}
+                {/* ✅ GIFT IMAGE WITH RADIAL BLEND FIX (Koi border nahi, ekdum smooth background me mix) */}
                 <div 
                   className="relative w-16 h-16 mb-1 overflow-hidden"
                   style={{
-                    WebkitMaskImage: "radial-gradient(circle, black 55%, transparent 100%)",
-                    maskImage: "radial-gradient(circle, black 55%, transparent 100%)"
+                    WebkitMaskImage: "radial-gradient(circle, black 40%, transparent 80%)",
+                    maskImage: "radial-gradient(circle, black 40%, transparent 80%)"
                   }}
                 >
                   <Image
@@ -528,4 +529,3 @@ export default function GiftPicker({
     </div>
   );
 }
-
