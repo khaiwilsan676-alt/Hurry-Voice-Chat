@@ -116,7 +116,7 @@ export default function GiftPicker({
   const targetMenuRef = useRef<HTMLDivElement>(null);
 
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
-  // ✅ New state to track button label ("All" vs "All room")
+  // ✅ State to track button label ("All" vs "All room")
   const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
@@ -245,6 +245,40 @@ export default function GiftPicker({
     }
   };
 
+  // ============================================================
+  // 🎬 ON-CLICK VIDEO (Sheet becomes completely hidden, ONLY Video shows with Top/Bottom Mix)
+  // ============================================================
+  if (playingVideo) {
+    return (
+      <div
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-none"
+      >
+        <video
+          src={playingVideo}
+          autoPlay
+          playsInline
+          onEnded={() => {
+            setPlayingVideo(null);
+            onClose();
+          }}
+          onError={() => {
+            setPlayingVideo(null);
+            onClose();
+          }}
+          className="w-full h-full object-cover"
+          style={{
+            // Ekdum strict fade on top and bottom without any sharp lines
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+            maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ============================================================
+  // NORMAL PICKER UI
+  // ============================================================
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <svg style={{ position: "absolute", width: 0, height: 0 }}>
@@ -282,33 +316,6 @@ export default function GiftPicker({
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
         {/* ============================================================ */}
-        {/* 🎬 50VH VIDEO OVERLAY (Fades on edges) */}
-        {/* ============================================================ */}
-        {playingVideo && (
-          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 pointer-events-none rounded-t-md overflow-hidden">
-            <video
-              src={playingVideo}
-              autoPlay
-              playsInline
-              onEnded={() => {
-                setPlayingVideo(null);
-                onClose();
-              }}
-              onError={() => {
-                setPlayingVideo(null);
-                onClose();
-              }}
-              className="w-full h-full object-cover"
-              style={{
-                // Ellipse radial-gradient perfectly fades from top, bottom, left and right edges
-                WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 100%)",
-                maskImage: "radial-gradient(ellipse at center, black 40%, transparent 100%)",
-              }}
-            />
-          </div>
-        )}
-
-        {/* ============================================================ */}
         {/* ALL DROPDOWN MENU (Top Right) */}
         {/* ============================================================ */}
         <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
@@ -317,7 +324,6 @@ export default function GiftPicker({
               onClick={() => setShowTargetMenu(!showTargetMenu)}
               className="flex items-center gap-1.5 bg-[#31c4d3] text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
             >
-              {/* Dynamic Icon & Text basd on selectionLabel */}
               {selectionLabel === "All" ? (
                 <SolidMicIcon className="w-3.5 h-3.5" />
               ) : (
@@ -356,8 +362,8 @@ export default function GiftPicker({
         </div>
         {/* ============================================================ */}
 
-        {/* ✅ AVATAR LIST — thoda upar (pt-0 pb-2) */}
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 mt-1">
+        {/* ✅ FIXED HEIGHT AVATAR LIST — Koi jumping up-down nahi hogi empty hone pe */}
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
             .filter((seat) => seat.isOccupied && seat.user)
             .map((seat) => {
@@ -382,9 +388,9 @@ export default function GiftPicker({
         </div>
 
         {/* ✅ Ek line avatar ke niche */}
-        <div className="w-full h-px bg-white/10 mb-1" />
+        <div className="w-full h-px bg-white/10 mb-1 -mt-2" />
 
-        {/* ✅ TABS — ab visible */}
+        {/* ✅ TABS */}
         <div className="flex items-center gap-4 py-2 px-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab;
@@ -402,7 +408,7 @@ export default function GiftPicker({
           })}
         </div>
 
-        {/* ✅ GIFT GRID — Teddy 1st column, 1st row me; image chhota + rounded */}
+        {/* ✅ GIFT GRID */}
         <div className="flex-1 overflow-y-auto py-2 scrollbar-none">
           <div className="grid grid-cols-4 gap-1 content-start">
             {currentGifts.map((gift) => (
@@ -413,7 +419,14 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                <div className="relative w-16 h-16 mb-1 rounded-lg overflow-hidden">
+                {/* ✅ GIFT IMAGE WITH RADIAL BLEND FIX (Koi border nahi, ekdum background me mix) */}
+                <div 
+                  className="relative w-16 h-16 mb-1 overflow-hidden"
+                  style={{
+                    WebkitMaskImage: "radial-gradient(circle, black 55%, transparent 100%)",
+                    maskImage: "radial-gradient(circle, black 55%, transparent 100%)"
+                  }}
+                >
                   <Image
                     src={gift.image}
                     alt={gift.name}
@@ -447,7 +460,6 @@ export default function GiftPicker({
         {/* BOTTOM BAR */}
         {/* ============================================================ */}
         <div className="flex items-center justify-between pt-2 relative">
-          {/* Balance — sirf icon + text, koi card nahi */}
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 relative overflow-hidden rounded-full">
               <Image
@@ -464,7 +476,6 @@ export default function GiftPicker({
           </div>
 
           <div className="flex items-center gap-2 relative">
-            {/* Multiplier dropdown */}
             {showMultipliers && (
               <div className="absolute bottom-10 right-14 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900 border border-white/10">
                 {multipliers.map((num) => (
@@ -486,7 +497,6 @@ export default function GiftPicker({
               </div>
             )}
 
-            {/* ✅ Multiplier button — SOLID, transparent nahi */}
             <button
               onClick={() => setShowMultipliers(!showMultipliers)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-[#1f2937] border border-white/15 active:scale-95 transition-transform"
@@ -499,7 +509,6 @@ export default function GiftPicker({
               />
             </button>
 
-            {/* ✅ Send button — SOLID, transparent nahi */}
             <button
               onClick={handleSend}
               disabled={!selectedGift || !canAfford || sending}
