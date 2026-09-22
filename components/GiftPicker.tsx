@@ -4,7 +4,72 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 
-// Solid Icons (Bina kisi outline ke, jaisa aapne maanga tha)
+// ==========================================
+// SHARED WALLET DB (Same as Wallet / WildParty / Store / SellerCenter)
+// ==========================================
+const SHARED_DB = 'FruitPartyDB';
+const SHARED_STORE = 'GameState';
+const DEFAULT_BALANCE = 82927;
+
+const initWalletDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject('No window');
+    const request = indexedDB.open(SHARED_DB, 2);
+    request.onupgradeneeded = (e: any) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(SHARED_STORE)) {
+        db.createObjectStore(SHARED_STORE);
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+
+const loadWalletBalance = async (): Promise<number> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(SHARED_STORE, 'readonly');
+      const req = tx.objectStore(SHARED_STORE).get('user_data');
+      req.onsuccess = () => {
+        if (req.result && typeof req.result.balance === 'number') {
+          resolve(req.result.balance);
+        } else {
+          resolve(DEFAULT_BALANCE);
+        }
+      };
+      req.onerror = () => resolve(DEFAULT_BALANCE);
+    });
+  } catch {
+    return DEFAULT_BALANCE;
+  }
+};
+
+const updateWalletBalance = async (delta: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result;
+        const current = data?.balance ?? DEFAULT_BALANCE;
+        const next = Math.max(0, current + delta);
+        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Wallet update failed', e);
+  }
+};
+
+// ==========================================
+// Solid Icons
+// ==========================================
 const SolidMicIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.88 0 2.76-2.24 5-5 5s-5-2.24-5-5c0-.49-.41-.88-.9-.88s-.9.39-.9.88c0 3.66 2.85 6.66 6.4 7.08V22h1.8v-2.92c3.55-.42 6.4-3.42 6.4-7.08 0-.49-.41-.88-.9-.88z" />
@@ -44,15 +109,15 @@ export default function GiftPicker({
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [sending, setSending] = useState(false);
-  const [playingVideo, setPlayingVideo] = useState<string | null>(null); // 🎬
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
-  
-  // Naye Dropdown ke liye State & Ref
+
   const [showTargetMenu, setShowTargetMenu] = useState(false);
   const targetMenuRef = useRef<HTMLDivElement>(null);
 
-  // ✅ NAYA STATE: Select kiye hue users ko track karne ke liye
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
+  // ✅ New state to track button label ("All" vs "All room")
+  const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
@@ -85,11 +150,11 @@ export default function GiftPicker({
   const currentGifts: Gift[] =
     activeTab === "Lucky" ? luckyGifts : activeTab === "Hot" ? hotGifts : [];
 
-  // Balance real-time sync
+  // ✅ Wallet balance — real-time sync from shared DB
   useEffect(() => {
     let alive = true;
     const fetchBal = async () => {
-      const b = 500000; 
+      const b = await loadWalletBalance();
       if (alive) setWalletBalance(b);
     };
     fetchBal();
@@ -110,7 +175,7 @@ export default function GiftPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose, playingVideo]);
 
-  // Naye Dropdown ke liye click outside logic
+  // Dropdown click outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (targetMenuRef.current && !targetMenuRef.current.contains(e.target as Node)) {
@@ -131,12 +196,14 @@ export default function GiftPicker({
     : 0;
   const canAfford = totalCost <= walletBalance;
 
+  // ✅ Send — wallet se deduct
   const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
 
     setSending(true);
     setWalletBalance((p) => Math.max(0, p - totalCost));
+    await updateWalletBalance(-totalCost);
     setSending(false);
 
     if (selectedGiftObj.video) {
@@ -146,58 +213,38 @@ export default function GiftPicker({
     }
   };
 
-  // ✅ All Mic Click Handler
   const handleAllOnMic = () => {
     const micUsers = seats
       .filter((s) => s.isOccupied && s.user)
       .map((s) => s.user!.accountId);
     setSelectedTargets(micUsers);
+    setSelectionLabel("All");
     setShowTargetMenu(false);
   };
 
-  // ✅ Single Avatar Click Handler (Sirf ek select hoga, baaki clear ho jayenge)
-  const handleAvatarClick = (accountId: string) => {
-    setSelectedTargets([accountId]);
+  // ✅ Handle All In Room (Clears avatar selection, updates button UI)
+  const handleAllInRoom = () => {
+    setSelectedTargets([]);
+    setSelectionLabel("All room");
+    setShowTargetMenu(false);
   };
 
-  // ============================================================
-  // 🎬 VIDEO OVERLAY
-  // ============================================================
-  if (playingVideo) {
-    return (
-      <div
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-none"
-        style={{ touchAction: "manipulation" }}
-      >
-        <video
-          src={playingVideo}
-          autoPlay
-          playsInline
-          onEnded={() => {
-            setPlayingVideo(null);
-            onClose();
-          }}
-          onError={() => {
-            setPlayingVideo(null);
-            onClose();
-          }}
-          className="block"
-          style={{
-            width: "auto",
-            height: "auto",
-            maxWidth: "none",
-            maxHeight: "none",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)",
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%)",
-          }}
-        />
-      </div>
-    );
-  }
+  // ✅ Handle Avatar Click (Toggle Logic)
+  const handleAvatarClick = (accountId: string) => {
+    setSelectedTargets((prev) => {
+      if (prev.includes(accountId)) {
+        return prev.filter((id) => id !== accountId); // Deselect if already selected
+      } else {
+        return [...prev, accountId]; // Select if not selected
+      }
+    });
 
-  // ============================================================
-  // NORMAL PICKER UI
-  // ============================================================
+    // Agar All room select tha, aur user ne manually avatar tap kiya toh wapas "All" mode pe switch kardo
+    if (selectionLabel === "All room") {
+      setSelectionLabel("All");
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <svg style={{ position: "absolute", width: 0, height: 0 }}>
@@ -226,54 +273,77 @@ export default function GiftPicker({
         .coin-image {
           filter: url(#removeWhite) drop-shadow(0 0 4px rgba(255,215,0,0.4));
         }
-        .balance-container {
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.05);
-        }
-        .send-btn {
-          background: linear-gradient(135deg, #3b82f6, #2563eb);
-          box-shadow: 0 2px 15px rgba(59,130,246,0.25);
-        }
-        .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
       <div
         ref={sheetRef}
-        className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col justify-between rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
+        className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
         {/* ============================================================ */}
-        {/* NAYA "ALL" DROPDOWN MENU (Top Right) */}
+        {/* 🎬 50VH VIDEO OVERLAY (Fades on edges) */}
+        {/* ============================================================ */}
+        {playingVideo && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/50 pointer-events-none rounded-t-md overflow-hidden">
+            <video
+              src={playingVideo}
+              autoPlay
+              playsInline
+              onEnded={() => {
+                setPlayingVideo(null);
+                onClose();
+              }}
+              onError={() => {
+                setPlayingVideo(null);
+                onClose();
+              }}
+              className="w-full h-full object-cover"
+              style={{
+                // Ellipse radial-gradient perfectly fades from top, bottom, left and right edges
+                WebkitMaskImage: "radial-gradient(ellipse at center, black 40%, transparent 100%)",
+                maskImage: "radial-gradient(ellipse at center, black 40%, transparent 100%)",
+              }}
+            />
+          </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* ALL DROPDOWN MENU (Top Right) */}
         {/* ============================================================ */}
         <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
           <div className="relative">
-            {/* Main Button */}
             <button
               onClick={() => setShowTargetMenu(!showTargetMenu)}
               className="flex items-center gap-1.5 bg-[#31c4d3] text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
             >
-              <SolidMicIcon className="w-3.5 h-3.5" />
-              <span className="text-[13px] font-medium leading-none">All</span>
+              {/* Dynamic Icon & Text basd on selectionLabel */}
+              {selectionLabel === "All" ? (
+                <SolidMicIcon className="w-3.5 h-3.5" />
+              ) : (
+                <SolidUserIcon className="w-3.5 h-3.5" />
+              )}
+              <span className="text-[13px] font-medium leading-none whitespace-nowrap">
+                {selectionLabel}
+              </span>
               <div className="w-[1px] h-3.5 bg-white/50 mx-0.5"></div>
               <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-white"></div>
             </button>
 
-            {/* Dropdown Options */}
             {showTargetMenu && (
               <div className="absolute top-full right-0 mt-2 bg-[#0c1418] rounded-md shadow-2xl border border-white/5 w-[140px] z-[70]">
                 <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#0c1418] border-t border-l border-white/5 rotate-45"></div>
-                
+
                 <div className="relative z-10 flex flex-col py-1.5">
                   <button
-                    onClick={handleAllOnMic} // ✅ All on mic logic attached
+                    onClick={handleAllOnMic}
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#31c4d3] w-full text-left"
                   >
                     <SolidMicIcon className="w-4 h-4" />
                     <span className="text-[14px] tracking-wide font-medium">All on mic</span>
                   </button>
                   <button
-                    onClick={() => setShowTargetMenu(false)}
+                    onClick={handleAllInRoom}
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
                   >
                     <SolidUserIcon className="w-4 h-4" />
@@ -286,8 +356,8 @@ export default function GiftPicker({
         </div>
         {/* ============================================================ */}
 
-        {/* ✅ USER AVATAR LIST SECTION (Only this was added for showing avatars) */}
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-1 pb-3">
+        {/* ✅ AVATAR LIST — thoda upar (pt-0 pb-2) */}
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 mt-1">
           {seats
             .filter((seat) => seat.isOccupied && seat.user)
             .map((seat) => {
@@ -311,52 +381,30 @@ export default function GiftPicker({
             })}
         </div>
 
-        {/* GIFT GRID */}
-        {activeTab === "Hot" ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-2 overflow-y-auto scrollbar-none">
-            {hotGifts.map((gift) => (
-              <div
-                key={gift.id}
-                onClick={() => setSelectedGift(gift.id)}
-                className={`gift-item flex flex-col items-center justify-center transition cursor-pointer active:scale-95 max-w-[140px] ${
-                  selectedGift === gift.id ? "selected" : ""
+        {/* ✅ Ek line avatar ke niche */}
+        <div className="w-full h-px bg-white/10 mb-1" />
+
+        {/* ✅ TABS — ab visible */}
+        <div className="flex items-center gap-4 py-2 px-1">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`text-[13px] font-semibold transition-all ${
+                  isActive ? "text-white font-bold scale-105" : "text-gray-400 hover:text-gray-200"
                 }`}
               >
-                <div className="relative w-24 h-24 mb-1">
-                  <Image
-                    src={gift.image}
-                    alt={gift.name}
-                    fill
-                    className="object-contain"
-                    sizes="96px"
-                    priority
-                    style={{
-                      WebkitMaskImage: "radial-gradient(circle, black 55%, transparent 100%)",
-                      maskImage: "radial-gradient(circle, black 55%, transparent 100%)",
-                      mixBlendMode: "screen" 
-                    }}
-                  />
-                </div>
-                <span className="text-gray-200 font-semibold text-xs">
-                  {gift.name}
-                </span>
-                <span className="text-yellow-400 flex items-center gap-0.5 mt-0.5 text-[10px]">
-                  <div className="w-3 h-3 relative overflow-hidden rounded-full">
-                    <Image
-                      src="/file_00000000e56882119c217d508b6733dc.png"
-                      alt="Coins"
-                      fill
-                      className="coin-image object-cover"
-                      sizes="12px"
-                    />
-                  </div>
-                  {gift.coins.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto py-2 grid grid-cols-4 gap-1 scrollbar-none">
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ✅ GIFT GRID — Teddy 1st column, 1st row me; image chhota + rounded */}
+        <div className="flex-1 overflow-y-auto py-2 scrollbar-none">
+          <div className="grid grid-cols-4 gap-1 content-start">
             {currentGifts.map((gift) => (
               <div
                 key={gift.id}
@@ -365,13 +413,14 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                <div className="relative w-18 h-18 mb-0.5">
+                <div className="relative w-16 h-16 mb-1 rounded-lg overflow-hidden">
                   <Image
                     src={gift.image}
                     alt={gift.name}
                     fill
-                    className="object-contain"
-                    sizes="72px"
+                    className="object-cover"
+                    sizes="64px"
+                    priority={gift.id === 1}
                   />
                 </div>
                 <span className="text-gray-300 font-medium text-[10px] truncate w-full text-center">
@@ -392,11 +441,14 @@ export default function GiftPicker({
               </div>
             ))}
           </div>
-        )}
+        </div>
 
+        {/* ============================================================ */}
         {/* BOTTOM BAR */}
-        <div className="bottom-bar flex items-center justify-between pt-1.5 relative rounded-b-md">
-          <div className="balance-container flex items-center gap-1 px-2.5 py-1 rounded-full">
+        {/* ============================================================ */}
+        <div className="flex items-center justify-between pt-2 relative">
+          {/* Balance — sirf icon + text, koi card nahi */}
+          <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 relative overflow-hidden rounded-full">
               <Image
                 src="/file_00000000e56882119c217d508b6733dc.png"
@@ -406,24 +458,15 @@ export default function GiftPicker({
                 sizes="20px"
               />
             </div>
-            <span className="text-[10px] font-bold text-yellow-300 tracking-wide">
+            <span className="text-[11px] font-bold text-yellow-300 tracking-wide">
               {walletBalance.toLocaleString()}
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 relative">
-            {selectedGiftObj && (
-              <span
-                className={`text-[10px] font-semibold ${
-                  canAfford ? "text-gray-400" : "text-red-400"
-                }`}
-              >
-                -{totalCost.toLocaleString()}
-              </span>
-            )}
-
+          <div className="flex items-center gap-2 relative">
+            {/* Multiplier dropdown */}
             {showMultipliers && (
-              <div className="multiplier-dropdown absolute bottom-10 right-14 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900/95 border border-white/10">
+              <div className="absolute bottom-10 right-14 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900 border border-white/10">
                 {multipliers.map((num) => (
                   <button
                     key={num}
@@ -443,9 +486,10 @@ export default function GiftPicker({
               </div>
             )}
 
+            {/* ✅ Multiplier button — SOLID, transparent nahi */}
             <button
               onClick={() => setShowMultipliers(!showMultipliers)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold text-gray-200 bg-white/5 border border-white/10"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-[#1f2937] border border-white/15 active:scale-95 transition-transform"
             >
               <span>{selectedMultiplier}</span>
               <ChevronUp
@@ -455,10 +499,17 @@ export default function GiftPicker({
               />
             </button>
 
+            {/* ✅ Send button — SOLID, transparent nahi */}
             <button
               onClick={handleSend}
               disabled={!selectedGift || !canAfford || sending}
-              className="send-btn text-white font-bold text-xs px-4 py-1.5 rounded-full transition-all active:scale-95 disabled:opacity-40"
+              className="text-white font-bold text-xs px-5 py-1.5 rounded-full transition-all active:scale-95"
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                boxShadow: '0 2px 15px rgba(59,130,246,0.35)',
+                opacity: sending ? 0.85 : 1,
+                cursor: (!selectedGift || !canAfford || sending) ? 'not-allowed' : 'pointer',
+              }}
             >
               {sending ? "Sending..." : "Send"}
             </button>
