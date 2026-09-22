@@ -2117,6 +2117,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
           ? foundRoom.name
           : user.name && user.name !== 'My Room' && user.name !== 'My room'
+          ? user.name
           : 'hurry User@',
       image: foundRoom?.image || '/IMG_20260921_210113.png',
       isLocked: foundRoom?.isLocked ?? user.isLocked,
@@ -3064,7 +3065,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-white shadow-sm animate-pulse">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}
