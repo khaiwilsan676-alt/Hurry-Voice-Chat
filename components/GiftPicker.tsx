@@ -7,20 +7,24 @@ import Image from "next/image";
 // ==========================================
 // SHARED WALLET DB (Same as Wallet / WildParty / Store / SellerCenter)
 // ==========================================
-const SHARED_DB = 'FruitPartyDB';
-const SHARED_STORE = 'GameState';
+const SHARED_DB = "FruitPartyDB";
+const SHARED_STORE = "GameState";
 const DEFAULT_BALANCE = 82927;
 
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') return reject('No window');
+    if (typeof window === "undefined") return reject("No window");
+
     const request = indexedDB.open(SHARED_DB, 2);
+
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
+
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
         db.createObjectStore(SHARED_STORE);
       }
     };
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -28,16 +32,19 @@ const initWalletDB = (): Promise<IDBDatabase> =>
 const loadWalletBalance = async (): Promise<number> => {
   try {
     const db = await initWalletDB();
+
     return new Promise((resolve) => {
-      const tx = db.transaction(SHARED_STORE, 'readonly');
-      const req = tx.objectStore(SHARED_STORE).get('user_data');
+      const tx = db.transaction(SHARED_STORE, "readonly");
+      const req = tx.objectStore(SHARED_STORE).get("user_data");
+
       req.onsuccess = () => {
-        if (req.result && typeof req.result.balance === 'number') {
+        if (req.result && typeof req.result.balance === "number") {
           resolve(req.result.balance);
         } else {
           resolve(DEFAULT_BALANCE);
         }
       };
+
       req.onerror = () => resolve(DEFAULT_BALANCE);
     });
   } catch {
@@ -48,22 +55,31 @@ const loadWalletBalance = async (): Promise<number> => {
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
     const db = await initWalletDB();
+
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(SHARED_STORE, 'readwrite');
+      const tx = db.transaction(SHARED_STORE, "readwrite");
       const store = tx.objectStore(SHARED_STORE);
-      const req = store.get('user_data');
+
+      const req = store.get("user_data");
+
       req.onsuccess = () => {
         const data = req.result;
         const current = data?.balance ?? DEFAULT_BALANCE;
         const next = Math.max(0, current + delta);
-        const putReq = store.put({ ...(data || {}), balance: next }, 'user_data');
+
+        const putReq = store.put(
+          { ...(data || {}), balance: next },
+          "user_data"
+        );
+
         putReq.onsuccess = () => resolve();
         putReq.onerror = () => reject(putReq.error);
       };
+
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
-    console.error('Wallet update failed', e);
+    console.error("Wallet update failed", e);
   }
 };
 
@@ -71,13 +87,23 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
 // Solid Icons
 // ==========================================
 const SolidMicIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="currentColor"
+    stroke="none"
+  >
     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.88 0 2.76-2.24 5-5 5s-5-2.24-5-5c0-.49-.41-.88-.9-.88s-.9.39-.9.88c0 3.66 2.85 6.66 6.4 7.08V22h1.8v-2.92c3.55-.42 6.4-3.42 6.4-7.08 0-.49-.41-.88-.9-.88z" />
   </svg>
 );
 
 const SolidUserIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
+  <svg
+    viewBox="0 0 24 24"
+    className={className}
+    fill="currentColor"
+    stroke="none"
+  >
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
   </svg>
 );
@@ -93,7 +119,11 @@ export interface Gift {
 interface Seat {
   number: number;
   isOccupied: boolean;
-  user?: { name: string; image: string; accountId: string };
+  user?: {
+    name: string;
+    image: string;
+    accountId: string;
+  };
 }
 
 export default function GiftPicker({
@@ -110,19 +140,24 @@ export default function GiftPicker({
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [sending, setSending] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const [showTargetMenu, setShowTargetMenu] = useState(false);
   const targetMenuRef = useRef<HTMLDivElement>(null);
 
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
-  // ✅ State to track button label ("All" vs "All room")
-  const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
+
+  const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">(
+    "All"
+  );
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
 
-  // ✅ Hot – sirf Teddy with video
+  // ==========================================
+  // HOT GIFTS
+  // ==========================================
   const hotGifts: Gift[] = [
     {
       id: 1,
@@ -133,77 +168,181 @@ export default function GiftPicker({
     },
   ];
 
+  // ==========================================
+  // LUCKY GIFTS
+  // ==========================================
   const luckyGifts: Gift[] = [
-    { id: 101, name: "Kiss", coins: 1999, image: "/IMG_20260906_000443.png" },
-    { id: 102, name: "Nut", coins: 3999, image: "/IMG_20260906_000508.png" },
-    { id: 103, name: "Mahjong", coins: 5999, image: "/IMG_20260906_000521.png" },
-    { id: 104, name: "Clover", coins: 4250, image: "/IMG_20260906_000541.png" },
-    { id: 105, name: "Charm", coins: 7000, image: "/IMG_20260906_000624.png" },
-    { id: 106, name: "Bouquet", coins: 10999, image: "/IMG_20260906_000643.png" },
-    { id: 107, name: "Leaves", coins: 6799, image: "/IMG_20260906_000713.png" },
-    { id: 108, name: "Crystal", coins: 2999, image: "/IMG_20260906_000756.png" },
-    { id: 109, name: "Candy", coins: 15499, image: "/IMG_20260906_000814.png" },
-    { id: 110, name: "Pop", coins: 4000, image: "/IMG_20260906_000832.png" },
-    { id: 111, name: "Scarecrow", coins: 7500, image: "/IMG_20260906_000850.png" },
+    {
+      id: 101,
+      name: "Kiss",
+      coins: 1999,
+      image: "/IMG_20260906_000443.png",
+    },
+    {
+      id: 102,
+      name: "Nut",
+      coins: 3999,
+      image: "/IMG_20260906_000508.png",
+    },
+    {
+      id: 103,
+      name: "Mahjong",
+      coins: 5999,
+      image: "/IMG_20260906_000521.png",
+    },
+    {
+      id: 104,
+      name: "Clover",
+      coins: 4250,
+      image: "/IMG_20260906_000541.png",
+    },
+    {
+      id: 105,
+      name: "Charm",
+      coins: 7000,
+      image: "/IMG_20260906_000624.png",
+    },
+    {
+      id: 106,
+      name: "Bouquet",
+      coins: 10999,
+      image: "/IMG_20260906_000643.png",
+    },
+    {
+      id: 107,
+      name: "Leaves",
+      coins: 6799,
+      image: "/IMG_20260906_000713.png",
+    },
+    {
+      id: 108,
+      name: "Crystal",
+      coins: 2999,
+      image: "/IMG_20260906_000756.png",
+    },
+    {
+      id: 109,
+      name: "Candy",
+      coins: 15499,
+      image: "/IMG_20260906_000814.png",
+    },
+    {
+      id: 110,
+      name: "Pop",
+      coins: 4000,
+      image: "/IMG_20260906_000832.png",
+    },
+    {
+      id: 111,
+      name: "Scarecrow",
+      coins: 7500,
+      image: "/IMG_20260906_000850.png",
+    },
   ];
 
   const currentGifts: Gift[] =
-    activeTab === "Lucky" ? luckyGifts : activeTab === "Hot" ? hotGifts : [];
+    activeTab === "Lucky"
+      ? luckyGifts
+      : activeTab === "Hot"
+      ? hotGifts
+      : [];
 
-  // ✅ Wallet balance — real-time sync from shared DB
+  // ==========================================
+  // WALLET BALANCE
+  // ==========================================
   useEffect(() => {
     let alive = true;
+
     const fetchBal = async () => {
       const b = await loadWalletBalance();
-      if (alive) setWalletBalance(b);
+
+      if (alive) {
+        setWalletBalance(b);
+      }
     };
+
     fetchBal();
+
     const id = setInterval(fetchBal, 1000);
+
     return () => {
       alive = false;
       clearInterval(id);
     };
   }, []);
 
-  // Click outside → close
+  // ==========================================
+  // CLICK OUTSIDE
+  // ==========================================
   useEffect(() => {
     if (playingVideo) return;
+
     const handler = (e: MouseEvent) => {
-      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) onClose();
+      if (
+        sheetRef.current &&
+        !sheetRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
     };
+
     document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
   }, [onClose, playingVideo]);
 
-  // Dropdown click outside
+  // ==========================================
+  // TARGET DROPDOWN CLICK OUTSIDE
+  // ==========================================
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (targetMenuRef.current && !targetMenuRef.current.contains(e.target as Node)) {
+      if (
+        targetMenuRef.current &&
+        !targetMenuRef.current.contains(e.target as Node)
+      ) {
         setShowTargetMenu(false);
       }
     };
+
     if (showTargetMenu) {
       document.addEventListener("mousedown", handler);
     }
-    return () => document.removeEventListener("mousedown", handler);
+
+    return () => {
+      document.removeEventListener("mousedown", handler);
+    };
   }, [showTargetMenu]);
 
-  const parseMultiplier = (m: string) => parseInt(m.replace("×", ""), 10) || 1;
+  const parseMultiplier = (m: string) =>
+    parseInt(m.replace("×", ""), 10) || 1;
 
-  const selectedGiftObj = currentGifts.find((g) => g.id === selectedGift);
+  const selectedGiftObj = currentGifts.find(
+    (g) => g.id === selectedGift
+  );
+
   const totalCost = selectedGiftObj
     ? selectedGiftObj.coins * parseMultiplier(selectedMultiplier)
     : 0;
+
   const canAfford = totalCost <= walletBalance;
 
-  // ✅ Send — wallet se deduct
+  // ==========================================
+  // SEND
+  // ==========================================
   const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
 
     setSending(true);
-    setWalletBalance((p) => Math.max(0, p - totalCost));
+
+    setWalletBalance((p) =>
+      Math.max(0, p - totalCost)
+    );
+
     await updateWalletBalance(-totalCost);
+
     setSending(false);
 
     if (selectedGiftObj.video) {
@@ -213,45 +352,70 @@ export default function GiftPicker({
     }
   };
 
+  // ==========================================
+  // ALL ON MIC
+  // ==========================================
   const handleAllOnMic = () => {
     const micUsers = seats
       .filter((s) => s.isOccupied && s.user)
       .map((s) => s.user!.accountId);
+
     setSelectedTargets(micUsers);
     setSelectionLabel("All");
     setShowTargetMenu(false);
   };
 
-  // ✅ Handle All In Room (Clears avatar selection, updates button UI)
+  // ==========================================
+  // ALL IN ROOM
+  // ==========================================
   const handleAllInRoom = () => {
     setSelectedTargets([]);
     setSelectionLabel("All room");
     setShowTargetMenu(false);
   };
 
-  // ✅ Handle Avatar Click (Toggle Logic)
+  // ==========================================
+  // AVATAR CLICK
+  // ==========================================
   const handleAvatarClick = (accountId: string) => {
     setSelectedTargets((prev) => {
       if (prev.includes(accountId)) {
-        return prev.filter((id) => id !== accountId); // Deselect if already selected
+        return prev.filter((id) => id !== accountId);
       } else {
-        return [...prev, accountId]; // Select if not selected
+        return [...prev, accountId];
       }
     });
 
-    // Agar All room select tha, aur user ne manually avatar tap kiya toh wapas "All" mode pe switch kardo
     if (selectionLabel === "All room") {
       setSelectionLabel("All");
     }
   };
 
   // ============================================================
-  // 🎬 ON-CLICK VIDEO (Sheet becomes completely hidden, ONLY Video shows with Top/Bottom Mix)
+  // 🎬 VIDEO ONLY
+  // ============================================================
+  //
+  // IMPORTANT:
+  // YAHAN KOI BLACK BACKGROUND NAHI HAI.
+  //
+  // Original video hi show hota hai.
+  //
+  // Sirf TOP aur BOTTOM par transparent fade mask hai:
+  //
+  // transparent
+  //     ↓
+  // original video
+  //     ↓
+  // transparent
+  //
   // ============================================================
   if (playingVideo) {
     return (
       <div
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-none"
+        className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
+        style={{
+          background: "transparent",
+        }}
       >
         <video
           src={playingVideo}
@@ -267,9 +431,20 @@ export default function GiftPicker({
           }}
           className="w-full h-full object-cover"
           style={{
-            // Ekdum strict 3vh transparent fade on top and bottom
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 3vh, black calc(100% - 3vh), transparent 100%)",
-            maskImage: "linear-gradient(to bottom, transparent 0%, black 3vh, black calc(100% - 3vh), transparent 100%)",
+            background: "transparent",
+
+            // ONLY TOP + BOTTOM TRANSPARENT FADE
+            WebkitMaskImage:
+              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 1.5vh, black 5vh, black calc(100% - 5vh), rgba(0,0,0,0.15) calc(100% - 1.5vh), transparent 100%)",
+
+            maskImage:
+              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.15) 1.5vh, black 5vh, black calc(100% - 5vh), rgba(0,0,0,0.15) calc(100% - 1.5vh), transparent 100%)",
+
+            WebkitMaskRepeat: "no-repeat",
+            maskRepeat: "no-repeat",
+
+            WebkitMaskSize: "100% 100%",
+            maskSize: "100% 100%",
           }}
         />
       </div>
@@ -281,8 +456,20 @@ export default function GiftPicker({
   // ============================================================
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <svg style={{ position: "absolute", width: 0, height: 0 }}>
-        <filter id="removeWhite" x="0%" y="0%" width="100%" height="100%">
+      <svg
+        style={{
+          position: "absolute",
+          width: 0,
+          height: 0,
+        }}
+      >
+        <filter
+          id="removeWhite"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+        >
           <feColorMatrix
             type="matrix"
             values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -0.333 -0.333 -0.333 1 0"
@@ -291,7 +478,10 @@ export default function GiftPicker({
       </svg>
 
       <style jsx>{`
-        .main-container { background: rgba(0, 0, 0, 0.95); }
+        .main-container {
+          background: rgba(0, 0, 0, 0.95);
+        }
+
         .gift-item {
           background: transparent;
           border: 2px solid transparent;
@@ -300,15 +490,25 @@ export default function GiftPicker({
           border-radius: 8px;
           width: 100%;
         }
+
         .gift-item.selected {
           border-color: #3b82f6;
           background: rgba(59, 130, 246, 0.05);
         }
+
         .coin-image {
-          filter: url(#removeWhite) drop-shadow(0 0 4px rgba(255,215,0,0.4));
+          filter: url(#removeWhite)
+            drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
         }
-        .scrollbar-none::-webkit-scrollbar { display: none; }
-        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .scrollbar-none::-webkit-scrollbar {
+          display: none;
+        }
+
+        .scrollbar-none {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
 
       <div
@@ -316,30 +516,42 @@ export default function GiftPicker({
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
         {/* ============================================================ */}
-        {/* ALL DROPDOWN MENU (Top Right) - Color updated to match Send button */}
+        {/* ALL DROPDOWN MENU */}
         {/* ============================================================ */}
-        <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
+
+        <div
+          className="absolute top-3 right-4 z-[60]"
+          ref={targetMenuRef}
+        >
           <div className="relative">
             <button
-              onClick={() => setShowTargetMenu(!showTargetMenu)}
+              onClick={() =>
+                setShowTargetMenu(!showTargetMenu)
+              }
               className="flex items-center gap-1.5 text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
-              style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}
+              style={{
+                background:
+                  "linear-gradient(135deg, #3b82f6, #2563eb)",
+              }}
             >
               {selectionLabel === "All" ? (
                 <SolidMicIcon className="w-3.5 h-3.5" />
               ) : (
                 <SolidUserIcon className="w-3.5 h-3.5" />
               )}
+
               <span className="text-[13px] font-medium leading-none whitespace-nowrap">
                 {selectionLabel}
               </span>
-              <div className="w-[1px] h-3.5 bg-white/50 mx-0.5"></div>
-              <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-white"></div>
+
+              <div className="w-[1px] h-3.5 bg-white/50 mx-0.5" />
+
+              <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-white" />
             </button>
 
             {showTargetMenu && (
               <div className="absolute top-full right-0 mt-2 bg-[#0c1418] rounded-md shadow-2xl border border-white/5 w-[140px] z-[70]">
-                <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#0c1418] border-t border-l border-white/5 rotate-45"></div>
+                <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#0c1418] border-t border-l border-white/5 rotate-45" />
 
                 <div className="relative z-10 flex flex-col py-1.5">
                   <button
@@ -347,38 +559,62 @@ export default function GiftPicker({
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#3b82f6] w-full text-left"
                   >
                     <SolidMicIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">All on mic</span>
+
+                    <span className="text-[14px] tracking-wide font-medium">
+                      All on mic
+                    </span>
                   </button>
+
                   <button
                     onClick={handleAllInRoom}
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
                   >
                     <SolidUserIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">All in room</span>
+
+                    <span className="text-[14px] tracking-wide font-medium">
+                      All in room
+                    </span>
                   </button>
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* ============================================================ */}
+        {/* AVATAR LIST */}
         {/* ============================================================ */}
 
-        {/* ✅ FIXED HEIGHT AVATAR LIST - Avatar Circle border color updated to match Send button */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
-            .filter((seat) => seat.isOccupied && seat.user)
+            .filter(
+              (seat) => seat.isOccupied && seat.user
+            )
             .map((seat) => {
-              const isSelected = selectedTargets.includes(seat.user!.accountId);
+              const isSelected =
+                selectedTargets.includes(
+                  seat.user!.accountId
+                );
+
               return (
                 <div
                   key={seat.user!.accountId}
-                  onClick={() => handleAvatarClick(seat.user!.accountId)}
+                  onClick={() =>
+                    handleAvatarClick(
+                      seat.user!.accountId
+                    )
+                  }
                   className={`relative w-11 h-11 flex-shrink-0 rounded-full cursor-pointer transition-all duration-200 border-[2.5px] ${
-                    isSelected ? "border-[#3b82f6]" : "border-transparent"
+                    isSelected
+                      ? "border-[#3b82f6]"
+                      : "border-transparent"
                   }`}
                 >
                   <Image
-                    src={seat.user!.image || "/default-avatar.png"}
+                    src={
+                      seat.user!.image ||
+                      "/default-avatar.png"
+                    }
                     alt={seat.user!.name}
                     fill
                     className="object-cover rounded-full"
@@ -388,19 +624,26 @@ export default function GiftPicker({
             })}
         </div>
 
-        {/* ✅ Ek line avatar ke niche */}
+        {/* LINE */}
+
         <div className="w-full h-px bg-white/10 mb-1 -mt-2" />
 
-        {/* ✅ TABS */}
+        {/* ============================================================ */}
+        {/* TABS */}
+        {/* ============================================================ */}
+
         <div className="flex items-center gap-4 py-2 px-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab;
+
             return (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`text-[13px] font-semibold transition-all ${
-                  isActive ? "text-white font-bold scale-105" : "text-gray-400 hover:text-gray-200"
+                  isActive
+                    ? "text-white font-bold scale-105"
+                    : "text-gray-400 hover:text-gray-200"
                 }`}
               >
                 {tab}
@@ -409,23 +652,32 @@ export default function GiftPicker({
           })}
         </div>
 
-        {/* ✅ GIFT GRID */}
+        {/* ============================================================ */}
+        {/* GIFT GRID */}
+        {/* ============================================================ */}
+
         <div className="flex-1 overflow-y-auto py-2 scrollbar-none">
           <div className="grid grid-cols-4 gap-1 content-start">
             {currentGifts.map((gift) => (
               <div
                 key={gift.id}
-                onClick={() => setSelectedGift(gift.id)}
+                onClick={() =>
+                  setSelectedGift(gift.id)
+                }
                 className={`gift-item flex flex-col items-center justify-center transition cursor-pointer active:scale-95 ${
-                  selectedGift === gift.id ? "selected" : ""
+                  selectedGift === gift.id
+                    ? "selected"
+                    : ""
                 }`}
               >
-                {/* ✅ GIFT IMAGE WITH RADIAL BLEND FIX (Koi border nahi, ekdum smooth background me mix) */}
-                <div 
+                <div
                   className="relative w-16 h-16 mb-1 overflow-hidden"
                   style={{
-                    WebkitMaskImage: "radial-gradient(circle, black 40%, transparent 80%)",
-                    maskImage: "radial-gradient(circle, black 40%, transparent 80%)"
+                    WebkitMaskImage:
+                      "radial-gradient(circle, black 40%, transparent 80%)",
+
+                    maskImage:
+                      "radial-gradient(circle, black 40%, transparent 80%)",
                   }}
                 >
                   <Image
@@ -437,9 +689,11 @@ export default function GiftPicker({
                     priority={gift.id === 1}
                   />
                 </div>
+
                 <span className="text-gray-300 font-medium text-[10px] truncate w-full text-center">
                   {gift.name}
                 </span>
+
                 <span className="text-yellow-400 flex items-center gap-0.5 mt-0.5 text-[9px]">
                   <div className="w-2.5 h-2.5 relative overflow-hidden rounded-full">
                     <Image
@@ -450,6 +704,7 @@ export default function GiftPicker({
                       sizes="10px"
                     />
                   </div>
+
                   {gift.coins.toLocaleString()}
                 </span>
               </div>
@@ -460,6 +715,7 @@ export default function GiftPicker({
         {/* ============================================================ */}
         {/* BOTTOM BAR */}
         {/* ============================================================ */}
+
         <div className="flex items-center justify-between pt-2 relative">
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 relative overflow-hidden rounded-full">
@@ -471,6 +727,7 @@ export default function GiftPicker({
                 sizes="20px"
               />
             </div>
+
             <span className="text-[11px] font-bold text-yellow-300 tracking-wide">
               {walletBalance.toLocaleString()}
             </span>
@@ -499,26 +756,45 @@ export default function GiftPicker({
             )}
 
             <button
-              onClick={() => setShowMultipliers(!showMultipliers)}
+              onClick={() =>
+                setShowMultipliers(!showMultipliers)
+              }
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-[#1f2937] border border-white/15 active:scale-95 transition-transform"
             >
               <span>{selectedMultiplier}</span>
+
               <ChevronUp
                 className={`w-3 h-3 transition-transform ${
-                  showMultipliers ? "rotate-180" : ""
+                  showMultipliers
+                    ? "rotate-180"
+                    : ""
                 }`}
               />
             </button>
 
             <button
               onClick={handleSend}
-              disabled={!selectedGift || !canAfford || sending}
+              disabled={
+                !selectedGift ||
+                !canAfford ||
+                sending
+              }
               className="text-white font-bold text-xs px-5 py-1.5 rounded-full transition-all active:scale-95"
               style={{
-                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                boxShadow: '0 2px 15px rgba(59,130,246,0.35)',
+                background:
+                  "linear-gradient(135deg, #3b82f6, #2563eb)",
+
+                boxShadow:
+                  "0 2px 15px rgba(59,130,246,0.35)",
+
                 opacity: sending ? 0.85 : 1,
-                cursor: (!selectedGift || !canAfford || sending) ? 'not-allowed' : 'pointer',
+
+                cursor:
+                  !selectedGift ||
+                  !canAfford ||
+                  sending
+                    ? "not-allowed"
+                    : "pointer",
               }}
             >
               {sending ? "Sending..." : "Send"}
@@ -528,4 +804,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-}
+        }
