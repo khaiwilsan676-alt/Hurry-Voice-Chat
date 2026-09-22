@@ -451,6 +451,8 @@ export default function ChatScreen({
         sender: 'me',
         targetUserName: targetUser.name,
         targetUserPhoto: targetUser.photo,
+        receiverName: targetUser.name,
+        receiverPhoto: targetUser.photo
       };
 
       setMessages((prev) => {
@@ -494,6 +496,10 @@ export default function ChatScreen({
       const localMessage: any = {
         ...outgoing,
         sender: 'me',
+        targetUserName: targetUser.name,
+        targetUserPhoto: targetUser.photo,
+        receiverName: targetUser.name,
+        receiverPhoto: targetUser.photo
       };
 
       setMessages((prev) => {
