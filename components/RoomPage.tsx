@@ -2616,7 +2616,7 @@ const sendMessageToSocket = async (
       {showFourGride && (
         <Fourgride
           onClose={() => setShowFourGride(false)}
-          onClearChat={handleClearChat}
+          onClearChat={() => setMessages([])}
           publicMsgOff={publicMsgOff}
           onTogglePublicMsg={() => setPublicMsgOff(prev => !prev)}
           speaker={isSpeakerOn}
