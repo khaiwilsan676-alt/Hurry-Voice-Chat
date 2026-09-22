@@ -2560,7 +2560,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       className="absolute inset-0 w-full h-full pointer-events-none z-40"
       style={{
         objectFit: 'contain',
-        transform: 'scale(1.2) translateY(5%)', // अगर इमेज को थोड़ा बड़ा करना हो तो scale(1.1) कर सकते हैं
+        transform: 'scale(1.17) translateY(0%)', // अगर इमेज को थोड़ा बड़ा करना हो तो scale(1.1) कर सकते हैं
         transformOrigin: 'center center',
       }}
       draggable="false"
