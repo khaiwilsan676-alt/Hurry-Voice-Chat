@@ -585,7 +585,7 @@ export default function GiftPicker({
                 {/* Image box — noMask wale gift ka size chota + object-contain (no cut) */}
                 <div
                   className={`relative mb-1 overflow-hidden ${
-                    gift.noMask ? "w-12 h-12" : "w-16 h-16"
+                    gift.noMask ? "w-15 h-15" : "w-16 h-16"
                   }`}
                   style={
                     activeTab === "Hot" && !gift.noMask
