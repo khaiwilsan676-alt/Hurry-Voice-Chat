@@ -2566,7 +2566,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
       draggable="false"
     />
   )}
-</div>
 
   
                     {room.isLocked && (
