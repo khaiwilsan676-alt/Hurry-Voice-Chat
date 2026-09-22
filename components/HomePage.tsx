@@ -1267,12 +1267,13 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 Number(room.activeUserCount || 0)
               ])
             );
-            return validRooms.map(room => ({
-              ...room,
-              activeUserCount:
-                liveCounts.get(String(room.id || room.accountId || '')) ??
-                Number(room.activeUserCount || 0)
-            }));
+            return validRooms.map(room => {
+              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
+              return {
+                ...room,
+                activeUserCount: updatedCount !== undefined ? updatedCount : Number(room.activeUserCount || 0)
+              }
+            });
           });
 
           saveGlobalRoomsToDB(validRooms);
@@ -1319,7 +1320,21 @@ export default function HomePage({ onLogout }: HomePageProps) {
               room.accountId !== 'null' &&
               room.accountId !== ''
             );
-          setGlobalRooms(validRooms);
+          setGlobalRooms(prev => {
+            const liveCounts = new Map(
+              prev.map(room => [
+                String(room.id || room.accountId || ''),
+                Number(room.activeUserCount || 0)
+              ])
+            );
+            return validRooms.map(room => {
+              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
+              return {
+                ...room,
+                activeUserCount: updatedCount !== undefined ? updatedCount : Number(room.activeUserCount || 0)
+              }
+            });
+          });
           validRooms.forEach((room: GlobalRoom) => saveRoomToDB(room));
         }
       } catch (err) {
@@ -1377,8 +1392,20 @@ export default function HomePage({ onLogout }: HomePageProps) {
       );
 
       setGlobalRooms((prev) => {
-        const prevMap = new Map(prev.map((room) => [String(room.id || room.accountId || ""), room]));
-        const merged = [...prev];
+        const merged = prev.map((room) => {
+          const rId = String(room.id || "");
+          const accId = String(room.accountId || "");
+          const isActive = activeRooms.some((item) => {
+            const liveId = String(item.roomId || "");
+            return liveId && (liveId === rId || liveId === accId);
+          });
+          if (!isActive) {
+            return { ...room, activeUserCount: 0 };
+          }
+          return room;
+        });
+
+        const prevMap = new Map(merged.map((room) => [String(room.id || room.accountId || ""), room]));
 
         activeRooms.forEach((liveRoom) => {
           const roomId = String(liveRoom.roomId || "");
@@ -1386,7 +1413,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
           const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
           const firstUser = liveUsers[0];
-          const existing = prevMap.get(roomId) || prev.find((room) => String(room.accountId || "") === roomId);
+          const existing = prevMap.get(roomId) || merged.find((room) => String(room.accountId || "") === roomId);
 
           if (existing) {
             const updated = {
