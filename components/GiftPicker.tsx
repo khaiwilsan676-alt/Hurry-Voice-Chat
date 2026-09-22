@@ -404,12 +404,12 @@ export default function GiftPicker({
                 ? {
                     // fade kam kiya (8% / 92%)
                     WebkitMaskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 14%, black 25%, black 84%, transparent 92%, transparent 100%)",
+                      "linear-gradient(to bottom, transparent 0%, transparent 10%, black 25%, black 84%, transparent 92%, transparent 100%)",
                     maskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 14%, black 25%, black 84%, transparent 92%, transparent 100%)",
+                      "linear-gradient(to bottom, transparent 0%, transparent 10%, black 25%, black 84%, transparent 92%, transparent 100%)",
                     transform: isArabKing
-                      ? "translateY(6%)" // ← scale hata diya, bas niche shift
-                      : "scale(1.1)",
+                      ? "translateY(2%)" // ← scale hata diya, bas niche shift
+                      : "scale(1.2)",
                     transformOrigin: "center",
                   }
                 : {
@@ -611,9 +611,9 @@ export default function GiftPicker({
                             // Arab King → chaaron taraf (top/bottom/left/right)
                             // + corners se bhi smoothly fade, rounded corners
                             WebkitMaskImage:
-                              "radial-gradient(ellipse 100% 100% at center, black 40%, transparent 95%)",
+                              "radial-gradient(ellipse 90% 90% at center, black 25%, transparent 85%)",
                             maskImage:
-                              "radial-gradient(ellipse 100% 100% at center, black 40%, transparent 95%)",
+                              "radial-gradient(ellipse 90% 90% at center, black 25%, transparent 85%)",
                           }
                         : {
                             // Teddy / default → radial fade
