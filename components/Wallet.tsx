@@ -70,6 +70,40 @@ async function addCoinsToDB(amountToAdd: number): Promise<void> {
   }
 }
 
+export async function deductCoinsFromDB(amountToDeduct: number): Promise<boolean> {
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get('user_data');
+
+      req.onsuccess = () => {
+        let data = req.result;
+        let currentBalance = data ? (data.balance || 82927) : 82927;
+
+        if (currentBalance >= amountToDeduct) {
+            if (!data) {
+              data = { balance: currentBalance - amountToDeduct };
+            } else {
+              data.balance = currentBalance - amountToDeduct;
+            }
+            const putReq = store.put(data, 'user_data');
+            putReq.onsuccess = () => resolve(true);
+            putReq.onerror = () => reject(putReq.error);
+        } else {
+            resolve(false);
+        }
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error("Failed to deduct coins from DB", e);
+    return false;
+  }
+}
+
+
 // --- WebGL Shader to strictly remove White Background & Fix UV Inversion ---
 function WhiteColorRemovalShader({
   imageSrc,

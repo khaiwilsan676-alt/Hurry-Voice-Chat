@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ArrowLeft, Clock } from "lucide-react";
+import { deductCoinsFromDB } from "./Wallet";
 
 interface StoreItem {
   id: string;
@@ -398,9 +399,52 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
 
+  const [ownedItems, setOwnedItems] = useState<string[]>([]);
+  const [equippedItems, setEquippedItems] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    const loadedOwned = localStorage.getItem('ownedStoreItems');
+    if (loadedOwned) {
+      setOwnedItems(JSON.parse(loadedOwned));
+    }
+    const vehicle = localStorage.getItem('equipped_Vehicle');
+    const frame = localStorage.getItem('equipped_Avatar Frame');
+    const theme = localStorage.getItem('equipped_Theme');
+    const bubble = localStorage.getItem('equipped_Chat Bubble');
+    setEquippedItems({
+      ...(vehicle && {'Vehicle': vehicle}),
+      ...(frame && {'Avatar Frame': frame}),
+      ...(theme && {'Theme': theme}),
+      ...(bubble && {'Chat Bubble': bubble})
+    });
+  }, []);
+
+  const handleBuy = async (item: StoreItem) => {
+    const priceStr = item.price.replace(/,/g, '');
+    const price = parseInt(priceStr, 10);
+    if (isNaN(price)) return;
+
+    const success = await deductCoinsFromDB(price);
+    if (success) {
+      const updatedOwned = [...ownedItems, item.id];
+      setOwnedItems(updatedOwned);
+      localStorage.setItem('ownedStoreItems', JSON.stringify(updatedOwned));
+      alert(`Successfully purchased ${item.name}!`);
+    } else {
+      alert("Not enough coins!");
+    }
+  };
+
+  const handleEquip = (item: StoreItem) => {
+    localStorage.setItem(`equipped_${item.tab}`, item.image);
+    setEquippedItems(prev => ({...prev, [item.tab]: item.image}));
+    alert(`${item.name} equipped!`);
+  };
+
+
   const displayedItems = allStoreItems.filter(item => {
     if (currentView === "bag") {
-      return item.isOwned && item.tab === activeTab;
+      return (item.isOwned || ownedItems.includes(item.id)) && item.tab === activeTab;
     }
     return item.tab === activeTab;
   });
@@ -607,9 +651,27 @@ export default function StorePage({ onBack, initialView = "store" }: { onBack: (
                       </button>
                       <button
                         type="button"
-                        className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800"
+                        onClick={() => {
+                          if (currentView === "bag") {
+                            handleEquip(item);
+                          } else {
+                            if (!item.isOwned && !ownedItems.includes(item.id)) {
+                              handleBuy(item);
+                            }
+                          }
+                        }}
+                        className={`flex-1 h-full text-white text-[12px] font-bold flex items-center justify-center transition-colors ${
+                          currentView === "bag" && equippedItems[item.tab] === item.image
+                            ? "bg-green-600 hover:bg-green-700"
+                            : (item.isOwned || ownedItems.includes(item.id)) && currentView !== "bag"
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-[#1d4ed8] hover:bg-blue-800"
+                        }`}
+                        disabled={(item.isOwned || ownedItems.includes(item.id)) && currentView !== "bag"}
                       >
-                        {currentView === "bag" ? "Equip" : "Buy"}
+                        {currentView === "bag"
+                          ? (equippedItems[item.tab] === item.image ? "Equipped" : "Equip")
+                          : ((item.isOwned || ownedItems.includes(item.id)) ? "Owned" : "Buy")}
                       </button>
                     </div>
                   </div>

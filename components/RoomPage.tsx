@@ -13,6 +13,7 @@ import Fruitparty from './Fruitparty';
 import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
 import StorePage from './StorePage';
+import EntryEffect from './EntryEffect';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 
@@ -62,6 +63,8 @@ interface Message {
   timestamp: number;
   type?: 'message' | 'join' | 'leave';
   imageUrl?: string;
+  equippedBubble?: string;
+  equippedVehicle?: string;
 }
 
 interface RoomUser {
@@ -1074,26 +1077,28 @@ function RoomContent({
     currentUser.image,
   ]);
 
-  const sendMessageToSocket = async (
+const sendMessageToSocket = async (
     text: string,
     imageUrl?: string,
     type: "message" | "join" | "leave" = "message"
   ) => {
     if (!roomId || userAccountId === "guest") return;
 
+    const equippedBubble = localStorage.getItem('equipped_Chat Bubble') || undefined;
+    const equippedVehicle = localStorage.getItem('equipped_Vehicle') || undefined;
+
     const message = {
-      id: `${userAccountId}-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}`,
+      id: `${userAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       roomId,
       senderId: userAccountId,
       senderAccountId: userAccountId,
       senderName: currentUser.name || "User",
-      senderAvatar:
-        currentUser.image || "/default-avatar.png",
+      senderAvatar: currentUser.image || "/default-avatar.png",
       text,
       type,
       imageUrl: imageUrl || null,
+      equippedBubble: type === 'message' ? equippedBubble : undefined,
+      equippedVehicle: type === 'join' ? equippedVehicle : undefined,
       createdAt: Date.now(),
     };
 
@@ -2072,19 +2077,24 @@ function RoomContent({
               {messages.map((msg) => (
                 <div key={msg.id} className="leading-[1.8rem]">
                   {msg.type === 'join' ? (
-                    <div className="flex items-start gap-1.5 px-1 max-w-[75%]">
-                      <div
-                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
-                        style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
-                      >
-                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    <>
+                      {msg.equippedVehicle && (
+                        <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
+                      )}
+                      <div className="flex items-start gap-1.5 px-1 max-w-[75%]">
+                        <div
+                          className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
+                          style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
+                          onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
+                        >
+                          <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                        </div>
+                        <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
+                          <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                          <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
-                        <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
-                      </div>
-                    </div>
+                    </>
                   ) : msg.imageUrl ? (
                     <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
                       <div
@@ -2112,9 +2122,15 @@ function RoomContent({
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
-                          <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                        </div>
+                        {msg.equippedBubble ? (
+                           <div className="px-3 py-2 mt-0.5 flex items-center justify-center relative min-w-[60px]" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                             <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                           </div>
+                        ) : (
+                          <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                            <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
