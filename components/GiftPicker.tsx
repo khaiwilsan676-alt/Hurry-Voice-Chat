@@ -318,7 +318,7 @@ export default function GiftPicker({
   };
 
   // ============================================================
-  // 🎬 VIDEO — Top se ZYADA fade, Bottom same (Family-style)
+  // 🎬 VIDEO — fullscreen size (pehle jaisa), Top zyada fade, Bottom same
   // ============================================================
   if (playingVideo) {
     return (
@@ -338,11 +338,8 @@ export default function GiftPicker({
             setPlayingVideo(null);
             onClose();
           }}
+          className="w-full h-full object-cover"
           style={{
-            width: "auto",
-            height: "auto",
-            maxWidth: "none",
-            maxHeight: "none",
             WebkitMaskImage:
               "linear-gradient(to bottom, transparent 0%, transparent 30%, black 55%, black 70%, transparent 85%, transparent 100%)",
             maskImage:
@@ -646,4 +643,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-          }
+    }
