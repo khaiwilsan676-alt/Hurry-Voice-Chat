@@ -172,72 +172,17 @@ export default function GiftPicker({
   // LUCKY GIFTS
   // ==========================================
   const luckyGifts: Gift[] = [
-    {
-      id: 101,
-      name: "Kiss",
-      coins: 1999,
-      image: "/IMG_20260906_000443.png",
-    },
-    {
-      id: 102,
-      name: "Nut",
-      coins: 3999,
-      image: "/IMG_20260906_000508.png",
-    },
-    {
-      id: 103,
-      name: "Mahjong",
-      coins: 5999,
-      image: "/IMG_20260906_000521.png",
-    },
-    {
-      id: 104,
-      name: "Clover",
-      coins: 4250,
-      image: "/IMG_20260906_000541.png",
-    },
-    {
-      id: 105,
-      name: "Charm",
-      coins: 7000,
-      image: "/IMG_20260906_000624.png",
-    },
-    {
-      id: 106,
-      name: "Bouquet",
-      coins: 10999,
-      image: "/IMG_20260906_000643.png",
-    },
-    {
-      id: 107,
-      name: "Leaves",
-      coins: 6799,
-      image: "/IMG_20260906_000713.png",
-    },
-    {
-      id: 108,
-      name: "Crystal",
-      coins: 2999,
-      image: "/IMG_20260906_000756.png",
-    },
-    {
-      id: 109,
-      name: "Candy",
-      coins: 15499,
-      image: "/IMG_20260906_000814.png",
-    },
-    {
-      id: 110,
-      name: "Pop",
-      coins: 4000,
-      image: "/IMG_20260906_000832.png",
-    },
-    {
-      id: 111,
-      name: "Scarecrow",
-      coins: 7500,
-      image: "/IMG_20260906_000850.png",
-    },
+    { id: 101, name: "Kiss", coins: 1999, image: "/IMG_20260906_000443.png" },
+    { id: 102, name: "Nut", coins: 3999, image: "/IMG_20260906_000508.png" },
+    { id: 103, name: "Mahjong", coins: 5999, image: "/IMG_20260906_000521.png" },
+    { id: 104, name: "Clover", coins: 4250, image: "/IMG_20260906_000541.png" },
+    { id: 105, name: "Charm", coins: 7000, image: "/IMG_20260906_000624.png" },
+    { id: 106, name: "Bouquet", coins: 10999, image: "/IMG_20260906_000643.png" },
+    { id: 107, name: "Leaves", coins: 6799, image: "/IMG_20260906_000713.png" },
+    { id: 108, name: "Crystal", coins: 2999, image: "/IMG_20260906_000756.png" },
+    { id: 109, name: "Candy", coins: 15499, image: "/IMG_20260906_000814.png" },
+    { id: 110, name: "Pop", coins: 4000, image: "/IMG_20260906_000832.png" },
+    { id: 111, name: "Scarecrow", coins: 7500, image: "/IMG_20260906_000850.png" },
   ];
 
   const currentGifts: Gift[] =
@@ -255,14 +200,10 @@ export default function GiftPicker({
 
     const fetchBal = async () => {
       const b = await loadWalletBalance();
-
-      if (alive) {
-        setWalletBalance(b);
-      }
+      if (alive) setWalletBalance(b);
     };
 
     fetchBal();
-
     const id = setInterval(fetchBal, 1000);
 
     return () => {
@@ -278,19 +219,13 @@ export default function GiftPicker({
     if (playingVideo) return;
 
     const handler = (e: MouseEvent) => {
-      if (
-        sheetRef.current &&
-        !sheetRef.current.contains(e.target as Node)
-      ) {
+      if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
 
     document.addEventListener("mousedown", handler);
-
-    return () => {
-      document.removeEventListener("mousedown", handler);
-    };
+    return () => document.removeEventListener("mousedown", handler);
   }, [onClose, playingVideo]);
 
   // ==========================================
@@ -310,17 +245,13 @@ export default function GiftPicker({
       document.addEventListener("mousedown", handler);
     }
 
-    return () => {
-      document.removeEventListener("mousedown", handler);
-    };
+    return () => document.removeEventListener("mousedown", handler);
   }, [showTargetMenu]);
 
   const parseMultiplier = (m: string) =>
     parseInt(m.replace("×", ""), 10) || 1;
 
-  const selectedGiftObj = currentGifts.find(
-    (g) => g.id === selectedGift
-  );
+  const selectedGiftObj = currentGifts.find((g) => g.id === selectedGift);
 
   const totalCost = selectedGiftObj
     ? selectedGiftObj.coins * parseMultiplier(selectedMultiplier)
@@ -336,13 +267,8 @@ export default function GiftPicker({
     if (!canAfford) return;
 
     setSending(true);
-
-    setWalletBalance((p) =>
-      Math.max(0, p - totalCost)
-    );
-
+    setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
-
     setSending(false);
 
     if (selectedGiftObj.video) {
@@ -392,15 +318,13 @@ export default function GiftPicker({
   };
 
   // ============================================================
-  // 🎬 VIDEO ONLY — Family-style top/bottom fade, no black bar
+  // 🎬 VIDEO — Top se ZYADA fade, Bottom same (Family-style)
   // ============================================================
   if (playingVideo) {
     return (
       <div
         className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
-        style={{
-          background: "transparent",
-        }}
+        style={{ background: "transparent" }}
       >
         <video
           src={playingVideo}
@@ -414,12 +338,15 @@ export default function GiftPicker({
             setPlayingVideo(null);
             onClose();
           }}
-          className="w-full h-full object-cover"
           style={{
+            width: "auto",
+            height: "auto",
+            maxWidth: "none",
+            maxHeight: "none",
             WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)",
+              "linear-gradient(to bottom, transparent 0%, transparent 30%, black 55%, black 70%, transparent 85%, transparent 100%)",
             maskImage:
-              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)",
+              "linear-gradient(to bottom, transparent 0%, transparent 30%, black 55%, black 70%, transparent 85%, transparent 100%)",
           }}
         />
       </div>
@@ -438,13 +365,7 @@ export default function GiftPicker({
           height: 0,
         }}
       >
-        <filter
-          id="removeWhite"
-          x="0%"
-          y="0%"
-          width="100%"
-          height="100%"
-        >
+        <filter id="removeWhite" x="0%" y="0%" width="100%" height="100%">
           <feColorMatrix
             type="matrix"
             values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  -0.333 -0.333 -0.333 1 0"
@@ -472,8 +393,7 @@ export default function GiftPicker({
         }
 
         .coin-image {
-          filter: url(#removeWhite)
-            drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
+          filter: url(#removeWhite) drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
         }
 
         .scrollbar-none::-webkit-scrollbar {
@@ -490,23 +410,14 @@ export default function GiftPicker({
         ref={sheetRef}
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
-        {/* ============================================================ */}
         {/* ALL DROPDOWN MENU */}
-        {/* ============================================================ */}
-
-        <div
-          className="absolute top-3 right-4 z-[60]"
-          ref={targetMenuRef}
-        >
+        <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
           <div className="relative">
             <button
-              onClick={() =>
-                setShowTargetMenu(!showTargetMenu)
-              }
+              onClick={() => setShowTargetMenu(!showTargetMenu)}
               className="flex items-center gap-1.5 text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
               style={{
-                background:
-                  "linear-gradient(135deg, #3b82f6, #2563eb)",
+                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
               }}
             >
               {selectionLabel === "All" ? (
@@ -534,7 +445,6 @@ export default function GiftPicker({
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#3b82f6] w-full text-left"
                   >
                     <SolidMicIcon className="w-4 h-4" />
-
                     <span className="text-[14px] tracking-wide font-medium">
                       All on mic
                     </span>
@@ -545,7 +455,6 @@ export default function GiftPicker({
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
                   >
                     <SolidUserIcon className="w-4 h-4" />
-
                     <span className="text-[14px] tracking-wide font-medium">
                       All in room
                     </span>
@@ -556,40 +465,25 @@ export default function GiftPicker({
           </div>
         </div>
 
-        {/* ============================================================ */}
         {/* AVATAR LIST */}
-        {/* ============================================================ */}
-
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
-            .filter(
-              (seat) => seat.isOccupied && seat.user
-            )
+            .filter((seat) => seat.isOccupied && seat.user)
             .map((seat) => {
-              const isSelected =
-                selectedTargets.includes(
-                  seat.user!.accountId
-                );
+              const isSelected = selectedTargets.includes(
+                seat.user!.accountId
+              );
 
               return (
                 <div
                   key={seat.user!.accountId}
-                  onClick={() =>
-                    handleAvatarClick(
-                      seat.user!.accountId
-                    )
-                  }
+                  onClick={() => handleAvatarClick(seat.user!.accountId)}
                   className={`relative w-11 h-11 flex-shrink-0 rounded-full cursor-pointer transition-all duration-200 border-[2.5px] ${
-                    isSelected
-                      ? "border-[#3b82f6]"
-                      : "border-transparent"
+                    isSelected ? "border-[#3b82f6]" : "border-transparent"
                   }`}
                 >
                   <Image
-                    src={
-                      seat.user!.image ||
-                      "/default-avatar.png"
-                    }
+                    src={seat.user!.image || "/default-avatar.png"}
                     alt={seat.user!.name}
                     fill
                     className="object-cover rounded-full"
@@ -600,13 +494,9 @@ export default function GiftPicker({
         </div>
 
         {/* LINE */}
-
         <div className="w-full h-px bg-white/10 mb-1 -mt-2" />
 
-        {/* ============================================================ */}
         {/* TABS */}
-        {/* ============================================================ */}
-
         <div className="flex items-center gap-4 py-2 px-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab;
@@ -627,33 +517,27 @@ export default function GiftPicker({
           })}
         </div>
 
-        {/* ============================================================ */}
         {/* GIFT GRID */}
-        {/* ============================================================ */}
-
         <div className="flex-1 overflow-y-auto py-2 scrollbar-none">
           <div className="grid grid-cols-4 gap-1 content-start">
             {currentGifts.map((gift) => (
               <div
                 key={gift.id}
-                onClick={() =>
-                  setSelectedGift(gift.id)
-                }
+                onClick={() => setSelectedGift(gift.id)}
                 className={`gift-item flex flex-col items-center justify-center transition cursor-pointer active:scale-95 ${
-                  selectedGift === gift.id
-                    ? "selected"
-                    : ""
+                  selectedGift === gift.id ? "selected" : ""
                 }`}
               >
+                {/* Hot tab → radial mask (pehle jaisa) | Lucky/others → koi mask nahi */}
                 <div
                   className="relative w-16 h-16 mb-1 overflow-hidden"
                   style={
                     activeTab === "Hot"
                       ? {
                           WebkitMaskImage:
-                            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)",
+                            "radial-gradient(circle, black 40%, transparent 80%)",
                           maskImage:
-                            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)",
+                            "radial-gradient(circle, black 40%, transparent 80%)",
                         }
                       : {}
                   }
@@ -682,7 +566,6 @@ export default function GiftPicker({
                       sizes="10px"
                     />
                   </div>
-
                   {gift.coins.toLocaleString()}
                 </span>
               </div>
@@ -690,10 +573,7 @@ export default function GiftPicker({
           </div>
         </div>
 
-        {/* ============================================================ */}
         {/* BOTTOM BAR */}
-        {/* ============================================================ */}
-
         <div className="flex items-center justify-between pt-2 relative">
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 relative overflow-hidden rounded-full">
@@ -734,43 +614,27 @@ export default function GiftPicker({
             )}
 
             <button
-              onClick={() =>
-                setShowMultipliers(!showMultipliers)
-              }
+              onClick={() => setShowMultipliers(!showMultipliers)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-[#1f2937] border border-white/15 active:scale-95 transition-transform"
             >
               <span>{selectedMultiplier}</span>
-
               <ChevronUp
                 className={`w-3 h-3 transition-transform ${
-                  showMultipliers
-                    ? "rotate-180"
-                    : ""
+                  showMultipliers ? "rotate-180" : ""
                 }`}
               />
             </button>
 
             <button
               onClick={handleSend}
-              disabled={
-                !selectedGift ||
-                !canAfford ||
-                sending
-              }
+              disabled={!selectedGift || !canAfford || sending}
               className="text-white font-bold text-xs px-5 py-1.5 rounded-full transition-all active:scale-95"
               style={{
-                background:
-                  "linear-gradient(135deg, #3b82f6, #2563eb)",
-
-                boxShadow:
-                  "0 2px 15px rgba(59,130,246,0.35)",
-
+                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                boxShadow: "0 2px 15px rgba(59,130,246,0.35)",
                 opacity: sending ? 0.85 : 1,
-
                 cursor:
-                  !selectedGift ||
-                  !canAfford ||
-                  sending
+                  !selectedGift || !canAfford || sending
                     ? "not-allowed"
                     : "pointer",
               }}
@@ -782,4 +646,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-      }
+          }
