@@ -346,11 +346,13 @@ export default function GiftPicker({
 
   // ============================================================
   // 🎬 VIDEO
-  //   fade → Teddy / Arab King (fullscreen + top/bottom mask)
+  //   fade → Teddy (fullscreen + top/bottom mask, no shift)
+  //   Arab King is also "fade" but with a slight downward shift (no scale)
   //   pure → Autumn's Embrace (screen blend, black removed)
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
+    const isArabKing = playingVideo.src.includes("17e19680");
 
     return (
       <>
@@ -400,10 +402,15 @@ export default function GiftPicker({
             style={
               isFade
                 ? {
+                    // fade kam kiya (8% / 92%)
                     WebkitMaskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
+                      "linear-gradient(to bottom, transparent 0%, transparent 14%, black 25%, black 84%, transparent 92%, transparent 100%)",
                     maskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
+                      "linear-gradient(to bottom, transparent 0%, transparent 14%, black 25%, black 84%, transparent 92%, transparent 100%)",
+                    transform: isArabKing
+                      ? "translateY(6%)" // ← scale hata diya, bas niche shift
+                      : "scale(1.1)",
+                    transformOrigin: "center",
                   }
                 : {
                     mixBlendMode: "screen",
@@ -569,7 +576,7 @@ export default function GiftPicker({
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`text-[13px] font-semibold transition-all ${
+                className={`text-[14px] font-semibold transition-all ${
                   isActive
                     ? "text-white font-bold scale-105"
                     : "text-gray-400 hover:text-gray-200"
@@ -601,11 +608,12 @@ export default function GiftPicker({
                     activeTab === "Hot" && !gift.noMask
                       ? gift.sideFade
                         ? {
-                            // Arab King → only side borders fade, rounded corners
+                            // Arab King → chaaron taraf (top/bottom/left/right)
+                            // + corners se bhi smoothly fade, rounded corners
                             WebkitMaskImage:
-                              "linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)",
+                              "radial-gradient(ellipse 100% 100% at center, black 40%, transparent 95%)",
                             maskImage:
-                              "linear-gradient(to right, transparent 0%, black 22%, black 78%, transparent 100%)",
+                              "radial-gradient(ellipse 100% 100% at center, black 40%, transparent 95%)",
                           }
                         : {
                             // Teddy / default → radial fade
@@ -621,9 +629,9 @@ export default function GiftPicker({
                     src={gift.image}
                     alt={gift.name}
                     fill
-                    className={`${gift.noMask ? "object-contain" : "object-cover"} ${
-                      gift.sideFade ? "rounded-xl" : ""
-                    }`}
+                    className={`${
+                      gift.noMask ? "object-contain" : "object-cover"
+                    } ${gift.sideFade ? "rounded-xl" : ""}`}
                     sizes={gift.noMask ? "44px" : "64px"}
                     priority={gift.id === 1}
                   />
@@ -723,4 +731,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-      }
+    }
