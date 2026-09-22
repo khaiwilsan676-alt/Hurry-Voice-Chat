@@ -337,7 +337,7 @@ export default function GiftPicker({
   // ============================================================
   // 🎬 VIDEO
   //   fade → Teddy (purana, fullscreen + top/bottom mask)
-  //   pure → Autumn's Embrace (chota + black remove mix, no fade)
+  //   pure → Autumn's Embrace (thoda bada + black remove mix)
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
@@ -385,7 +385,7 @@ export default function GiftPicker({
             className={
               isFade
                 ? "w-full h-full object-cover"
-                : "w-auto h-auto max-w-[55vw] max-h-[55vh] object-contain"
+                : "w-auto h-auto max-w-[72vw] max-h-[72vh] object-contain"
             }
             style={
               isFade
@@ -582,10 +582,10 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* Image box — noMask wale gift ka size chota */}
+                {/* Image box — noMask wale gift ka size chota + object-contain (no cut) */}
                 <div
                   className={`relative mb-1 overflow-hidden ${
-                    gift.noMask ? "w-11 h-11" : "w-16 h-16"
+                    gift.noMask ? "w-12 h-12" : "w-16 h-16"
                   }`}
                   style={
                     activeTab === "Hot" && !gift.noMask
@@ -602,7 +602,7 @@ export default function GiftPicker({
                     src={gift.image}
                     alt={gift.name}
                     fill
-                    className="object-cover"
+                    className={gift.noMask ? "object-contain" : "object-cover"}
                     sizes={gift.noMask ? "44px" : "64px"}
                     priority={gift.id === 1}
                   />
@@ -702,4 +702,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-    }
+                  }
