@@ -2513,81 +2513,86 @@ export default function HomePage({ onLogout }: HomePageProps) {
         {allRooms.length > 0 ? (
           <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
             <div className="grid grid-cols-2 gap-x-1.5 gap-y-1 ">
-              {allRooms.map((room, index) => (
-                <div
-                  key={room.accountId}
-                  onClick={() => handleUserCardClick({
-                    id: room.id,
-                    accountId: room.accountId,
-                    name: room.name,
-                    country: room.country,
-                    image: room.image,
-                    isLocked: room.isLocked
-                  })}
-                  >
-                 <div
-  className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-  style={{ height: '170px' }}
->
-  {/* 1. Room Image Container - इसमें overflow-hidden रखा है ताकि कार्ड के corners गोल रहें */}
-  <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
-    <img
-      src={
-        room.image && room.image !== "undefined" && room.image !== "null"
-          ? room.image
-          : "/default-avatar.png"
-      }
-      onError={(e) => {
-        (e.target as HTMLImageElement).src = "/default-avatar.png";
-      }}
-      alt={room.name}
-      className="w-full h-full object-contain"
-      draggable="false"
-    />
-  </div>
+             {allRooms.map((room, index) => (
+  <div
+    key={room.accountId}
+    onClick={() =>
+      handleUserCardClick({
+        id: room.id,
+        accountId: room.accountId,
+        name: room.name,
+        country: room.country,
+        image: room.image,
+        isLocked: room.isLocked,
+      })
+    }
+  >
+    <div
+      className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+      style={{ height: '170px' }}
+    >
+      {/* 1. Room Image Container */}
+      <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+        <img
+          src={
+            room.image && room.image !== "undefined" && room.image !== "null"
+              ? room.image
+              : "/default-avatar.png"
+          }
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/default-avatar.png";
+          }}
+          alt={room.name}
+          className="w-full h-full object-contain"
+          draggable="false"
+        />
+      </div>
 
-{(index === 0 || index === 1 || index === 2) && (
-  <>
-    {/* 1️⃣ RANK FRAME (neeche wala bada frame) */}
-<img
-  src={
-    index === 0
-      ? "/file_0000000013ac8211903828e8d6ac9c45.png"
-      : index === 1
-      ? "/file_00000000b4188243a6f421d828066052.png"
-      : "/file_00000000a86081f4beacc1be6fa83580.png"
-  }
-  alt={`Rank ${index + 1} frame`}
-  className="absolute inset-0 w-full h-full pointer-events-none z-40"
-  style={{
-    objectFit: 'contain',
-    transform: 'scale(1.15, 1.45)',   // 👈 (X, Y) — width same, height extra
-    transformOrigin: 'center center',
-  }}
-  draggable="false"
-/>
-    { // * 2️⃣ TOP-RIGHT OVERLAPPING BADGE IMAGE (frame ke upar) */}
-    <img
-      src={
-        index === 0
-          ? "/IMG_20260922_112156.png"
-          : index === 1
-          ? "/IMG_20260922_112129.png"
-          : "/IMG_20260922_112110.png"
-      }
-      alt={`Rank ${index + 1} badge`}
-      className="absolute pointer-events-none z-50"
-      style={{
-        top: '-11px',
-        right: '-6px',
-        width: '55px',
-        height: '55px',
-        objectFit: 'contain',
-      }}
-      draggable="false"
-    />
-  </>
-)}
+      {/* 2. Rank Frame + Top-Right Badge (only for top 3) */}
+      {(index === 0 || index === 1 || index === 2) && (
+        <>
+          {/* RANK FRAME */}
+          <img
+            src={
+              index === 0
+                ? "/file_0000000013ac8211903828e8d6ac9c45.png"
+                : index === 1
+                ? "/file_00000000b4188243a6f421d828066052.png"
+                : "/file_00000000a86081f4beacc1be6fa83580.png"
+            }
+            alt={`Rank ${index + 1} frame`}
+            className="absolute inset-0 w-full h-full pointer-events-none z-40"
+            style={{
+              objectFit: 'contain',
+              transform: 'scale(1.15, 1.45)',
+              transformOrigin: 'center center',
+            }}
+            draggable="false"
+          />
+
+          {/* TOP-RIGHT OVERLAPPING BADGE */}
+          <img
+            src={
+              index === 0
+                ? "/IMG_20260922_112156.png"
+                : index === 1
+                ? "/IMG_20260922_112129.png"
+                : "/IMG_20260922_112110.png"
+            }
+            alt={`Rank ${index + 1} badge`}
+            className="absolute pointer-events-none z-50"
+            style={{
+              top: '-11px',
+              right: '-6px',
+              width: '55px',
+              height: '55px',
+              objectFit: 'contain',
+            }}
+            draggable="false"
+          />
+        </>
+      )}
+
   
                     {room.isLocked && (
                       <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
