@@ -1021,8 +1021,27 @@ export default function HomePage({ onLogout }: HomePageProps) {
       }, 3800);
     };
 
+    const handleRoomSettingsUpdated = (data: any) => {
+      if (!data || !data.roomId) return;
+      const roomId = String(data.roomId);
+
+      setGlobalRooms(prev => prev.map(room => {
+        if (String(room.id) === roomId || String(room.accountId) === roomId) {
+          return {
+            ...room,
+            name: data.roomName || room.name,
+            image: data.roomDp || room.image,
+            isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : room.isLocked,
+            roomPassword: data.roomPassword !== undefined ? data.roomPassword : room.roomPassword,
+          };
+        }
+        return room;
+      }));
+    };
+
     socket.on('private_message', handleIncomingPrivateMsg);
     socket.on('official_broadcast_message', handleIncomingOfficialBroadcast);
+    socket.on('room_settings_updated', handleRoomSettingsUpdated);
 
     return () => {
       isMounted = false;
@@ -1034,6 +1053,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       window.removeEventListener('unread_count_updated', handleUnreadUpdated);
       socket.off('private_message', handleIncomingPrivateMsg);
       socket.off('official_broadcast_message', handleIncomingOfficialBroadcast);
+      socket.off('room_settings_updated', handleRoomSettingsUpdated);
     };
   }, [userUID]);
 
@@ -2043,11 +2063,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
       await saveRoomToMongoDB({
         roomId: userUID,
         id: userUID, 
-        roomName: userName || defaultRoomName,
+        roomName: defaultRoomName,
         roomDp: '/IMG_20260921_210113.png',
         country: localStorage.getItem("userCountry") || "🇮🇳",
         roomAdmin: storedAccNum,
-        message: `${userName || defaultRoomName}'s Room Notice`,
+        message: `${defaultRoomName}'s Room Notice`,
         theme: 'default'
       });
 
@@ -2140,12 +2160,12 @@ export default function HomePage({ onLogout }: HomePageProps) {
       ...user,
       id: canonicalRoomId,
       accountId: String(foundRoom?.accountId || user.accountId || canonicalRoomId),
-      name: (foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room')
+      name: (foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room' && foundRoom.name !== 'User')
           ? foundRoom.name
-          : (user.name && user.name !== 'My Room' && user.name !== 'My room')
-            ? user.name
-            : 'hurry User@',
-      image: foundRoom?.image || '/IMG_20260921_210113.png',
+          : 'hurry User@',
+      image: (foundRoom?.image && foundRoom.image !== 'undefined' && foundRoom.image !== 'null' && foundRoom.image !== '/default-avatar.png')
+          ? foundRoom.image
+          : '/IMG_20260921_210113.png',
       isLocked: foundRoom?.isLocked ?? user.isLocked,
     }
 
@@ -2172,12 +2192,20 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
         if (roomData['Room Name'] || roomData.roomName || roomData.name) {
           const rName = roomData['Room Name'] || roomData.roomName || roomData.name;
-          if (rName !== 'My Room' && rName !== 'My room') roomUser.name = rName;
+          if (rName && rName !== 'My Room' && rName !== 'My room' && rName !== 'User') {
+            roomUser.name = rName;
+          } else {
+            roomUser.name = 'hurry User@';
+          }
         }
 
         if (roomData['Room dp'] || roomData.roomDp || roomData.image) {
           const rDp = roomData['Room dp'] || roomData.roomDp || roomData.image;
-          if (rDp !== 'undefined' && rDp !== 'null') roomUser.image = rDp;
+          if (rDp && rDp !== 'undefined' && rDp !== 'null' && rDp !== '/default-avatar.png') {
+            roomUser.image = rDp;
+          } else {
+            roomUser.image = '/IMG_20260921_210113.png';
+          }
         }
 
         roomUser.isLocked = Boolean(roomData.isLocked)
@@ -2555,8 +2583,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           }
         >
           <div
-            className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-            style={{ height: '170px' }}
+            className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
           >
             <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
               <img

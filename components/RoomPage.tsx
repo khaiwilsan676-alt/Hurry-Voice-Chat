@@ -1548,6 +1548,30 @@ const sendMessageToSocket = async (
       String(roomOwner.id) === String(currentUser.id) ||
       String(roomOwner.accountId) === String(currentUser.accountId);
 
+    // Save to MongoDB API so it updates globally
+    try {
+      const dbRoomData = {
+        accountId: roomOwner.accountId || roomId,
+        id: roomOwner.accountId || roomId,
+        roomId: roomOwner.accountId || roomId,
+        name: roomSettings.roomName,
+        image: roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳',
+        message: roomSettings.announcement,
+        theme: roomSettings.theme,
+        isLocked: roomSettings.isLocked,
+        roomPassword: roomSettings.roomPassword,
+      };
+
+      await fetch(apiUrl('/api/rooms'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dbRoomData),
+      });
+    } catch (error) {
+      console.error("Failed to save room settings to MongoDB", error);
+    }
+
     if (isOwnerOfRoom) {
       let existingMyRoom: any = {};
       try {
