@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ArrowLeft, Clock } from "lucide-react";
+import { deductCoinsFromDB } from "./Wallet";
 
 interface StoreItem {
   id: string;
