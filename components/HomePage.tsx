@@ -2546,27 +2546,49 @@ export default function HomePage({ onLogout }: HomePageProps) {
     />
   </div>
 
-  {/* 2. Rank Image Overlay - अब यह मेन div के बाहर जा सकती है और बिल्कुल नहीं कटेगी */}
-  {(index === 0 || index === 1 || index === 2) && (
+{(index === 0 || index === 1 || index === 2) && (
+  <>
+    {/* 1️⃣ RANK FRAME (neeche wala bada frame) */}
     <img
       src={
         index === 0
-          ? "/file_00000000ae44820b9ec9f5aa2805038d.png"
+          ? "/file_0000000013ac8211903828e8d6ac9c45.png"
           : index === 1
-          ? "/file_000000008a84820b906415bebf7ceee5.png"
-          : "/file_00000000b494820b999573b6a8af890a.png"
+          ? "/file_00000000b4188243a6f421d828066052.png"
+          : "/file_00000000a86081f4beacc1be6fa83580.png"
       }
-      alt={`Rank ${index + 1}`}
+      alt={`Rank ${index + 1} frame`}
       className="absolute inset-0 w-full h-full pointer-events-none z-40"
       style={{
         objectFit: 'contain',
-        transform: 'scale(1.15) translateY(0%)', // अगर इमेज को थोड़ा बड़ा करना हो तो scale(1.1) कर सकते हैं
+        transform: 'scale(1.15) translateY(0%)',
         transformOrigin: 'center center',
       }}
       draggable="false"
     />
-  )}
 
+    {/* 2️⃣ TOP-RIGHT OVERLAPPING BADGE IMAGE (frame ke upar) */}
+    <img
+      src={
+        index === 0
+          ? "/IMG_20260922_112156.png"
+          : index === 1
+          ? "/IMG_20260922_112129.png"
+          : "/IMG_20260922_112110.png"
+      }
+      alt={`Rank ${index + 1} badge`}
+      className="absolute pointer-events-none z-50"
+      style={{
+        top: '-14px',
+        right: '-14px',
+        width: '55px',
+        height: '55px',
+        objectFit: 'contain',
+      }}
+      draggable="false"
+    />
+  </>
+)}
   
                     {room.isLocked && (
                       <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50">
