@@ -114,8 +114,8 @@ export interface Gift {
   coins: number;
   image: string;
   video?: string;
-  videoStyle?: "fade" | "pure"; // fade = Teddy (purana), pure = naya (mix/black remove)
-  noMask?: boolean; // image pe koi radial mask nahi
+  videoStyle?: "fade" | "pure";
+  noMask?: boolean;
 }
 
 interface Seat {
@@ -169,7 +169,7 @@ export default function GiftPicker({
       coins: 70000,
       image: "/IMG_20260922_142150.jpg",
       video: "/VID_20260921_011932.mp4",
-      videoStyle: "fade", // purana Teddy — sirf top/bottom fade
+      videoStyle: "fade",
     },
     {
       id: 2,
@@ -177,8 +177,8 @@ export default function GiftPicker({
       coins: 54900,
       image: "/IMG_20260922_182259.png",
       video: "/gemini_generated_video_89e836bd~2.mp4",
-      videoStyle: "pure", // naya — sirf black remove mix, no fade
-      noMask: true, // image pe koi radial mask nahi
+      videoStyle: "pure",
+      noMask: true,
     },
   ];
 
@@ -336,15 +336,14 @@ export default function GiftPicker({
 
   // ============================================================
   // 🎬 VIDEO
-  //   fade → Teddy (purana, sirf top/bottom mask)
-  //   pure → naya (sirf black remove mix, no fade)
+  //   fade → Teddy (purana, fullscreen + top/bottom mask)
+  //   pure → Autumn's Embrace (chota + black remove mix, no fade)
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
 
     return (
       <>
-        {/* remove-black filter sirf naye (pure) video ke liye */}
         {!isFade && (
           <svg
             style={{ width: 0, height: 0, position: "absolute" }}
@@ -383,18 +382,20 @@ export default function GiftPicker({
               setPlayingVideo(null);
               onClose();
             }}
-            className="w-full h-full object-cover"
+            className={
+              isFade
+                ? "w-full h-full object-cover"
+                : "w-auto h-auto max-w-[55vw] max-h-[55vh] object-contain"
+            }
             style={
               isFade
                 ? {
-                    // 🐻 Teddy — purana exactly same
                     WebkitMaskImage:
                       "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
                     maskImage:
                       "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)",
                   }
                 : {
-                    // 🌹 Naya — sirf black remove mix, koi fade nahi
                     mixBlendMode: "screen",
                     backgroundColor: "transparent",
                     filter: "url(#remove-black)",
@@ -581,9 +582,11 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* Hot tab → radial mask (agar noMask nahi hai) | Lucky/others → koi mask nahi */}
+                {/* Image box — noMask wale gift ka size chota */}
                 <div
-                  className="relative w-16 h-16 mb-1 overflow-hidden"
+                  className={`relative mb-1 overflow-hidden ${
+                    gift.noMask ? "w-11 h-11" : "w-16 h-16"
+                  }`}
                   style={
                     activeTab === "Hot" && !gift.noMask
                       ? {
@@ -600,7 +603,7 @@ export default function GiftPicker({
                     alt={gift.name}
                     fill
                     className="object-cover"
-                    sizes="64px"
+                    sizes={gift.noMask ? "44px" : "64px"}
                     priority={gift.id === 1}
                   />
                 </div>
@@ -699,4 +702,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-     }
+    }
