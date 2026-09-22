@@ -2109,16 +2109,15 @@ export default function HomePage({ onLogout }: HomePageProps) {
       return
     }
 
-    const roomUser: UserCard = {
+     const roomUser: UserCard = {
       ...user,
       id: canonicalRoomId,
       accountId: String(foundRoom?.accountId || user.accountId || canonicalRoomId),
-      name:
-        foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room'
+      name: (foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room')
           ? foundRoom.name
-          : user.name && user.name !== 'My Room' && user.name !== 'My room'
-          : 'hurry User@',
-          ? user.name 
+          : (user.name && user.name !== 'My Room' && user.name !== 'My room')
+            ? user.name
+            : 'hurry User@',
       image: foundRoom?.image || '/IMG_20260921_210113.png',
       isLocked: foundRoom?.isLocked ?? user.isLocked,
     }
