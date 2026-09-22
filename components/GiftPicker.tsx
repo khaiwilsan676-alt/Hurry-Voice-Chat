@@ -474,9 +474,9 @@ export default function GiftPicker({
                         ? {
                             // 👑 KING image → chaaron taraf (top/bottom/left/right) fade
                             WebkitMaskImage:
-                              "radial-gradient(ellipse 70% 70% at center, black 25%, transparent 90%)",
+                              "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
                             maskImage:
-                              "radial-gradient(ellipse 70% 70% at center, black 25%, transparent 90%)",
+                              "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
                           }
                         : {
                             // 🧸 TEDDY image → apna alag fade
