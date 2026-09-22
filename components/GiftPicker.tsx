@@ -341,9 +341,9 @@ export default function GiftPicker({
           className="w-full h-full object-cover"
           style={{
             WebkitMaskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 19%, black 25%, black 70%, transparent 83%, transparent 100%)",
+              "linear-gradient(to bottom, transparent 0%, transparent 23%, black 25%, black 70%, transparent 83%, transparent 100%)",
             maskImage:
-              "linear-gradient(to bottom, transparent 0%, transparent 19%, black 25%, black 70%, transparent 83%, transparent 100%)",
+              "linear-gradient(to bottom, transparent 0%, transparent 23%, black 25%, black 70%, transparent 83%, transparent 100%)",
           }}
         />
       </div>
