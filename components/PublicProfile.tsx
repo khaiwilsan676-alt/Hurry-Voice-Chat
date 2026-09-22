@@ -1442,7 +1442,7 @@ export default function PublicProfile({
 
         <div className="mt-1 flex items-center gap-1 -ml-2">
           <div className="relative inline-flex items-center justify-center ml-0.5">
-            <img src="/1785137410522.png" alt="" className="h-6 w-auto object-contain" />
+            <img src="/IMG_20260917_220530.png" alt="" className="h-6 w-auto object-contain" />
             <span
               className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-sm"
               style={{ paddingLeft: '10px' }}
