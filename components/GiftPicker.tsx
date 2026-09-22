@@ -4,9 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
 
-// ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / Store / SellerCenter)
-// ==========================================
 const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
 const DEFAULT_BALANCE = 82927;
@@ -14,17 +11,13 @@ const DEFAULT_BALANCE = 82927;
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === "undefined") return reject("No window");
-
     const request = indexedDB.open(SHARED_DB, 2);
-
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
-
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
         db.createObjectStore(SHARED_STORE);
       }
     };
-
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -32,19 +25,14 @@ const initWalletDB = (): Promise<IDBDatabase> =>
 const loadWalletBalance = async (): Promise<number> => {
   try {
     const db = await initWalletDB();
-
     return new Promise((resolve) => {
       const tx = db.transaction(SHARED_STORE, "readonly");
       const req = tx.objectStore(SHARED_STORE).get("user_data");
-
       req.onsuccess = () => {
         if (req.result && typeof req.result.balance === "number") {
           resolve(req.result.balance);
-        } else {
-          resolve(DEFAULT_BALANCE);
-        }
+        } else resolve(DEFAULT_BALANCE);
       };
-
       req.onerror = () => resolve(DEFAULT_BALANCE);
     });
   } catch {
@@ -55,27 +43,18 @@ const loadWalletBalance = async (): Promise<number> => {
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
     const db = await initWalletDB();
-
     return new Promise((resolve, reject) => {
       const tx = db.transaction(SHARED_STORE, "readwrite");
       const store = tx.objectStore(SHARED_STORE);
-
       const req = store.get("user_data");
-
       req.onsuccess = () => {
         const data = req.result;
         const current = data?.balance ?? DEFAULT_BALANCE;
         const next = Math.max(0, current + delta);
-
-        const putReq = store.put(
-          { ...(data || {}), balance: next },
-          "user_data"
-        );
-
+        const putReq = store.put({ ...(data || {}), balance: next }, "user_data");
         putReq.onsuccess = () => resolve();
         putReq.onerror = () => reject(putReq.error);
       };
-
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
@@ -83,27 +62,14 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// ==========================================
-// Solid Icons
-// ==========================================
 const SolidMicIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    fill="currentColor"
-    stroke="none"
-  >
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.88 0 2.76-2.24 5-5 5s-5-2.24-5-5c0-.49-.41-.88-.9-.88s-.9.39-.9.88c0 3.66 2.85 6.66 6.4 7.08V22h1.8v-2.92c3.55-.42 6.4-3.42 6.4-7.08 0-.49-.41-.88-.9-.88z" />
   </svg>
 );
 
 const SolidUserIcon = ({ className }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    className={className}
-    fill="currentColor"
-    stroke="none"
-  >
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
   </svg>
 );
@@ -122,11 +88,7 @@ export interface Gift {
 interface Seat {
   number: number;
   isOccupied: boolean;
-  user?: {
-    name: string;
-    image: string;
-    accountId: string;
-  };
+  user?: { name: string; image: string; accountId: string };
 }
 
 export default function GiftPicker({
@@ -147,22 +109,14 @@ export default function GiftPicker({
   >(null);
 
   const sheetRef = useRef<HTMLDivElement>(null);
-
   const [showTargetMenu, setShowTargetMenu] = useState(false);
   const targetMenuRef = useRef<HTMLDivElement>(null);
-
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
-
-  const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">(
-    "All"
-  );
+  const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
 
-  // ==========================================
-  // HOT GIFTS
-  // ==========================================
   const hotGifts: Gift[] = [
     {
       id: 1,
@@ -192,9 +146,6 @@ export default function GiftPicker({
     },
   ];
 
-  // ==========================================
-  // LUCKY GIFTS
-  // ==========================================
   const luckyGifts: Gift[] = [
     { id: 101, name: "Kiss", coins: 1999, image: "/IMG_20260906_000443.png" },
     { id: 102, name: "Nut", coins: 3999, image: "/IMG_20260906_000508.png" },
@@ -210,91 +161,57 @@ export default function GiftPicker({
   ];
 
   const currentGifts: Gift[] =
-    activeTab === "Lucky"
-      ? luckyGifts
-      : activeTab === "Hot"
-      ? hotGifts
-      : [];
+    activeTab === "Lucky" ? luckyGifts : activeTab === "Hot" ? hotGifts : [];
 
-  // ==========================================
-  // WALLET BALANCE
-  // ==========================================
   useEffect(() => {
     let alive = true;
-
     const fetchBal = async () => {
       const b = await loadWalletBalance();
       if (alive) setWalletBalance(b);
     };
-
     fetchBal();
     const id = setInterval(fetchBal, 1000);
-
     return () => {
       alive = false;
       clearInterval(id);
     };
   }, []);
 
-  // ==========================================
-  // CLICK OUTSIDE
-  // ==========================================
   useEffect(() => {
     if (playingVideo) return;
-
     const handler = (e: MouseEvent) => {
       if (sheetRef.current && !sheetRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
-
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose, playingVideo]);
 
-  // ==========================================
-  // TARGET DROPDOWN CLICK OUTSIDE
-  // ==========================================
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        targetMenuRef.current &&
-        !targetMenuRef.current.contains(e.target as Node)
-      ) {
+      if (targetMenuRef.current && !targetMenuRef.current.contains(e.target as Node)) {
         setShowTargetMenu(false);
       }
     };
-
-    if (showTargetMenu) {
-      document.addEventListener("mousedown", handler);
-    }
-
+    if (showTargetMenu) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [showTargetMenu]);
 
-  const parseMultiplier = (m: string) =>
-    parseInt(m.replace("×", ""), 10) || 1;
-
+  const parseMultiplier = (m: string) => parseInt(m.replace("×", ""), 10) || 1;
   const selectedGiftObj = currentGifts.find((g) => g.id === selectedGift);
-
   const totalCost = selectedGiftObj
     ? selectedGiftObj.coins * parseMultiplier(selectedMultiplier)
     : 0;
-
   const canAfford = totalCost <= walletBalance;
 
-  // ==========================================
-  // SEND
-  // ==========================================
   const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
-
     setSending(true);
     setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
     setSending(false);
-
     if (selectedGiftObj.video) {
       setPlayingVideo({
         src: selectedGiftObj.video,
@@ -305,71 +222,54 @@ export default function GiftPicker({
     }
   };
 
-  // ==========================================
-  // ALL ON MIC
-  // ==========================================
   const handleAllOnMic = () => {
     const micUsers = seats
       .filter((s) => s.isOccupied && s.user)
       .map((s) => s.user!.accountId);
-
     setSelectedTargets(micUsers);
     setSelectionLabel("All");
     setShowTargetMenu(false);
   };
 
-  // ==========================================
-  // ALL IN ROOM
-  // ==========================================
   const handleAllInRoom = () => {
     setSelectedTargets([]);
     setSelectionLabel("All room");
     setShowTargetMenu(false);
   };
 
-  // ==========================================
-  // AVATAR CLICK
-  // ==========================================
   const handleAvatarClick = (accountId: string) => {
     setSelectedTargets((prev) => {
-      if (prev.includes(accountId)) {
-        return prev.filter((id) => id !== accountId);
-      } else {
-        return [...prev, accountId];
-      }
+      if (prev.includes(accountId)) return prev.filter((id) => id !== accountId);
+      return [...prev, accountId];
     });
-
-    if (selectionLabel === "All room") {
-      setSelectionLabel("All");
-    }
+    if (selectionLabel === "All room") setSelectionLabel("All");
   };
 
   // ============================================================
   // 🎬 VIDEO
-  //   fade → Teddy (fullscreen + top/bottom mask, no shift)
-  //   Arab King is also "fade" but with a slight downward shift (no scale)
-  //   pure → Autumn's Embrace (screen blend, black removed)
+  // 🧸 Teddy  → purana original fade (18% / 83%)
+  // 👑 King   → naya alag fade (6% / 94%) + upar shift
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
     const isArabKing = playingVideo.src.includes("17e19680");
 
+    // 🧸 TEDDY video fade — PEHLE JAISA (original)
+    const teddyVideoMask =
+      "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)";
+
+    // 👑 KING video fade — NAYA (alag)
+    const kingVideoMask =
+      "linear-gradient(to bottom, transparent 0%, transparent 10%, black 16%, black 85%, transparent 94%, transparent 100%)";
+
     return (
       <>
         {!isFade && (
-          <svg
-            style={{ width: 0, height: 0, position: "absolute" }}
-            aria-hidden="true"
-          >
+          <svg style={{ width: 0, height: 0, position: "absolute" }} aria-hidden="true">
             <filter id="remove-black" colorInterpolationFilters="sRGB">
               <feColorMatrix
                 type="matrix"
-                values="
-                  1 0 0 0 0
-                  0 1 0 0 0
-                  0 0 1 0 0
-                  1.5 1.5 1.5 0 -0.2
-                "
+                values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  1.5 1.5 1.5 0 -0.2"
               />
             </filter>
           </svg>
@@ -401,17 +301,19 @@ export default function GiftPicker({
             }
             style={
               isFade
-                ? {
-                    // fade kam kiya (8% / 92%)
-                    WebkitMaskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 10%, black 25%, black 84%, transparent 92%, transparent 100%)",
-                    maskImage:
-                      "linear-gradient(to bottom, transparent 0%, transparent 10%, black 25%, black 84%, transparent 92%, transparent 100%)",
-                    transform: isArabKing
-                      ? "translateY(2%)" // ← scale hata diya, bas niche shift
-                      : "scale(1.2)",
-                    transformOrigin: "center",
-                  }
+                ? isArabKing
+                  ? {
+                      // 👑 KING — alag fade + upar shift
+                      WebkitMaskImage: kingVideoMask,
+                      maskImage: kingVideoMask,
+                      transform: "translateY(2%)",
+                      transformOrigin: "center",
+                    }
+                  : {
+                      // 🧸 TEDDY — purana fade, no shift
+                      WebkitMaskImage: teddyVideoMask,
+                      maskImage: teddyVideoMask,
+                    }
                 : {
                     mixBlendMode: "screen",
                     backgroundColor: "transparent",
@@ -424,18 +326,9 @@ export default function GiftPicker({
     );
   }
 
-  // ============================================================
-  // NORMAL PICKER UI
-  // ============================================================
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
-      <svg
-        style={{
-          position: "absolute",
-          width: 0,
-          height: 0,
-        }}
-      >
+      <svg style={{ position: "absolute", width: 0, height: 0 }}>
         <filter id="removeWhite" x="0%" y="0%" width="100%" height="100%">
           <feColorMatrix
             type="matrix"
@@ -445,10 +338,7 @@ export default function GiftPicker({
       </svg>
 
       <style jsx>{`
-        .main-container {
-          background: rgba(0, 0, 0, 0.95);
-        }
-
+        .main-container { background: rgba(0, 0, 0, 0.95); }
         .gift-item {
           background: transparent;
           border: 2px solid transparent;
@@ -457,59 +347,43 @@ export default function GiftPicker({
           border-radius: 8px;
           width: 100%;
         }
-
         .gift-item.selected {
           border-color: #3b82f6;
           background: rgba(59, 130, 246, 0.05);
         }
-
         .coin-image {
           filter: url(#removeWhite) drop-shadow(0 0 4px rgba(255, 215, 0, 0.4));
         }
-
-        .scrollbar-none::-webkit-scrollbar {
-          display: none;
-        }
-
-        .scrollbar-none {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
       <div
         ref={sheetRef}
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
-        {/* ALL DROPDOWN MENU */}
         <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
           <div className="relative">
             <button
               onClick={() => setShowTargetMenu(!showTargetMenu)}
               className="flex items-center gap-1.5 text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-              }}
+              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}
             >
               {selectionLabel === "All" ? (
                 <SolidMicIcon className="w-3.5 h-3.5" />
               ) : (
                 <SolidUserIcon className="w-3.5 h-3.5" />
               )}
-
               <span className="text-[13px] font-medium leading-none whitespace-nowrap">
                 {selectionLabel}
               </span>
-
               <div className="w-[1px] h-3.5 bg-white/50 mx-0.5" />
-
               <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-white" />
             </button>
 
             {showTargetMenu && (
               <div className="absolute top-full right-0 mt-2 bg-[#0c1418] rounded-md shadow-2xl border border-white/5 w-[140px] z-[70]">
                 <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#0c1418] border-t border-l border-white/5 rotate-45" />
-
                 <div className="relative z-10 flex flex-col py-1.5">
                   <button
                     onClick={handleAllOnMic}
@@ -520,7 +394,6 @@ export default function GiftPicker({
                       All on mic
                     </span>
                   </button>
-
                   <button
                     onClick={handleAllInRoom}
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
@@ -536,15 +409,11 @@ export default function GiftPicker({
           </div>
         </div>
 
-        {/* AVATAR LIST */}
         <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
             .filter((seat) => seat.isOccupied && seat.user)
             .map((seat) => {
-              const isSelected = selectedTargets.includes(
-                seat.user!.accountId
-              );
-
+              const isSelected = selectedTargets.includes(seat.user!.accountId);
               return (
                 <div
                   key={seat.user!.accountId}
@@ -564,14 +433,11 @@ export default function GiftPicker({
             })}
         </div>
 
-        {/* LINE */}
         <div className="w-full h-px bg-white/10 mb-1 -mt-2" />
 
-        {/* TABS */}
         <div className="flex items-center gap-4 py-2 px-1">
           {tabs.map((tab) => {
             const isActive = activeTab === tab;
-
             return (
               <button
                 key={tab}
@@ -588,7 +454,6 @@ export default function GiftPicker({
           })}
         </div>
 
-        {/* GIFT GRID */}
         <div className="flex-1 overflow-y-auto py-2 scrollbar-none">
           <div className="grid grid-cols-4 gap-1 content-start">
             {currentGifts.map((gift) => (
@@ -599,7 +464,6 @@ export default function GiftPicker({
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
-                {/* Image box */}
                 <div
                   className={`relative mb-1 overflow-hidden ${
                     gift.noMask ? "w-15 h-15" : "w-16 h-16"
@@ -608,15 +472,14 @@ export default function GiftPicker({
                     activeTab === "Hot" && !gift.noMask
                       ? gift.sideFade
                         ? {
-                            // Arab King → chaaron taraf (top/bottom/left/right)
-                            // + corners se bhi smoothly fade, rounded corners
+                            // 👑 KING image → chaaron taraf (top/bottom/left/right) fade
                             WebkitMaskImage:
-                              "radial-gradient(ellipse 90% 90% at center, black 25%, transparent 85%)",
+                              "radial-gradient(ellipse 85% 85% at center, black 20%, transparent 82%)",
                             maskImage:
-                              "radial-gradient(ellipse 90% 90% at center, black 25%, transparent 85%)",
+                              "radial-gradient(ellipse 85% 85% at center, black 20%, transparent 82%)",
                           }
                         : {
-                            // Teddy / default → radial fade
+                            // 🧸 TEDDY image → apna alag fade
                             WebkitMaskImage:
                               "radial-gradient(circle, black 40%, transparent 80%)",
                             maskImage:
@@ -658,7 +521,6 @@ export default function GiftPicker({
           </div>
         </div>
 
-        {/* BOTTOM BAR */}
         <div className="flex items-center justify-between pt-2 relative">
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-5 relative overflow-hidden rounded-full">
@@ -670,7 +532,6 @@ export default function GiftPicker({
                 sizes="20px"
               />
             </div>
-
             <span className="text-[11px] font-bold text-yellow-300 tracking-wide">
               {walletBalance.toLocaleString()}
             </span>
@@ -718,10 +579,7 @@ export default function GiftPicker({
                 background: "linear-gradient(135deg, #3b82f6, #2563eb)",
                 boxShadow: "0 2px 15px rgba(59,130,246,0.35)",
                 opacity: sending ? 0.85 : 1,
-                cursor:
-                  !selectedGift || !canAfford || sending
-                    ? "not-allowed"
-                    : "pointer",
+                cursor: !selectedGift || !canAfford || sending ? "not-allowed" : "pointer",
               }}
             >
               {sending ? "Sending..." : "Send"}
@@ -731,4 +589,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-    }
+      }
