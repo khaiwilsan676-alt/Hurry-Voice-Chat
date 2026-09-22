@@ -2548,7 +2548,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
 {(index === 0 || index === 1 || index === 2) && (
   <>
-     {/* 1️⃣ RANK FRAME (neeche wala bada frame) */}
+    {/* 1️⃣ RANK FRAME (neeche wala bada frame) */}
 <img
   src={
     index === 0
@@ -2558,17 +2558,15 @@ export default function HomePage({ onLogout }: HomePageProps) {
       : "/file_00000000a86081f4beacc1be6fa83580.png"
   }
   alt={`Rank ${index + 1} frame`}
-  className="absolute left-0 right-0 pointer-events-none z-40"
+  className="absolute inset-0 w-full h-full pointer-events-none z-40"
   style={{
-    bottom: 0,                        // 👈 neeche se anchor
-    width: '100%',
-    height: '130%',                   // 👈 YAHI HEIGHT BADHAO (125 → 140 → 150)
     objectFit: 'contain',
-    objectPosition: 'bottom center',  // 👈 neeche se grow karega
+    transform: 'scale(1.15, 1.45)',   // 👈 (X, Y) — width same, height extra
+    transformOrigin: 'center center',
   }}
   draggable="false"
 />
-    {/* 2️⃣ TOP-RIGHT OVERLAPPING BADGE IMAGE (frame ke upar) */}
+    { // * 2️⃣ TOP-RIGHT OVERLAPPING BADGE IMAGE (frame ke upar) */}
     <img
       src={
         index === 0
@@ -2581,7 +2579,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       className="absolute pointer-events-none z-50"
       style={{
         top: '-11px',
-        right: '-10px',
+        right: '-6px',
         width: '55px',
         height: '55px',
         objectFit: 'contain',
