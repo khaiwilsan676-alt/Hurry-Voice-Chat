@@ -392,22 +392,7 @@ export default function GiftPicker({
   };
 
   // ============================================================
-  // 🎬 VIDEO ONLY
-  // ============================================================
-  //
-  // IMPORTANT:
-  // YAHAN KOI BLACK BACKGROUND NAHI HAI.
-  //
-  // Original video hi show hota hai.
-  //
-  // Sirf TOP aur BOTTOM par transparent fade mask hai:
-  //
-  // transparent
-  //     ↓
-  // original video
-  //     ↓
-  // transparent
-  //
+  // 🎬 VIDEO ONLY — Family-style top/bottom fade, no black bar
   // ============================================================
   if (playingVideo) {
     return (
@@ -430,6 +415,12 @@ export default function GiftPicker({
             onClose();
           }}
           className="w-full h-full object-cover"
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)",
+            maskImage:
+              "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 70%, transparent 85%)",
+          }}
         />
       </div>
     );
@@ -656,13 +647,16 @@ export default function GiftPicker({
               >
                 <div
                   className="relative w-16 h-16 mb-1 overflow-hidden"
-                  style={{
-                    WebkitMaskImage:
-                      "radial-gradient(circle, black 40%, transparent 80%)",
-
-                    maskImage:
-                      "radial-gradient(circle, black 40%, transparent 80%)",
-                  }}
+                  style={
+                    activeTab === "Hot"
+                      ? {
+                          WebkitMaskImage:
+                            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)",
+                          maskImage:
+                            "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, transparent 100%)",
+                        }
+                      : {}
+                  }
                 >
                   <Image
                     src={gift.image}
@@ -788,4 +782,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-        }
+      }
