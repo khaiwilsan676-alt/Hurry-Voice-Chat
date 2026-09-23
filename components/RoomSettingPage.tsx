@@ -53,14 +53,13 @@ function MicModeImageCard({ count }: { count: number }) {
   )
 }
 
-// ---------- Password Input (FIXED backspace) ----------
+// ---------- Password Input ----------
 function PasswordInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const handleInput = (index: number, inputValue: string) => {
     const numberValue = inputValue.replace(/[^0-9]/g, '')
 
-    // Paste / multi-digit
     if (numberValue.length > 1) {
       const newPassword = (value.slice(0, index) + numberValue).slice(0, 4)
       onChange(newPassword)
@@ -81,12 +80,10 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (value[index]) {
-        // current box me digit hai — bss clear karo
         const newDigits = value.split('')
         newDigits[index] = ''
         onChange(newDigits.join(''))
       } else if (index > 0) {
-        // empty box — pichhla wala clear karo
         e.preventDefault()
         const newDigits = value.split('')
         newDigits[index - 1] = ''
@@ -152,7 +149,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       setRoomMembers(mapped)
     }
 
-    // 1. Socket se live list maango
     const handleRoomMembers = (data: any) => {
       if (String(data?.roomId) !== String(roomOwnerId)) return
       applyMembers(data?.users || [])
@@ -161,7 +157,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     socket.on('room_members_list', handleRoomMembers)
     socket.emit('get_room_members', { roomId: roomOwnerId })
 
-    // 2. API fallback
     const fetchFromApi = async () => {
       try {
         const res = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomOwnerId)}&members=true`)
@@ -220,7 +215,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     )
   }
 
-  // ============ SAVE — YAHI ASLI FIX ============
+  // ============ SAVE — ASLI FIX ============
   const handleSave = async () => {
     if (isSaving) return
     setIsSaving(true)
@@ -237,7 +232,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     }
 
     try {
-      // ✅ 1. DIRECT MONGO SAVE — parent pe depend nahi
+      // ✅ 1. DIRECT MONGO SAVE
       if (roomOwnerId) {
         const res = await fetch('/api/rooms', {
           method: 'PUT',
@@ -246,10 +241,13 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             roomId: roomOwnerId,
             id: roomOwnerId,
             roomName: settingsData.roomName,
+            name: settingsData.roomName,
             'Room Name': settingsData.roomName,
             roomDp: settingsData.roomDp,
+            image: settingsData.roomDp,
             'Room dp': settingsData.roomDp,
             announcement: settingsData.announcement,
+            message: settingsData.announcement,
             theme: settingsData.theme,
             admin: settingsData.admin,
             isLocked: settingsData.isLocked,
@@ -257,22 +255,30 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             micMode: settingsData.micMode,
           }),
         })
-        if (!res.ok) throw new Error(`Save failed: ${res.status}`)
+
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => 'Unknown error')
+          throw new Error(`Save failed: ${res.status} - ${errorText.slice(0, 200)}`)
+        }
       }
 
-      // ✅ 2. Socket broadcast — HomePage turant update ho
+      // ✅ 2. Socket broadcast
       socket.emit('room_settings_updated', {
         roomId: roomOwnerId,
         roomName: settingsData.roomName,
         roomDp: settingsData.roomDp,
+        announcement: settingsData.announcement,
+        micMode: settingsData.micMode,
+        theme: settingsData.theme,
         isLocked: settingsData.isLocked,
         roomPassword: settingsData.roomPassword,
+        updatedAt: Date.now(),
       })
 
-      // ✅ 3. Parent ko bhi batao (agar handle karta hai)
+      // ✅ 3. Parent ko bhi batao
       if (onSave) onSave(settingsData)
 
-      // ✅ 4. LocalStorage update (fallback)
+      // ✅ 4. LocalStorage update
       try {
         const stored = localStorage.getItem('myRoom')
         if (stored) {
@@ -291,9 +297,19 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       } catch {}
 
       onBack()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Save error:', err)
-      alert('Save failed. Please try again.')
+
+      const statusMatch = String(err?.message || '').match(/Save failed: (\d+)/)
+      const status = statusMatch ? statusMatch[1] : 'unknown'
+
+      let hint = ''
+      if (status === '404') hint = '\n\n(API route /api/rooms nahi mil rahi)'
+      else if (status === '413') hint = '\n\n(DP bahut bada hai, chhota image use karo)'
+      else if (status === '400') hint = '\n\n(Data format galat hai)'
+      else if (status === '500') hint = '\n\n(Server error — MongoDB check karo)'
+
+      alert(`Save failed!\n\nStatus: ${status}${hint}\n\nMessage: ${err?.message || 'Network error'}`)
     } finally {
       setIsSaving(false)
     }
@@ -612,4 +628,4 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       )}
     </>
   )
-      }
+    }
