@@ -445,7 +445,7 @@ export default function RoomProfile({
 
         {/* Top Left - Warning Icon (only for OTHER users, not own profile) */}
         {!isCurrentUser && (
-          <div className="absolute top-3 left-4 z-30">
+          <div className="absolute top-2 left-3 z-30">
             <button
               onClick={() => setShowReports(true)}
               className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -458,7 +458,7 @@ export default function RoomProfile({
 
         {/* Top Right - @ Mention Icon (only for OTHER users, not own profile) */}
         {!isCurrentUser && (
-          <div className="absolute top-3 right-4 z-30">
+          <div className="absolute top-2 right-3 z-30">
             <button
               onClick={handleMention}
               className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
@@ -522,7 +522,7 @@ export default function RoomProfile({
                   alt="Level"
                   className="h-8 w-auto object-contain"
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-3 pt-1">
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-4 pt-1">
                   Lv.1
                 </span>
               </div>
@@ -585,12 +585,12 @@ export default function RoomProfile({
           {showActions && (
             <div className="mt-3 w-full flex flex-col gap-2 shrink-0">
               {/* Row: Follow, Chat, Image */}
-              <div className="flex items-center gap-6 w-full justify-center">
+              <div className="flex items-center gap-8 w-full justify-center">
                 <button
                   onClick={onFollow}
                   className="flex items-center gap-1.5 text-pink-500 font-medium text-base hover:text-pink-600 transition-colors active:scale-95"
                 >
-                  <Heart size={20} className="fill-pink-500" />
+                  <Heart size={23} className="fill-pink-500" />
                   <span>{isFollowing ? 'Following' : 'Follow'}</span>
                 </button>
 
@@ -598,7 +598,7 @@ export default function RoomProfile({
                   onClick={onMessage}
                   className="flex items-center gap-1.5 text-gray-700 font-medium text-base hover:text-gray-900 transition-colors active:scale-95"
                 >
-                  <MessageCircle size={20} />
+                  <MessageCircle size={23} />
                   <span>Chat</span>
                 </button>
 
@@ -610,7 +610,7 @@ export default function RoomProfile({
                   <img
                     src="/file_000000008e508208b1353ae33e2abef9.png"
                     alt="Action"
-                    className="w-8 h-8 object-contain rounded-full group-hover:scale-110 transition-transform"
+                    className="w-10 h-10 object-contain rounded-full group-hover:scale-110 transition-transform"
                   />
                 </button>
               </div>
