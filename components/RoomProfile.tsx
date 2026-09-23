@@ -407,7 +407,7 @@ export default function RoomProfile({
             <img
               src={displayImage}
               alt={displayName}
-              className="w-full h-full object-cover rounded-full border-4 border-white shadow-xl bg-gray-100"
+              className="w-full h-full object-cover rounded-full shadow-xl bg-gray-100"
               style={{
                 position: 'relative',
                 zIndex: 1,
