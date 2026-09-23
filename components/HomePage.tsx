@@ -2588,8 +2588,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
             <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
               <img
                 src={
-                  room.image && room.image !== "undefined" && room.image !== "null"
-                    ? room.image
+                  (room.dp || room.image) && (room.dp || room.image) !== "undefined" && (room.dp || room.image) !== "null"
+                    ? (room.dp || room.image)
                     : "/default-avatar.png"
                 }
                 onError={(e) => {

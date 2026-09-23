@@ -373,7 +373,7 @@ app.put("/api/rooms", async (req, res) => {
       id: accountId,
       roomId: accountId,
       name: data.name || data.roomName || data["Room Name"] || "hurry User@",
-      image: data.image || data.roomDp || data["Room dp"] || "/IMG_20260921_210113.png",
+      image: data.dp || data.image || data.roomDp || data["Room dp"] || "/IMG_20260921_210113.png",
       country: data.country || data.Country || "🇮🇳",
       message: data.message || data.announcement || "",
       theme: data.theme || "default",
