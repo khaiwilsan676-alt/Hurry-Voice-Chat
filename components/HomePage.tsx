@@ -1275,9 +1275,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
             const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
             return {
               id: roomId,
-              name: data['Room Name'] || 'Room',
+              name: data.name || data.roomName || data['Room Name'] || 'Room',
               country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || '/default-avatar.png',
+              image: data.image || data.dp || data.roomDp || data['Room dp'] || '/default-avatar.png',
               accountId: accId,
               createdAt: data.createdAt || Date.now(),
               isLocked: Boolean(data.isLocked),
@@ -1338,9 +1338,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
               const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
               return {
                 id: roomId,
-                name: data['Room Name'] || 'Room',
+                name: data.name || data.roomName || data['Room Name'] || 'Room',
                 country: data.Country || data.country || '🇮🇳',
-                image: data['Room dp'] || '/default-avatar.png',
+                image: data.image || data.dp || data.roomDp || data['Room dp'] || '/default-avatar.png',
                 accountId: accId,
                 createdAt: data.createdAt || Date.now(),
                 isLocked: Boolean(data.isLocked),
@@ -1578,8 +1578,8 @@ export default function HomePage({ onLogout }: HomePageProps) {
               try {
                 const mongoRoom = await fetchRoomFromMongoDB(uid);
                 if (mongoRoom) {
-                  const mName = mongoRoom['Room Name'];
-                  const mDp = mongoRoom['Room dp'];
+                  const mName = mongoRoom.name || mongoRoom.roomName || mongoRoom['Room Name'];
+                  const mDp = mongoRoom.image || mongoRoom.dp || mongoRoom.roomDp || mongoRoom['Room dp'];
                   if (mName && mName !== 'My Room' && mName !== 'My room') actualName = mName;
                   if (mDp && mDp !== 'undefined' && mDp !== 'null') actualDp = mDp;
                 }
@@ -2187,14 +2187,14 @@ export default function HomePage({ onLogout }: HomePageProps) {
           return
         }
 
-        const rName = roomData['Room Name'];
+        const rName = roomData.name || roomData.roomName || roomData['Room Name'];
         if (rName && rName !== 'My Room' && rName !== 'My room' && rName !== 'User') {
           roomUser.name = rName;
         } else {
           roomUser.name = 'Room';
         }
 
-        const rDp = roomData['Room dp'];
+        const rDp = roomData.image || roomData.dp || roomData.roomDp || roomData['Room dp'];
         if (rDp && rDp !== 'undefined' && rDp !== 'null' && rDp !== '/default-avatar.png') {
           roomUser.image = rDp;
         } else {
@@ -2315,9 +2315,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
         handleUserCardClick({
           id: roomData.ID || roomData.id || roomData.roomId || id,
           accountId: roomData["Room Admin"] || roomData.accountId || id,
-          name: roomData["Room Name"] || "Room",
+          name: roomData.name || roomData.roomName || roomData["Room Name"] || "Room",
           country: roomData.Country || roomData.country || "🇮🇳",
-          image: roomData["Room dp"] || "/default-avatar.png",
+          image: roomData.image || roomData.dp || roomData.roomDp || roomData["Room dp"] || "/default-avatar.png",
         });
         return;
       }
