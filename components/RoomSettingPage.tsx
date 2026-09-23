@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { socket } from '../src/lib/socket'
+import { apiUrl } from '../src/lib/api'
 
 export interface RoomSettingsData {
   roomDp: string;
@@ -159,7 +160,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
     const fetchFromApi = async () => {
       try {
-        const res = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomOwnerId)}&members=true`)
+        const res = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(roomOwnerId)}&members=true`))
         if (!res.ok) return
         const data = await res.json()
         const users = data?.users || data?.members || data?.room?.users || []
@@ -234,7 +235,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     try {
       // ✅ 1. DIRECT MONGO SAVE
       if (roomOwnerId) {
-        const res = await fetch('/api/rooms', {
+        const res = await fetch(apiUrl('/api/rooms'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
