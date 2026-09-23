@@ -72,17 +72,17 @@ export function FollowList({ onBack, type }: FollowListProps) {
         </h1>
       </div>
 
-      {/* Tabs Card */}
-      <div className="px-3 mb-2">
-        <div className="bg-white rounded-2xl p-1 flex items-center gap-1 shadow-sm">
+      {/* Tabs Bar — transparent, corner md */}
+      <div className="px-3 mb-3">
+        <div className="bg-white/40 rounded-md p-1 flex items-center gap-1">
           {FOLLOW_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-2.5 text-[12px] font-semibold rounded-md transition-all ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'bg-transparent text-gray-500'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-transparent text-gray-600'
               }`}
             >
               {tab.label}
@@ -91,14 +91,14 @@ export function FollowList({ onBack, type }: FollowListProps) {
         </div>
       </div>
 
-      {/* User List */}
+      {/* User List — no cards, plain items */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {users.map(item => (
           <div
             key={item}
-            className="bg-white rounded-xl mb-2 px-3 py-3 flex items-center gap-3 shadow-sm"
+            className="flex items-center gap-3 py-3"
           >
-            <div className="w-11 h-11 rounded-full bg-gray-200 flex-shrink-0" />
+            <div className="w-11 h-11 rounded-full bg-gray-300 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-gray-900 text-sm truncate">
                 {singularLabel} {item}
@@ -146,17 +146,17 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
         </h1>
       </div>
 
-      {/* Tabs Card */}
-      <div className="px-3 mb-2">
-        <div className="bg-white rounded-2xl p-1 flex items-center gap-1 shadow-sm">
+      {/* Tabs Bar — transparent, corner md */}
+      <div className="px-3 mb-3">
+        <div className="bg-white/40 rounded-md p-1 flex items-center gap-1">
           {VISITOR_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
               className={`flex-1 py-2.5 text-[12px] font-semibold rounded-md transition-all ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'bg-transparent text-gray-500'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-transparent text-gray-600'
               }`}
             >
               {tab.label}
