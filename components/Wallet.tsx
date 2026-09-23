@@ -233,6 +233,87 @@ function WhiteColorRemovalShader({
 }
 
 // ==========================================
+// Details Page Component
+// ==========================================
+const TRANSACTIONS = [
+  { id: 1, title: 'Fruit Bet Placed.', date: '2026.09.23 11:53', amount: -50000 },
+  { id: 2, title: 'Task Reward', date: '2026.09.23 11:52', amount: 4000 },
+  { id: 3, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -100000 },
+  { id: 4, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
+  { id: 5, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
+  { id: 6, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
+  { id: 7, title: 'Sign In Gift', date: '2026.09.23 09:44', amount: 20000 },
+  { id: 8, title: 'Room Support', date: '2026.09.23 03:13', amount: 1560000 },
+  { id: 9, title: 'Sign In Gift', date: '2026.09.22 06:46', amount: 10000 },
+  { id: 10, title: 'Sign In Gift', date: '2026.09.21 21:00', amount: 50000 },
+]
+
+function DetailsPage({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col bg-white pt-[env(safe-area-inset-top,12px)] pb-[env(safe-area-inset-bottom,12px)]">
+      {/* HEADER */}
+      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12 bg-white">
+        <button
+          onClick={onBack}
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-1"
+          aria-label="Back"
+        >
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
+
+        <h1 className="text-base font-bold text-gray-950 tracking-tight absolute left-1/2 -translate-x-1/2">
+          Details
+        </h1>
+
+        <div className="w-10 h-10" />
+      </div>
+
+      {/* TRANSACTION LIST */}
+      <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
+        <div className="flex flex-col">
+          {TRANSACTIONS.map((tx, index) => (
+            <div
+              key={tx.id}
+              className={`flex justify-between items-start py-4 ${
+                index !== TRANSACTIONS.length - 1 ? 'border-b border-gray-100' : ''
+              }`}
+            >
+              <div className="flex flex-col gap-1">
+                <span className="text-[15px] font-semibold text-gray-900">
+                  {tx.title}
+                </span>
+                <span className="text-[13px] text-gray-400">
+                  {tx.date}
+                </span>
+              </div>
+              <span
+                className={`text-[15px] font-bold ${
+                  tx.amount > 0 ? 'text-amber-500' : 'text-amber-500'
+                }`}
+              >
+                {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
 // Main Wallet Component
 // ==========================================
 interface WalletProps {
@@ -245,6 +326,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [diamonds, setDiamonds] = useState('')
   const [coins, setCoins] = useState('')
   const [selectedPercentage, setSelectedPercentage] = useState('100%')
+  const [showDetails, setShowDetails] = useState(false)
 
   // Balance — null = not loaded yet (avoids 0 flash)
   const [walletBalance, setWalletBalance] = useState<number | null>(null)
@@ -290,6 +372,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     setWalletBalance((prev) => (prev ?? 0) + amount)
     await addCoinsToDB(amount)
     setWalletBalance(await loadBalanceFromDB())
+  }
+
+  // If Details page is open, show it instead of Wallet
+  if (showDetails) {
+    return <DetailsPage onBack={() => setShowDetails(false)} />
   }
 
   return (
@@ -341,7 +428,9 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           Wallet
         </h1>
 
+        {/* History Button — opens Details Page */}
         <button
+          onClick={() => setShowDetails(true)}
           className="w-8 h-8 flex items-center justify-center active:scale-90 transition-all text-gray-900"
           aria-label="History"
         >
