@@ -314,7 +314,7 @@ function RoomContent({
   const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
-  const [roomDp, setRoomDp] = useState<string>("/IMG_20260921_210113.png");
+  const [roomDp, setRoomDp] = useState<string>("/default-avatar.png");
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -440,8 +440,8 @@ function RoomContent({
           if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
           if (cached.roomPassword) setRoomPassword(cached.roomPassword);
         } else {
-          setRoomName("hurry User@");
-          setRoomDp("/IMG_20260921_210113.png");
+          setRoomName("Room");
+          setRoomDp("/default-avatar.png");
         }
       } catch (err) {
         console.error("Room settings IndexedDB load error:", err);
@@ -1131,8 +1131,8 @@ function RoomContent({
 
     const roomSettings: RoomSettingsCache = {
       roomId: String(roomId),
-      roomName: nextRoomName || "hurry User@",
-      roomDp: nextRoomDp || "/IMG_20260921_210113.png",
+      roomName: nextRoomName || "Room",
+      roomDp: nextRoomDp || "/default-avatar.png",
       announcement: nextAnnouncement || "",
       micMode: Number(nextMicMode || 0),
       theme: nextTheme || "mood-light",
@@ -1236,8 +1236,8 @@ function RoomContent({
     isKeepingRef.current = true;
     const keptAccId = roomOwner.accountId || (roomId ? generateStableId(roomId) : "");
     const roomData = {
-      name: roomName || "hurry User@",
-      image: roomDp || "/IMG_20260921_210113.png",
+      name: roomName || "Room",
+      image: roomDp || "/default-avatar.png",
       accountId: keptAccId,
       id: roomId,
       roomId,
@@ -2106,7 +2106,7 @@ function RoomContent({
               </svg>
             </button>
             <div className="h-full overflow-y-auto">
-              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "hurry User@", roomDp: roomDp || "/IMG_20260921_210113.png" }} />
+              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "Room", roomDp: roomDp || "/default-avatar.png" }} />
             </div>
           </div>
         </div>
