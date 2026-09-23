@@ -1259,8 +1259,7 @@ setMyRoom(prev => {
           return validRooms.map(room => ({
             ...room,
             activeUserCount:
-              liveCounts.get(String(room.id || room.accountId || '')) ??
-              Number(room.activeUserCount || 0)
+              liveCounts.get(String(room.id || room.accountId || '')) ?? 0
           }));
         });
       }
@@ -1309,7 +1308,7 @@ setMyRoom(prev => {
               let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
               return {
                 ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : Number(room.activeUserCount || 0)
+                activeUserCount: updatedCount !== undefined ? updatedCount : 0
               }
             });
           });
@@ -1369,7 +1368,7 @@ setMyRoom(prev => {
               let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
               return {
                 ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : Number(room.activeUserCount || 0)
+                activeUserCount: updatedCount !== undefined ? updatedCount : 0
               }
             });
           });
@@ -1386,7 +1385,6 @@ setMyRoom(prev => {
       clearInterval(interval);
     };
   }, []);
-
   // ============ LIVE USER ONLINE OFFLINE PRESENCE ============
   useEffect(() => {
     const handlePresenceStatus = ({ userId, accountId, online }: { userId?: string; accountId?: string; online?: boolean }) => {
@@ -1422,86 +1420,66 @@ setMyRoom(prev => {
   useEffect(() => {
     if (!userUID || userUID === 'N/A') return;
 
-    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
-      if (!Array.isArray(rooms)) return;
+  const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
+  if (!Array.isArray(rooms)) return;
 
-      const activeRooms = rooms.filter(
-        (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
+  const activeRooms = rooms.filter(
+    (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
+  );
+
+  setGlobalRooms((prev) => {
+    const merged = prev.map((room) => ({ ...room, activeUserCount: 0 }));
+
+    activeRooms.forEach((liveRoom) => {
+      const roomId = String(liveRoom.roomId || "");
+      if (!roomId) return;
+
+      const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
+      const firstUser = liveUsers[0];
+
+      const existing = merged.find((room) =>
+        String(room.id || '') === roomId ||
+        String(room.accountId || '') === roomId
       );
 
-      setGlobalRooms((prev) => {
-        const merged = prev.map((room) => {
-          const rId = String(room.id || "");
-          const accId = String(room.accountId || "");
-          const isActive = activeRooms.some((item) => {
-            const liveId = String(item.roomId || "");
-            return liveId && (liveId === rId || liveId === accId);
-          });
-          if (!isActive) {
-            return { ...room, activeUserCount: 0 };
-          }
-          return room;
+      if (existing) {
+        existing.activeUserCount = Number(liveRoom.activeUserCount || liveUsers.length || 0);
+      } else {
+        merged.push({
+          id: roomId,
+          accountId: firstUser?.accountId || roomId,
+          name: firstUser?.name || "Room",
+          country: "🇮🇳",
+          image: firstUser?.image || "/default-avatar.png",
+          createdAt: Date.now(),
+          isLocked: false,
+          roomPassword: undefined,
+          isExplicitlyCreated: true,
+          activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
         });
+      }
+    });
 
-        const prevMap = new Map(merged.map((room) => [String(room.id || room.accountId || ""), room]));
+    return merged;
+  });
 
-        activeRooms.forEach((liveRoom) => {
-          const roomId = String(liveRoom.roomId || "");
-          if (!roomId) return;
-
-          const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
-          const firstUser = liveUsers[0];
-          const existing = prevMap.get(roomId) || merged.find((room) => String(room.accountId || "") === roomId);
-
-          if (existing) {
-            const updated = {
-              ...existing,
-              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
-            };
-            const index = merged.findIndex(
-              (room) => String(room.id || room.accountId || "") === String(existing.id || existing.accountId || "")
-            );
-            if (index >= 0) merged[index] = updated;
-          } else {
-            const numericAccNum = firstUser?.accountId && firstUser.accountId !== roomId
-              ? firstUser.accountId
-              : getOrCreateAccountNumber(roomId).fullAccNum;
-
-            merged.push({
-              id: roomId,
-              accountId: numericAccNum,
-              name: firstUser?.name || "Room",
-              country: "🇮🇳",
-              image: firstUser?.image || "/default-avatar.png",
-              createdAt: Date.now(),
-              isLocked: false,
-              roomPassword: undefined,
-              isExplicitlyCreated: true,
-              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
-            });
-          }
-        });
-
-        return merged;
+  setSearchResults((prev) =>
+    prev.map((room) => {
+      const roomId = String(room.id || "");
+      const accountId = String(room.accountId || "");
+      const liveRoom = activeRooms.find((item) => {
+        const liveId = String(item.roomId || "");
+        return liveId === roomId || liveId === accountId;
       });
-
-      setSearchResults((prev) =>
-        prev.map((room) => {
-          const roomId = String(room.id || "");
-          const accountId = String(room.accountId || "");
-          const liveRoom = activeRooms.find((item) => {
-            const liveId = String(item.roomId || "");
-            return liveId === roomId || liveId === accountId;
-          });
-          return {
-            ...room,
-            activeUserCount: liveRoom
-              ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
-              : 0,
-          };
-        })
-      );
-    };
+      return {
+        ...room,
+        activeUserCount: liveRoom
+          ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
+          : 0,
+      };
+    })
+  );
+};
 
     const handleSocketConnect = () => {
       const accountId = localStorage.getItem('accountNumber') || '';
@@ -2450,35 +2428,31 @@ setMyRoom(prev => {
   }, [currentPage])
 
   // ============ ALL ROOMS FILTER ============
-const allRooms = (() => {
-  const seen = new Set<string>();
+ const allRooms = (() => {
+  const seenKeys = new Set<string>();
   const result: GlobalRoom[] = [];
 
   for (const room of globalRooms) {
-    // Basic validation
     if (!room || !room.name || !room.image) continue;
     if (room.name === 'My Room' || room.name === 'My room' || room.name === 'User') continue;
     if (/jiys/i.test(room.name)) continue;
     if (
-      room.accountId === 'undefined' ||
-      room.accountId === 'null' ||
-      room.accountId === '' ||
-      room.accountId === null
+      room.accountId === 'undefined' || room.accountId === 'null' ||
+      room.accountId === '' || room.accountId === null
     ) continue;
 
-    // Sirf active rooms
+    // ✅ 0 users wale rooms hide
     if (!(Number(room.activeUserCount || 0) > 0)) continue;
 
     const rid = String(room.id || '');
     const racc = String(room.accountId || '');
 
-    // ✅ Dono IDs check karo — koi bhi already seen ho to skip
-    if (rid && seen.has(rid)) continue;
-    if (racc && seen.has(racc)) continue;
+    // ✅ Dono IDs pe dedup — ek bhi match hua to skip
+    if (rid && seenKeys.has(rid)) continue;
+    if (racc && seenKeys.has(racc)) continue;
 
-    // Dono ko seen me daalo
-    if (rid) seen.add(rid);
-    if (racc) seen.add(racc);
+    if (rid) seenKeys.add(rid);
+    if (racc) seenKeys.add(racc);
 
     result.push(room);
   }
