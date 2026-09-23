@@ -456,16 +456,18 @@ export default function RoomProfile({
           </div>
         )}
 
-        {/* Top Right - @ Mention Icon */}
-        <div className="absolute top-3 right-4 z-30">
-          <button
-            onClick={handleMention}
-            className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Mention user"
-          >
-            <AtSign size={22} className="text-gray-700" strokeWidth={2.5} />
-          </button>
-        </div>
+        {/* Top Right - @ Mention Icon (only for OTHER users, not own profile) */}
+        {!isCurrentUser && (
+          <div className="absolute top-3 right-4 z-30">
+            <button
+              onClick={handleMention}
+              className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Mention user"
+            >
+              <AtSign size={22} className="text-gray-700" strokeWidth={2.5} />
+            </button>
+          </div>
+        )}
 
         {/* Content - No scroll */}
         <div className="flex flex-col items-center px-4 pt-14 pb-3 h-full">
@@ -518,9 +520,9 @@ export default function RoomProfile({
                 <img
                   src="/IMG_20260917_220530.png"
                   alt="Level"
-                  className="h-7 w-auto object-contain"
+                  className="h-8 w-auto object-contain"
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-2">
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-3 pt-1">
                   Lv.1
                 </span>
               </div>
@@ -672,4 +674,4 @@ export default function RoomProfile({
       `}</style>
     </div>
   )
-          }
+      }
