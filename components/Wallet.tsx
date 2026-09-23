@@ -315,14 +315,25 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       `}</style>
 
       {/* TOP HEADER */}
-      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
+      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-0 pr-4 z-20 h-12">
+        {/* Back button — classic left arrow, ekdam left corner */}
         <button
           onClick={onBack}
-          className="w-9 h-9 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-0.5"
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-1"
           aria-label="Back"
         >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 18 9 12 15 6" />
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
           </svg>
         </button>
 
@@ -591,4 +602,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       </div>
     </div>
   )
-                                                     }
+}
