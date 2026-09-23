@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
+import { socket } from '../src/lib/socket'
 
 export interface RoomSettingsData {
   roomDp: string;
@@ -35,54 +36,63 @@ interface RoomSettingPageProps {
   onSave?: (data: Partial<RoomSettingsData>) => void
 }
 
-// ---------- Mic mode image card component (for bottom sheet only) ----------
+// ---------- Mic mode image card ----------
 function MicModeImageCard({ count }: { count: number }) {
   const getModeImage = (count: number) => {
     switch(count) {
-      case 5:
-        return '/IMG_20260914_110225.png'
-      case 10:
-        return '/IMG_20260914_110239.png'
-      case 15:
-        return '/IMG_20260914_110253.png'
-      default:
-        return '/IMG_20260914_110239.png'
+      case 5: return '/IMG_20260914_110225.png'
+      case 10: return '/IMG_20260914_110239.png'
+      case 15: return '/IMG_20260914_110253.png'
+      default: return '/IMG_20260914_110239.png'
     }
   }
-
   return (
     <div className="relative w-full rounded-xl overflow-hidden">
-      <img 
-        src={getModeImage(count)} 
-        alt={`Mic mode ${count}`}
-        className="w-full h-auto object-contain"
-      />
+      <img src={getModeImage(count)} alt={`Mic mode ${count}`} className="w-full h-auto object-contain" />
     </div>
   )
 }
 
-// ---------- Password Input Component (4 Digits, Numbers Only, Auto-shift) ----------
+// ---------- Password Input (FIXED backspace) ----------
 function PasswordInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   const handleInput = (index: number, inputValue: string) => {
     const numberValue = inputValue.replace(/[^0-9]/g, '')
-    
+
+    // Paste / multi-digit
+    if (numberValue.length > 1) {
+      const newPassword = (value.slice(0, index) + numberValue).slice(0, 4)
+      onChange(newPassword)
+      const nextEmpty = Math.min(newPassword.length, 3)
+      inputRefs.current[nextEmpty]?.focus()
+      return
+    }
+
     if (numberValue) {
       const newDigits = value.split('')
       newDigits[index] = numberValue.slice(-1)
       const newPassword = newDigits.join('').slice(0, 4)
       onChange(newPassword)
-      
-      if (index < 3 && numberValue) {
-        inputRefs.current[index + 1]?.focus()
-      }
+      if (index < 3) inputRefs.current[index + 1]?.focus()
     }
   }
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !value[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+    if (e.key === 'Backspace') {
+      if (value[index]) {
+        // current box me digit hai — bss clear karo
+        const newDigits = value.split('')
+        newDigits[index] = ''
+        onChange(newDigits.join(''))
+      } else if (index > 0) {
+        // empty box — pichhla wala clear karo
+        e.preventDefault()
+        const newDigits = value.split('')
+        newDigits[index - 1] = ''
+        onChange(newDigits.join(''))
+        inputRefs.current[index - 1]?.focus()
+      }
     }
   }
 
@@ -99,7 +109,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
           value={value[index] || ''}
           onChange={(e) => handleInput(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
-          className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
+          className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-black"
         />
       ))}
     </div>
@@ -114,62 +124,77 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [announcement, setAnnouncement] = useState<string>(roomData?.announcement || '')
   const [isLocked, setIsLocked] = useState<boolean>(roomData?.isLocked || false)
   const [selectedMicMode, setSelectedMicMode] = useState<number>(roomData?.micMode || 10)
-  const [showMicModeSheet, setShowMicModeSheet] = useState<boolean>(false)
-  const [showThemePage, setShowThemePage] = useState<boolean>(false)
-  const [showLockCard, setShowLockCard] = useState<boolean>(false)
-  const [password, setPassword] = useState<string>('')
-  const [roomPassword, setRoomPassword] = useState<string>(roomData?.roomPassword || '')
-  const [selectedTheme, setSelectedTheme] = useState<string>(roomData?.theme || 'forest-night')
+  const [showMicModeSheet, setShowMicModeSheet] = useState(false)
+  const [showThemePage, setShowThemePage] = useState(false)
+  const [showLockCard, setShowLockCard] = useState(false)
+  const [password, setPassword] = useState('')
+  const [roomPassword, setRoomPassword] = useState(roomData?.roomPassword || '')
+  const [selectedTheme, setSelectedTheme] = useState(roomData?.theme || 'forest-night')
 
-  // Admin Sheet States
-  const [showAdminSheet, setShowAdminSheet] = useState<boolean>(false)
-  const [adminSearchQuery, setAdminSearchQuery] = useState<string>('')
+  const [showAdminSheet, setShowAdminSheet] = useState(false)
+  const [adminSearchQuery, setAdminSearchQuery] = useState('')
   const [roomMembers, setRoomMembers] = useState<RoomUser[]>([])
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
 
-  // Fetch room members on mount for the Admin sheet list
+  const [isSaving, setIsSaving] = useState(false)
+
+  // ============ FETCH ROOM MEMBERS ============
   useEffect(() => {
-    const fetchMembers = async () => {
-      if (!roomOwnerId) return
+    if (!roomOwnerId) return
+
+    const applyMembers = (users: any[]) => {
+      if (!Array.isArray(users)) return
+      const mapped: RoomUser[] = users.map((m: any) => ({
+        accountId: String(m.accountId || m.userId || m.appLongId || ''),
+        name: m.name || m.userName || m.displayName || 'User',
+        image: m.image || m.dp || m.avatar || m.photo || '/default-avatar.png',
+      })).filter(u => u.accountId)
+      setRoomMembers(mapped)
+    }
+
+    // 1. Socket se live list maango
+    const handleRoomMembers = (data: any) => {
+      if (String(data?.roomId) !== String(roomOwnerId)) return
+      applyMembers(data?.users || [])
+    }
+
+    socket.on('room_members_list', handleRoomMembers)
+    socket.emit('get_room_members', { roomId: roomOwnerId })
+
+    // 2. API fallback
+    const fetchFromApi = async () => {
       try {
-        const res: any = [] // Added placeholder to prevent compile errors
-        if (Array.isArray(res)) {
-          const users: RoomUser[] = res.map((m: any) => ({
-            accountId: m.userId || m.appLongId || m.accountId || '',
-            name: m.name || m.userName || 'User',
-            image: m.dp || m.avatar || m.image || '/default-avatar.png'
-          }))
-          setRoomMembers(users)
-        }
+        const res = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomOwnerId)}&members=true`)
+        if (!res.ok) return
+        const data = await res.json()
+        const users = data?.users || data?.members || data?.room?.users || []
+        if (users.length > 0) applyMembers(users)
       } catch (err) {
-        console.error("Error fetching room members for admin list:", err)
+        console.warn('Members API fetch failed:', err)
       }
     }
-    fetchMembers()
+    fetchFromApi()
+
+    return () => {
+      socket.off('room_members_list', handleRoomMembers)
+    }
   }, [roomOwnerId])
 
   const micModes = [5, 10, 15]
 
   const themes = [
     { id: 'forest-night', name: 'Forest Night', image: '/1784875884052~2.jpg' },
-    { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' }
+    { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' },
   ]
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
-      return
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB')
-      return
-    }
+    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return }
+    if (file.size > 5 * 1024 * 1024) { alert('Image size should be less than 5MB'); return }
+
     const reader = new FileReader()
-    reader.onload = (event) => {
-      setRoomDp(event.target?.result as string)
-    }
+    reader.onload = (event) => setRoomDp(event.target?.result as string)
     reader.readAsDataURL(file)
   }
 
@@ -190,17 +215,19 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   }
 
   const toggleAdminStatus = (accountId: string) => {
-    setAdmins(prev => 
-      prev.includes(accountId) 
-        ? prev.filter(id => id !== accountId)
-        : [...prev, accountId]
+    setAdmins(prev =>
+      prev.includes(accountId) ? prev.filter(id => id !== accountId) : [...prev, accountId]
     )
   }
 
+  // ============ SAVE — YAHI ASLI FIX ============
   const handleSave = async () => {
-    const settingsData = {
+    if (isSaving) return
+    setIsSaving(true)
+
+    const settingsData: Partial<RoomSettingsData> = {
       roomDp,
-      roomName,
+      roomName: roomName.trim() || 'hurry User@',
       announcement,
       isLocked,
       roomPassword,
@@ -209,11 +236,70 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       admin: admins,
     }
 
-    if (onSave) onSave(settingsData)
-    onBack()
+    try {
+      // ✅ 1. DIRECT MONGO SAVE — parent pe depend nahi
+      if (roomOwnerId) {
+        const res = await fetch('/api/rooms', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomId: roomOwnerId,
+            id: roomOwnerId,
+            roomName: settingsData.roomName,
+            'Room Name': settingsData.roomName,
+            roomDp: settingsData.roomDp,
+            'Room dp': settingsData.roomDp,
+            announcement: settingsData.announcement,
+            theme: settingsData.theme,
+            admin: settingsData.admin,
+            isLocked: settingsData.isLocked,
+            roomPassword: settingsData.roomPassword,
+            micMode: settingsData.micMode,
+          }),
+        })
+        if (!res.ok) throw new Error(`Save failed: ${res.status}`)
+      }
+
+      // ✅ 2. Socket broadcast — HomePage turant update ho
+      socket.emit('room_settings_updated', {
+        roomId: roomOwnerId,
+        roomName: settingsData.roomName,
+        roomDp: settingsData.roomDp,
+        isLocked: settingsData.isLocked,
+        roomPassword: settingsData.roomPassword,
+      })
+
+      // ✅ 3. Parent ko bhi batao (agar handle karta hai)
+      if (onSave) onSave(settingsData)
+
+      // ✅ 4. LocalStorage update (fallback)
+      try {
+        const stored = localStorage.getItem('myRoom')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          if (String(parsed.id) === String(roomOwnerId) || String(parsed.accountId) === String(roomOwnerId)) {
+            const updated = {
+              ...parsed,
+              name: settingsData.roomName,
+              image: settingsData.roomDp,
+              isLocked: settingsData.isLocked,
+              roomPassword: settingsData.roomPassword,
+            }
+            localStorage.setItem('myRoom', JSON.stringify(updated))
+          }
+        }
+      } catch {}
+
+      onBack()
+    } catch (err) {
+      console.error('Save error:', err)
+      alert('Save failed. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const filteredMembers = roomMembers.filter(user => 
+  const filteredMembers = roomMembers.filter(user =>
     user.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
     user.accountId.toLowerCase().includes(adminSearchQuery.toLowerCase())
   )
@@ -235,21 +321,24 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           <h1 className="flex-1 text-center text-lg font-bold text-gray-800">Room Setting</h1>
           <button
             onClick={handleSave}
-            className="px-4 py-1.5 text-blue-500 hover:text-blue-600 text-sm font-semibold transition-colors"
+            disabled={isSaving}
+            className={`px-4 py-1.5 text-sm font-semibold transition-colors ${
+              isSaving ? 'text-gray-400' : 'text-blue-500 hover:text-blue-600'
+            }`}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          {/* 1. Room Cover (DP) */}
+          {/* Room Cover */}
           <div className="mb-6 flex flex-col items-center">
             <label className="cursor-pointer relative group">
               <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md">
                 <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" className="w-8 h-8 fill-white opacity-0 group-hover:opacity-100">
+                  <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none opacity-0 group-hover:opacity-100 stroke-[2]">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                     <polyline points="17 8 12 3 7 8" />
                     <line x1="12" y1="3" x2="12" y2="15" />
@@ -261,7 +350,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             <p className="text-sm font-medium text-gray-600 mt-2">Room Cover</p>
           </div>
 
-          {/* 2. Room Name */}
+          {/* Room Name */}
           <div className="mb-5">
             <div className="flex items-center justify-between px-1">
               <label className="text-sm font-medium text-gray-600">Room Name</label>
@@ -275,7 +364,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
           </div>
 
-          {/* 3. Room Announcement */}
+          {/* Announcement */}
           <div className="mb-5">
             <div className="flex items-start justify-between px-1">
               <label className="text-sm font-medium text-gray-600 pt-1">Room Announcement</label>
@@ -289,11 +378,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
           </div>
 
-          {/* 4. Theme */}
+          {/* Theme */}
           <div className="mb-5">
-            <button 
+            <button
               onClick={() => setShowThemePage(true)}
-              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 py-2 rounded-lg"
+              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg"
             >
               <label className="text-sm font-medium text-gray-600">Theme</label>
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-gray-400 stroke-[2]">
@@ -302,11 +391,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* 5. Admin */}
+          {/* Admin */}
           <div className="mb-5">
-            <button 
+            <button
               onClick={() => setShowAdminSheet(true)}
-              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 py-2 rounded-lg cursor-pointer"
+              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg cursor-pointer"
             >
               <label className="text-sm font-medium text-gray-600">Admin</label>
               <div className="flex items-center gap-2">
@@ -318,20 +407,23 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* 6. Lock Room */}
+          {/* Lock Room */}
           <div className="mb-5">
-            <button 
+            <button
               onClick={() => { setPassword(isLocked ? roomPassword : ''); setShowLockCard(true) }}
-              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 py-2 rounded-lg"
+              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg"
             >
               <label className="text-sm font-medium text-gray-600">Lock Room</label>
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-gray-400 stroke-[2]">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
+              <div className="flex items-center gap-2">
+                {isLocked && <span className="text-xs text-red-500 font-medium">Locked</span>}
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-gray-400 stroke-[2]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
             </button>
           </div>
 
-          {/* 7. Mic Mode */}
+          {/* Mic Mode */}
           <div className="mb-5">
             <div className="flex items-center justify-between px-1">
               <label className="text-sm font-medium text-gray-600">Mic Mode</label>
@@ -363,28 +455,18 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               <h3 className="flex-1 text-center text-lg font-bold text-gray-800">Room Theme</h3>
               <div className="w-10"></div>
             </div>
-
             <div className="flex-1 overflow-y-auto px-4 py-6">
               <div className="grid grid-cols-2 gap-4">
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
-                    onClick={() => {
-                      setSelectedTheme(theme.id)
-                      setShowThemePage(false)
-                    }}
+                    onClick={() => { setSelectedTheme(theme.id); setShowThemePage(false) }}
                     className={`flex flex-col rounded-xl overflow-hidden transition-all ${
-                      selectedTheme === theme.id
-                        ? 'ring-2 ring-blue-400 ring-offset-2'
-                        : 'hover:opacity-90'
+                      selectedTheme === theme.id ? 'ring-2 ring-blue-400 ring-offset-2' : 'hover:opacity-90'
                     }`}
                   >
                     <div className="w-full h-64 rounded-xl overflow-hidden">
-                      <img 
-                        src={theme.image} 
-                        alt={theme.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
                     </div>
                     <span className="text-sm font-medium text-gray-700 mt-2 mb-1 text-center">{theme.name}</span>
                   </button>
@@ -394,41 +476,33 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
         )}
 
-        {/* Lock Room Password Card */}
+        {/* Lock Room Card */}
         {showLockCard && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowLockCard(false)} />
             <div className="relative bg-white w-80 rounded-2xl shadow-2xl p-6 mx-4">
               <h3 className="text-lg font-bold text-gray-800 text-center mb-6">Set Room Password</h3>
-              
               <PasswordInput value={password} onChange={setPassword} />
-              
               {isLocked && password === roomPassword ? (
                 <button
                   onClick={handleUnlockPassword}
-                  className="w-full mt-6 py-3 rounded-xl font-semibold text-white transition-all bg-red-500 hover:bg-red-600"
+                  className="w-full mt-6 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
                 >
-                  Unlocked Password
+                  Unlock Room
                 </button>
               ) : (
                 <button
                   onClick={handleSetPassword}
                   disabled={password.length !== 4}
                   className={`w-full mt-6 py-3 rounded-xl font-semibold text-white transition-all ${
-                    password.length === 4
-                      ? 'bg-blue-500 hover:bg-blue-600'
-                      : 'bg-gray-300 cursor-not-allowed'
+                    password.length === 4 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-300 cursor-not-allowed'
                   }`}
                 >
                   {isLocked ? 'Update Password' : 'Set Password'}
                 </button>
               )}
-              
               <button
-                onClick={() => {
-                  setShowLockCard(false)
-                  setPassword('')
-                }}
+                onClick={() => { setShowLockCard(false); setPassword('') }}
                 className="w-full mt-3 py-2 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl"
               >
                 Cancel
@@ -437,35 +511,28 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
         )}
 
-        {/* Mic Mode Bottom Sheet */}
+        {/* Mic Mode Sheet */}
         {showMicModeSheet && (
-          <div className="absolute inset-0 z-50 flex items-end justify-center">
+          <div className="fixed inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowMicModeSheet(false)} />
-            <div className="relative bg-white w-full max-w-md rounded-md shadow-2xl px-4 py-6 animate-slide-up">
+            <div className="relative bg-white w-full max-w-md rounded-t-2xl shadow-2xl px-4 py-6">
               <h3 className="text-lg font-bold text-gray-800 text-center mb-4">Select Mic Mode</h3>
-
               <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
                 {micModes.map((mode) => (
                   <button
                     key={mode}
-                    onClick={() => {
-                      setSelectedMicMode(mode)
-                      setShowMicModeSheet(false)
-                    }}
+                    onClick={() => { setSelectedMicMode(mode); setShowMicModeSheet(false) }}
                     className="flex flex-col items-center rounded-xl overflow-hidden transition-all hover:opacity-90"
                   >
                     <MicModeImageCard count={mode} />
                     <span className={`text-sm mt-2 mb-1 ${
-                      selectedMicMode === mode 
-                        ? 'text-blue-500 font-bold' 
-                        : 'text-gray-700 font-medium'
+                      selectedMicMode === mode ? 'text-blue-500 font-bold' : 'text-gray-700 font-medium'
                     }`}>
                       Mic {mode}
                     </span>
                   </button>
                 ))}
               </div>
-
               <button
                 onClick={() => setShowMicModeSheet(false)}
                 className="w-full mt-4 py-3 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl"
@@ -477,20 +544,19 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         )}
       </div>
 
-      {/* ADMIN MANAGEMENT SHEET */}
+      {/* ADMIN SHEET */}
       {showAdminSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAdminSheet(false)} />
-          <div 
-            className="relative bg-black w-full max-w-md rounded-t-md shadow-2xl flex flex-col overflow-hidden animate-slide-up"
+          <div
+            className="relative bg-black w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
             style={{ height: '40vh', maxHeight: '40vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sheet Header (Removed border-b here) */}
             <div className="flex items-center px-4 py-3 flex-shrink-0">
               <button
                 onClick={() => setShowAdminSheet(false)}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
                   <polyline points="15 18 9 12 15 6" />
@@ -499,24 +565,22 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               <h3 className="flex-1 text-center text-base font-bold text-white pr-8">Admin</h3>
             </div>
 
-            {/* Search Input Bar */}
             <div className="px-4 py-3 flex-shrink-0">
               <input
                 type="text"
                 value={adminSearchQuery}
                 onChange={(e) => setAdminSearchQuery(e.target.value)}
                 placeholder="Search a ID for Admin"
-                className="w-full bg-black/10 text-white placeholder-gray-400 text-xs px-3 py-2 rounded-md focus:outline-none"
+                className="w-full bg-white/10 text-white placeholder-gray-400 text-xs px-3 py-2 rounded-md focus:outline-none"
               />
             </div>
 
-            {/* Members List */}
             <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4">
               {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => {
+                filteredMembers.map((member, idx) => {
                   const isAdmin = admins.includes(member.accountId)
                   return (
-                    <div key={member.accountId} className="flex items-center justify-between bg-white/5 rounded-xl px-3 py-2">
+                    <div key={`${member.accountId}_${idx}`} className="flex items-center justify-between bg-white/5 rounded-xl px-3 py-2">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
                           <img src={member.image || '/default-avatar.png'} alt={member.name} className="w-full h-full object-cover" />
@@ -526,14 +590,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                           <p className="text-[10px] text-gray-400">ID: {member.accountId}</p>
                         </div>
                       </div>
-
-                      {/* Blue Square Button */}
                       <button
                         onClick={() => toggleAdminStatus(member.accountId)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer flex-shrink-0 ${
-                          isAdmin 
-                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                            : 'bg-blue-500 text-white hover:bg-blue-600 shadow-sm'
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 flex-shrink-0 ${
+                          isAdmin ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
                       >
                         <span>{isAdmin ? '×1 Admin' : 'Admin'}</span>
@@ -550,17 +610,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-        .animate-slide-up {
-          animation: slideUp 0.3s ease-out;
-        }
-      `}</style>
     </>
   )
-}
-
+      }
