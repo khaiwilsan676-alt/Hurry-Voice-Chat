@@ -2450,21 +2450,41 @@ setMyRoom(prev => {
   }, [currentPage])
 
   // ============ ALL ROOMS FILTER ============
-  const allRooms = globalRooms.filter((room, index, self) =>
-  room &&
-  room.name &&
-  room.name !== 'My Room' &&
-  room.name !== 'My room' &&
-  room.name !== 'User' &&
-  room.image &&
-  !/jiys/i.test(room.name) &&
-  room.accountId !== 'undefined' &&
-  room.accountId !== 'null' &&
-  room.accountId !== '' &&
-  room.accountId !== null &&
-  self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index &&
-  Number(room.activeUserCount || 0) > 0
-)
+const allRooms = (() => {
+  const seen = new Set<string>();
+  const result: GlobalRoom[] = [];
+
+  for (const room of globalRooms) {
+    // Basic validation
+    if (!room || !room.name || !room.image) continue;
+    if (room.name === 'My Room' || room.name === 'My room' || room.name === 'User') continue;
+    if (/jiys/i.test(room.name)) continue;
+    if (
+      room.accountId === 'undefined' ||
+      room.accountId === 'null' ||
+      room.accountId === '' ||
+      room.accountId === null
+    ) continue;
+
+    // Sirf active rooms
+    if (!(Number(room.activeUserCount || 0) > 0)) continue;
+
+    const rid = String(room.id || '');
+    const racc = String(room.accountId || '');
+
+    // ✅ Dono IDs check karo — koi bhi already seen ho to skip
+    if (rid && seen.has(rid)) continue;
+    if (racc && seen.has(racc)) continue;
+
+    // Dono ko seen me daalo
+    if (rid) seen.add(rid);
+    if (racc) seen.add(racc);
+
+    result.push(room);
+  }
+
+  return result;
+})();
   // ============ RENDER POPULAR TAB ============
   const renderPopularTab = () => {
     return (
