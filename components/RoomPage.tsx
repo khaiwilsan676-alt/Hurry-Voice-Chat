@@ -1471,147 +1471,103 @@ const sendMessageToSocket = async (
     setShowSettingPage(true);
   };
 
-  const closeSettings = () => setShowSettingPage(false);
+     const roomSettings: RoomSettingsCache = {
+    roomId: String(roomId),
+    roomName:
+      nextRoomName || "hurry User@",
+    roomDp:
+      nextRoomDp || "/IMG_20260921_210113.png",
+    announcement: nextAnnouncement || "",
+    micMode: Number(nextMicMode || 0),
+    theme: nextTheme || "mood-light",
+    isLocked: Boolean(nextLocked),
+    roomPassword: nextPassword || "",
+    updatedAt: Date.now(),
+  };
 
-  const handleSaveSettings = async (
-    data: Partial<RoomSettingsData>
-  ) => {
-    const nextRoomName =
-      data.roomName !== undefined
-        ? data.roomName
-        : roomName;
+  await saveRoomSettingsToIndexedDB(
+    roomSettings
+  );
 
-    const nextRoomDp =
-      data.roomDp !== undefined
-        ? data.roomDp
-        : roomDp;
+  const isOwnerOfRoom =
+    String(roomId) === String(currentUser.id) ||
+    String(roomId) === String(currentUser.accountId) ||
+    String(roomOwner.id) === String(currentUser.id) ||
+    String(roomOwner.accountId) === String(currentUser.accountId);
 
-    const nextAnnouncement =
-      data.announcement !== undefined
-        ? data.announcement
-        : roomAnnouncement;
-
-    const nextMicMode =
-      data.micMode !== undefined
-        ? data.micMode
-        : micMode;
-
-    const nextTheme =
-      data.theme !== undefined
-        ? data.theme
-        : Object.keys(THEME_BACKGROUNDS).find(
-            key =>
-              THEME_BACKGROUNDS[key] === backgroundImage
-          );
-
-    const nextLocked =
-      data.isLocked !== undefined
-        ? data.isLocked
-        : isLocked;
-
-    const nextPassword =
-      data.roomPassword !== undefined
-        ? data.roomPassword
-        : roomPassword;
-
-    // Update local state with the complete current values.
-    setRoomName(nextRoomName);
-    setRoomAnnouncement(nextAnnouncement);
-    setRoomDp(nextRoomDp);
-    setMicMode(nextMicMode);
-
-    if (
-      nextTheme &&
-      THEME_BACKGROUNDS[nextTheme]
-    ) {
-      setBackgroundImage(
-        THEME_BACKGROUNDS[nextTheme]
-      );
-    }
-
-    setIsLocked(nextLocked);
-    setRoomPassword(nextPassword);
-
-    if (!roomId) return;
-
-    const roomSettings: RoomSettingsCache = {
-      roomId: String(roomId),
-      roomName:
-        nextRoomName || "hurry User@",
-      roomDp:
-        nextRoomDp || "/IMG_20260921_210113.png",
-      announcement: nextAnnouncement || "",
-      micMode: Number(nextMicMode || 0),
-      theme: nextTheme || "mood-light",
-      isLocked: Boolean(nextLocked),
-      roomPassword: nextPassword || "",
-      updatedAt: Date.now(),
+  // ✅ Save to MongoDB — sab field formats me
+  try {
+    const dbRoomData = {
+      accountId: roomOwner.accountId || roomId,
+      id: roomOwner.accountId || roomId,
+      roomId: roomOwner.accountId || roomId,
+      name: roomSettings.roomName,
+      roomName: roomSettings.roomName,
+      'Room Name': roomSettings.roomName,
+      image: roomSettings.roomDp,
+      roomDp: roomSettings.roomDp,
+      'Room dp': roomSettings.roomDp,
+      country: localStorage.getItem('userCountry') || '🇮🇳',
+      message: roomSettings.announcement,
+      announcement: roomSettings.announcement,
+      theme: roomSettings.theme,
+      micMode: roomSettings.micMode,
+      isLocked: roomSettings.isLocked,
+      roomPassword: roomSettings.roomPassword,
     };
 
-    // Local source/cache.
-    await saveRoomSettingsToIndexedDB(
-      roomSettings
-    );
+    const res = await fetch(apiUrl('/api/rooms'), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dbRoomData),
+    });
 
-    const isOwnerOfRoom =
-      String(roomId) === String(currentUser.id) ||
-      String(roomId) === String(currentUser.accountId) ||
-      String(roomOwner.id) === String(currentUser.id) ||
-      String(roomOwner.accountId) === String(currentUser.accountId);
+    if (!res.ok) {
+      console.warn('Room settings save failed:', res.status);
+    }
+  } catch (error) {
+    console.error("Failed to save room settings to MongoDB", error);
+  }
 
-    // Save to MongoDB API so it updates globally
+  if (isOwnerOfRoom) {
+    let existingMyRoom: any = {};
     try {
-      const dbRoomData = {
-        accountId: roomOwner.accountId || roomId,
-        id: roomOwner.accountId || roomId,
-        roomId: roomOwner.accountId || roomId,
-        name: roomSettings.roomName,
-        image: roomSettings.roomDp,
-        country: localStorage.getItem('userCountry') || '🇮🇳',
-        message: roomSettings.announcement,
-        theme: roomSettings.theme,
-        isLocked: roomSettings.isLocked,
-        roomPassword: roomSettings.roomPassword,
-      };
-
-      await fetch(apiUrl('/api/rooms'), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dbRoomData),
-      });
-    } catch (error) {
-      console.error("Failed to save room settings to MongoDB", error);
-    }
-
-    if (isOwnerOfRoom) {
-      let existingMyRoom: any = {};
-      try {
-        const rawMyRoom = localStorage.getItem('myRoom');
-        if (rawMyRoom) {
-          existingMyRoom = JSON.parse(rawMyRoom);
-        }
-      } catch (e) {
-        console.error("Error parsing myRoom from localStorage", e);
+      const rawMyRoom = localStorage.getItem('myRoom');
+      if (rawMyRoom) {
+        existingMyRoom = JSON.parse(rawMyRoom);
       }
-
-      const updatedMyRoomCard = {
-        ...existingMyRoom,
-        id: currentUser.id || roomId,
-        accountId: currentUser.accountId || roomOwner.accountId,
-        name: roomSettings.roomName,
-        image: roomSettings.roomDp,
-        country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
-      };
-      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
-      window.dispatchEvent(new Event('storage'));
+    } catch (e) {
+      console.error("Error parsing myRoom", e);
     }
 
-    // Realtime source for users currently inside the room.
-    socket.emit(
-      "room_settings_update",
-      roomSettings
-    );
-  };
+    const updatedMyRoomCard = {
+      ...existingMyRoom,
+      id: currentUser.id || roomId,
+      accountId: currentUser.accountId || roomOwner.accountId,
+      name: roomSettings.roomName,
+      image: roomSettings.roomDp,
+      country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
+    };
+    localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  // ✅ Realtime — HomePage turant update ho
+  socket.emit(
+    "room_settings_updated",
+    {
+      roomId: roomOwner.accountId || roomId,
+      roomName: roomSettings.roomName,
+      roomDp: roomSettings.roomDp,
+      announcement: roomSettings.announcement,
+      micMode: roomSettings.micMode,
+      theme: roomSettings.theme,
+      isLocked: roomSettings.isLocked,
+      roomPassword: roomSettings.roomPassword,
+      updatedAt: Date.now(),
+    }
+  );
+};
 
   const handleExit = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
