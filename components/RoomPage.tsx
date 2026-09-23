@@ -3,6 +3,7 @@ import { apiUrl } from "../src/lib/api";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import EmojiPicker from './Emojipicker';
+import CupIcon from './cupicon';
 import GiftPicker from './GiftPicker';
 import RoomSettingPage, { RoomSettingsData } from './RoomSettingPage';
 import MessagePage from './MessagePage';
@@ -333,6 +334,8 @@ function RoomContent({
   const [showRoomTask, setShowRoomTask] = useState(false);
   const [showStore, setShowStore] = useState(false);
   const [storeInitialView, setStoreInitialView] = useState<"store" | "bag">("store");
+  const [showCupIcon, setShowCupIcon] = useState(false);
+  const [cupCount, setCupCount] = useState(0);
 
 
   // Music Controller State (hidden | full | minimized)
@@ -361,6 +364,11 @@ function RoomContent({
     setLocalUser({ name, image, accountId: storedAccNum });
   }, []);
 
+  const formatCupCount = (n: number): string => {
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+  return String(n);
+};
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [profileUser, setProfileUser] = useState<{
     name: string;
@@ -395,6 +403,9 @@ function RoomContent({
   const [showChatInput, setShowChatInput] = useState(false);
   const [roomUsers, setRoomUsers] = useState<RoomUser[]>([]);
 
+  useEffect(() => {
+  localStorage.setItem('cupCount', String(cupCount));
+}, [cupCount]);
   const getInitialSeats = (mode: number): Seat[] => {
     const seats: Seat[] = [];
     for (let i = 1; i <= mode; i++) {
@@ -2019,7 +2030,10 @@ const sendMessageToSocket = async (
         {/* Trophy Card UI */}
         <div className="h-0 w-full relative z-20">
           <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
-            <button className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
+            <button
+  onClick={() => setShowCupIcon(true)}
+  className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none"
+>
               <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
                 <GreenColorRemovalShader
                   imageSrc="/1788258883971~2.jpg"
@@ -2036,11 +2050,11 @@ const sendMessageToSocket = async (
                 />
               </div>
               <span
-                className="font-bold text-[13px] leading-none tracking-tight"
-                style={{ color: '#eef3a3' }}
-              >
-                0
-              </span>
+  className="font-bold text-[13px] leading-none tracking-tight"
+  style={{ color: '#eef3a3' }}
+>
+  {formatCupCount(cupCount)}
+</span>
               <svg
                 viewBox="0 0 24 24"
                 className="fill-none stroke-[3] ml-1 opacity-90"
@@ -2751,7 +2765,15 @@ const sendMessageToSocket = async (
           <Roomtask onBack={() => setShowRoomTask(false)} />
         </div>
       )}
-
+        {showCupIcon && (
+  <div className="fixed inset-0 z-[11000] bg-black">
+    <CupIcon
+      onBack={() => setShowCupIcon(false)}
+      count={cupCount}
+    />
+  </div>
+)}
+      
       {/* FULL MUSIC CONTROLLER */}
       {musicControllerState === 'full' && currentTrack && !showFourGride && (
         <div
@@ -2951,8 +2973,13 @@ const sendMessageToSocket = async (
       `}</style>
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
-      {showGiftPicker && <GiftPicker onClose={() => setShowGiftPicker(false)} seats={seats} />}
-
+      {showGiftPicker && (
+  <GiftPicker
+    onClose={() => setShowGiftPicker(false)}
+    seats={seats}
+    onSend={(count: number) => setCupCount((prev) => prev + count)}
+  />
+)}
     </div>
   );
 }
