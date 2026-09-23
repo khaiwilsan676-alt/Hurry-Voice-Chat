@@ -98,7 +98,7 @@ export default function GiftPicker({
 }: {
   onClose: () => void;
   seats?: Seat[];
-  onSend?: (count: number) => void;
+  onSend?: (value: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState("Hot");
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
@@ -214,9 +214,9 @@ export default function GiftPicker({
     setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
 
-    // 🔥 Cup count badhao
+    // 🔥 Cup count badhao — gift ki total coin value (coins × multiplier)
     if (onSend) {
-      onSend(parseMultiplier(selectedMultiplier));
+      onSend(totalCost);
     }
 
     setSending(false);
@@ -591,4 +591,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-                }
+    }
