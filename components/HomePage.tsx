@@ -1037,6 +1037,24 @@ export default function HomePage({ onLogout }: HomePageProps) {
         }
         return room;
       }));
+      // ✅ YE NAYA BLOCK ADD KARO — setGlobalRooms ke baad, function ke closing } se pehle
+setMyRoom(prev => {
+  if (!prev) return prev;
+  const isMine =
+    String(prev.id) === roomId ||
+    String(prev.accountId) === roomId;
+  if (!isMine) return prev;
+
+  const updated = {
+    ...prev,
+    name: data.roomName || prev.name,
+    image: data.roomDp || prev.image,
+    isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : prev.isLocked,
+    roomPassword: data.roomPassword !== undefined ? data.roomPassword : prev.roomPassword,
+  };
+  localStorage.setItem('myRoom', JSON.stringify(updated));
+  return updated;
+});
     };
 
     socket.on('private_message', handleIncomingPrivateMsg);
@@ -2433,21 +2451,20 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
   // ============ ALL ROOMS FILTER ============
   const allRooms = globalRooms.filter((room, index, self) =>
-    room &&
-    room.name &&
-    room.name !== 'My Room' &&
-    room.name !== 'My room' &&
-    room.name !== 'User' &&
-    room.image &&
-    !/jiys/i.test(room.name) &&
-    room.accountId !== 'undefined' &&
-    room.accountId !== 'null' &&
-    room.accountId !== '' &&
-    room.accountId !== null &&
-    self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index &&
-    (Number(room.activeUserCount || 0) > 0 || String(room.accountId) === String(localStorage.getItem('accountNumber') || (typeof userUID !== 'undefined' && userUID ? getOrCreateAccountNumber(userUID).fullAccNum : '')))
-  )
-
+  room &&
+  room.name &&
+  room.name !== 'My Room' &&
+  room.name !== 'My room' &&
+  room.name !== 'User' &&
+  room.image &&
+  !/jiys/i.test(room.name) &&
+  room.accountId !== 'undefined' &&
+  room.accountId !== 'null' &&
+  room.accountId !== '' &&
+  room.accountId !== null &&
+  self.findIndex(r => String(r.id || r.accountId) === String(room.id || room.accountId)) === index &&
+  Number(room.activeUserCount || 0) > 0
+)
   // ============ RENDER POPULAR TAB ============
   const renderPopularTab = () => {
     return (
