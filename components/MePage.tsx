@@ -829,7 +829,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               {user.photo ? (
                 <img
                   src={user.photo}
-                  className="w-20 h-20 rounded-full object-cover border-2 border-white/60 shadow-sm"
+                  className="w-20 h-20 rounded-full object-cover shadow-sm"
                   alt="Profile"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
@@ -838,7 +838,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                 />
               ) : null}
               
-              <div className={`w-20 h-20 bg-gray-600 rounded-full flex items-center justify-center text-4xl text-white font-bold border-2 border-white/60 shadow-sm ${user.photo ? 'hidden' : ''}`}>
+              <div className={`w-20 h-20 bg-gray-600 rounded-full flex items-center justify-center text-4xl text-white font-bold shadow-sm ${user.photo ? 'hidden' : ''}`}>
                 {lockedAvatarLetter}
               </div>
               
