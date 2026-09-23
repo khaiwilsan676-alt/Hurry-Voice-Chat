@@ -129,7 +129,7 @@ interface MessagePageProps {
   sharedRoomData?: {
     roomId: string;
     roomName: string;
-    roomImage: string;
+    roomDp: string;
   } | null;
 }
 

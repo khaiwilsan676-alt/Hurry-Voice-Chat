@@ -16,7 +16,7 @@ interface RoomInfoProps {
   };
   roomData: {
     roomName: string;
-    roomImage: string;
+    roomDp: string;
     roomAnnouncement: string;
     roomId: string;
   };
@@ -97,7 +97,7 @@ export default function RoomInfo({
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
                   <img 
-                    src={roomData.roomImage} 
+                    src={roomData.roomDp}
                     alt="Room" 
                     className="w-full h-full object-cover" 
                   />
