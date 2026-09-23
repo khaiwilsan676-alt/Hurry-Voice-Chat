@@ -38,11 +38,31 @@ export function FollowList({ onBack, type }: FollowListProps) {
   const currentLabel = FOLLOW_TABS.find(t => t.id === activeTab)?.label || 'Friends'
   const singularLabel = SINGULAR[activeTab] || 'User'
 
-  const count =
-    activeTab === 'followers' ? 10 :
-    activeTab === 'following' ? 7 : 12
+  const [users, setUsers] = useState<any[]>([]);
 
-  const users = Array.from({ length: count }, (_, i) => i + 1)
+  React.useEffect(() => {
+    try {
+      const currentUserStr = localStorage.getItem('userData');
+      if (currentUserStr) {
+        const currentUserData = JSON.parse(currentUserStr);
+        const accountId = currentUserData.displayAccountNumber || currentUserData.accountId || currentUserData.uid;
+
+        let fetchedUsers: any[] = [];
+        if (activeTab === 'followers') {
+           fetchedUsers = JSON.parse(localStorage.getItem(`followers_${accountId}`) || '[]');
+        } else if (activeTab === 'following') {
+           fetchedUsers = JSON.parse(localStorage.getItem(`following_${accountId}`) || '[]');
+        } else if (activeTab === 'friends') {
+           const followers = JSON.parse(localStorage.getItem(`followers_${accountId}`) || '[]');
+           const following = JSON.parse(localStorage.getItem(`following_${accountId}`) || '[]');
+           fetchedUsers = followers.filter((f: any) => following.some((fw: any) => fw.accountId === f.accountId));
+        } else if (activeTab === 'visitors') {
+           fetchedUsers = JSON.parse(localStorage.getItem(`visitors_${accountId}`) || '[]');
+        }
+        setUsers(fetchedUsers);
+      }
+    } catch(err) {}
+  }, [activeTab]);
 
   return (
     <div
@@ -93,18 +113,18 @@ export function FollowList({ onBack, type }: FollowListProps) {
 
       {/* User List — tight spacing */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
-        {users.map(item => (
+        {users.map((item, i) => (
           <div
-            key={item}
+            key={item.accountId || item.id || `item-${i}`}
             className="flex items-center gap-2 py-2"
           >
-            <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
+            <img src={item.image || item.photo || "/default-avatar.png"} className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-gray-300" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt={item.name} />
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-gray-900 text-sm truncate">
-                {singularLabel} {item}
+                {item.name || singularLabel}
               </div>
               <div className="text-xs text-gray-500 truncate">
-                @{activeTab}{item}
+                {item.accountId ? `@${item.accountId}` : `@${activeTab}`}
               </div>
             </div>
           </div>
