@@ -145,6 +145,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   const [activeChat, setActiveChat] = useState<{ uid: string; name: string; photo: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }>>({});
+  
+  // Tab state: 'messages' or 'friends'
+  const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -629,7 +632,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Header */}
+      {/* Header - Updated as per image */}
       <div
         className="px-4 pb-2 flex items-center justify-between sticky top-0 z-10 safe-top"
         style={{
@@ -637,84 +640,135 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
           paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
         }}
       >
-        <h1 className="text-3xl font-bold text-gray-800">Message</h1>
+        <div className="flex items-center gap-6">
+          {/* Message Tab */}
+          <div 
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => setActiveTab('messages')}
+          >
+            <h1 className={`text-3xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
+              Message
+            </h1>
+            {activeTab === 'messages' && (
+              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
+            )}
+          </div>
+
+          {/* Friends Tab */}
+          <div 
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => setActiveTab('friends')}
+          >
+            <h1 className={`text-3xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
+              Friends
+            </h1>
+            {activeTab === 'friends' && (
+              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
+            )}
+          </div>
+        </div>
+
+        {/* Search Icon */}
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer">
+          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-6 w-6 text-yellow-600" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth={3}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Main content: Chats only */}
       <div className="pt-2 pb-24 flex flex-col gap-1">
-        {/* Fixed chats */}
-        {fixedChats.map((chat) => {
-          const preview = officialPreviews[chat.uid];
-          return (
-            <div
-              key={chat.id}
-              onClick={() => {
-                setOfficialPreviews((prev) => ({
-                  ...prev,
-                  [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
-                }));
-                handleOpenFixedChat(chat);
-              }}
-              className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-            >
-              <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
-                {preview?.lastMessage && (
-                  <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                {preview?.lastTimestamp ? (
-                  <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
-                ) : null}
-                {preview?.unreadCount && preview.unreadCount > 0 ? (
-                  <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
-                    {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          );
-        })}
+        {activeTab === 'messages' ? (
+          <>
+            {/* Fixed chats */}
+            {fixedChats.map((chat) => {
+              const preview = officialPreviews[chat.uid];
+              return (
+                <div
+                  key={chat.id}
+                  onClick={() => {
+                    setOfficialPreviews((prev) => ({
+                      ...prev,
+                      [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                    }));
+                    handleOpenFixedChat(chat);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+                >
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
+                    {preview?.lastMessage && (
+                      <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
+                    )}
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    {preview?.lastTimestamp ? (
+                      <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
+                    ) : null}
+                    {preview?.unreadCount && preview.unreadCount > 0 ? (
+                      <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                        {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
 
-        {/* Dynamic chats from IndexedDB */}
-        {dynamicChats.map((chat) => (
-          <div
-            key={chat.chatId}
-            onClick={() => handleOpenDynamicChat(chat)}
-            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-          >
-            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image
-                src={chat.otherUser.photo || '/default-avatar.png'}
-                alt={chat.otherUser.name}
-                width={56}
-                height={56}
-                className="object-cover"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
-              <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-xs text-gray-400">{formatTime(chat.lastTimestamp)}</span>
-              {chat.unreadCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
-                  {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
+            {/* Dynamic chats from IndexedDB */}
+            {dynamicChats.map((chat) => (
+              <div
+                key={chat.chatId}
+                onClick={() => handleOpenDynamicChat(chat)}
+                className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+              >
+                <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <Image
+                    src={chat.otherUser.photo || '/default-avatar.png'}
+                    alt={chat.otherUser.name}
+                    width={56}
+                    height={56}
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
+                  <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-xs text-gray-400">{formatTime(chat.lastTimestamp)}</span>
+                  {chat.unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                      {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
 
-        {/* Empty state */}
-        {!isLoading && dynamicChats.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-sm"></p>
+            {/* Empty state */}
+            {!isLoading && dynamicChats.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-400 text-sm"></p>
+              </div>
+            )}
+          </>
+        ) : (
+          /* Friends Tab Content - Empty for now as per instruction */
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-gray-400 text-lg">Friends list will appear here</p>
           </div>
         )}
       </div>
@@ -732,4 +786,3 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     </div>
   );
 }
-
