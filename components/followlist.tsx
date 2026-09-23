@@ -96,7 +96,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
         {users.map(item => (
           <div
             key={item}
-            className="flex items-center gap-3 py-2"
+            className="flex items-center gap-2 py-2"
           >
             <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
             <div className="flex-1 min-w-0">
@@ -155,8 +155,8 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
               onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
               className={`flex-1 text-[12px] font-semibold rounded-md transition-all flex items-center justify-center ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white h-[38px]'
-                  : 'bg-transparent text-gray-600 h-[38px]'
+                  ? 'bg-blue-500 text-white h-[40px]'
+                  : 'bg-transparent text-gray-600 h-[40px]'
               }`}
             >
               {tab.label}
