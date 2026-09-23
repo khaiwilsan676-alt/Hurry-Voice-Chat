@@ -223,7 +223,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
     const settingsData: Partial<RoomSettingsData> = {
       roomDp,
-      roomName: roomName.trim() || 'hurry User@',
+      roomName: roomName.trim() || 'Room',
       announcement,
       isLocked,
       roomPassword,
