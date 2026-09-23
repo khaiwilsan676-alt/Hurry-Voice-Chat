@@ -1,3168 +1,2769 @@
-'use client'
-
+'use client';
 import { apiUrl } from "../src/lib/api";
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { socket } from '../src/lib/socket'
-import MessagePage from './MessagePage'
-import MePage from './MePage'
-import { getOrCreateAccountNumber } from './MePage'
-import RoomPage from './RoomPage'
-import PublicProfile from './PublicProfile'
-import MinePage from './MinePage'
-import SearchPage from './SearchPage'
-import { generateStableId } from '../lib/hash'
-import { translations, getTranslation, LanguageCode } from '../lib/translations'
-import DailyCheckInModal from '../components/DailyCheckInModal'
-import InviteFriends from './InviteFriends'
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import EmojiPicker from './Emojipicker';
+import CupIcon from './cupicon';
+import GiftPicker from './GiftPicker';
+import RoomSettingPage, { RoomSettingsData } from './RoomSettingPage';
+import MessagePage from './MessagePage';
+import RoomProfile from './RoomProfile';
+import Fourgride from './Fourgride';
+import Wildparty from './Wildparty';
+import Fruitparty from './Fruitparty';
+import WhiteColorRemovalShader from './WhiteColorRemovalShader';
+import Roomtask from './Roomtask';
+import StorePage from './StorePage';
+import EntryEffect from './EntryEffect';
+import { generateStableId } from '../lib/hash';
+import socket from "../src/lib/socket";
 
-// ============ MONGODB / INDEXEDDB DATA HELPERS ============
+import { JitsiMeeting } from "@jitsi/react-sdk";
 
-const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
-  const response = await fetch("/api/rooms");
-  if (!response.ok) {
-    throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
-  }
-  const result = await response.json();
-  return Array.isArray(result?.rooms) ? result.rooms : [];
+interface RoomPageProps {
+  roomOwner: {
+    id?: string;
+    uid?: string;
+    accountId?: string;
+    name: string;
+    image: string;
+  };
+  currentUser: {
+    id?: string;
+    uid?: string;
+    accountId: string;
+    name: string;
+    image: string;
+  };
+  onClose?: () => void;
+  onBack?: () => void;
+  onKeepRoom?: (roomData: { name: string; image: string; accountId: string }) => void;
+  onFollowToggle?: (roomId: string, follow: boolean) => void;
+}
+
+interface Seat {
+  number: number;
+  isOccupied: boolean;
+  isLocked?: boolean;
+  user?: { name: string; image: string; accountId: string };
+  isMuted?: boolean;
+  isSpeaking?: boolean;
+  gif?: {
+    src: string;
+    timestamp: number;
+  };
+}
+
+interface Message {
+  id: string;
+  text: string;
+  sender: string;
+  senderImage: string;
+  senderAccountId?: string;
+  timestamp: number;
+  type?: 'message' | 'join' | 'leave';
+  imageUrl?: string;
+  equippedBubble?: string;
+  equippedVehicle?: string;
+}
+
+interface RoomUser {
+  accountId: string;
+  name: string;
+  image: string;
+}
+
+interface MusicTrack {
+  id: string;
+  name: string;
+  url: string;
+}
+
+const THEME_BACKGROUNDS: { [key: string]: string } = {
+  'forest-night': '/1784875884052~2.jpg',
+  'mood-light': '/1784533036732~2.jpg',
 };
 
-const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
-  if (!roomId) return null;
-  const response = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomId)}`);
-  if (!response.ok) {
-    if (response.status === 404) return null;
-    throw new Error(`MongoDB room fetch failed: ${response.status}`);
-  }
-  const result = await response.json();
-  return result?.room || null;
-};
+const ROOM_SETTINGS_DB_NAME = "HurryRoomSettingsDB";
+const ROOM_SETTINGS_STORE = "roomSettings";
 
-const saveRoomToMongoDB = async (roomData: any) => {
-  const response = await fetch("/api/rooms", {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(roomData),
-  });
-  if (!response.ok) {
-    throw new Error(`MongoDB room save failed: ${response.status}`);
-  }
-  return response.json();
-};
+interface RoomSettingsCache {
+  roomId: string;
+  roomName: string;
+  roomDp: string;
+  announcement: string;
+  micMode: number;
+  theme: string;
+  isLocked: boolean;
+  roomPassword: string;
+  updatedAt: number;
+}
 
-const saveUserToMongoDB = async (userData: any) => {
-  const uid = userData.uid || userData.id || userData.appLongId;
-  if (!uid) {
-    throw new Error("Missing user uid");
-  }
-  const response = await fetch(apiUrl("/api/users"), {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...userData, uid }),
-  });
-  if (!response.ok) {
-    throw new Error(`MongoDB user save failed: ${response.status}`);
-  }
-  return response.json();
-};
-
-const loadHomeMessagesFromDB = async (userUID: string): Promise<any[]> => {
-  if (!userUID || userUID === 'N/A') return [];
-  try {
-    const dbName = `ChatMessagesDB_${userUID}`;
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(dbName, 1);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result);
-      request.onupgradeneeded = () => {
-        const database = request.result;
-        if (!database.objectStoreNames.contains("messages")) {
-          const store = database.createObjectStore("messages", { keyPath: "id" });
-          store.createIndex("chatId", "chatId", { unique: false });
-          store.createIndex("timestamp", "timestamp", { unique: false });
-        }
-      };
-    });
-
-    const transaction = db.transaction(["messages"], "readonly");
-    const store = transaction.objectStore("messages");
-    const messages = await new Promise<any[]>((resolve, reject) => {
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-    return messages;
-  } catch (error) {
-    console.error("❌ Home messages IndexedDB load error:", error);
-    return [];
-  }
-};
-
-// ============ INDEXEDDB FUNCTIONS ============
-const DB_NAME = 'HurryAppDB';
-const DB_VERSION = 3;
-const ROOM_STORE = 'rooms';
-const USER_STORE = 'users';
-const RECENT_STORE = 'recentRooms';
-const FOLLOWING_STORE = 'followingRooms';
-const GLOBAL_ROOMS_STORE = 'globalRooms';
-
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+const openRoomSettingsDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(ROOM_SETTINGS_DB_NAME, 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = () => {
       const db = request.result;
-      const oldVersion = event.oldVersion;
-
-      if (!db.objectStoreNames.contains(ROOM_STORE)) {
-        db.createObjectStore(ROOM_STORE, { keyPath: 'accountId' });
-      }
-      if (!db.objectStoreNames.contains(USER_STORE)) {
-        db.createObjectStore(USER_STORE, { keyPath: 'uid' });
-      }
-      if (!db.objectStoreNames.contains(RECENT_STORE)) {
-        const recentStore = db.createObjectStore(RECENT_STORE, { keyPath: 'accountId' });
-        recentStore.createIndex('timestamp', 'timestamp', { unique: false });
-      }
-      if (!db.objectStoreNames.contains(FOLLOWING_STORE)) {
-        db.createObjectStore(FOLLOWING_STORE, { keyPath: 'accountId' });
-      }
-      if (!db.objectStoreNames.contains(GLOBAL_ROOMS_STORE)) {
-        const globalRoomsStore = db.createObjectStore(GLOBAL_ROOMS_STORE, { keyPath: 'accountId' });
-        globalRoomsStore.createIndex('createdAt', 'createdAt', { unique: false });
+      if (!db.objectStoreNames.contains(ROOM_SETTINGS_STORE)) {
+        db.createObjectStore(ROOM_SETTINGS_STORE, { keyPath: "roomId" });
       }
     };
   });
+
+const saveRoomSettingsToIndexedDB = async (data: RoomSettingsCache) => {
+  const db = await openRoomSettingsDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(ROOM_SETTINGS_STORE, "readwrite");
+    tx.objectStore(ROOM_SETTINGS_STORE).put(data);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
 };
 
-const saveRoomToDB = async (roomData: any) => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([ROOM_STORE], 'readwrite');
-    const store = transaction.objectStore(ROOM_STORE);
-    await new Promise<void>((resolve, reject) => {
-      const request = store.put({ ...roomData, cachedAt: Date.now() });
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-  } catch (error) {
-    console.error('❌ Room save error:', error);
-  }
+const loadRoomSettingsFromIndexedDB = async (roomId: string): Promise<RoomSettingsCache | null> => {
+  if (!roomId) return null;
+  const db = await openRoomSettingsDB();
+  const result = await new Promise<RoomSettingsCache | null>((resolve, reject) => {
+    const tx = db.transaction(ROOM_SETTINGS_STORE, "readonly");
+    const request = tx.objectStore(ROOM_SETTINGS_STORE).get(roomId);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+  db.close();
+  return result;
 };
 
-const loadRoomFromDB = async (accountId: string): Promise<any | null> => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([ROOM_STORE], 'readonly');
-    const store = transaction.objectStore(ROOM_STORE);
-    const room = await new Promise<any | null>((resolve, reject) => {
-      const request = store.get(accountId);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-    return room;
-  } catch (error) {
-    console.error('❌ Load room error:', error);
-    return null;
-  }
-};
+const ROOM_MESSAGES_DB_NAME = "RoomMessagesDB";
+const ROOM_MESSAGES_STORE = "messages";
 
-const saveGlobalRoomsToDB = async (rooms: any[]) => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readwrite');
-    const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-    for (const room of rooms) {
-      await new Promise<void>((resolve, reject) => {
-        const request = store.put({ ...room, cachedAt: Date.now() });
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
-    }
-    db.close();
-  } catch (error) {
-    console.error('❌ Global rooms save error:', error);
-  }
-};
-
-const loadGlobalRoomsFromDB = async (): Promise<any[]> => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readonly');
-    const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-    const rooms = await new Promise<any[]>((resolve, reject) => {
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-    return rooms;
-  } catch (error) {
-    console.error('❌ Load global rooms error:', error);
-    return [];
-  }
-};
-
-const deleteGlobalRoomFromDB = async (accountId: string) => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([GLOBAL_ROOMS_STORE], 'readwrite');
-    const store = transaction.objectStore(GLOBAL_ROOMS_STORE);
-    await new Promise<void>((resolve, reject) => {
-      const request = store.delete(accountId);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-  } catch (error) {
-    console.error('❌ Delete room error:', error);
-  }
-};
-
-const saveRecentToDB = async (recentRooms: any[]) => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([RECENT_STORE], 'readwrite');
-    const store = transaction.objectStore(RECENT_STORE);
-    await new Promise<void>((resolve, reject) => {
-      const clearRequest = store.clear();
-      clearRequest.onsuccess = () => resolve();
-      clearRequest.onerror = () => reject(clearRequest.error);
-    });
-    for (const room of recentRooms) {
-      await new Promise<void>((resolve, reject) => {
-        const request = store.put(room);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
-    }
-    db.close();
-  } catch (error) {
-    console.error('❌ Recent save error:', error);
-  }
-};
-
-const loadRecentFromDB = async (): Promise<any[]> => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([RECENT_STORE], 'readonly');
-    const store = transaction.objectStore(RECENT_STORE);
-    const index = store.index('timestamp');
-    const recentRooms = await new Promise<any[]>((resolve, reject) => {
-      const request = index.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-    recentRooms.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-    const now = Date.now();
-    const fiveMinutesAgo = now - (5 * 60 * 1000);
-    return recentRooms.filter(room => room.timestamp >= fiveMinutesAgo);
-  } catch (error) {
-    console.error('❌ Recent load error:', error);
-    return [];
-  }
-};
-
-const saveFollowingToDB = async (followingRooms: any[]) => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([FOLLOWING_STORE], 'readwrite');
-    const store = transaction.objectStore(FOLLOWING_STORE);
-    await new Promise<void>((resolve, reject) => {
-      const clearRequest = store.clear();
-      clearRequest.onsuccess = () => resolve();
-      clearRequest.onerror = () => reject(clearRequest.error);
-    });
-    for (const room of followingRooms) {
-      await new Promise<void>((resolve, reject) => {
-        const request = store.put(room);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-      });
-    }
-    db.close();
-  } catch (error) {
-    console.error('❌ Following save error:', error);
-  }
-};
-
-const loadFollowingFromDB = async (): Promise<any[]> => {
-  try {
-    const db = await openDB();
-    const transaction = db.transaction([FOLLOWING_STORE], 'readonly');
-    const store = transaction.objectStore(FOLLOWING_STORE);
-    const followingRooms = await new Promise<any[]>((resolve, reject) => {
-      const request = store.getAll();
-      request.onsuccess = () => resolve(request.result || []);
-      request.onerror = () => reject(request.error);
-    });
-    db.close();
-    return followingRooms;
-  } catch (error) {
-    console.error('❌ Following load error:', error);
-    return [];
-  }
-};
-
-// ============ PASSWORD INPUT COMPONENT ============
-function PasswordInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  const handleInput = (index: number, inputValue: string) => {
-    const numberValue = inputValue.replace(/[^0-9]/g, '')
-    if (numberValue) {
-      const newDigits = value.split('')
-      newDigits[index] = numberValue.slice(-1)
-      const newPassword = newDigits.join('').slice(0, 4)
-      onChange(newPassword)
-      if (index < 3 && numberValue) {
-        inputRefs.current[index + 1]?.focus()
+const openRoomMessagesDB = (): Promise<IDBDatabase> =>
+  new Promise((resolve, reject) => {
+    const request = indexedDB.open(ROOM_MESSAGES_DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(ROOM_MESSAGES_STORE)) {
+        const store = db.createObjectStore(ROOM_MESSAGES_STORE, { keyPath: "id" });
+        store.createIndex("roomId", "roomId", { unique: false });
+        store.createIndex("timestamp", "timestamp", { unique: false });
       }
-    }
-  }
+    };
+  });
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !value[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  return (
-    <div className="flex gap-3 justify-center">
-      {[0, 1, 2, 3].map((index) => (
-        <input
-          key={index}
-          ref={(el) => { inputRefs.current[index] = el }}
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          maxLength={1}
-          value={value[index] || ''}
-          onChange={(e) => handleInput(index, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
-          className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-black"
-        />
-      ))}
-    </div>
-  )
-}
-
-// Global in-memory cache to prevent re-processing same image multiple times
-const processedImageCache: Record<string, string> = {}
-const processingPromises: Record<string, Promise<string>> = {}
-
-export function ChromaImage({
-  src,
-  alt,
-  className = '',
-}: {
-  src: string
-  alt: string
-  className?: string
-}) {
-  const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
-
-  useEffect(() => {
-    let isMounted = true;
-    if (processedImageCache[src]) {
-      setDataUrl(processedImageCache[src])
-      return
-    }
-    if (!processingPromises[src]) {
-      processingPromises[src] = new Promise((resolve) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.src = src
-        img.onload = () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = img.naturalWidth || 300
-          canvas.height = img.naturalHeight || 300
-          const ctx = canvas.getContext('2d', { willReadFrequently: true })
-          if (ctx) {
-            ctx.drawImage(img, 0, 0)
-            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-            const data = imgData.data
-            for (let i = 0; i < data.length; i += 4) {
-              const r = data[i], g = data[i + 1], b = data[i + 2]
-              if (g > 50 && g > r * 1.15 && g > b * 1.15) {
-                data[i + 3] = 0
-              }
-            }
-            ctx.putImageData(imgData, 0, 0)
-            const finalUrl = canvas.toDataURL('image/png')
-            processedImageCache[src] = finalUrl
-            resolve(finalUrl)
-          }
-        }
-      })
-    }
-    processingPromises[src].then((url) => {
-      if (isMounted) setDataUrl(url)
-    })
-    return () => { isMounted = false }
-  }, [src])
-
-  if (!dataUrl) {
-    return <div className={`opacity-0 ${className}`} style={{ minHeight: '30px' }} />
-  }
+export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle }: RoomPageProps) {
+  const [jitsiApi, setJitsiApi] = useState<any>(null);
+  const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
+  const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
 
   return (
-    <img src={dataUrl} alt={alt} className={className} draggable="false" />
-  )
-}
-
-type LeaderboardTab = 'honour' | 'charm' | 'room'
-
-interface LeaderboardProps {
-  onBack: () => void
-  initialTab?: LeaderboardTab
-}
-type LeaderboardSubTab = 'daily' | 'weekly' | 'monthly'
-
-export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
-  const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
-  const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
-
-  const tabs: { id: LeaderboardTab; label: string }[] = [
-    { id: 'honour', label: 'Honour' },
-    { id: 'charm', label: 'Charm' },
-    { id: 'room', label: 'Room' },
-  ]
-
-  const subTabs: { id: LeaderboardSubTab; label: string }[] = [
-    { id: 'daily', label: 'Daily' },
-    { id: 'weekly', label: 'Weekly' },
-    { id: 'monthly', label: 'Monthly' },
-  ]
-
-  const tabImages: Record<LeaderboardTab, { top: string }> = {
-    honour: { top: '/file_00000000b83c81fa93d3e53e046c1b81.png' },
-    charm: { top: '/file_0000000086f481fa8653fc12d2577596.png' },
-    room: { top: '/file_00000000619c822f8a1577f69e039527.png' },
-  }
-
-  const activeSubTabIndex = subTabs.findIndex(st => st.id === activeSubTab)
-  const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
-
-  return (
-    <div
-      className="min-h-screen bg-[#1A0204] text-white overflow-y-auto overflow-x-hidden flex flex-col select-none relative"
-      style={{ touchAction: 'manipulation', WebkitUserSelect: 'none' }}
+    <RoomVoiceJitsi
+      roomId={roomId}
+      userAccountId={userAccountId}
+      userName={currentUser.name}
+      userEmail={undefined}
+      onApiReady={setJitsiApi}
     >
+      <RoomContent
+        roomOwner={roomOwner}
+        currentUser={currentUser}
+        onClose={onClose}
+        onBack={onBack}
+        onKeepRoom={onKeepRoom}
+        onFollowToggle={onFollowToggle}
+        jitsiApi={jitsiApi}
+      />
+    </RoomVoiceJitsi>
+  );
+}
+
+function RoomVoiceJitsi({
+  roomId,
+  userAccountId,
+  userName,
+  userEmail,
+  children,
+  onApiReady,
+}: {
+  roomId: string;
+  userAccountId: string;
+  userName: string;
+  userEmail?: string;
+  children: React.ReactNode;
+  onApiReady: (api: any) => void;
+}) {
+  return (
+    <>
       <div
-        className="absolute top-0 left-0 w-full pointer-events-none z-0 overflow-hidden"
+        className="fixed"
         style={{
-          height: '60vh',
-          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 100%)',
+          width: "1px",
+          height: "1px",
+          left: "-10px",
+          top: "-10px",
+          opacity: 0,
+          pointerEvents: "none",
+          overflow: "hidden",
         }}
       >
-        <img
-          key={`${activeTab}-top`}
-          src={tabImages[activeTab].top}
-          alt={`${activeTab} top`}
-          className="w-full h-full object-cover"
-          draggable="false"
+        <JitsiMeeting
+          domain="meet.jit.si"
+          roomName={`HurryVoice-${roomId}`}
+          configOverwrite={{
+            startAudioOnly: true,
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+            prejoinConfig: { enabled: false },
+          }}
+          interfaceConfigOverwrite={{ TOOLBAR_BUTTONS: [] }}
+          userInfo={{ displayName: userName, email: userEmail || "" }}
+          getIFrameRef={(iframeRef) => {
+            iframeRef.style.width = "1px";
+            iframeRef.style.height = "1px";
+          }}
+          onApiReady={(externalApi) => { onApiReady(externalApi); }}
         />
       </div>
-
-      <header
-        className="relative z-50 flex flex-col w-full"
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px))' }}
-      >
-        <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
-          <button
-            onClick={onBack}
-            className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
-            aria-label="Back"
-          >
-            <img
-              src="/file_0000000051d881f5af4f9cf84a56dcd3.png"
-              alt="Back"
-              className="w-10 h-10 object-contain"
-              draggable="false"
-            />
-          </button>
-
-          <div className="flex items-center justify-between h-[42px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative flex-1 text-[15px] font-semibold h-[38px] rounded-full transition-all flex items-center justify-center ${
-                  activeTab === tab.id ? 'text-white' : 'text-[#8A857D]'
-                }`}
-              >
-                {activeTab === tab.id && (
-                  <span className="absolute inset-0 bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]" />
-                )}
-                <span className="relative z-10 drop-shadow-md">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <button
-            className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
-            aria-label="Info"
-          >
-            <img
-              src="/file_0000000073ec820b832b6dafb168dabe.png"
-              alt="Info"
-              className="w-10 h-10 object-contain"
-              draggable="false"
-            />
-          </button>
-        </div>
-
-        <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 ml-4 shrink-0 self-start">
-          {subTabs.map((st, index) => (
-            <button
-              key={st.id}
-              onClick={() => setActiveSubTab(st.id)}
-              className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors"
-              style={{ color: activeSubTab === st.id ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)' }}
-            >
-              {st.label}
-            </button>
-          ))}
-
-          <span
-            className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/40 via-[#D4AF37]/15 to-transparent rounded-md transition-transform duration-300 ease-out"
-            style={{
-              transform: `translateX(calc(${activeSubTabIndex * 100}%))`,
-              boxShadow: '0 -2px 5px rgba(212, 175, 55, 0.4)',
-            }}
-          >
-            <span className="absolute left-[30%] right-[30%] top-[-1px] h-[3px] bg-[#FFF] rounded-full scale-y-[1.2] blur-[0.5px]" />
-          </span>
-        </div>
-
-        <div className="relative z-10 w-full shrink-0 flex flex-col items-center">
-          <div className="w-full flex flex-col items-center gap-0.5 mt-5">
-            <div className="flex justify-center w-full">
-              <ChromaImage
-                src="/1787994771034~2.jpg"
-                alt="Top 1"
-                className="w-45 h-auto object-contain drop-shadow-2xl"
-              />
-            </div>
-
-            <div className="flex justify-between items-center w-full px-0 mt-4">
-              <ChromaImage
-                src="/1787994751636~2.jpg"
-                alt="Top 2"
-                className="w-40 h-auto object-contain drop-shadow-lg -ml-1"
-              />
-              <ChromaImage
-                src="/1787994761762~2.jpg"
-                alt="Top 3"
-                className="w-40 h-auto object-contain drop-shadow-lg -mr-1"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ height: '5vh' }} className="w-full shrink-0 relative z-10" />
-      </header>
-
-      <div className="relative z-10 flex-1">
-        {rankCards.map((rank) => (
-          <div
-            key={rank}
-            className="relative w-full flex items-center justify-start overflow-hidden shrink-0 h-[80px]"
-          >
-            <ChromaImage
-              src="/1787992320047~2.jpg"
-              alt={`Rank ${rank}`}
-              className="absolute inset-0 w-full h-full object-fill"
-            />
-            <span className="relative z-10 left-10 text-white font-bold text-lg">{rank}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="fixed bottom-0 left-0 w-full h-[90px] px-0 py-0 z-50 pointer-events-auto shadow-[0_-5px_20px_rgba(0,0,0,0.8)] border-t-[1.5px] border-[#694B2E] bg-gradient-to-b from-[#3E2114] via-[#2A1309] to-[#120703]">
-        <div className="relative w-full h-full flex items-center justify-start px-6 gap-5">
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ============ INTERFACES ============
-interface HomePageProps {
-  onLogout?: () => void;
-}
-
-interface UserCard {
-  id: string
-  accountId?: string
-  name: string
-  country: string
-  image: string
-  isLocked?: boolean
-  roomPassword?: string
-}
-
-interface KeptRoomData {
-  name: string
-  country?: string
-  image: string
-  accountId: string
-  isLocked?: boolean
-  roomPassword?: string
-}
-
-interface RecentRoom extends KeptRoomData {
-  timestamp: number
-}
-
-interface GlobalRoom {
-  id: string
-  name: string
-  country: string
-  image: string
-  accountId: string
-  createdAt: number
-  isLocked?: boolean
-  roomPassword?: string
-  isExplicitlyCreated?: boolean
-  activeUserCount?: number;
-}
-
-// ============ CONSTANTS ============
-const BANNERS = [
-  { image: '/IMG-20260830-WA0081.jpg' },
-  { image: '/IMG-20260818-WA0000.jpg' },
-  { image: '/IMG-20260818-WA0001.jpg' }
-]
-
-type Tab = 'mine' | 'popular'
-type MineTab = 'following' | 'recent'
-type Page = 'home' | 'message' | 'me' | 'room' | 'public_profile' | 'leaderboard'
-type SearchTab = 'user' | 'room'
-
-const CATEGORY_CARDS = [
-  { label: 'Honour', tab: 'honour' as const, bgImage: '/IMG_20260912_144404.png' },
-  { label: 'Charm', tab: 'charm' as const, bgImage: '/IMG_20260912_144324.png' },
-  { label: 'Room', tab: 'room' as const, bgImage: '/IMG_20260912_144347.png' },
-];
-
-// ============ SEARCH FUNCTION ============
-async function fetchSearchResults(
-  queryRaw: string,
-  globalRooms: GlobalRoom[]
-): Promise<GlobalRoom[]> {
-  const query = queryRaw.trim();
-  if (!query) return [];
-
-  const queryLower = query.toLowerCase();
-  const foundList: GlobalRoom[] = [];
-  const addedKeys = new Set<string>();
-
-  try {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 3500);
-
-    const response = await fetch(
-      apiUrl(`/api/users?search=${encodeURIComponent(query)}&accountId=${encodeURIComponent(query)}&q=${encodeURIComponent(query)}`),
-      { cache: "no-store", signal: controller.signal }
-    );
-
-    window.clearTimeout(timeout);
-
-    if (response.ok) {
-      const data = await response.json();
-      const rawUsers = Array.isArray(data)
-        ? data
-        : data?.users
-        ? data.users
-        : data?.user
-        ? [data.user]
-        : [];
-
-      for (const user of rawUsers) {
-        if (!user) continue;
-        const userId = String(user.id || user.uid || user.appLongId || "");
-        let accountId = String(
-          user.accountId || user.accountNumber || user.displayUserNumber || user["Account Number"] || ""
-        );
-        if (!accountId || accountId === userId) {
-          accountId = getOrCreateAccountNumber(userId).fullAccNum;
-        }
-        const key = accountId || userId;
-        if (key && !addedKeys.has(key) && !addedKeys.has(userId)) {
-          addedKeys.add(key);
-          addedKeys.add(userId);
-          if (accountId) addedKeys.add(accountId);
-          foundList.push({
-            id: userId || accountId,
-            name: user.name || user.displayName || user.userName || "User",
-            country: user.country || "🇮🇳",
-            image: user.image || user.photo || user.photoURL || user.avatar || "/default-avatar.png",
-            accountId: accountId,
-            createdAt: user.createdAt || Date.now(),
-            isLocked: Boolean(user.isLocked),
-            roomPassword: user.roomPassword || null,
-            isExplicitlyCreated: true,
-            activeUserCount: 0,
-          });
-        }
-      }
-    }
-  } catch (error) {
-    console.error("MongoDB user search error:", error);
-  }
-
-  for (const room of globalRooms) {
-    const roomId = String(room.id || "");
-    const accountId = String(room.accountId || "");
-    const name = String(room.name || "");
-
-    const exactMatch = roomId.toLowerCase() === queryLower || accountId.toLowerCase() === queryLower;
-    const partialIdMatch = (accountId && accountId.toLowerCase().includes(queryLower)) || (roomId && roomId.toLowerCase().includes(queryLower));
-    const nameMatch = name.toLowerCase().includes(queryLower);
-
-    if (exactMatch || partialIdMatch || nameMatch) {
-      const key = `${accountId}_${roomId}`;
-      if (!addedKeys.has(key) && (!accountId || !addedKeys.has(accountId)) && (!roomId || !addedKeys.has(roomId))) {
-        addedKeys.add(key);
-        if (accountId) addedKeys.add(accountId);
-        if (roomId) addedKeys.add(roomId);
-        foundList.push(room);
-      }
-    }
-  }
-
-  return foundList;
-}
-
-// ============ LIVE ROOM STATS COMPONENT ============
-const LiveRoomStats = () => {
-  const [count, setCount] = useState(() => Math.floor(Math.random() * 4000) + 1000);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCount((prev) => prev + (Math.floor(Math.random() * 7) - 3));
-    }, Math.random() * 2000 + 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 z-10">
-      <style>
-        {`
-          @keyframes trackEq {
-            0% { height: 3px; }
-            50% { height: 9px; }
-            100% { height: 3px; }
-          }
-          .track-bar {
-            width: 2.5px;
-            background-color: #FFFFFF;
-            border-radius: 2px;
-            animation: trackEq infinite ease-in-out;
-          }
-        `}
-      </style>
-
-      <span className="text-white text-[11px] font-extrabold tracking-wider">
-        {count}
-      </span>
-
-      <div className="flex items-end gap-[2px] h-[9px]">
-        <div className="track-bar" style={{ animationDuration: '0.8s', animationDelay: '0s' }}></div>
-        <div className="track-bar" style={{ animationDuration: '0.5s', animationDelay: '0.2s' }}></div>
-        <div className="track-bar" style={{ animationDuration: '1s', animationDelay: '0.4s' }}></div>
-      </div>
-    </div>
+      {children}
+    </>
   );
-};
+}
 
-// ============ MAIN COMPONENT ============
-export default function HomePage({ onLogout }: HomePageProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('popular')
-  const [appLang, setAppLang] = useState<LanguageCode>('en')
+function RoomContent({
+  roomOwner,
+  currentUser,
+  onClose,
+  onBack,
+  onKeepRoom,
+  onFollowToggle,
+  jitsiApi,
+}: RoomPageProps & { jitsiApi?: any }) {
+  const isKeepingRef = useRef(false);
+
+  const [showExitMenu, setShowExitMenu] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGiftPicker, setShowGiftPicker] = useState(false);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [showMessageSheet, setShowMessageSheet] = useState(false);
+  const [showSettingPage, setShowSettingPage] = useState(false);
+  const [showRoomInfo, setShowRoomInfo] = useState(false);
+  const [showActiveUsers, setShowActiveUsers] = useState(false);
+  const [showFourGride, setShowFourGride] = useState(false);
+  const [isFollowed, setIsFollowed] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [localUser, setLocalUser] = useState<{ name: string; image: string; accountId: string }>({ name: 'User', image: '/default-avatar.png', accountId: '' });
+
+  const [showGameSheet, setShowGameSheet] = useState(false);
+  const [showWildParty, setShowWildParty] = useState<boolean | 'minimized'>(false);
+  const [showFruitParty, setShowFruitParty] = useState<boolean | 'minimized'>(false);
+  const [showRoomTask, setShowRoomTask] = useState(false);
+  const [showStore, setShowStore] = useState(false);
+  const [storeInitialView, setStoreInitialView] = useState<"store" | "bag">("store");
+  const [showCupIcon, setShowCupIcon] = useState(false);
+  const [cupCount, setCupCount] = useState(0);
+
+  const [musicControllerState, setMusicControllerState] = useState<'hidden' | 'full' | 'minimized'>('hidden');
+  const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(1);
+  const [musicPlaylist, setMusicPlaylist] = useState<MusicTrack[]>([]);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [musicCurrentTime, setMusicCurrentTime] = useState(0);
+  const [musicDuration, setMusicDuration] = useState(0);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [miniPos, setMiniPos] = useState({ x: 20, y: 150 });
+  const isDraggingMiniRef = useRef(false);
+  const miniDragOffset = useRef({ x: 0, y: 0 });
+
+  const [publicMsgOff, setPublicMsgOff] = useState(false);
+  const [showPublicMsgModal, setShowPublicMsgModal] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('appLanguage') as LanguageCode
-    if (savedLang) setAppLang(savedLang)
-    const handleLangChange = (e: CustomEvent) => {
-      if (e.detail && e.detail.lang) setAppLang(e.detail.lang)
-    }
-    window.addEventListener('languageChange', handleLangChange as EventListener)
-    return () => window.removeEventListener('languageChange', handleLangChange as EventListener)
-  }, [])
-
-  const t = getTranslation(appLang)
-
-  const [activeMineTab, setActiveMineTab] = useState<MineTab>('following')
-  const [currentPage, setCurrentPage] = useState<Page>('home')
-  const [leaderboardTab, setLeaderboardTab] = useState<'honour' | 'charm' | 'room'>('honour')
-  const [mounted, setMounted] = useState(false)
-  const [currentBanner, setCurrentBanner] = useState(0)
-  const [isChatOpen, setIsChatOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<UserCard | null>(null)
-
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [activeSearchTab, setActiveSearchTab] = useState<SearchTab>('user')
-  const [searchResults, setSearchResults] = useState<GlobalRoom[]>([])
-  const [hasSearched, setHasSearched] = useState(false)
-  const [isSearching, setIsSearching] = useState(false)
-
-  const [isPublicProfileActive, setIsPublicProfileActive] = useState(false)
-
-  const [isRoomCreated, setIsRoomCreated] = useState(false)
-  const [myRoom, setMyRoom] = useState<UserCard | null>(null)
-  const [userName, setUserName] = useState('')
-  const [userPhoto, setUserPhoto] = useState('')
-  const [userUID, setUserUID] = useState('')
-  const [userPresence, setUserPresence] = useState<Record<string, boolean>>({})
-  const [totalUnreadCount, setTotalUnreadCount] = useState(0)
-  const [topNotification, setTopNotification] = useState<{
-    id: string;
-    senderName: string;
-    senderPhoto: string;
-    text: string;
-    senderId: string;
-  } | null>(null);
-  const notificationTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const [globalRooms, setGlobalRooms] = useState<GlobalRoom[]>([])
-
-  const globalRoomsRef = useRef<GlobalRoom[]>([]);
-  useEffect(() => { globalRoomsRef.current = globalRooms; }, [globalRooms]);
-
-  const [keptRoom, setKeptRoom] = useState<KeptRoomData | null>(null)
-  const [enteredFromKept, setEnteredFromKept] = useState(false)
-
-  const [showRoomPasswordCard, setShowRoomPasswordCard] = useState(false)
-  const [selectedLockedRoom, setSelectedLockedRoom] = useState<UserCard | null>(null)
-  const [enteredRoomPassword, setEnteredRoomPassword] = useState('')
-
-  const [recentRooms, setRecentRooms] = useState<RecentRoom[]>([])
-  const [followingRooms, setFollowingRooms] = useState<KeptRoomData[]>([])
-
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
-  const [isInviteFriendsOpen, setIsInviteFriendsOpen] = useState(false)
-  const [currentSignInDay, setCurrentSignInDay] = useState(1)
-
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
-  const [showDeleteZone, setShowDeleteZone] = useState(false)
-  const [isOverDeleteZone, setIsOverDeleteZone] = useState(false)
-  const dragStartPos = useRef({ x: 0, y: 0 })
-  const circleStartPos = useRef({ x: 16, y: typeof window !== 'undefined' ? window.innerHeight * 0.4 : 300 })
-  const deleteZoneRef = useRef<HTMLDivElement>(null)
-  const circleRef = useRef<HTMLDivElement>(null)
-
-  const [viewportHeight, setViewportHeight] = useState(0)
-  const [isAndroid, setIsAndroid] = useState(false)
-  const [categoryOffset, setCategoryOffset] = useState(0)
-
-  const bannerRef = useRef<HTMLDivElement>(null)
-  const bannerContainerRef = useRef<HTMLDivElement>(null)
-  const bannerDotsRef = useRef<HTMLDivElement>(null)
-  const categoryCardsRef = useRef<HTMLDivElement>(null)
-
-  const touchStartX = useRef<number>(0)
-  const touchEndX = useRef<number>(0)
-  const [isSwiping, setIsSwiping] = useState(false)
-  const [swipeOffset, setSwipeOffset] = useState(0)
-
-  const jitsiContainerRef = useRef<HTMLDivElement>(null)
-  const jitsiApiRef = useRef<any>(null)
-  const [jitsiLoaded, setJitsiLoaded] = useState(false)
-  const jitsiJoinedRef = useRef(false)
-  const [isJitsiJoined, setIsJitsiJoined] = useState(false)
-
-  // ============ UNREAD COUNT & GLOBAL REAL-TIME MESSAGES ============
-  useEffect(() => {
-    if (!userUID || userUID === 'N/A') return;
-
-    let isMounted = true;
-    const fetchUnread = async () => {
-      const messages = await loadHomeMessagesFromDB(userUID);
-      if (!isMounted) return;
-      if (Array.isArray(messages)) {
-        let count = 0;
-        messages.forEach((msg: any) => {
-          if (msg.receiverId === userUID && msg.isUnread) {
-            count++;
-          }
-        });
-        setTotalUnreadCount(count);
-      }
-    };
-
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 5000);
-
-    const handleUnreadUpdated = () => { fetchUnread(); };
-    window.addEventListener('unread_count_updated', handleUnreadUpdated);
-
-    const saveIncomingMessageToDB = async (msgData: any) => {
-      try {
-        const dbName = `ChatMessagesDB_${userUID}`;
-        const db = await new Promise<IDBDatabase>((resolve, reject) => {
-          const request = indexedDB.open(dbName, 1);
-          request.onerror = () => reject(request.error);
-          request.onsuccess = () => resolve(request.result);
-          request.onupgradeneeded = () => {
-            const database = request.result;
-            if (!database.objectStoreNames.contains("messages")) {
-              const store = database.createObjectStore("messages", { keyPath: "id" });
-              store.createIndex("chatId", "chatId", { unique: false });
-              store.createIndex("timestamp", "timestamp", { unique: false });
-            }
-          };
-        });
-
-        const tx = db.transaction(["messages"], "readwrite");
-        tx.objectStore("messages").put(msgData);
-        tx.oncomplete = () => {
-          db.close();
-          window.dispatchEvent(new CustomEvent('unread_count_updated'));
-        };
-        tx.onerror = () => db.close();
-      } catch (err) {
-        console.error("Error saving incoming message to IndexedDB in HomePage:", err);
-      }
-    };
-
-    const handleIncomingPrivateMsg = (data: any) => {
-      if (!data) return;
-      const rId = String(data.receiverId || '');
-      if (rId !== String(userUID)) return;
-
-      const senderId = String(data.senderId || '');
-      const chatId = [userUID, senderId].sort().join('_');
-      const timestamp = Number(data.timestamp || Date.now());
-
-      const msgObj = {
-        id: String(data.id || `${senderId}_${timestamp}_${Math.random().toString(36).slice(2, 7)}`),
-        chatId,
-        text: String(data.text || ''),
-        sender: 'other',
-        senderId,
-        receiverId: userUID,
-        senderName: data.senderName || 'User',
-        senderPhoto: data.senderPhoto || '/default-avatar.png',
-        timestamp,
-        type: data.type || (data.imageUrl ? 'image' : 'message'),
-        imageUrl: data.imageUrl || undefined,
-        isUnread: true,
-      };
-
-      saveIncomingMessageToDB(msgObj);
-
-      if (senderId !== userUID) {
-        setTopNotification({
-          id: String(data.id || Date.now()),
-          senderName: data.senderName || 'User',
-          senderPhoto: data.senderPhoto || '/default-avatar.png',
-          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-          senderId,
-        });
-
-        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-        notificationTimerRef.current = setTimeout(() => {
-          setTopNotification(null);
-          notificationTimerRef.current = null;
-        }, 3800);
-      }
-    };
-
-    const handleIncomingOfficialBroadcast = (data: any) => {
-      if (!data?.senderId) return;
-      const senderId = String(data.senderId);
-      if (senderId !== 'hurry_team_official' && senderId !== 'hurry_system_official') return;
-
-      const chatId = [userUID, senderId].sort().join('_');
-      const timestamp = Number(data.timestamp || Date.now());
-
-      const msgObj = {
-        id: String(data.id || `official_${timestamp}_${Math.random().toString(36).slice(2, 7)}`),
-        chatId,
-        text: String(data.text || ''),
-        sender: 'other',
-        senderId,
-        receiverId: userUID,
-        senderName: data.senderName || (senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'),
-        senderPhoto: data.senderPhoto || (senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'),
-        timestamp,
-        type: data.type || (data.imageUrl ? 'image' : 'message'),
-        imageUrl: data.imageUrl || undefined,
-        isUnread: true,
-      };
-
-      saveIncomingMessageToDB(msgObj);
-
-      setTopNotification({
-        id: String(data.id || Date.now()),
-        senderName: msgObj.senderName,
-        senderPhoto: msgObj.senderPhoto,
-        text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-        senderId,
-      });
-
-      if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-      notificationTimerRef.current = setTimeout(() => {
-        setTopNotification(null);
-        notificationTimerRef.current = null;
-      }, 3800);
-    };
-
-    const handleRoomSettingsUpdated = (data: any) => {
-      if (!data || !data.roomId) return;
-      const roomId = String(data.roomId);
-
-      setGlobalRooms(prev => prev.map(room => {
-        if (String(room.id) === roomId || String(room.accountId) === roomId) {
-          return {
-            ...room,
-            name: data.roomName || data['Room Name'] || room.name,
-            image: data.roomDp || data['Room dp'] || room.image,
-            isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : room.isLocked,
-            roomPassword: data.roomPassword !== undefined ? data.roomPassword : room.roomPassword,
-          };
-        }
-        return room;
-      }));
-
-      setMyRoom(prev => {
-        if (!prev) return prev;
-        const isMine =
-          String(prev.id) === roomId ||
-          String(prev.accountId) === roomId;
-        if (!isMine) return prev;
-
-        const updated = {
-          ...prev,
-          name: data.roomName || data['Room Name'] || prev.name,
-          image: data.roomDp || data['Room dp'] || prev.image,
-          isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : prev.isLocked,
-          roomPassword: data.roomPassword !== undefined ? data.roomPassword : prev.roomPassword,
-        };
-        localStorage.setItem('myRoom', JSON.stringify(updated));
-        return updated;
-      });
-    };
-
-    socket.on('private_message', handleIncomingPrivateMsg);
-    socket.on('official_broadcast_message', handleIncomingOfficialBroadcast);
-    socket.on('room_settings_updated', handleRoomSettingsUpdated);
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-      if (notificationTimerRef.current) {
-        clearTimeout(notificationTimerRef.current);
-        notificationTimerRef.current = null;
-      }
-      window.removeEventListener('unread_count_updated', handleUnreadUpdated);
-      socket.off('private_message', handleIncomingPrivateMsg);
-      socket.off('official_broadcast_message', handleIncomingOfficialBroadcast);
-      socket.off('room_settings_updated', handleRoomSettingsUpdated);
-    };
-  }, [userUID]);
-
-  // ============ DYNAMIC OFFSET CALCULATION ============
-  useEffect(() => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isAndroidDevice = userAgent.includes('android');
-    setIsAndroid(isAndroidDevice);
-
-    const adjustOffset = () => {
-      const dotsEl = bannerDotsRef.current;
-      const cardsEl = categoryCardsRef.current;
-      if (!dotsEl || !cardsEl) return;
-
-      const dotsBottom = dotsEl.getBoundingClientRect().bottom;
-      const cardsTop = cardsEl.getBoundingClientRect().top;
-      const currentGap = cardsTop - dotsBottom;
-      const desiredGap = 1.5;
-      const deltaOffset = desiredGap - currentGap;
-      setCategoryOffset(deltaOffset);
-    };
-
-    const timeoutId = setTimeout(adjustOffset, 100);
-
-    const handleResize = () => {
-      clearTimeout(timeoutId);
-      setTimeout(adjustOffset, 50);
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-    };
+    const name = localStorage.getItem('userName') || 'User';
+    const image = localStorage.getItem('userPhoto') || '/default-avatar.png';
+    const storedAccNum = localStorage.getItem('accountNumber') || '';
+    setLocalUser({ name, image, accountId: storedAccNum });
   }, []);
 
-  // ============ MOUNTED ============
+  const formatCupCount = (n: number): string => {
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+    return String(n);
+  };
+
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [profileUser, setProfileUser] = useState<{
+    name: string;
+    image: string;
+    accountId: string;
+    isInSeat?: boolean;
+  } | null>(null);
+
+  const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
+  const roomOwnerId = roomOwner.accountId || roomOwner.uid || roomOwner.id || "";
+  const isRoomOwner = userAccountId === roomOwnerId;
+
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [fullImageModal, setFullImageModal] = useState<string | null>(null);
+
+  const [roomName, setRoomName] = useState<string>("");
+  const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [roomPassword, setRoomPassword] = useState<string>("");
+  const [roomDp, setRoomDp] = useState<string>("/IMG_20260921_210113.png");
+  const [micMode, setMicMode] = useState<number>(15);
+  const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
+  const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
+
+  const [showChatInput, setShowChatInput] = useState(false);
+  const [roomUsers, setRoomUsers] = useState<RoomUser[]>([]);
+
   useEffect(() => {
-    const id = setTimeout(() => setMounted(true), 30)
-    return () => clearTimeout(id)
-  }, [])
+    localStorage.setItem('cupCount', String(cupCount));
+  }, [cupCount]);
 
-  // ============ VIEWPORT HEIGHT ============
+  const getInitialSeats = (mode: number): Seat[] => {
+    const seats: Seat[] = [];
+    for (let i = 1; i <= mode; i++) {
+      seats.push({ number: i, isOccupied: false, isLocked: false, isMuted: false, isSpeaking: false });
+    }
+    return seats;
+  };
+
+  const [seats, setSeats] = useState<Seat[]>([]);
+  const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [showSeatSheet, setShowSeatSheet] = useState(false);
+
   useEffect(() => {
-    const setHeight = () => {
-      const vh = window.innerHeight * 0.01
-      document.documentElement.style.setProperty('--vh', `${vh}px`)
-      setViewportHeight(window.innerHeight)
-    }
-    setHeight()
-    window.addEventListener('resize', setHeight)
-    window.addEventListener('orientationchange', setHeight)
-
-    const isAndroidDevice = navigator.userAgent.toLowerCase().includes('android');
-    if (isAndroidDevice) {
-      setTimeout(setHeight, 100);
-      setTimeout(setHeight, 300);
-    }
-
+    const handleHardwareBack = (e: Event) => {
+      e.preventDefault();
+      if (showSettingPage) {
+        setShowSettingPage(false);
+      } else if (showSeatSheet) {
+        setShowSeatSheet(false);
+        setSelectedSeat(null);
+      } else if (showEmojiPicker) {
+        setShowEmojiPicker(false);
+      } else if (showGiftPicker) {
+        setShowGiftPicker(false);
+      } else if (showFourGride) {
+        setShowFourGride(false);
+      } else if (showActiveUsers) {
+        setShowActiveUsers(false);
+      } else if (showRoomInfo) {
+        setShowRoomInfo(false);
+      } else if (showGameSheet) {
+        setShowGameSheet(false);
+      } else if (showStore) {
+        setShowStore(false);
+      } else if (showRoomTask) {
+        setShowRoomTask(false);
+      } else if (showUserProfile) {
+        setShowUserProfile(false);
+      } else if (showMessageSheet) {
+        setShowMessageSheet(false);
+      } else {
+        setShowExitMenu(true);
+      }
+    };
+    window.addEventListener('hardwareBackPress', handleHardwareBack);
     return () => {
-      window.removeEventListener('resize', setHeight)
-      window.removeEventListener('orientationchange', setHeight)
-    }
-  }, [])
+      window.removeEventListener('hardwareBackPress', handleHardwareBack);
+    };
+  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
 
-  // ============ JITSI LOAD ============
+  const hasSeat = seats.some(s => s.isOccupied && s.user?.accountId === userAccountId);
+  const currentUserSeat = seats.find(s => s.isOccupied && s.user?.accountId === userAccountId);
+
+  const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
+
+  const displayRoomName = roomName
+    ? (roomName.length > 6 ? roomName.substring(0, 6) + '...' : roomName)
+    : 'Room';
+
+  const openProfile = (user: { name: string; image: string; accountId: string }) => {
+    const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
+    setProfileUser({
+      name: user.name,
+      image: user.image,
+      accountId: user.accountId,
+      isInSeat: userInSeat
+    });
+    setShowUserProfile(true);
+  };
+
+  const desiredAudioStateRef = useRef<boolean | null>(null);
+
   useEffect(() => {
-    if (!document.getElementById('jitsi-script')) {
-      const script = document.createElement('script')
-      script.id = 'jitsi-script'
-      script.src = 'https://meet.jit.si/external_api.js'
-      script.async = true
-      script.onload = () => { setJitsiLoaded(true) }
-      document.body.appendChild(script)
-    } else {
-      setJitsiLoaded(true)
-    }
-  }, [])
-
-  const initializeJitsiForListening = useCallback(() => {
-    if (!jitsiLoaded || !jitsiContainerRef.current || jitsiApiRef.current) return
-
-    const domain = 'meet.jit.si'
-    const options = {
-      roomName: 'hurry-global-lobby',
-      width: '100%',
-      height: '100%',
-      parentNode: jitsiContainerRef.current,
-      userInfo: {
-        displayName: userName || 'Guest',
-        email: (userUID || 'guest') + '@hurry.app'
-      },
-      configOverrides: {
-        startWithAudioMuted: true,
-        startWithVideoMuted: true,
-        startAudioOnly: true,
-        disableDeepLinking: true,
-        prejoinPageEnabled: false,
-        toolbarButtons: [],
-        disableInviteFunctions: true,
-        disablePolls: true,
-        hideConferenceSubject: true,
-        hideConferenceTimer: true,
-        doNotStoreRoom: true,
-        resolution: 180,
-        constraints: { video: { height: { ideal: 180, max: 180, min: 180 } } },
-      },
-      interfaceConfigOverrides: {
-        filmStripOnly: false,
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        SHOW_BRAND_WATERMARK: false,
-        SHOW_POWERED_BY: false,
-        SHOW_PROMOTIONAL_CLOSE_PAGE: false,
-        TOOLBAR_ALWAYS_VISIBLE: false,
-        DISABLE_VIDEO_BACKGROUND: true,
-        HIDE_INVITE_MORE_HEADER: true,
-        MOBILE_APP_PROMO: false,
-        APP_NAME: 'Hurry',
-        NATIVE_APP_NAME: 'Hurry',
-        PROVIDER_NAME: 'Hurry'
+    if (!jitsiApi) return;
+    const isMuted = currentUserSeat?.isMuted ?? true;
+    const isInSeat = hasSeat;
+    const desiredState = isInSeat && !isMuted;
+    if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
+      desiredAudioStateRef.current = desiredState;
+      try {
+        console.log("Synchronizing Jitsi microphone state:", desiredState ? "unmuted" : "muted");
+        jitsiApi.executeCommand("setAudioMute", !desiredState);
+      } catch (e) {
+        console.error("Failed to sync Jitsi audio state:", e);
       }
     }
-
-    try {
-      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
-      const api = new JitsiMeetExternalAPI(domain, options)
-      jitsiApiRef.current = api
-      jitsiJoinedRef.current = false
-
-      api.addListener('videoConferenceJoined', () => {
-        jitsiJoinedRef.current = true
-        setIsJitsiJoined(true)
-      })
-
-      api.addListener('participantLeft', () => {})
-    } catch (error) {
-      console.error('Error initializing Jitsi:', error)
-    }
-  }, [jitsiLoaded, userName, userUID])
+  }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
 
   useEffect(() => {
-    if (jitsiLoaded && !jitsiApiRef.current && userName !== 'Guest') {
-      initializeJitsiForListening()
-    }
-  }, [jitsiLoaded, userName, initializeJitsiForListening])
+    let mounted = true;
 
-  useEffect(() => {
-    return () => {
-      if (jitsiApiRef.current) {
-        jitsiApiRef.current.dispose()
-        jitsiApiRef.current = null
+    const loadRoomSettings = async () => {
+      if (!roomId) return;
+
+      try {
+        const cached = await loadRoomSettingsFromIndexedDB(String(roomId));
+        if (!mounted) return;
+        if (cached) {
+          if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
+          if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
+          if (cached.announcement) setRoomAnnouncement(cached.announcement);
+          if (cached.micMode) setMicMode(Number(cached.micMode));
+          if (cached.theme && THEME_BACKGROUNDS[cached.theme]) {
+            setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
+          }
+          if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
+          if (cached.roomPassword) setRoomPassword(cached.roomPassword);
+        } else {
+          setRoomName("hurry User@");
+          setRoomDp("/IMG_20260921_210113.png");
+        }
+      } catch (err) {
+        console.error("Room settings IndexedDB load error:", err);
       }
-      jitsiJoinedRef.current = false
-      setIsJitsiJoined(false)
-    }
-  }, [])
 
-  // ============ GLOBAL ROOMS FETCHING ============
+      try {
+        const response = await fetch(apiUrl(`/api/rooms?roomId=${roomId}`));
+        if (response.ok) {
+          const result = await response.json();
+          const dbRoom = result?.room;
+          if (dbRoom && mounted) {
+            const realName = dbRoom['Room Name'];
+            const realDp = dbRoom['Room dp'];
+
+            if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") {
+              setRoomName(realName);
+            }
+            if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") {
+              setRoomDp(realDp);
+            }
+            if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
+            if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
+            if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
+            if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
+            if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
+
+            await saveRoomSettingsToIndexedDB({
+              roomId: String(roomId),
+              roomName: realName || roomName,
+              roomDp: realDp || roomDp,
+              announcement: dbRoom.announcement || "",
+              micMode: Number(dbRoom.micMode || 15),
+              theme: dbRoom.theme || "mood-light",
+              isLocked: Boolean(dbRoom.isLocked),
+              roomPassword: dbRoom.roomPassword || "",
+              updatedAt: Date.now()
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("Failed to fetch fresh room settings from MongoDB", e);
+      }
+    };
+
+    loadRoomSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, [roomId, roomOwner.name, roomOwner.image]);
+
   useEffect(() => {
-    let isMounted = true;
+    setSeats(prev => {
+      const newSeats = getInitialSeats(micMode);
+      return newSeats.map(newSeat => {
+        const oldSeat = prev.find(s => s.number === newSeat.number);
+        if (oldSeat && oldSeat.isOccupied) {
+          return {
+            ...newSeat,
+            isOccupied: oldSeat.isOccupied,
+            user: oldSeat.user,
+            isMuted: oldSeat.isMuted,
+            isSpeaking: oldSeat.isSpeaking,
+            isLocked: oldSeat.isLocked,
+            gif: oldSeat.gif,
+          };
+        }
+        return newSeat;
+      });
+    });
+  }, [micMode]);
 
-    loadGlobalRoomsFromDB().then(cachedRooms => {
-      if (!isMounted) return;
-      if (cachedRooms.length > 0) {
-        const validRooms = cachedRooms.filter(room =>
-          room &&
-          room.name &&
-          room.accountId !== 'undefined' &&
-          room.accountId !== 'null' &&
-          room.accountId !== '' &&
-          room.accountId !== null &&
-          room.name !== 'User'
-        );
-        setGlobalRooms(prev => {
-          const liveCounts = new Map(
-            prev.map(room => [
-              String(room.id || room.accountId || ''),
-              Number(room.activeUserCount || 0)
-            ])
+  useEffect(() => {
+    setMessages([]);
+    joinMessageSentRef.current = false;
+    joinedAtRef.current = Date.now();
+    clearedAtRef.current = null;
+  }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId) return;
+    let cancelled = false;
+
+    const loadMessages = async () => {
+      if (cancelled) return;
+      setMessages([]);
+    };
+    loadMessages();
+
+    return () => { cancelled = true; };
+  }, [roomId]);
+
+  useEffect(() => {
+    if (!roomId || userAccountId === "guest") return;
+
+    const currentRoomUser: RoomUser = {
+      accountId: String(userAccountId),
+      name: currentUser.name || "User",
+      image: currentUser.image || "/default-avatar.png",
+    };
+
+    const handleRoomPresence = (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      if (!Array.isArray(data.users)) return;
+
+      const users: RoomUser[] = data.users
+        .map((user: any) => ({
+          accountId: String(user?.accountId || user?.userId || user?.id || ""),
+          name: user?.name || "User",
+          image: user?.image || user?.dp || "/default-avatar.png",
+        }))
+        .filter((user: RoomUser) => Boolean(user.accountId));
+
+      setRoomUsers(users);
+    };
+
+    const handleRoomUserOnline = (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
+      const userId = String(data.userId);
+
+      setRoomUsers(prev => {
+        const existing = prev.find(user => String(user.accountId) === userId);
+        if (existing) {
+          return prev.map(user =>
+            String(user.accountId) === userId
+              ? {
+                  ...user,
+                  name: data.user?.name || user.name || "User",
+                  image: data.user?.image || user.image || "/default-avatar.png",
+                }
+              : user
           );
-          return validRooms.map(room => ({
-            ...room,
-            activeUserCount:
-              liveCounts.get(String(room.id || room.accountId || '')) ?? 0
-          }));
+        }
+        return [
+          ...prev,
+          {
+            accountId: userId,
+            name: data.user?.name || "User",
+            image: data.user?.image || "/default-avatar.png",
+          },
+        ];
+      });
+    };
+
+    const handleRoomUserOffline = (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
+      const userId = String(data.userId);
+      setRoomUsers(prev => prev.filter(user => String(user.accountId) !== userId));
+    };
+
+    const handleRoomMessage = async (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+
+      const incoming: Message = {
+        id: String(data.id || `${data.senderId || "user"}-${data.createdAt || Date.now()}`),
+        text: data.text || "",
+        sender: data.senderName || "Unknown",
+        senderImage: data.senderAvatar || "/default-avatar.png",
+        senderAccountId: data.senderAccountId || data.senderId || "",
+        timestamp: Number(data.createdAt || Date.now()),
+        type: data.type || "message",
+        imageUrl: data.imageUrl || undefined,
+      };
+
+      setMessages(prev => {
+        if (prev.some(msg => msg.id === incoming.id)) return prev;
+        return [...prev, incoming];
+      });
+
+      try {
+        const db = await openRoomMessagesDB();
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        store.put({ ...incoming, roomId });
+        transaction.oncomplete = () => db.close();
+        transaction.onerror = () => db.close();
+      } catch (err) {
+        console.error("IndexedDB room message save error:", err);
+      }
+    };
+
+    const handleRoomChatCleared = async (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      const clearTime = Number(data.timestamp || Date.now());
+      clearedAtRef.current = clearTime;
+      setMessages([]);
+
+      try {
+        const db = await openRoomMessagesDB();
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        const index = store.index("roomId");
+        const request = index.openCursor(roomId);
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (cursor) { cursor.delete(); cursor.continue(); } else { db.close(); }
+        };
+        request.onerror = () => { db.close(); };
+      } catch (err) {
+        console.error("Room chat cleared socket error:", err);
+      }
+    };
+
+    const joinRoom = () => {
+      socket.emit("room_join", {
+        roomId,
+        userId: currentUser.uid || currentUser.id || userAccountId,
+        accountId: userAccountId,
+        name: currentRoomUser.name,
+        dp: currentRoomUser.image,
+        email: (currentUser as any)?.email || (currentUser as any)?.emailPhone || "",
+      });
+      socket.emit("room_seats_request", { roomId });
+    };
+
+    socket.emit("room_presence_request", { roomId });
+
+    socket.on("room_settings_updated", async (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      if (data.roomName) setRoomName(data.roomName);
+      if (data.roomDp) setRoomDp(data.roomDp);
+      if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
+      if (data.micMode !== undefined) setMicMode(Number(data.micMode));
+      if (data.theme && THEME_BACKGROUNDS[data.theme]) {
+        setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+      }
+      if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
+      if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
+
+      try {
+        await saveRoomSettingsToIndexedDB({
+          roomId: String(roomId),
+          roomName: data.roomName || roomName,
+          roomDp: data.roomDp || roomDp,
+          announcement: data.announcement || "",
+          micMode: Number(data.micMode || 15),
+          theme: data.theme || "mood-light",
+          isLocked: Boolean(data.isLocked),
+          roomPassword: data.roomPassword || "",
+          updatedAt: Number(data.updatedAt || Date.now()),
         });
+      } catch (err) {
+        console.error("Realtime room settings IndexedDB save error:", err);
       }
     });
 
-    const loadRooms = async () => {
-      try {
-        const rawRooms = await fetchAllRoomsFromMongoDB();
-        if (!isMounted) return;
-        if (Array.isArray(rawRooms)) {
-          const rooms: GlobalRoom[] = rawRooms.map((data: any) => {
-            const roomId = String(data.ID || data.id || data.roomId || '');
-            const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
-            return {
-              id: roomId,
-              name: data['Room Name'] || 'hurry User@',
-              country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || '/IMG_20260921_210113.png',
-              accountId: accId,
-              createdAt: data.createdAt || Date.now(),
-              isLocked: Boolean(data.isLocked),
-              roomPassword: data.roomPassword || null,
-              isExplicitlyCreated: true,
-              activeUserCount: Number(data.activeUserCount || 0)
-            };
-          });
+    socket.on("room_seats", (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.seats)) return;
 
-          const validRooms = rooms.filter(room =>
-            room.id &&
-            room.accountId !== 'undefined' &&
-            room.accountId !== 'null' &&
-            room.accountId !== '' &&
-            room.accountId !== null &&
-            room.name &&
-            room.name !== 'User'
-          );
+      setSeats(() => {
+        const base = getInitialSeats(micMode);
+        const byNumber = new Map(base.map(seat => [seat.number, seat]));
 
-          setGlobalRooms(prev => {
-            const liveCounts = new Map(
-              prev.map(room => [
-                String(room.id || room.accountId || ''),
-                Number(room.activeUserCount || 0)
-              ])
-            );
-            return validRooms.map(room => {
-              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
-              return {
-                ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : 0
-              }
-            });
-          });
-
-          saveGlobalRoomsToDB(validRooms);
-        }
-      } catch (err) {
-        console.warn('Error fetching rooms from API:', err);
-      }
-    };
-
-    loadRooms();
-    const interval = setInterval(loadRooms, 12000);
-
-    const fetchRoomsWithTimeout = async () => {
-      try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 3000)
-        );
-        const res: any = await Promise.race([fetchAllRoomsFromMongoDB(), timeoutPromise]);
-        if (!isMounted) return;
-        const roomsArr: any[] = Array.isArray(res) ? res : (res?.rooms || []);
-        if (roomsArr.length > 0) {
-          const validRooms = roomsArr
-            .map((data: any) => {
-              const roomId = String(data.ID || data.id || data.roomId || '');
-              const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
-              return {
-                id: roomId,
-                name: data['Room Name'] || 'hurry User@',
-                country: data.Country || data.country || '🇮🇳',
-                image: data['Room dp'] || '/IMG_20260921_210113.png',
-                accountId: accId,
-                createdAt: data.createdAt || Date.now(),
-                isLocked: Boolean(data.isLocked),
-                roomPassword: data.roomPassword || null,
-                isExplicitlyCreated: true,
-                activeUserCount: Number(data.activeUserCount || 0)
-              } as GlobalRoom;
-            })
-            .filter((room: GlobalRoom) =>
-              room &&
-              room.name !== 'User' &&
-              room.name !== 'Hurry Room' &&
-              room.accountId !== 'undefined' &&
-              room.accountId !== 'null' &&
-              room.accountId !== ''
-            );
-          setGlobalRooms(prev => {
-            const liveCounts = new Map(
-              prev.map(room => [
-                String(room.id || room.accountId || ''),
-                Number(room.activeUserCount || 0)
-              ])
-            );
-            return validRooms.map(room => {
-              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
-              return {
-                ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : 0
-              }
-            });
-          });
-          validRooms.forEach((room: GlobalRoom) => saveRoomToDB(room));
-        }
-      } catch (err) {
-        console.warn('Error/timeout syncing rooms:', err);
-      }
-    };
-    fetchRoomsWithTimeout();
-
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, []);
-
-  // ============ LIVE USER ONLINE OFFLINE PRESENCE ============
-  useEffect(() => {
-    const handlePresenceStatus = ({ userId, accountId, online }: { userId?: string; accountId?: string; online?: boolean }) => {
-      const key = String(accountId || userId || '');
-      if (!key) return;
-      setUserPresence((prev) => ({ ...prev, [key]: Boolean(online) }));
-    };
-
-    const handleUserOnline = (presenceId: string) => {
-      const key = String(presenceId || '');
-      if (!key) return;
-      setUserPresence((prev) => ({ ...prev, [key]: true }));
-    };
-
-    const handleUserOffline = (presenceId: string) => {
-      const key = String(presenceId || '');
-      if (!key) return;
-      setUserPresence((prev) => ({ ...prev, [key]: false }));
-    };
-
-    socket.on('presence_status', handlePresenceStatus);
-    socket.on('user_online', handleUserOnline);
-    socket.on('user_offline', handleUserOffline);
-
-    return () => {
-      socket.off('presence_status', handlePresenceStatus);
-      socket.off('user_online', handleUserOnline);
-      socket.off('user_offline', handleUserOffline);
-    };
-  }, []);
-
-  // ============ GLOBAL SOCKET.IO ROOM PRESENCE ============
-  useEffect(() => {
-    if (!userUID || userUID === 'N/A') return;
-
-    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
-      if (!Array.isArray(rooms)) return;
-
-      const activeRooms = rooms.filter(
-        (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
-      );
-
-      setGlobalRooms((prev) => {
-        const merged = prev.map((room) => ({ ...room, activeUserCount: 0 }));
-
-        activeRooms.forEach((liveRoom) => {
-          const roomId = String(liveRoom.roomId || "");
-          if (!roomId) return;
-
-          const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
-          const firstUser = liveUsers[0];
-
-          const existing = merged.find((room) =>
-            String(room.id || '') === roomId ||
-            String(room.accountId || '') === roomId
-          );
-
-          if (existing) {
-            existing.activeUserCount = Number(liveRoom.activeUserCount || liveUsers.length || 0);
-          } else {
-            merged.push({
-              id: roomId,
-              accountId: firstUser?.accountId || roomId,
-              name: firstUser?.name || "Room",
-              country: "🇮🇳",
-              image: firstUser?.image || "/default-avatar.png",
-              createdAt: Date.now(),
+        for (const incoming of data.seats) {
+          const number = Number(incoming?.number);
+          if (!Number.isFinite(number)) continue;
+          const existing = byNumber.get(number);
+          byNumber.set(number, {
+            ...(existing || {
+              number,
+              isOccupied: false,
               isLocked: false,
-              roomPassword: undefined,
-              isExplicitlyCreated: true,
-              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
-            });
-          }
-        });
-
-        return merged;
-      });
-
-      setSearchResults((prev) =>
-        prev.map((room) => {
-          const roomId = String(room.id || "");
-          const accountId = String(room.accountId || "");
-          const liveRoom = activeRooms.find((item) => {
-            const liveId = String(item.roomId || "");
-            return liveId === roomId || liveId === accountId;
+              isMuted: false,
+              isSpeaking: false,
+            }),
+            ...incoming,
+            number,
           });
-          return {
-            ...room,
-            activeUserCount: liveRoom
-              ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
-              : 0,
-          };
-        })
-      );
-    };
+        }
 
-    const handleSocketConnect = () => {
-      const accountId = localStorage.getItem('accountNumber') || '';
-      socket.emit('register', { userId: String(userUID), accountId: String(accountId) });
-      socket.emit('global_room_presence_request');
-    };
+        return Array.from(byNumber.values()).sort((a, b) => a.number - b.number);
+      });
+    });
 
-    socket.on('connect', handleSocketConnect);
-    socket.on('global_room_presence', applyGlobalPresence);
+    socket.on("room_presence", handleRoomPresence);
+    socket.on("room_user_online", handleRoomUserOnline);
+    socket.on("room_user_offline", handleRoomUserOffline);
+    socket.on("room_message", handleRoomMessage);
+    socket.on("room_chat_cleared", handleRoomChatCleared);
+
+    setRoomUsers(prev => {
+      const exists = prev.some(user => String(user.accountId) === String(userAccountId));
+      if (exists) return prev;
+      return [...prev, currentRoomUser];
+    });
 
     if (socket.connected) {
-      handleSocketConnect();
+      joinRoom();
     } else {
+      socket.once("connect", joinRoom);
       socket.connect();
     }
 
     return () => {
-      socket.off('connect', handleSocketConnect);
-      socket.off('global_room_presence', applyGlobalPresence);
-    };
-  }, [userUID]);
+      socket.off("connect", joinRoom);
+      socket.off("room_presence", handleRoomPresence);
+      socket.off("room_user_online", handleRoomUserOnline);
+      socket.off("room_user_offline", handleRoomUserOffline);
+      socket.off("room_message", handleRoomMessage);
+      socket.off("room_chat_cleared", handleRoomChatCleared);
 
-  // ============ DRAG CIRCLE INITIAL POSITION ============
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      circleStartPos.current = {
-        x: window.innerWidth - 16 - 48,
-        y: window.innerHeight * 0.6
-      }
-      setDragPosition(circleStartPos.current)
-    }
-  }, [])
-
-  const checkOverlap = useCallback((circleX: number, circleY: number) => {
-    if (!deleteZoneRef.current) return false
-    const deleteRect = deleteZoneRef.current.getBoundingClientRect()
-    const circleSize = 48
-    const circleCenter = { x: circleX + circleSize / 2, y: circleY + circleSize / 2 }
-    const deleteCenter = { x: deleteRect.left + deleteRect.width / 2, y: deleteRect.top + deleteRect.height / 2 }
-    const distance = Math.sqrt(
-      Math.pow(circleCenter.x - deleteCenter.x, 2) +
-      Math.pow(circleCenter.y - deleteCenter.y, 2)
-    )
-    return distance < 60
-  }, [])
-
-  // ============ LOAD PROFILE ============
-  useEffect(() => {
-    const loadProfile = async () => {
-      const name = localStorage.getItem('userName') || ''
-      const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || ''
-      const storedAccNum = localStorage.getItem('accountNumber') || ''
-
-      let storedProfile: any = {}
-      try {
-        const rawProfile = localStorage.getItem('userData') || localStorage.getItem('user')
-        if (rawProfile) storedProfile = JSON.parse(rawProfile)
-      } catch {}
-
-      const photo =
-        localStorage.getItem('userPhoto') ||
-        storedProfile.image ||
-        storedProfile.photo ||
-        storedProfile.avatar ||
-        storedProfile.photoURL ||
-        '/default-avatar.png'
-
-      setUserName(name)
-      setUserPhoto(photo)
-      setUserUID(uid)
-
-      const roomCreated = localStorage.getItem('isRoomCreated')
-      const roomData = localStorage.getItem('myRoom')
-
-      if (roomCreated === 'true' && roomData) {
-        try {
-          const parsed = JSON.parse(roomData)
-          let finalAccNum = storedAccNum || parsed.accountId;
-          if (!finalAccNum && uid) {
-            const accObj = getOrCreateAccountNumber(uid);
-            finalAccNum = accObj.fullAccNum;
-          }
-
-          const roomBelongsToCurrentUser =
-            (parsed.id && String(parsed.id) === String(uid)) ||
-            (parsed.accountId && String(parsed.accountId) === String(finalAccNum));
-
-          if (roomBelongsToCurrentUser) {
-            setIsRoomCreated(true)
-
-            let actualName = parsed.name;
-            let actualDp = parsed.image || parsed.roomDp || '/IMG_20260921_210113.png';
-
-            if (uid) {
-              try {
-                const mongoRoom = await fetchRoomFromMongoDB(uid);
-                if (mongoRoom) {
-                  const mName = mongoRoom['Room Name'];
-                  const mDp = mongoRoom['Room dp'];
-                  if (mName && mName !== 'My Room' && mName !== 'My room') actualName = mName;
-                  if (mDp && mDp !== 'undefined' && mDp !== 'null') actualDp = mDp;
-                }
-              } catch (err) {
-                console.warn('Error fetching room from MongoDB in loadProfile:', err);
-              }
-            }
-
-            if (!actualName || actualName === 'My Room' || actualName === 'My room') {
-              actualName = 'hurry User@';
-            }
-
-            const updatedRoom = {
-              ...parsed,
-              id: parsed.id || uid,
-              accountId: finalAccNum,
-              name: actualName,
-              image: actualDp
-            };
-            setMyRoom(updatedRoom);
-            localStorage.setItem('myRoom', JSON.stringify(updatedRoom));
-            await saveRoomToDB(updatedRoom);
-          } else {
-            setIsRoomCreated(false);
-            setMyRoom(null);
-            localStorage.removeItem('isRoomCreated');
-            localStorage.removeItem('myRoom');
-          }
-        } catch (e) {
-          setIsRoomCreated(false)
-          setMyRoom(null)
-        }
-      } else {
-        setIsRoomCreated(false)
-        setMyRoom(null)
-
-        if (storedAccNum) {
-          const indexedRoom = await loadRoomFromDB(storedAccNum);
-          if (
-            indexedRoom &&
-            ((indexedRoom.id && String(indexedRoom.id) === String(uid)) ||
-              (indexedRoom.accountId && String(indexedRoom.accountId) === String(storedAccNum)))
-          ) {
-            const restoredRoom = {
-              ...indexedRoom,
-              id: indexedRoom.id || uid,
-              accountId: indexedRoom.accountId || storedAccNum,
-              image: indexedRoom.image || indexedRoom.roomDp || '/IMG_20260921_210113.png'
-            };
-            setIsRoomCreated(true);
-            setMyRoom(restoredRoom);
-            localStorage.setItem('isRoomCreated', 'true');
-            localStorage.setItem('myRoom', JSON.stringify(restoredRoom));
-            await saveRoomToDB(restoredRoom);
-          }
-        }
-      }
-
-      const keptRoomData = localStorage.getItem('keptRoom')
-      if (keptRoomData) {
-        try { setKeptRoom(JSON.parse(keptRoomData)) } catch (e) { setKeptRoom(null) }
-      }
-
-      const storedRecent = localStorage.getItem('recentRooms')
-      if (storedRecent) {
-        try {
-          const parsed = JSON.parse(storedRecent);
-          const now = Date.now();
-          const fiveMinutesAgo = now - (5 * 60 * 1000);
-          const validRecent = parsed.filter((room: RecentRoom) => room.timestamp >= fiveMinutesAgo);
-          setRecentRooms(validRecent);
-          if (validRecent.length !== parsed.length) {
-            localStorage.setItem('recentRooms', JSON.stringify(validRecent));
-          }
-          saveRecentToDB(validRecent);
-        } catch {
-          const indexedRecent = await loadRecentFromDB();
-          setRecentRooms(indexedRecent);
-        }
-      } else {
-        const indexedRecent = await loadRecentFromDB();
-        setRecentRooms(indexedRecent);
-      }
-
-      const storedFollowing = localStorage.getItem('followingRooms')
-      if (storedFollowing) {
-        try {
-          const parsed = JSON.parse(storedFollowing);
-          setFollowingRooms(parsed);
-          saveFollowingToDB(parsed);
-        } catch {
-          const indexedFollowing = await loadFollowingFromDB();
-          setFollowingRooms(indexedFollowing);
-        }
-      } else {
-        const indexedFollowing = await loadFollowingFromDB();
-        setFollowingRooms(indexedFollowing);
-      }
-    }
-
-    loadProfile()
-    window.addEventListener('storage', loadProfile)
-    return () => window.removeEventListener('storage', loadProfile)
-  }, [])
-
-  // ============ SAVE RECENT ROOMS ============
-  useEffect(() => {
-    localStorage.setItem('recentRooms', JSON.stringify(recentRooms))
-    saveRecentToDB(recentRooms);
-  }, [recentRooms])
-
-  // ============ SAVE FOLLOWING ROOMS ============
-  useEffect(() => {
-    localStorage.setItem('followingRooms', JSON.stringify(followingRooms))
-    saveFollowingToDB(followingRooms);
-  }, [followingRooms])
-
-  // ============ RECENT ROOMS 5 MIN AUTO REMOVE ============
-  useEffect(() => {
-    const checkRecentRoomsExpiry = () => {
-      const now = Date.now();
-      const fiveMinutesAgo = now - (5 * 60 * 1000);
-      setRecentRooms(prev => prev.filter(room => room.timestamp >= fiveMinutesAgo));
-    };
-    const interval = setInterval(checkRecentRoomsExpiry, 30000);
-    checkRecentRoomsExpiry();
-    return () => clearInterval(interval);
-  }, []);
-
-  // ============ KEPT ROOM STORAGE CHANGE ============
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'keptRoom') {
-        if (!e.newValue) {
-          setKeptRoom(null)
-          setEnteredFromKept(false)
-        } else {
-          try { setKeptRoom(JSON.parse(e.newValue)) } catch { setKeptRoom(null) }
-        }
-      }
-    }
-    window.addEventListener('storage', handleStorageChange)
-    return () => window.removeEventListener('storage', handleStorageChange)
-  }, [])
-
-  // ============ BANNER AUTO ROTATE ============
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [])
-
-  // ============ INVITE FRIENDS HISTORY BACK HANDLING ============
-  useEffect(() => {
-    if (!isInviteFriendsOpen) return
-    const handlePopState = () => { setIsInviteFriendsOpen(false) }
-    window.history.pushState({ inviteFriendsModal: true }, '')
-    window.addEventListener('popstate', handlePopState)
-    return () => { window.removeEventListener('popstate', handlePopState) }
-  }, [isInviteFriendsOpen])
-
-  // Listen to hardware back press
-  useEffect(() => {
-    const handleHardwareBack = (e: Event) => {
-      if (currentPage === 'home') {
-        if (isSearchOpen) { e.preventDefault(); setIsSearchOpen(false); return; }
-        if (isInviteFriendsOpen) { e.preventDefault(); setIsInviteFriendsOpen(false); return; }
-        return;
-      }
-      if (currentPage !== 'room') {
-        e.preventDefault();
-        if (currentPage === 'public_profile') {
-          handleBackFromPublicProfile();
-        } else if (currentPage === 'leaderboard') {
-          setCurrentPage('home');
-        } else {
-          setCurrentPage('home');
-        }
+      if (!isKeepingRef.current) {
+        socket.emit("room_leave", {
+          roomId,
+          userId: userAccountId,
+        });
       }
     };
-    window.addEventListener('hardwareBackPress', handleHardwareBack);
-    return () => { window.removeEventListener('hardwareBackPress', handleHardwareBack); };
-  }, [currentPage, isSearchOpen, isInviteFriendsOpen]);
+  }, [roomId, userAccountId, currentUser.name, currentUser.image]);
 
-  // ============ SIGN IN DAY ============
-  useEffect(() => {
-    const savedDay = localStorage.getItem('signInDay')
-    if (savedDay) setCurrentSignInDay(parseInt(savedDay))
-  }, [])
+  const sendMessageToSocket = async (
+    text: string,
+    imageUrl?: string,
+    type: "message" | "join" | "leave" = "message"
+  ) => {
+    if (!roomId || userAccountId === "guest") return;
 
-  // ============ ADD TO RECENT ============
-  const addToRecent = (room: KeptRoomData) => {
-    setRecentRooms(prev => {
-      const filtered = prev.filter(r => r.accountId !== room.accountId)
-      const updated = [{ ...room, timestamp: Date.now() }, ...filtered].slice(0, 20);
-      saveRecentToDB(updated);
-      return updated;
-    })
-  }
+    const equippedBubble = localStorage.getItem('equipped_Chat Bubble') || undefined;
+    const equippedVehicle = localStorage.getItem('equipped_Vehicle') || undefined;
 
-  // ============ FOLLOW ROOM ============
-  const handleFollowRoom = (room: KeptRoomData) => {
-    setFollowingRooms(prev => {
-      if (prev.some(r => r.accountId === room.accountId)) return prev
-      const updated = [...prev, room];
-      saveFollowingToDB(updated);
-      return updated;
-    })
-  }
-
-  // ============ UNFOLLOW ROOM ============
-  const handleUnfollowRoom = (roomId: string) => {
-    setFollowingRooms(prev => {
-      const updated = prev.filter(r => r.accountId !== roomId);
-      saveFollowingToDB(updated);
-      return updated;
-    })
-  }
-
-  // ============ DRAG HANDLERS ============
-  const handleCircleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-    setShowDeleteZone(true)
-    dragStartPos.current = { x: e.clientX, y: e.clientY }
-    circleStartPos.current = { x: dragPosition.x, y: dragPosition.y }
-  }
-
-  const handleCircleTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation()
-    const touch = e.touches[0]
-    setIsDragging(true)
-    setShowDeleteZone(true)
-    dragStartPos.current = { x: touch.clientX, y: touch.clientY }
-    circleStartPos.current = { x: dragPosition.x, y: dragPosition.y }
-  }
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return
-      const deltaX = e.clientX - dragStartPos.current.x
-      const deltaY = e.clientY - dragStartPos.current.y
-      const newX = circleStartPos.current.x + deltaX
-      const newY = circleStartPos.current.y + deltaY
-      setDragPosition({ x: newX, y: newY })
-      setIsOverDeleteZone(checkOverlap(newX, newY))
-    }
-
-    const handleMouseUp = () => {
-      if (!isDragging) return
-      const isOverlap = checkOverlap(dragPosition.x, dragPosition.y)
-      if (isOverlap) {
-        localStorage.removeItem('keptRoom')
-        setKeptRoom(null)
-        setEnteredFromKept(false)
-      } else {
-        setDragPosition(circleStartPos.current)
-      }
-      setIsDragging(false)
-      setShowDeleteZone(false)
-      setIsOverDeleteZone(false)
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging) return
-      const touch = e.touches[0]
-      const deltaX = touch.clientX - dragStartPos.current.x
-      const deltaY = touch.clientY - dragStartPos.current.y
-      const newX = circleStartPos.current.x + deltaX
-      const newY = circleStartPos.current.y + deltaY
-      setDragPosition({ x: newX, y: newY })
-      setIsOverDeleteZone(checkOverlap(newX, newY))
-    }
-
-    const handleTouchEnd = () => {
-      if (!isDragging) return
-      const isOverlap = checkOverlap(dragPosition.x, dragPosition.y)
-      if (isOverlap) {
-        localStorage.removeItem('keptRoom')
-        setKeptRoom(null)
-        setEnteredFromKept(false)
-      } else {
-        setDragPosition(circleStartPos.current)
-      }
-      setIsDragging(false)
-      setShowDeleteZone(false)
-      setIsOverDeleteZone(false)
-    }
-
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove)
-      window.addEventListener('mouseup', handleMouseUp)
-      window.addEventListener('touchmove', handleTouchMove, { passive: true })
-      window.addEventListener('touchend', handleTouchEnd)
-    }
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('mouseup', handleMouseUp)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('touchend', handleTouchEnd)
-    }
-  }, [isDragging, dragPosition, checkOverlap])
-
-  // ============ BANNER SWIPE ============
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    touchEndX.current = e.touches[0].clientX
-    setIsSwiping(true)
-  }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSwiping) return
-    touchEndX.current = e.touches[0].clientX
-    const diff = touchEndX.current - touchStartX.current
-    setSwipeOffset(diff)
-  }
-
-  const handleTouchEnd = () => {
-    if (!isSwiping) return
-    const diff = touchEndX.current - touchStartX.current
-    const threshold = 50
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        setCurrentBanner((prev) => (prev - 1 + BANNERS.length) % BANNERS.length)
-      } else {
-        setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
-      }
-    }
-    setIsSwiping(false)
-    setSwipeOffset(0)
-    touchStartX.current = 0
-    touchEndX.current = 0
-  }
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    touchStartX.current = e.clientX
-    touchEndX.current = e.clientX
-    setIsSwiping(true)
-    e.preventDefault()
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isSwiping) return
-    touchEndX.current = e.clientX
-    const diff = touchEndX.current - touchStartX.current
-    setSwipeOffset(diff)
-  }
-
-  const handleMouseUp = () => {
-    if (!isSwiping) return
-    const diff = touchEndX.current - touchStartX.current
-    const threshold = 50
-    if (Math.abs(diff) > threshold) {
-      if (diff > 0) {
-        setCurrentBanner((prev) => (prev - 1 + BANNERS.length) % BANNERS.length)
-      } else {
-        setCurrentBanner((prev) => (prev + 1) % BANNERS.length)
-      }
-    }
-    setIsSwiping(false)
-    setSwipeOffset(0)
-    touchStartX.current = 0
-    touchEndX.current = 0
-  }
-
-  const handleMouseLeave = () => {
-    if (isSwiping) handleMouseUp()
-  }
-
-  // ============ KEEP ROOM ============
-  const handleKeepRoom = (roomData: KeptRoomData) => {
-    setKeptRoom(roomData)
-    setEnteredFromKept(false)
-    localStorage.setItem('keptRoom', JSON.stringify(roomData))
-    if (typeof window !== 'undefined') {
-      circleStartPos.current = {
-        x: window.innerWidth - 16 - 48,
-        y: window.innerHeight * 0.6
-      }
-      setDragPosition(circleStartPos.current)
-    }
-  }
-
-  // ============ KEPT ROOM CLICK ============
-  const handleKeptRoomClick = () => {
-    if (isDragging) return
-    if (keptRoom) {
-      addToRecent(keptRoom)
-      setEnteredFromKept(true)
-      const roomUser: UserCard = {
-        id: keptRoom.accountId,
-        accountId: keptRoom.accountId,
-        name: keptRoom.name,
-        country: keptRoom.country || '🇮🇳',
-        image: keptRoom.image
-      }
-      setSelectedUser(roomUser)
-      setCurrentPage('room')
-    }
-  }
-
-  // ============ CREATE ROOM ============
-  const handleCardClick = async () => {
-    setEnteredFromKept(false);
-
-    const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
-    const storedAccNum = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
-
-    if (isRoomCreated && myRoom) {
-      let currentRoomName = myRoom.name;
-      if (!currentRoomName || currentRoomName === 'My Room' || currentRoomName === 'My room') {
-        currentRoomName = 'hurry User@';
-      }
-      let currentRoomDp = myRoom.image;
-      if (!currentRoomDp || currentRoomDp === 'undefined' || currentRoomDp === 'null' || currentRoomDp === '/default-avatar.png') {
-        currentRoomDp = '/IMG_20260921_210113.png';
-      }
-
-      const updatedMyRoom = {
-        ...myRoom,
-        name: currentRoomName,
-        image: currentRoomDp,
-        accountId: myRoom.accountId || storedAccNum
-      };
-
-      setMyRoom(updatedMyRoom);
-      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoom));
-
-      addToRecent({
-        name: updatedMyRoom.name,
-        image: updatedMyRoom.image,
-        accountId: updatedMyRoom.accountId
-      })
-      setSelectedUser(updatedMyRoom)
-      setCurrentPage('room')
-      return;
-    }
-
-    const defaultRoomName = 'hurry User@'
-
-    const createdRoomCard: UserCard = {
-      id: userUID,
-      accountId: storedAccNum,
-      name: defaultRoomName,
-      country: localStorage.getItem('userCountry') || '🇮🇳',
-      image: '/IMG_20260921_210113.png'
-    }
-
-    localStorage.setItem('isRoomCreated', 'true')
-    localStorage.setItem('myRoom', JSON.stringify(createdRoomCard))
-    setIsRoomCreated(true)
-    setMyRoom(createdRoomCard)
-
-    await saveRoomToDB({
-      ...createdRoomCard,
-      isExplicitlyCreated: true,
-      createdAt: Date.now()
-    });
-
-    const roomData = {
-      id: userUID,
-      name: defaultRoomName,
-      country: localStorage.getItem("userCountry") || "🇮🇳",
-      countryCode: localStorage.getItem("userCountryCode") || "IN",
-      image: userPhoto || '/default-avatar.png',
-      accountId: storedAccNum,
+    const payload = {
+      id: `${userAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      roomId,
+      senderId: userAccountId,
+      senderAccountId: userAccountId,
+      senderName: currentUser.name || "User",
+      senderAvatar: currentUser.image || "/default-avatar.png",
+      text,
+      type,
+      imageUrl: imageUrl || null,
+      equippedBubble: type === 'message' ? equippedBubble : undefined,
+      equippedVehicle: type === 'join' ? equippedVehicle : undefined,
       createdAt: Date.now(),
-      isLocked: false,
-      roomPassword: null,
-      isExplicitlyCreated: true,
-      createdFromMineTab: true
     };
 
-    try {
-      await saveRoomToMongoDB({
-        roomId: userUID,
-        id: userUID, 
-        roomName: defaultRoomName,
-        roomDp: '/IMG_20260921_210113.png',
-        country: localStorage.getItem("userCountry") || "🇮🇳",
-        roomAdmin: storedAccNum,
-        message: `${defaultRoomName}'s Room Notice`,
-        theme: 'default'
-      });
+    if (!socket.connected) socket.connect();
 
-      await saveUserToMongoDB({
-        id: userUID,
-        appLongId: userUID,
-        name: userName || defaultRoomName,
-        country: localStorage.getItem("userCountry") || "🇮🇳",
-        image: '/IMG_20260921_210113.png',
-        accountId: storedAccNum
-      });
-    } catch (e) {
-      console.warn('Error saving room/user to Google Sheets:', e);
+    if (socket.connected) {
+      socket.emit("room_message", payload);
+      return;
     }
 
-    setGlobalRooms(prev => {
-      const filtered = prev.filter(r => r.accountId !== storedAccNum);
-      const updated = [...filtered, roomData as unknown as GlobalRoom];
-      saveGlobalRoomsToDB(updated);
-      return updated;
-    });
+    const sendAfterConnect = () => {
+      socket.emit("room_message", payload);
+      socket.off("connect", sendAfterConnect);
+    };
+    socket.once("connect", sendAfterConnect);
+  };
 
-    addToRecent({
-      name: createdRoomCard.name,
-      image: createdRoomCard.image,
-      accountId: storedAccNum
-    })
-    setSelectedUser(createdRoomCard)
-    setCurrentPage('room')
-  }
+  const joinMessageSentRef = useRef(false);
+  const joinedAtRef = useRef(Date.now());
+  const clearedAtRef = useRef<number | null>(null);
 
-  const handleHouseClick = () => {
-    handleCardClick()
-  }
+  useEffect(() => {
+    if (joinMessageSentRef.current || userAccountId === "guest") return;
+    joinMessageSentRef.current = true;
+    sendMessageToSocket('Enter the Room', undefined, 'join');
+  }, [userAccountId, currentUser.name, roomId]);
 
-  // ============ USER CARD CLICK ============
-  const handleUserCardClick = async (user: UserCard) => {
-    const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
-    const currentAccountId = typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
+  useEffect(() => {
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    const isOwner =
-      (user.id && String(user.id) === String(userUID)) ||
-      (user.accountId && String(user.accountId) === String(currentAccountId)) ||
-      (myRoom && (user.id === myRoom.id || user.accountId === myRoom.accountId));
+  useEffect(() => {
+    if (showChatInput && inputRef.current) {
+      const timer = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [showChatInput]);
 
-    if (isOwner) {
-      let ownerName = myRoom?.name || user.name;
-      if (!ownerName || ownerName === 'My Room' || ownerName === 'My room') {
-        ownerName = 'hurry User@';
+  useEffect(() => {
+    if (!showChatInput) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
+        setShowChatInput(false);
+        setMessage("");
       }
-      let ownerDp = myRoom?.image || user.image;
-      if (!ownerDp || ownerDp === 'undefined' || ownerDp === 'null' || ownerDp === '/default-avatar.png') {
-        ownerDp = userPhoto || localStorage.getItem('userPhoto') || '/default-avatar.png';
+    };
+    const handleTouchOutside = (e: TouchEvent) => {
+      if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
+        setShowChatInput(false);
+        setMessage("");
       }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleTouchOutside);
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleTouchOutside);
+    };
+  }, [showChatInput]);
 
-      const ownerRoomUser: UserCard = {
-        id: userUID,
-        accountId: currentAccountId,
-        name: ownerName,
-        image: ownerDp,
-        country: localStorage.getItem('userCountry') || '🇮🇳'
+  const handleCopyId = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(roomOwner.accountId || '');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Image size should be less than 5MB'); return; }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+      sendMessageToSocket('', imageUrl);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleSeatClick = (seatNumber: number) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedSeat(seatNumber);
+    setShowSeatSheet(true);
+  };
+
+  const handleSeatAvatarClick = (seat: Seat) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (seat.isOccupied && seat.user) {
+      openProfile({
+        name: seat.user.name,
+        image: seat.user.image,
+        accountId: seat.user.accountId
+      });
+    }
+  };
+
+  const emitSeatAction = (
+    action: "take" | "leave" | "mute" | "lock" | "emoji",
+    seatNumber: number,
+    extra: Record<string, any> = {}
+  ) => {
+    if (!roomId || userAccountId === "guest") return;
+    const send = () => {
+      socket.emit("room_seat_action", {
+        roomId,
+        userId: userAccountId,
+        action,
+        seatNumber,
+        user: {
+          name: currentUser.name || "User",
+          image: currentUser.image || "/default-avatar.png",
+          accountId: userAccountId,
+        },
+        ...extra,
+      });
+    };
+    if (socket.connected) send();
+    else { socket.once("connect", send); socket.connect(); }
+  };
+
+  const handleTakeSeat = async (e?: React.MouseEvent) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (selectedSeat === null) return;
+
+    try {
+      const targetSeat = seats.find(s => s.number === selectedSeat);
+      if (targetSeat?.isLocked && !targetSeat.isOccupied) { alert("This seat is locked!"); return; }
+      if (targetSeat?.isOccupied && targetSeat.user?.accountId !== userAccountId) { alert("This seat is already taken!"); return; }
+
+      const updatedSeats = seats.map(s => {
+        if (s.isOccupied && s.user?.accountId === userAccountId && s.number !== selectedSeat) {
+          return { ...s, isOccupied: false, user: undefined, isSpeaking: false, isMuted: false, gif: undefined };
+        }
+        if (s.number === selectedSeat) {
+          return {
+            ...s,
+            isOccupied: true,
+            user: { name: currentUser.name, image: currentUser.image, accountId: userAccountId },
+            isMuted: false,
+            isSpeaking: false,
+            gif: undefined
+          };
+        }
+        return s;
+      });
+
+      setSeats(updatedSeats);
+      emitSeatAction("take", selectedSeat, {
+        user: {
+          name: currentUser.name || "User",
+          image: currentUser.image || "/default-avatar.png",
+          accountId: userAccountId,
+        },
+      });
+      setShowSeatSheet(false);
+      setSelectedSeat(null);
+    } catch (err) {
+      console.error("Error taking seat:", err);
+    }
+  };
+
+  const handleLeaveSeat = async (e?: React.MouseEvent) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (selectedSeat === null) return;
+
+    try {
+      const updatedSeats = seats.map(s => {
+        if (s.number === selectedSeat && s.user?.accountId === userAccountId) {
+          return { ...s, isOccupied: false, user: undefined, isSpeaking: false, isMuted: false, gif: undefined };
+        }
+        return s;
+      });
+      setSeats(updatedSeats);
+      emitSeatAction("leave", selectedSeat);
+      setShowSeatSheet(false);
+      setSelectedSeat(null);
+    } catch (err) {
+      console.error("Error leaving seat:", err);
+    }
+  };
+
+  const handleLeaveUserSeat = async (accountId: string) => {
+    const targetSeat = seats.find(s => s.isOccupied && s.user?.accountId === accountId);
+    if (!targetSeat) return;
+    const updatedSeats = seats.map(seat =>
+      seat.number === targetSeat.number
+        ? { ...seat, isOccupied: false, user: undefined, isSpeaking: false, isMuted: false, gif: undefined }
+        : seat
+    );
+    setSeats(updatedSeats);
+  };
+
+  const handleBottomMicToggle = async (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!currentUserSeat) return;
+    const newMuteState = !currentUserSeat.isMuted;
+    const updatedSeats = seats.map(seat =>
+      seat.number === currentUserSeat.number
+        ? { ...seat, isMuted: newMuteState }
+        : seat
+    );
+    setSeats(updatedSeats);
+    emitSeatAction("mute", currentUserSeat.number, { isMuted: newMuteState });
+  };
+
+  const handleToggleMute = async (e?: React.MouseEvent) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (selectedSeat === null) return;
+    const target = seats.find(s => s.number === selectedSeat);
+    if (!target) return;
+
+    const newMuteState = !target.isMuted;
+    const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isMuted: newMuteState } : s);
+    setSeats(updatedSeats);
+    emitSeatAction("mute", target.number, { isMuted: newMuteState });
+    setShowSeatSheet(false);
+    setSelectedSeat(null);
+  };
+
+  const handleToggleLock = async (e?: React.MouseEvent) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (selectedSeat === null) return;
+    const target = seats.find(s => s.number === selectedSeat);
+    if (!target) return;
+
+    const newLockState = !target.isLocked;
+    const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isLocked: newLockState } : s);
+    setSeats(updatedSeats);
+    emitSeatAction("lock", target.number, { isLocked: newLockState });
+    setShowSeatSheet(false);
+    setSelectedSeat(null);
+  };
+
+  const handleInvite = (e?: React.MouseEvent) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (selectedSeat === null) return;
+    alert(`Invite sent to join seat ${selectedSeat}!`);
+    setShowSeatSheet(false);
+    setSelectedSeat(null);
+  };
+
+  const isCurrentUsersSeat = (seat?: Seat) => Boolean(seat && seat.isOccupied && seat.user?.accountId === userAccountId);
+
+  const showPublicMsgOffAlert = () => { setShowPublicMsgModal(true); };
+
+  const handleSendMessage = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (publicMsgOff && !isRoomOwner) { showPublicMsgOffAlert(); return; }
+    if (!message.trim()) return;
+    sendMessageToSocket(message.trim());
+    setMessage("");
+    if (inputRef.current) inputRef.current.focus();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') { e.preventDefault(); handleSendMessage(); }
+  };
+
+  const handleInputFocus = () => setShowChatInput(true);
+
+  const openChatInput = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (publicMsgOff && !isRoomOwner) { showPublicMsgOffAlert(); return; }
+    setShowChatInput(true);
+    setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 100);
+  };
+
+  const closeBottomSheet = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowSeatSheet(false);
+    setSelectedSeat(null);
+  };
+
+  const closeExitMenu = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowExitMenu(false);
+  };
+
+  const openExitMenu = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowExitMenu(true);
+  };
+
+  const openSettings = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setShowSettingPage(true);
+  };
+
+  const closeSettings = () => setShowSettingPage(false);
+
+  const handleSaveSettings = async (
+    data: Partial<RoomSettingsData>
+  ) => {
+    const nextRoomName =
+      data.roomName !== undefined
+        ? data.roomName
+        : roomName;
+
+    const nextRoomDp =
+      data.roomDp !== undefined
+        ? data.roomDp
+        : roomDp;
+
+    const nextAnnouncement =
+      data.announcement !== undefined
+        ? data.announcement
+        : roomAnnouncement;
+
+    const nextMicMode =
+      data.micMode !== undefined
+        ? data.micMode
+        : micMode;
+
+    const nextTheme =
+      data.theme !== undefined
+        ? data.theme
+        : Object.keys(THEME_BACKGROUNDS).find(
+            key => THEME_BACKGROUNDS[key] === backgroundImage
+          );
+
+    const nextLocked =
+      data.isLocked !== undefined
+        ? data.isLocked
+        : isLocked;
+
+    const nextPassword =
+      data.roomPassword !== undefined
+        ? data.roomPassword
+        : roomPassword;
+
+    setRoomName(nextRoomName);
+    setRoomAnnouncement(nextAnnouncement);
+    setRoomDp(nextRoomDp);
+    setMicMode(nextMicMode);
+
+    if (nextTheme && THEME_BACKGROUNDS[nextTheme]) {
+      setBackgroundImage(THEME_BACKGROUNDS[nextTheme]);
+    }
+
+    setIsLocked(nextLocked);
+    setRoomPassword(nextPassword);
+
+    if (!roomId) return;
+
+    const roomSettings: RoomSettingsCache = {
+      roomId: String(roomId),
+      roomName: nextRoomName || "hurry User@",
+      roomDp: nextRoomDp || "/IMG_20260921_210113.png",
+      announcement: nextAnnouncement || "",
+      micMode: Number(nextMicMode || 0),
+      theme: nextTheme || "mood-light",
+      isLocked: Boolean(nextLocked),
+      roomPassword: nextPassword || "",
+      updatedAt: Date.now(),
+    };
+
+    await saveRoomSettingsToIndexedDB(roomSettings);
+
+    const isOwnerOfRoom =
+      String(roomId) === String(currentUser.id) ||
+      String(roomId) === String(currentUser.accountId) ||
+      String(roomOwner.id) === String(currentUser.id) ||
+      String(roomOwner.accountId) === String(currentUser.accountId);
+
+    try {
+      const dbRoomData = {
+        accountId: roomOwner.accountId || roomId,
+        id: roomOwner.accountId || roomId,
+        roomId: roomOwner.accountId || roomId,
+        'Room Name': roomSettings.roomName,
+        'Room dp': roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳',
+        message: roomSettings.announcement,
+        theme: roomSettings.theme,
+        micMode: roomSettings.micMode,
+        isLocked: roomSettings.isLocked,
+        roomPassword: roomSettings.roomPassword,
       };
 
-      setEnteredFromKept(false);
-      addToRecent({
-        name: ownerRoomUser.name,
-        image: ownerRoomUser.image,
-        accountId: ownerRoomUser.accountId || ownerRoomUser.id,
+      const res = await fetch(apiUrl('/api/rooms'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dbRoomData),
       });
-      setSelectedUser(ownerRoomUser);
-      setCurrentPage('room');
-      if (isSearchOpen) setIsSearchOpen(false);
-      return;
-    }
 
-    const foundRoom = globalRooms.find(
-      (r) =>
-        String(r.id || '') === String(user.id || '') ||
-        String(r.accountId || '') === String(user.accountId || '')
-    )
-
-    const canonicalRoomId = String(foundRoom?.id || user.id || user.accountId || '')
-
-    if (!canonicalRoomId) {
-      console.error('Room ID missing')
-      return
-    }
-
-    const roomUser: UserCard = {
-      ...user,
-      id: canonicalRoomId,
-      accountId: String(foundRoom?.accountId || user.accountId || canonicalRoomId),
-      name: (foundRoom?.name && foundRoom.name !== 'My Room' && foundRoom.name !== 'My room' && foundRoom.name !== 'User')
-          ? foundRoom.name
-          : 'hurry User@',
-      image: (foundRoom?.image && foundRoom.image !== 'undefined' && foundRoom.image !== 'null' && foundRoom.image !== '/default-avatar.png')
-          ? foundRoom.image
-          : '/IMG_20260921_210113.png',
-      isLocked: foundRoom?.isLocked ?? user.isLocked,
-    }
-
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Room fetch timeout')), 1200)
-      );
-
-      const roomData: any = await Promise.race([
-        fetchRoomFromMongoDB(canonicalRoomId),
-        timeoutPromise,
-      ]);
-
-      if (roomData) {
-        if (
-          roomData.isLocked &&
-          String(roomData['Room Admin'] || roomData.accountId || '') !== String(currentAccountId)
-        ) {
-          setSelectedLockedRoom(roomUser)
-          setShowRoomPasswordCard(true)
-          setEnteredRoomPassword('')
-          return
-        }
-
-        const rName = roomData['Room Name'];
-        if (rName && rName !== 'My Room' && rName !== 'My room' && rName !== 'User') {
-          roomUser.name = rName;
-        } else {
-          roomUser.name = 'hurry User@';
-        }
-
-        const rDp = roomData['Room dp'];
-        if (rDp && rDp !== 'undefined' && rDp !== 'null' && rDp !== '/default-avatar.png') {
-          roomUser.image = rDp;
-        } else {
-          roomUser.image = '/IMG_20260921_210113.png';
-        }
-
-        roomUser.isLocked = Boolean(roomData.isLocked)
+      if (!res.ok) {
+        console.warn('Room settings save failed:', res.status);
       }
-    } catch (e) {
-      console.warn('Failed to fetch room data or timed out:', e)
-      if (foundRoom && foundRoom.isLocked && String(foundRoom.accountId) !== String(currentAccountId)) {
-        setSelectedLockedRoom(roomUser)
-        setShowRoomPasswordCard(true)
-        setEnteredRoomPassword('')
-        return
-      }
-    }
-
-    setEnteredFromKept(false)
-    addToRecent({
-      name: roomUser.name,
-      image: roomUser.image,
-      accountId: roomUser.accountId || roomUser.id,
-      isLocked: roomUser.isLocked
-    })
-    setSelectedUser(roomUser)
-    setCurrentPage('room')
-    if (isSearchOpen) setIsSearchOpen(false)
-  };
-
-  // ============ ROOM PASSWORD SUBMIT ============
-  const handleRoomPasswordSubmit = async () => {
-    if (!selectedLockedRoom) return;
-    try {
-      const roomData = await fetchRoomFromMongoDB(selectedLockedRoom.id || selectedLockedRoom.accountId || '');
-      if (roomData) {
-        if (roomData.isLocked && roomData.roomPassword === enteredRoomPassword) {
-          setShowRoomPasswordCard(false)
-          setEnteredFromKept(false)
-          addToRecent({ name: selectedLockedRoom.name, image: selectedLockedRoom.image, accountId: selectedLockedRoom.accountId || selectedLockedRoom.id, isLocked: true })
-          setSelectedUser(selectedLockedRoom)
-          setCurrentPage('room')
-          if (isSearchOpen) setIsSearchOpen(false)
-          return;
-        } else if (roomData.isLocked) {
-          alert('Incorrect Password')
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn("Error verifying password via API:", e);
-    }
-
-    const foundRoom = globalRooms.find(r => r.id === selectedLockedRoom.id || (r.accountId && r.accountId === selectedLockedRoom.accountId));
-    if (foundRoom) {
-      if (foundRoom.isLocked && foundRoom.roomPassword === enteredRoomPassword) {
-        setShowRoomPasswordCard(false)
-        setEnteredFromKept(false)
-        addToRecent({ name: selectedLockedRoom.name, image: selectedLockedRoom.image, accountId: selectedLockedRoom.accountId || selectedLockedRoom.id, isLocked: true })
-        setSelectedUser(selectedLockedRoom)
-        setCurrentPage('room')
-        if (isSearchOpen) setIsSearchOpen(false)
-      } else {
-        alert('Incorrect Password')
-      }
-    } else {
-      alert('Room not found')
-    }
-  }
-
-  // ============ USER PROFILE CLICK ============
-  const handleUserProfileClick = (user: UserCard) => {
-    setSelectedUser(user)
-    setIsPublicProfileActive(true)
-    setCurrentPage('public_profile')
-    if (isSearchOpen) setIsSearchOpen(false)
-  }
-
-  // ============ BACK FROM ROOM ============
-  const handleBackFromRoom = async () => {
-    if (enteredFromKept) {
-      localStorage.removeItem('keptRoom')
-      setKeptRoom(null)
-      setEnteredFromKept(false)
-    }
-    setCurrentPage('home')
-    setSelectedUser(null)
-  }
-
-  // ============ BACK FROM PUBLIC PROFILE ============
-  const handleBackFromPublicProfile = () => {
-    setIsPublicProfileActive(false)
-    setCurrentPage('home')
-    setSelectedUser(null)
-  }
-
-  // ============ JOIN ROOM FROM CHAT ============
-  const handleJoinRoomFromChat = async (roomId: string) => {
-    try {
-      const id = String(roomId || "");
-      const foundRoom = globalRooms.find(
-        (r) => String(r.id || "") === id || String(r.accountId || "") === id
-      );
-
-      if (foundRoom) {
-        handleUserCardClick({
-          id: foundRoom.id || id,
-          accountId: foundRoom.accountId || id,
-          name: foundRoom.name || "User",
-          country: foundRoom.country || "🇮🇳",
-          image: foundRoom.image || "/default-avatar.png",
-        });
-        return;
-      }
-
-      const roomData = await fetchRoomFromMongoDB(id);
-      if (roomData) {
-        handleUserCardClick({
-          id: roomData.ID || roomData.id || roomData.roomId || id,
-          accountId: roomData["Room Admin"] || roomData.accountId || id,
-          name: roomData["Room Name"] || "hurry User@",
-          country: roomData.Country || roomData.country || "🇮🇳",
-          image: roomData["Room dp"] || "/IMG_20260921_210113.png",
-        });
-        return;
-      }
-      console.error("Room not found:", id);
     } catch (error) {
-      console.error("Error joining room:", error);
-    }
-  };
-    // ============ REAL-TIME LIVE SEARCH ============
-  const handlePerformSearch = useCallback(async (queryParam?: string) => {
-    const queryRaw = (typeof queryParam === 'string' ? queryParam : searchQuery).trim();
-    if (!queryRaw) {
-      setSearchResults([])
-      setHasSearched(false)
-      setIsSearching(false)
-      return
+      console.error("Failed to save room settings to MongoDB", error);
     }
 
-    setIsSearching(true)
-    setHasSearched(false)
-
-    try {
-      const results = await fetchSearchResults(queryRaw, globalRoomsRef.current)
-      setSearchResults(results)
-      setHasSearched(true)
-    } catch (err) {
-      console.error("Search error:", err)
-      setSearchResults([])
-      setHasSearched(true)
-    } finally {
-      setIsSearching(false)
-    }
-  }, [searchQuery]);
-
-  useEffect(() => {
-    if (!isSearchOpen) return;
-
-    const trimmed = searchQuery.trim();
-    if (!trimmed) {
-      setSearchResults([]);
-      setHasSearched(false);
-      setIsSearching(false);
-      return;
-    }
-
-    const queryLower = trimmed.toLowerCase();
-    const immediateLocal = globalRoomsRef.current.filter(room => {
-      const acc = String(room.accountId || "").toLowerCase();
-      const id = String(room.id || "").toLowerCase();
-      const name = String(room.name || "").toLowerCase();
-      return acc.includes(queryLower) || id.includes(queryLower) || name.includes(queryLower);
-    });
-
-    if (immediateLocal.length > 0) {
-      setSearchResults(immediateLocal);
-      setHasSearched(true);
-    } else {
-      setIsSearching(true);
-    }
-
-    const timer = setTimeout(() => {
-      handlePerformSearch(trimmed);
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery, isSearchOpen, handlePerformSearch]);
-
-  // ============ SIGN IN MODAL ============
-  const handleImageClick = () => { setIsSignInModalOpen(true) }
-  const handleCloseModal = () => { setIsSignInModalOpen(false) }
-  const handleSignIn = () => {
-    const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
-    setCurrentSignInDay(nextDay)
-    localStorage.setItem('signInDay', nextDay.toString())
-    setIsSignInModalOpen(false)
-    alert(`Day ${currentSignInDay} reward claimed! 🎉`)
-  }
-
-  // ============ VIEWPORT META ============
-  useEffect(() => {
-    const existingMeta = document.querySelector('meta[name="viewport"]')
-    if (existingMeta) existingMeta.remove()
-    const meta = document.createElement('meta')
-    meta.name = 'viewport'
-    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'
-    document.head.appendChild(meta)
-    return () => {
-      const metaTag = document.querySelector('meta[name="viewport"]')
-      if (metaTag && metaTag.getAttribute('content') === 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover') {
-        metaTag.remove()
+    if (isOwnerOfRoom) {
+      let existingMyRoom: any = {};
+      try {
+        const rawMyRoom = localStorage.getItem('myRoom');
+        if (rawMyRoom) {
+          existingMyRoom = JSON.parse(rawMyRoom);
+        }
+      } catch (e) {
+        console.error("Error parsing myRoom", e);
       }
-    }
-  }, [])
 
-  // ============ PAGE EFFECTS ============
-  useEffect(() => {
-    if (currentPage !== 'message') setIsChatOpen(false)
-  }, [currentPage])
-
-  useEffect(() => {
-    if (currentPage !== 'me' && currentPage !== 'public_profile') {
-      setIsPublicProfileActive(false)
-    }
-  }, [currentPage])
-
-  // ============ ALL ROOMS FILTER ============
-  const allRooms = (() => {
-    const seenKeys = new Set<string>();
-    const result: GlobalRoom[] = [];
-
-    for (const room of globalRooms) {
-      if (!room || !room.name || !room.image) continue;
-      if (room.name === 'My Room' || room.name === 'My room' || room.name === 'User') continue;
-      if (/jiys/i.test(room.name)) continue;
-      if (
-        room.accountId === 'undefined' || room.accountId === 'null' ||
-        room.accountId === '' || room.accountId === null
-      ) continue;
-
-      if (!(Number(room.activeUserCount || 0) > 0)) continue;
-
-      const rid = String(room.id || '');
-      const racc = String(room.accountId || '');
-
-      if (rid && seenKeys.has(rid)) continue;
-      if (racc && seenKeys.has(racc)) continue;
-
-      if (rid) seenKeys.add(rid);
-      if (racc) seenKeys.add(racc);
-
-      result.push(room);
+      const updatedMyRoomCard = {
+        ...existingMyRoom,
+        id: currentUser.id || roomId,
+        accountId: currentUser.accountId || roomOwner.accountId,
+        name: roomSettings.roomName,
+        image: roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
+      };
+      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
+      window.dispatchEvent(new Event('storage'));
     }
 
-    return result;
-  })();
-
-  // ============ RENDER POPULAR TAB ============
-  const renderPopularTab = () => {
-    return (
-      <>
-        <div
-          ref={categoryCardsRef}
-          className="px-3"
-          style={{
-            transform: `translateY(${categoryOffset - 4}px)`,
-            marginBottom: `${categoryOffset}px`,
-            position: 'relative',
-            zIndex: 10,
-            willChange: 'transform'
-          }}
-        >
-          <div
-            className="flex flex-row justify-between items-center gap-1 select-none"
-            style={{ fontFamily: 'Nunito, Inter, sans-serif', marginBottom: '0px' }}
-          >
-            {CATEGORY_CARDS.map((card, i) => {
-              const isHonour = card.label?.toLowerCase().includes('honour');
-              return (
-                <div
-                  key={card.label}
-                  onClick={() => {
-                    setLeaderboardTab(card.tab);
-                    setCurrentPage('leaderboard');
-                  }}
-                  className="group flex-1 cursor-pointer"
-                  style={{
-                    height: '92px',
-                    minHeight: '92px',
-                    maxHeight: '92px',
-                    minWidth: 0,
-                    borderRadius: '16px',
-                    opacity: mounted ? 1 : 0,
-                    transform: mounted ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.96)',
-                    transition: 'transform 420ms cubic-bezier(0.34,1.56,0.64,1), box-shadow 280ms ease, opacity 420ms ease',
-                    animation: mounted ? 'cardIn 560ms cubic-bezier(0.22,1,0.36,1) both' : 'none',
-                    animationDelay: `${i * 100}ms`,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    zIndex: 30
-                  }}
-                >
-                  <div
-                    className="relative w-full text-center font-black uppercase tracking-wider select-none z-50 pointer-events-none"
-                    style={{
-                      paddingTop: '16px',
-                      fontSize: '11px',
-                      lineHeight: '1.2',
-                      background: 'linear-gradient(180deg, #FFFFFF 0%, #FFF8B5 35%, #FFD700 70%, #F5B000 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      WebkitTextStroke: '0.4px rgba(100, 60, 0, 0.7)',
-                      filter: 'drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.9)) drop-shadow(0px 0px 5px rgba(255, 215, 0, 0.6))',
-                    }}
-                  >
-                    {card.label}
-                  </div>
-
-                  <img
-                    src={card.bgImage}
-                    alt={card.label}
-                    className={`absolute inset-0 w-full h-full object-contain z-0 pointer-events-none translate-y-1 ${
-                      isHonour ? 'scale-[1.08]' : 'scale-102'
-                    }`}
-                    draggable="false"
-                  />
-
-                  <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-2">
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      @keyframes shrinkAndFade {
-                        0%, 80% { transform: scale(1); opacity: 1; }
-                        95% { transform: scale(0.5); opacity: 0; }
-                        100% { transform: scale(0); opacity: 0; }
-                      }
-                    `}} />
-
-                    <div
-                      className="relative w-[85%] mx-auto flex items-center justify-center z-10"
-                      style={{
-                        animation: 'shrinkAndFade 5s ease-in-out infinite',
-                        marginBottom: '0px',
-                        transformOrigin: 'center'
-                      }}
-                    >
-                      <img src="/file_00000000048882118276c7215012963f.png" alt="Frame" className="w-full h-auto block z-30" draggable="false" />
-
-                      <div className="absolute inset-0 flex flex-row items-center justify-center z-20">
-                        <img
-                          src="/logo.png"
-                          alt="Left"
-                          className="rounded-full object-cover shadow-sm relative shrink-0"
-                          style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginRight: '3%' }}
-                        />
-                        <img
-                          src="/logo.png"
-                          alt="Middle"
-                          className="rounded-full object-cover shadow-md border-[1.5px] border-white/80 relative shrink-0 z-10"
-                          style={{ width: '32%', height: 'auto', aspectRatio: '1/1', marginBottom: '3%' }}
-                        />
-                        <img
-                          src="/logo.png"
-                          alt="Right"
-                          className="rounded-full object-cover shadow-sm relative shrink-0"
-                          style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginLeft: '3%' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {allRooms.length > 0 ? (
-          <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
-              {allRooms.map((room, index) => (
-                <div
-                  key={room.accountId}
-                  onClick={() =>
-                    handleUserCardClick({
-                      id: room.id,
-                      accountId: room.accountId,
-                      name: room.name,
-                      country: room.country,
-                      image: room.image,
-                      isLocked: room.isLocked,
-                    })
-                  }
-                >
-                  <div
-                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
-                  >
-                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
-                      <img
-                        src={
-                          room.image && room.image !== "undefined" && room.image !== "null"
-                            ? room.image
-                            : "/IMG_20260921_210113.png"
-                        }
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/IMG_20260921_210113.png";
-                        }}
-                        alt={room.name}
-                        className="w-full h-full object-cover"
-                        draggable="false"
-                      />
-                    </div>
-
-                    {(index === 0 || index === 1 || index === 2) && (
-                      <img
-                        src={
-                          index === 0
-                            ? "/IMG_20260922_112156.png"
-                            : index === 1
-                            ? "/IMG_20260922_112129.png"
-                            : "/IMG_20260922_112110.png"
-                        }
-                        alt={`Rank ${index + 1} badge`}
-                        className="absolute pointer-events-none z-50"
-                        style={{
-                          top: '-11px',
-                          right: '-6px',
-                          width: '55px',
-                          height: '55px',
-                          objectFit: 'contain',
-                        }}
-                        draggable="false"
-                      />
-                    )}
-
-                    {room.isLocked && (
-                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50 z-50">
-                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" />
-                        </svg>
-                      </div>
-                    )}
-
-                    <LiveRoomStats />
-                  </div>
-
-                  <div className="mt-0.5 px-1">
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-sm">{room.country}</span>
-                      <span className="font-semibold text-gray-900 text-sm truncate">
-                        {room.name}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-      </>
+    socket.emit(
+      "room_settings_updated",
+      {
+        roomId: roomOwner.accountId || roomId,
+        roomName: roomSettings.roomName,
+        roomDp: roomSettings.roomDp,
+        announcement: roomSettings.announcement,
+        micMode: roomSettings.micMode,
+        theme: roomSettings.theme,
+        isLocked: roomSettings.isLocked,
+        roomPassword: roomSettings.roomPassword,
+        updatedAt: Date.now(),
+      }
     );
   };
 
-  // ============ MAIN RETURN ============
+  const handleExit = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    isKeepingRef.current = false;
+    setShowExitMenu(false);
+    localStorage.removeItem('keptRoom');
+    setMessages([]);
+    if (onBack) onBack();
+    if (onClose) onClose();
+  };
+
+  const handleKeep = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    isKeepingRef.current = true;
+    const keptAccId = roomOwner.accountId || (roomId ? generateStableId(roomId) : "");
+    const roomData = {
+      name: roomName || "hurry User@",
+      image: roomDp || "/IMG_20260921_210113.png",
+      accountId: keptAccId,
+      id: roomId,
+      roomId,
+    };
+    localStorage.setItem('keptRoom', JSON.stringify(roomData));
+    setShowExitMenu(false);
+    if (onKeepRoom) onKeepRoom(roomData);
+    if (onBack) onBack();
+  };
+
+  const handleSeatEmoji = async (emojiData: any) => {
+    if (!hasSeat || !currentUserSeat) return;
+
+    const sendTimestamp = Date.now();
+    const seatNum = currentUserSeat.number;
+
+    setSeats(prev => prev.map(s => s.number === seatNum ? {
+      ...s,
+      gif: { src: emojiData.src, timestamp: sendTimestamp }
+    } : s));
+
+    emitSeatAction("emoji", seatNum, {
+      src: emojiData.src,
+      timestamp: sendTimestamp,
+    });
+
+    setTimeout(() => {
+      setSeats(prev => prev.map(s => s.number === seatNum ? { ...s, gif: undefined } : s));
+    }, 5000);
+  };
+
+  const liveUserCount = roomUsers.length;
+  const selectedSeatData = selectedSeat !== null ? seats.find(s => s.number === selectedSeat) : null;
+  const isSelectedSeatMySeat = selectedSeatData ? isCurrentUsersSeat(selectedSeatData) : false;
+  const isSelectedSeatTakenByOther = selectedSeatData ? (selectedSeatData.isOccupied && !isSelectedSeatMySeat) : false;
+    const renderSeats = () => {
+    const renderSeatItems = (seatNumbers: number[]) => {
+      return seatNumbers.map(num => {
+        const seat = seats.find(s => s.number === num);
+        return (
+          <SeatItem
+            key={num}
+            seatNumber={num}
+            seatData={seat}
+            onClick={handleSeatClick(num)}
+            onAvatarClick={handleSeatAvatarClick(seat!)}
+            accountId={userAccountId}
+            roomOwnerId={roomOwnerId}
+          />
+        );
+      });
+    };
+
+    if (micMode === 5) {
+      return (
+        <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '85px' } as React.CSSProperties}>
+          <div className="flex justify-center">{renderSeatItems([1])}</div>
+          <div className="flex justify-around items-center w-full px-0">{renderSeatItems([2, 3, 4, 5])}</div>
+        </div>
+      );
+    }
+    if (micMode === 10) {
+      return (
+        <div className="flex flex-col gap-2.5 w-full px-0">
+          <div className="grid grid-cols-5 justify-items-center w-full px-0">{renderSeatItems([1, 2, 3, 4, 5])}</div>
+          <div className="grid grid-cols-5 justify-items-center w-full px-0">{renderSeatItems([6, 7, 8, 9, 10])}</div>
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-col gap-2.5 w-full px-0">
+        <div className="grid grid-cols-5 justify-items-center w-full px-0">{renderSeatItems([1, 2, 3, 4, 5])}</div>
+        <div className="grid grid-cols-5 justify-items-center w-full px-0">{renderSeatItems([6, 7, 8, 9, 10])}</div>
+        <div className="grid grid-cols-5 justify-items-center w-full px-0">{renderSeatItems([11, 12, 13, 14, 15])}</div>
+      </div>
+    );
+  };
+
+  const handlePlayMusic = (track: MusicTrack, playlist?: MusicTrack[]) => {
+    if (playlist && playlist.length > 0) {
+      setMusicPlaylist(playlist);
+      const index = playlist.findIndex(t => t.id === track.id);
+      setCurrentTrackIndex(index >= 0 ? index : 0);
+    } else {
+      setMusicPlaylist([track]);
+      setCurrentTrackIndex(0);
+    }
+
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current.src = track.url;
+      musicAudioRef.current.volume = musicVolume;
+      musicAudioRef.current.play();
+    } else {
+      const audio = new Audio(track.url);
+      audio.volume = musicVolume;
+      musicAudioRef.current = audio;
+      audio.play();
+
+      audio.addEventListener('timeupdate', () => { setMusicCurrentTime(audio.currentTime); });
+      audio.addEventListener('loadedmetadata', () => { setMusicDuration(audio.duration); });
+      audio.addEventListener('ended', () => { handleNextTrack(); });
+    }
+
+    setCurrentTrack(track);
+    setIsMusicPlaying(true);
+    setMusicControllerState('full');
+    setMusicCurrentTime(0);
+    setMusicDuration(0);
+  };
+
+  const handleToggleMusicPlay = () => {
+    if (!musicAudioRef.current || !currentTrack) return;
+    if (isMusicPlaying) {
+      musicAudioRef.current.pause();
+      setIsMusicPlaying(false);
+    } else {
+      musicAudioRef.current.play();
+      setIsMusicPlaying(true);
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setMusicVolume(newVolume);
+    if (musicAudioRef.current) musicAudioRef.current.volume = newVolume;
+  };
+
+  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = parseFloat(e.target.value);
+    setMusicCurrentTime(newTime);
+    if (musicAudioRef.current) musicAudioRef.current.currentTime = newTime;
+  };
+
+  const handleNextTrack = () => {
+    if (musicPlaylist.length === 0) return;
+    const nextIndex = (currentTrackIndex + 1) % musicPlaylist.length;
+    const nextTrack = musicPlaylist[nextIndex];
+
+    if (musicAudioRef.current) {
+      musicAudioRef.current.src = nextTrack.url;
+      musicAudioRef.current.volume = musicVolume;
+      musicAudioRef.current.play();
+    }
+    setCurrentTrackIndex(nextIndex);
+    setCurrentTrack(nextTrack);
+    setIsMusicPlaying(true);
+    setMusicCurrentTime(0);
+    setMusicDuration(0);
+  };
+
+  const handlePrevTrack = () => {
+    if (musicPlaylist.length === 0) return;
+    const prevIndex = (currentTrackIndex - 1 + musicPlaylist.length) % musicPlaylist.length;
+    const prevTrack = musicPlaylist[prevIndex];
+
+    if (musicAudioRef.current) {
+      musicAudioRef.current.src = prevTrack.url;
+      musicAudioRef.current.volume = musicVolume;
+      musicAudioRef.current.play();
+    }
+    setCurrentTrackIndex(prevIndex);
+    setCurrentTrack(prevTrack);
+    setIsMusicPlaying(true);
+    setMusicCurrentTime(0);
+    setMusicDuration(0);
+  };
+
+  const handleCloseMusicController = () => {
+    if (musicAudioRef.current) {
+      musicAudioRef.current.pause();
+      musicAudioRef.current = null;
+    }
+    setMusicControllerState('hidden');
+    setCurrentTrack(null);
+    setIsMusicPlaying(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (musicAudioRef.current) {
+        musicAudioRef.current.pause();
+        musicAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (musicAudioRef.current) musicAudioRef.current.volume = musicVolume;
+  }, [musicVolume]);
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleTouchStartMini = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    isDraggingMiniRef.current = true;
+    miniDragOffset.current = {
+      x: touch.clientX - miniPos.x,
+      y: touch.clientY - miniPos.y,
+    };
+  };
+
+  const handleTouchMoveMini = (e: React.TouchEvent) => {
+    if (!isDraggingMiniRef.current) return;
+    const touch = e.touches[0];
+    setMiniPos({
+      x: Math.max(10, Math.min(window.innerWidth - 50, touch.clientX - miniDragOffset.current.x)),
+      y: Math.max(50, Math.min(window.innerHeight - 80, touch.clientY - miniDragOffset.current.y)),
+    });
+  };
+
+  const handleTouchEndMini = () => { isDraggingMiniRef.current = false; };
+
+  const handleMouseDownMini = (e: React.MouseEvent) => {
+    isDraggingMiniRef.current = true;
+    miniDragOffset.current = {
+      x: e.clientX - miniPos.x,
+      y: e.clientY - miniPos.y,
+    };
+
+    const handleMouseMove = (me: MouseEvent) => {
+      if (!isDraggingMiniRef.current) return;
+      setMiniPos({
+        x: Math.max(10, Math.min(window.innerWidth - 50, me.clientX - miniDragOffset.current.x)),
+        y: Math.max(50, Math.min(window.innerHeight - 80, me.clientY - miniDragOffset.current.y)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      isDraggingMiniRef.current = false;
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  if (showStore) {
+    return <StorePage onBack={() => setShowStore(false)} initialView={storeInitialView} />;
+  }
+
+  if (showSettingPage) {
+    return (
+      <RoomSettingPage
+        onBack={closeSettings}
+        roomOwnerId={roomId}
+        roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
+        onSave={handleSaveSettings}
+      />
+    );
+  }
+
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-blue-400 via-blue-100 to-white"
-      style={{
-        minHeight: viewportHeight ? `calc(var(--vh, 1vh) * 100)` : '100vh',
-        paddingBottom: '0px',
-        touchAction: 'manipulation',
-        WebkitUserSelect: 'none',
-        userSelect: 'none',
-        WebkitTouchCallout: 'none'
-      }}
+      className="fixed inset-0 z-50 bg-black flex flex-col"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: '100%' }}
     >
-      <div
-        ref={jitsiContainerRef}
-        className="absolute inset-0 z-0 opacity-0 pointer-events-none"
-        style={{ width: '1px', height: '1px' }}
+      <img
+        src={backgroundImage}
+        alt="Room Background"
+        className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
+        draggable={false}
       />
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&display=swap');
-        * { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; touch-action: manipulation; }
-        button, a, div, span { touch-action: manipulation; }
-        @keyframes cardIn { 0% { opacity: 0; transform: translateY(14px) scale(0.96); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes fadeInBanner { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); } }
-        @keyframes deletePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes modalFadeIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes modalOverlayIn { 0% { opacity: 0; } 100% { opacity: 1; } }
-        @keyframes slideDownNotif { 0% { transform: translateY(-100%) scale(0.95); opacity: 0; } 100% { transform: translateY(0) scale(1); opacity: 1; } }
-        .animate-slide-down { animation: slideDownNotif 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideUpSheet { 0% { transform: translateY(100%); } 100% { transform: translateY(0); } }
-        @keyframes popIconAnim { 0% { transform: scale(0.7); opacity: 0.5; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
-        .icon-active-anim { animation: popIconAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; transform-origin: center; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-      `}</style>
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
 
-      {isInviteFriendsOpen && (
-        <div className="fixed inset-0 z-[200]">
-          <InviteFriends
-            onBack={() => {
-              setIsInviteFriendsOpen(false)
-              if (window.history.state?.inviteFriendsModal) window.history.back()
-            }}
-            onClose={() => {
-              setIsInviteFriendsOpen(false)
-              if (window.history.state?.inviteFriendsModal) window.history.back()
-            }}
-          />
-        </div>
-      )}
+      <div className="relative z-10 flex flex-col h-full px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }} onClick={(e) => e.stopPropagation()}>
 
-      {showRoomPasswordCard && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowRoomPasswordCard(false)} />
-          <div className="relative bg-white w-80 rounded-3xl shadow-2xl p-6 mx-4 animate-scale-up">
-            <h3 className="text-xl font-bold text-gray-800 text-center mb-2">Locked Room</h3>
-            <p className="text-sm text-gray-500 text-center mb-6">Enter password to join</p>
-            <PasswordInput value={enteredRoomPassword} onChange={setEnteredRoomPassword} />
+        {/* Top Header */}
+        <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
+          <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
             <button
-              onClick={handleRoomPasswordSubmit}
-              disabled={enteredRoomPassword.length !== 4}
-              className={`w-full mt-6 py-3.5 rounded-2xl font-semibold text-white transition-all ${
-                enteredRoomPassword.length === 4
-                  ? 'bg-blue-500 hover:bg-blue-600 active:scale-[0.98]'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
+              onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }}
+              className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+              style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}
             >
-              Enter Room
+              <img
+                src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+                alt="Room Cover"
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
             </button>
-            <button
-              onClick={() => {
-                setShowRoomPasswordCard(false)
-                setEnteredRoomPassword('')
-              }}
-              className="w-full mt-3 py-3 text-gray-500 font-medium text-center hover:bg-gray-50 rounded-2xl active:scale-[0.98] transition-all"
-            >
-              Cancel
+            <div className="text-left py-0.5">
+              <div className="flex items-center gap-1 sm:gap-2">
+                <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>{displayRoomName}</h2>
+                {!isRoomOwner && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const newFollow = !isFollowed;
+                      setIsFollowed(newFollow);
+                      if (onFollowToggle) onFollowToggle(roomId, newFollow);
+                    }}
+                    className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600"
+                    style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}
+                    title={isFollowed ? 'Unfollow Room' : 'Follow Room'}
+                  >
+                    <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}>
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>
+                ID:{roomOwner.accountId || ''}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-0.5">
+            <button onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }} className="flex items-center gap-1 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm" style={{ height: 'var(--header-btn-size)', padding: 'var(--header-btn-padding)' }}>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                <circle cx="9" cy="7" r="4" />
+                <path d="M 2 20 C 2 15 5 13 9 13 C 13 13 16 15 16 20" />
+                <line x1="18" y1="8" x2="21" y2="8" /><line x1="18" y1="12" x2="21" y2="12" /><line x1="18" y1="16" x2="20" y2="16" />
+              </svg>
+              <span className="text-white font-semibold leading-none" style={{ fontSize: 'var(--header-count-size)' }}>{liveUserCount}</span>
+            </button>
+
+            {isRoomOwner && (
+              <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                  <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
+                  <circle cx="12" cy="12" r="2.8" />
+                </svg>
+              </button>
+            )}
+
+            <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Share" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                <path d="M4 14.5C4.5 10 8 7 14 7V3L21 10.5L14 18V14C9.5 14 6 15.5 4 19.5C4 18 4 16 4 14.5Z" />
+              </svg>
+            </button>
+
+            <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                <path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
+              </svg>
             </button>
           </div>
         </div>
-      )}
 
-      {isSearchOpen && (
-        <SearchPage
-          onClose={() => setIsSearchOpen(false)}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          activeSearchTab={activeSearchTab}
-          setActiveSearchTab={setActiveSearchTab}
-          searchResults={searchResults}
-          hasSearched={hasSearched}
-          isSearching={isSearching}
-          onPerformSearch={handlePerformSearch}
-          onUserProfileClick={handleUserProfileClick}
-          onUserCardClick={handleUserCardClick}
-          viewportHeight={viewportHeight}
-        />
-      )}
-
-      <DailyCheckInModal
-        isOpen={isSignInModalOpen}
-        onClose={handleCloseModal}
-        currentDay={currentSignInDay}
-        onSignIn={handleSignIn}
-      />
-
-      {showDeleteZone && keptRoom && (
-        <div
-          ref={deleteZoneRef}
-          className="fixed bottom-4 right-4 z-[60] transition-all duration-300"
-          style={{ animation: isOverDeleteZone ? 'deletePulse 0.5s ease-in-out infinite' : 'none' }}
-        >
-          <div
-            className={`flex items-center justify-center rounded-full transition-all duration-300 ${
-              isOverDeleteZone
-                ? 'w-16 h-16 bg-red-600 shadow-lg shadow-red-500/50 scale-110'
-                : 'w-14 h-14 bg-red-500/60'
-            }`}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className={`transition-all duration-300 ${isOverDeleteZone ? 'w-8 h-8' : 'w-6 h-6'}`}
-              fill="none"
-              stroke="white"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+        {/* Trophy Card UI */}
+        <div className="h-0 w-full relative z-20">
+          <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
+            <button
+              onClick={() => setShowCupIcon(true)}
+              className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none"
             >
-              <path d="M3 6h18" />
-              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-              <line x1="10" y1="11" x2="10" y2="17" />
-              <line x1="14" y1="11" x2="14" y2="17" />
+              <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
+                <GreenColorRemovalShader
+                  imageSrc="/1788258883971~2.jpg"
+                  threshold={0.5}
+                  className="w-full h-full"
+                  style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }}
+                />
+              </div>
+              <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>
+                {formatCupCount(cupCount)}
+              </span>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}>
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Middle Section */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">
+            {renderSeats()}
+          </div>
+
+          <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
+            <div className="mx-1 mb-3 flex justify-start">
+              <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+                <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                  Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
+                </p>
+                {roomAnnouncement && (
+                  <div className="mt-2 pt-2 border-t border-white/10">
+                    <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                      <span className="font-bold mr-1">ANNOUNCEMENT: </span>
+                      {roomAnnouncement}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-0.5">
+              {messages.map((msg) => (
+                <div key={msg.id} className="leading-[1.8rem]">
+                  {msg.type === 'join' ? (
+                    <>
+                      {msg.equippedVehicle && (
+                        <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
+                      )}
+                      <div className="flex items-start gap-1.5 px-1 max-w-[75%]">
+                        <div
+                          className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
+                          style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
+                          onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
+                        >
+                          <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                        </div>
+                        <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
+                          <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                          <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : msg.imageUrl ? (
+                    <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
+                          <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 max-w-[75%]">
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                        {msg.equippedBubble ? (
+                          <div className="px-3 py-2 mt-0.5 flex items-center justify-center relative min-w-[60px]" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                            <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
+                        ) : (
+                          <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                            <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Controls */}
+        <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
+          <div className="flex items-center justify-between gap-1 ">
+            <button
+              onClick={openChatInput}
+              aria-label="Say Hi Chat"
+              className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+              style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+            >
+              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+                <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+              </svg>
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {hasSeat && (
+                <button
+                  onClick={handleBottomMicToggle}
+                  className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible"
+                  style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+                >
+                  {currentUserSeat?.isMuted ? (
+                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                      <defs>
+                        <mask id="mic-cut-muted">
+                          <rect x="-2" y="-2" width="32" height="32" fill="white" />
+                          <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
+                        </mask>
+                      </defs>
+                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
+                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                      <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
+                      <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                      <defs>
+                        <mask id="mic-cut-unmuted">
+                          <rect x="-2" y="-2" width="32" height="32" fill="white" />
+                          <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
+                        </mask>
+                      </defs>
+                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
+                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                    </svg>
+                  )}
+                </button>
+              )}
+
+              {hasSeat && (
+                <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
+                  </svg>
+                </button>
+              )}
+
+              <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }}
+                aria-label="Message Box Menu"
+                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+              >
+                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+                  <rect x="3" y="5" width="18" height="14" rx="3" ry="3" />
+                  <path d="M3 7l7.53 5.54a3 3 0 0 0 2.94 0L21 7" />
+                </svg>
+              </button>
+
+              <button onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} aria-label="Gift" className="bg-white/10 backdrop-blur-md rounded-full border-none hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 overflow-hidden cursor-pointer shadow-sm p-0" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+                <img src="/file_000000008e508208b1353ae33e2abef9.png" alt="Gift" className="w-full h-full object-cover rounded-full" draggable={false} />
+              </button>
+
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
+                aria-label="Apps Menu"
+                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+              >
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                  <rect x="3" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Input container */}
+        {showChatInput && (
+          <div
+            ref={inputContainerRef}
+            className="fixed bottom-0 left-0 right-0 z-[10000] flex items-center w-full"
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
+              <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
+                <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+                </svg>
+              </button>
+              <input
+                ref={inputRef}
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                onFocus={handleInputFocus}
+                placeholder="Type a message..."
+                className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 px-2 py-1.5 outline-none border-none rounded-none"
+                style={{ fontSize: 'var(--footer-input-text)' }}
+              />
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleSendMessage}
+                className="hover:bg-blue-50 rounded-full transition-colors cursor-pointer flex-shrink-0"
+              >
+                <svg viewBox="0 0 24 24" className="fill-none stroke-blue-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                  <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* DRAGGABLE FLOATING MUSIC MINIMIZE ICON */}
+      {musicControllerState === 'minimized' && currentTrack && (
+        <div
+          onTouchStart={handleTouchStartMini}
+          onTouchMove={handleTouchMoveMini}
+          onTouchEnd={handleTouchEndMini}
+          onMouseDown={handleMouseDownMini}
+          onClick={() => { if (!isDraggingMiniRef.current) setMusicControllerState('full'); }}
+          className="fixed z-[9999] cursor-pointer touch-none select-none transition-transform hover:scale-105 active:scale-95"
+          style={{ left: `${miniPos.x}px`, top: `${miniPos.y}px` }}
+          title={currentTrack.name}
+        >
+          <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '18px', height: '18px' }}>
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
           </div>
         </div>
       )}
 
-      {keptRoom && currentPage === 'home' && !isSearchOpen && (
-        <div
-          ref={circleRef}
-          className={`fixed z-50 cursor-grab active:cursor-grabbing group ${
-            isDragging ? 'transition-none' : 'transition-all duration-300'
-          } ${isOverDeleteZone ? 'opacity-50 scale-75' : 'opacity-100'}`}
-          style={{ left: `${dragPosition.x}px`, top: `${dragPosition.y}px`, touchAction: 'none' }}
-          onClick={handleKeptRoomClick}
-          onMouseDown={handleCircleMouseDown}
-          onTouchStart={handleCircleTouchStart}
-        >
-          <div className="relative">
-            <div
-              className="w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg bg-white"
-              style={{ animation: isDragging ? 'none' : 'pulseGlow 2s infinite' }}
-            >
-              <img
-                src={keptRoom.image}
-                alt={keptRoom.name}
-                className="w-full h-full object-cover pointer-events-none"
-                draggable="false"
-              />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white pointer-events-none"></div>
-          </div>
-          {!isDragging && (
-            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              {keptRoom.name}
-            </div>
-          )}
-        </div>
-      )}
+      {/* RIGHT SIDE FLOATING STACK */}
+      <div
+        className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
+        style={{ top: 'calc(100lvh - 270px)', right: '10px' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <RoomSideBanner />
 
-      {!isChatOpen && currentPage !== 'room' && !isPublicProfileActive && !isSearchOpen && currentPage !== 'leaderboard' && (
         <div
-          className="fixed right-4 z-40"
-          style={{ bottom: 'calc(75px + max(env(safe-area-inset-bottom, 0px),16px))' }}
+          onClick={() => setShowRoomTask(true)}
+          className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center"
+          style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}
         >
-          <img
-            src="/IMG_20260916_002115.png"
-            alt="Corner decoration"
-            className="rounded-none object-contain cursor-pointer hover:scale-105 transition-transform active:scale-95"
-            style={{ width: '70px', height: '70px' }}
-            onClick={handleImageClick}
+          <GreenColorRemovalShader
+            imageSrc="/IMG-20260902-WA0066.jpg"
+            threshold={0.45}
+            className="w-full h-full"
+            style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
           />
         </div>
+
+        <div
+          className="relative cursor-pointer transition-transform hover:scale-105 mt-1"
+          style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }}
+          onClick={() => setShowGameSheet(true)}
+        >
+          <WhiteColorRemovalShader
+            imageSrc="/IMG_20260814_111008.png"
+            threshold={0.85}
+            className="w-full h-full"
+            style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }}
+          />
+        </div>
+      </div>
+
+      {showPublicMsgModal && (
+        <div className="absolute inset-0 z-[10000] flex items-center justify-center bg-black/50" onClick={() => setShowPublicMsgModal(false)}>
+          <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-gray-800 mb-1">Public msg are off</h3>
+            <p className="text-xs text-gray-500 mb-3">Only the room owner can send messages right now.</p>
+            <button
+              onClick={() => setShowPublicMsgModal(false)}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-5 rounded-full transition-colors cursor-pointer"
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
 
-      <div className="w-full">
-        {currentPage === 'home' && (
-          <div
-            className="w-full bg-white"
-            style={{ minHeight: viewportHeight ? `calc(var(--vh, 1vh) * 100)` : '100vh' }}
-          >
-            <div
-              ref={bannerContainerRef}
-              className="w-full px-3 safe-top pt-2"
-              style={{
-                height: activeTab === 'mine' ? 'auto' : 'calc(34vh + max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)))',
-                minHeight: activeTab === 'mine' ? 'auto' : 'calc(34vh + max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)))',
-                background: activeTab === 'mine'
-                  ? 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 60%, #ffffff 100%)'
-                  : 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-                paddingBottom: '12px'
-              }}
-            >
-              <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('mine')}
-                    className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
-                      activeTab === 'mine' ? 'font-extrabold text-[#1E1E1E]' : 'text-[#6E6E6E]'
-                    }`}
-                  >
-                    {t.mine || 'Mine'}
-                    {activeTab === 'mine' && (
-                      <svg className="absolute -bottom-1 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
-                        <path d="M2 1.5 Q 8 6 14 1.5" stroke="#1E1E1E" strokeWidth="3" strokeLinecap="round" />
-                      </svg>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('popular')}
-                    className={`font-bold text-[22px] tracking-[0.2px] transition-colors relative pb-1.5 ${
-                      activeTab === 'popular' ? 'font-extrabold text-[#1E1E1E]' : 'text-[#6E6E6E]'
-                    }`}
-                  >
-                    {t.popular || 'Popular'}
-                    {activeTab === 'popular' && (
-                      <svg className="absolute bottom-0 left-1/2 -translate-x-1/2" width="16" height="7" viewBox="0 0 16 7" fill="none">
-                        <path d="M2 1.5 Q 8 6 14 1.5" stroke="#1E1E1E" strokeWidth="3" strokeLinecap="round" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(true)}
-                    className="flex items-center justify-center cursor-pointer active:scale-95 transition-transform p-1"
-                    aria-label="Search"
-                  >
-                    <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
-                      <circle cx="12.5" cy="12.5" r="7" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M18.2 18.2 L24 24" stroke="#2D2D2D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleHouseClick}
-                    className="flex items-center justify-center cursor-pointer p-0"
-                    aria-label="Home"
-                  >
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                      <path
-                        d="M16 3.5 C 14.5 3.5, 3 8, 3 13.5 L 3 21.5 C 3 25.5, 6 28.5, 10.5 28.5 H 21.5 C 26 28.5, 29 25.5, 29 21.5 L 29 13.5 C 29 8, 17.5 3.5, 16 3.5 Z"
-                        stroke="#2D2D2D"
-                        strokeWidth="2.2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <rect x="9" y="14.5" width="3.5" height="6" rx="1.5" fill="#2D2D2D" />
-                      <rect x="14.2" y="11.5" width="3.5" height="9" rx="1.5" fill="#2D2D2D" />
-                      <rect x="19.5" y="14" width="3.5" height="6.5" rx="1.5" fill="#2D2D2D" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {activeTab === 'popular' && (
-                <>
-                  <div className="relative">
-                    <div
-                      ref={bannerRef}
-                      className="rounded-md relative overflow-hidden cursor-pointer select-none"
-                      style={{
-                        height: '100px',
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transform: isSwiping ? `translateX(${swipeOffset}px)` : 'translateX(0)',
-                        transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
-                        touchAction: 'pan-y',
-                      }}
-                      onClick={() => {
-                        if (Math.abs(swipeOffset) < 10) {
-                          if (currentBanner === 0 || BANNERS[currentBanner]?.image.includes('file_00000000a8b08211bd12c4102d0f9d77')) {
-                            setIsInviteFriendsOpen(true)
-                          }
-                        }
-                      }}
-                      onTouchStart={handleTouchStart}
-                      onTouchMove={handleTouchMove}
-                      onTouchEnd={handleTouchEnd}
-                      onMouseDown={handleMouseDown}
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseLeave}
-                    >
-                      <div
-                        key={currentBanner}
-                        className="w-full h-full"
-                        style={{ animation: isSwiping ? 'none' : 'fadeInBanner 400ms ease-out' }}
-                      >
-                        <img
-                          src={BANNERS[currentBanner].image}
-                          alt="Banner"
-                          className="w-full h-full object-cover rounded-md pointer-events-none"
-                          draggable="false"
-                        />
+      {showActiveUsers && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
+          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '40vh', maxHeight: '40vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 pt-4 pb-2 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-base font-bold text-gray-800 text-center">Active Users</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
+              {roomUsers.length > 0 ? (
+                <div className="space-y-2 pb-4">
+                  {roomUsers.map((user) => (
+                    <div key={user.accountId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                      <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
+                        <img src={user.image || "/default-avatar.png"} alt={user.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-xs font-semibold text-gray-800 truncate">{user.name}</h4>
+                        <p className="text-[10px] text-gray-400">ID: {user.accountId}</p>
                       </div>
                     </div>
-
-                    <div
-                      ref={bannerDotsRef}
-                      className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
-                      style={{ bottom: '6px', minHeight: '6px' }}
-                    >
-                      {BANNERS.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`w-1.5 h-1.5 rounded-full transition-all ${
-                            index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400 text-xs">No active users</p>
+                </div>
               )}
             </div>
-
-            {activeTab === 'mine' ? (
-              <MinePage
-                t={t}
-                isRoomCreated={isRoomCreated}
-                myRoom={myRoom}
-                userPhoto={userPhoto}
-                userName={userName}
-                onCardClick={handleCardClick}
-                activeMineTab={activeMineTab}
-                setActiveMineTab={setActiveMineTab}
-                followingRooms={followingRooms}
-                recentRooms={recentRooms}
-                onUserCardClick={handleUserCardClick}
-              />
-            ) : renderPopularTab()}
           </div>
-        )}
+        </div>
+      )}
 
-        {currentPage === 'message' && (
-          <MessagePage onChatOpen={setIsChatOpen} onJoinRoom={handleJoinRoomFromChat} />
-        )}
+      {showRoomInfo && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
+          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ height: '50vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="px-4 pt-5 pb-2 flex items-center justify-center">
+              <h2 className="text-base font-bold text-gray-800">Room Information</h2>
+            </div>
+            <div className="flex border-b border-gray-200 px-4">
+              <button onClick={() => setRoomInfoTab('profile')} className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'profile' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}>Profile</button>
+              <button onClick={() => setRoomInfoTab('members')} className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'members' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}>Members</button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
+              {roomInfoTab === 'profile' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-xl overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
+                      <img src={roomDp} alt="Room" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-800 text-sm">{roomName || 'Room'}</h3>
+                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                        <span>ID: {roomOwner.accountId}</span>
+                        <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer" title="Copy ID">
+                          <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                          </svg>
+                        </button>
+                        {copied && <span className="text-green-500 text-xs">Copied!</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-medium">Host</span>
+                    <p className="text-xs font-medium text-gray-800 mt-1">{roomOwner.name || "Unknown"}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-gray-400 font-medium">Announcement:</span>
+                    <p className="text-xs text-gray-700 mt-1 leading-relaxed">{roomAnnouncement || '—'}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: roomOwner.name, image: roomOwner.image, accountId: roomOwner.accountId || roomOwner.id || '' })}>
+                      <img src={roomOwner.image || "/default-avatar.png"} alt={roomOwner.name} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    </div>
+                    <div className="flex-1 min-w-0 flex items-center gap-1">
+                      <h4 className="text-xs font-medium text-gray-800 truncate">{roomOwner.name}</h4>
+                      <span className="rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)' }}>
+                        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
-        {currentPage === 'me' && (
-          <MePage
-            onLogout={onLogout}
-            onPublicProfileChange={(active: boolean) => setIsPublicProfileActive(active)}
-          />
-        )}
-
-        {currentPage === 'room' && selectedUser && (
-          <RoomPage
-            roomOwner={selectedUser}
-            currentUser={{
-              id: userUID,
-              uid: userUID,
-              accountId: (() => {
-                const rawAccNum = localStorage.getItem('accountNumber') || getOrCreateAccountNumber(userUID)
-                return typeof rawAccNum === 'string' ? rawAccNum : (rawAccNum as any).fullAccNum
-              })(),
-              name: userName,
-              image: userPhoto
-            }}
-            onBack={handleBackFromRoom}
-            onKeepRoom={handleKeepRoom}
-            onFollowToggle={(roomId: string, follow: boolean) => {
-              if (follow) {
-                const room = selectedUser
-                if (room) handleFollowRoom({ name: room.name, image: room.image, accountId: room.accountId || room.id })
-              } else {
-                handleUnfollowRoom(roomId)
+      {showUserProfile && profileUser && (
+        <RoomProfile
+          user={{
+            name: profileUser.name,
+            image: profileUser.image,
+            accountId: profileUser.accountId,
+            isInSeat: profileUser.isInSeat,
+            isMuted: seats.find(s => s.user?.accountId === profileUser.accountId)?.isMuted || false,
+            isLocked: seats.find(s => s.user?.accountId === profileUser.accountId)?.isLocked || false
+          }}
+          isCurrentUser={profileUser.accountId === userAccountId}
+          isRoomOwner={isRoomOwner}
+          onClose={() => setShowUserProfile(false)}
+          onFollow={() => console.log('Follow clicked')}
+          onMessage={() => {
+            setShowUserProfile(false);
+            setShowChatInput(true);
+            setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 200);
+          }}
+          onCopyId={() => console.log('Copy ID')}
+          onMention={(username?: string) => {
+            setShowUserProfile(false);
+            setShowChatInput(true);
+            setMessage(`@${username} `);
+            setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 200);
+          }}
+          onLeaveSeat={() => {
+            if (profileUser) handleLeaveUserSeat(profileUser.accountId);
+            setShowUserProfile(false);
+          }}
+          onMute={() => {
+            if (profileUser) {
+              const seat = seats.find(s => s.isOccupied && s.user?.accountId === profileUser.accountId);
+              if (seat) {
+                const updated = seats.map(s => s.number === seat.number ? { ...s, isMuted: !s.isMuted } : s);
+                setSeats(updated);
               }
-            }}
-          />
+            }
+            setShowUserProfile(false);
+          }}
+          onLock={() => {
+            if (profileUser) {
+              const seat = seats.find(s => s.isOccupied && s.user?.accountId === profileUser.accountId);
+              if (seat) {
+                const updated = seats.map(s => s.number === seat.number ? { ...s, isLocked: !s.isLocked } : s);
+                setSeats(updated);
+              }
+            }
+            setShowUserProfile(false);
+          }}
+          onKickOut={() => {
+            if (profileUser) handleLeaveUserSeat(profileUser.accountId);
+            setShowUserProfile(false);
+          }}
+        />
+      )}
+
+      {showExitMenu && (
+        <div className="absolute inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={closeExitMenu}>
+          <div className="flex flex-col items-center gap-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center gap-2">
+              <button onClick={handleKeep} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
+                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              </button>
+              <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <button onClick={handleExit} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
+                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+              </button>
+              <span className="text-white/70 font-medium" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
+            </div>
+          </div>
+          <button onClick={closeExitMenu} className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-all duration-200 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          </button>
+        </div>
+      )}
+
+      {showSeatSheet && selectedSeat !== null && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="absolute inset-0 bg-black/30" onClick={closeBottomSheet} />
+          <div className="relative bg-white/95 backdrop-blur-xl w-full max-w-md rounded-t-3xl shadow-2xl px-4 py-3 animate-slide-up max-h-[30vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="space-y-1">
+              {!isSelectedSeatTakenByOther && !isSelectedSeatMySeat && (
+                <button onClick={handleTakeSeat} disabled={selectedSeatData?.isLocked && !selectedSeatData?.isOccupied} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">Take Mic</button>
+              )}
+              {isSelectedSeatMySeat && <button onClick={handleLeaveSeat} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">Leave Seat</button>}
+
+              <button onClick={handleToggleMute} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                {selectedSeatData?.isMuted ? 'Unmute Seat' : 'Mute Seat'}
+              </button>
+
+              <button onClick={handleToggleLock} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">{selectedSeatData?.isLocked ? 'Unlock Mic' : 'Lock Mic'}</button>
+              <button onClick={handleInvite} className="w-full py-2 text-black font-medium text-sm hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">Invite</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {fullImageModal && (
+        <div className="fixed inset-0 z-[10000] bg-black/90 flex items-center justify-center p-4 cursor-pointer" onClick={() => setFullImageModal(null)}>
+          <div className="relative max-w-full max-h-full">
+            <img src={fullImageModal} alt="Full preview" className="max-w-full max-h-[85vh] object-contain rounded-lg" />
+            <button onClick={() => setFullImageModal(null)} className="absolute -top-8 right-0 text-white bg-white/20 rounded-full p-1.5 hover:bg-white/40">
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5]" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showMessageSheet && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowMessageSheet(false)} />
+          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ height: '60vh' }} onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowMessageSheet(false)} className="absolute top-2 left-2 z-20 p-1 bg-white/80 rounded-full shadow hover:bg-white transition-colors">
+              <svg viewBox="0 0 24 24" className="fill-none stroke-gray-700 stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div className="h-full overflow-y-auto">
+              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "hurry User@", roomDp: roomDp || "/IMG_20260921_210113.png" }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFourGride && (
+        <Fourgride
+          onClose={() => setShowFourGride(false)}
+          onClearChat={() => setMessages([])}
+          publicMsgOff={publicMsgOff}
+          onTogglePublicMsg={() => setPublicMsgOff(prev => !prev)}
+          speaker={isSpeakerOn}
+          onToggleSpeaker={() => setIsSpeakerOn(prev => !prev)}
+          onOpenStore={(view) => {
+            setStoreInitialView(view);
+            setShowStore(true);
+            setShowFourGride(false);
+          }}
+          onMusicPlay={(track) => {
+            const idb = indexedDB.open('HurryMusicDB', 1);
+            idb.onsuccess = () => {
+              const request = idb.result
+                .transaction('music', 'readonly')
+                .objectStore('music')
+                .getAll();
+
+              request.onsuccess = () => {
+                const allTracks = request.result.map((item: any) => ({
+                  id: item.id,
+                  name: item.name,
+                  url: URL.createObjectURL(item.blob)
+                }));
+                handlePlayMusic(track, allTracks);
+              };
+            };
+          }}
+        />
+      )}
+
+      {showGameSheet && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="absolute inset-0 bg-black/30" onClick={() => setShowGameSheet(false)} />
+          <div
+            className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl px-4 pt-4 pb-6 animate-slide-up"
+            style={{ height: '20vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">Games</h2>
+              <button onClick={() => setShowGameSheet(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2.5]">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4">
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={() => {
+                    setShowGameSheet(false);
+                    setShowWildParty(true);
+                  }}
+                  className="transition-transform hover:scale-105 -mt-1"
+                >
+                  <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild party" className="w-14 h-14 object-contain" />
+                </button>
+                <span className="text-[10px] text-gray-700 -mt-1 whitespace-nowrap">Wild party</span>
+              </div>
+
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={() => {
+                    setShowGameSheet(false);
+                    setShowFruitParty(true);
+                  }}
+                  className="transition-transform hover:scale-105"
+                >
+                  <img src="/fruit-party-logo.jpg" alt="Fruit party" className="w-12 h-12 object-contain rounded-md" />
+                </button>
+                <span className="text-[10px] text-gray-700 mt-1 whitespace-nowrap">Fruit party</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWildParty === true && (
+        <Wildparty onClose={() => setShowWildParty(false)} onMinimize={() => setShowWildParty('minimized')} />
+      )}
+
+      {showFruitParty === true && (
+        <Fruitparty onClose={() => setShowFruitParty(false)} onMinimize={() => setShowFruitParty('minimized')} />
+      )}
+
+      <div
+        className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
+        style={{
+          bottom: 'calc(100lvh - (100lvh - 310px) + 6px)',
+          right: '10px',
+          width: '60px',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {showWildParty === 'minimized' && (
+          <button
+            onClick={() => setShowWildParty(true)}
+            className="w-15 h-15 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
+          >
+            <img
+              src="/file_000000009d808211b8ffb7c2183b4ef5.png"
+              alt="Wild Party"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+          </button>
         )}
 
-        {currentPage === 'public_profile' && (
-          <PublicProfile
-            onBack={handleBackFromPublicProfile}
-            onJoinRoom={handleJoinRoomFromChat}
-            isOtherUser={true}
-            targetUser={selectedUser ? {
-              id: selectedUser.id,
-              uid: selectedUser.id,
-              accountId: selectedUser.accountId,
-              displayAccountNumber: selectedUser.accountId,
-              name: selectedUser.name,
-              country: selectedUser.country,
-              photo: selectedUser.image,
-              image: selectedUser.image
-            } : null}
-          />
-        )}
-
-        {currentPage === 'leaderboard' && (
-          <Leaderboard initialTab={leaderboardTab} onBack={() => setCurrentPage('home')} />
+        {showFruitParty === 'minimized' && (
+          <button
+            onClick={() => setShowFruitParty(true)}
+            className="w-10 h-10 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
+          >
+            <img
+              src="/fruit-party-logo.jpg"
+              alt="Fruit Party"
+              className="w-full h-full object-contain rounded-md"
+              draggable={false}
+            />
+          </button>
         )}
       </div>
 
-      {!isChatOpen && currentPage !== 'room' && !isPublicProfileActive && !isSearchOpen && currentPage !== 'leaderboard' && (
+      {showRoomTask && (
+        <div className="absolute inset-0 z-[11000] pointer-events-none">
+          <Roomtask onBack={() => setShowRoomTask(false)} />
+        </div>
+      )}
+
+      {showCupIcon && (
+        <div className="absolute inset-0 z-[11000] pointer-events-none">
+          <CupIcon
+            onBack={() => setShowCupIcon(false)}
+            count={cupCount}
+          />
+        </div>
+      )}
+
+      {musicControllerState === 'full' && currentTrack && !showFourGride && (
         <div
-          className="fixed bottom-0 left-0 right-0 flex justify-center z-30 bg-white"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          className="fixed left-1/2 transform -translate-x-1/2 z-[45] w-full max-w-sm px-3"
+          style={{ bottom: 'var(--music-controller-bottom)' }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-around items-center bg-white border-t border-zinc-100 shadow-lg px-3 py-1.5 w-full h-[65px]">
+          <div
+            className="relative rounded-2xl overflow-hidden bg-black/90 backdrop-blur-md border border-white/10"
+            style={{ padding: 'var(--music-padding)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
+          >
             <button
-              onClick={() => setCurrentPage('home')}
-              className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
+              onClick={handleCloseMusicController}
+              className="absolute top-1.5 left-1.5 p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+              aria-label="Close music controller"
+              title="Close"
             >
-              <svg
-                key={currentPage === 'home' ? 'home-active' : 'home-inactive'}
-                className={currentPage === 'home' ? 'icon-active-anim' : ''}
-                width="30" height="30" viewBox="0 0 36 36" fill="none"
-              >
-                <path
-                  d="M18 2.8C20.2 2.8 30.2 8.2 30.2 12.6V23.2C30.2 27.8 28 31 18 31C8 31 5.8 27.8 5.8 23.2V12.6C5.8 8.2 15.8 2.8 18 2.8Z"
-                  fill={currentPage === 'home' ? '#3b82f6' : 'white'}
-                  stroke="#1D1D1F"
-                  strokeWidth="2.4"
-                  strokeLinejoin="round"
-                />
-                <path d="M12.2 14.2C13.3 12.6 14.9 12.1 16.8 13.4" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round" />
-                <path d="M11.2 20.8C12.5 24.2 21 25.6 24.3 20.2" stroke="#1D1D1F" strokeWidth="1.8" strokeLinecap="round" />
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--music-icon-size)', height: 'var(--music-icon-size)' }}>
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-              <span className={`text-[12px] ${currentPage === 'home' ? 'font-semibold text-black' : 'text-gray-500'}`}>
-                {t.home}
-              </span>
             </button>
 
             <button
-              onClick={() => setCurrentPage('message')}
-              className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
+              onClick={() => setMusicControllerState('minimized')}
+              className="absolute top-1.5 right-1.5 p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+              aria-label="Minimize music controller"
+              title="Minimize"
             >
-              <div className="relative">
-                <svg
-                  key={currentPage === 'message' ? 'message-active' : 'message-inactive'}
-                  className={currentPage === 'message' ? 'icon-active-anim' : ''}
-                  width="30" height="30" viewBox="0 0 36 36" fill="none"
-                >
-                  <path
-                    d="M6 10.5C6 7 8.3 5 12.2 5H23.8C27.7 5 30 7 30 10.5V16.5C30 20 27.7 22 23.8 22H21 L17.5 27.2C17 28 15.8 28 15.2 27.2L12.2 22C8.3 22 6 20 6 16.5V10.5Z"
-                    fill={currentPage === 'message' ? '#3b82f6' : 'white'}
-                    stroke="#1D1D1F"
-                    strokeWidth="2.4"
-                  />
-                  <path
-                    d="M12 14.5C13.5 12.5 15.5 14.5 19.5 12.5C21.5 14.5 24 14.5 24 14.5"
-                    stroke="#1D1D1F"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
-                    {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
-                  </div>
-                )}
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--music-icon-size)', height: 'var(--music-icon-size)' }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-1.5 mt-4">
+              <p className="text-white font-semibold truncate px-8" style={{ fontSize: 'var(--music-title-size)' }}>
+                {currentTrack.name}
+              </p>
+            </div>
+
+            <div className="px-1 mb-1.5">
+              <input
+                type="range"
+                min="0"
+                max={musicDuration || 0}
+                step="0.1"
+                value={musicCurrentTime}
+                onChange={handleProgressChange}
+                className="w-full h-1 rounded-lg appearance-none cursor-pointer music-progress-slider"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 ${musicDuration ? (musicCurrentTime / musicDuration) * 100 : 0}%, rgba(255,255,255,0.3) ${musicDuration ? (musicCurrentTime / musicDuration) * 100 : 0}%)`,
+                }}
+              />
+              <div className="flex justify-between text-white/60 mt-0.5" style={{ fontSize: 'var(--music-time-size)' }}>
+                <span>{formatTime(musicCurrentTime)}</span>
+                <span>{formatTime(musicDuration)}</span>
               </div>
-              <span className={`text-[12px] ${currentPage === 'message' ? 'font-semibold text-black' : 'text-gray-500'}`}>
-                {t.message}
-              </span>
-            </button>
+            </div>
 
-            <button
-              onClick={() => setCurrentPage('me')}
-              className="group flex flex-col items-center gap-1 w-16 transition-all duration-200 active:scale-95 origin-center"
-            >
-              <svg
-                key={currentPage === 'me' ? 'me-active' : 'me-inactive'}
-                className={currentPage === 'me' ? 'icon-active-anim' : ''}
-                width="30" height="30" viewBox="0 0 36 36" fill="none"
-              >
-                <path
-                  d="M18 4.5C23.5 4.5 28 8.5 27.2 13.8L26.2 19.8C26 21.2 27.2 22.5 28.6 23.1C30.6 24 31 26.2 29 27.5C27.5 28.5 25 28.8 22 28.8H14C11 28.8 8.5 28.5 7 27.5C5 26.2 5.4 24 7.4 23.1C8.8 22.5 10 21.2 9.8 19.8L8.8 13.8C8 8.5 12.5 4.5 18 4.5Z"
-                  fill={currentPage === 'me' ? '#3b82f6' : 'white'}
-                  stroke="#1D1D1F"
-                  strokeWidth="2.4"
-                />
-                <circle cx="14" cy="15" r="1.6" fill="#1D1D1F" />
-                <circle cx="22" cy="15" r="1.6" fill="#1D1D1F" />
+            <div className="flex items-center justify-center gap-4 mb-1.5">
+              <button onClick={handlePrevTrack} className="p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer" aria-label="Previous track">
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--music-control-size)', height: 'var(--music-control-size)' }}>
+                  <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+                </svg>
+              </button>
+
+              <button onClick={handleToggleMusicPlay} className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer" aria-label={isMusicPlaying ? 'Pause' : 'Play'}>
+                {isMusicPlaying ? (
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--music-play-size)', height: 'var(--music-play-size)' }}>
+                    <rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--music-play-size)', height: 'var(--music-play-size)' }}>
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                )}
+              </button>
+
+              <button onClick={handleNextTrack} className="p-1.5 rounded-full hover:bg-white/10 transition-colors cursor-pointer" aria-label="Next track">
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--music-control-size)', height: 'var(--music-control-size)' }}>
+                  <path d="M16 6h2v12h-2zm-2.5 6l-8.5 6V6z" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-1">
+              <svg viewBox="0 0 24 24" className="fill-white shrink-0" style={{ width: 'var(--music-icon-size)', height: 'var(--music-icon-size)' }}>
+                <path d="M3 9v6h4l5 5V4L7 9H3z" />
               </svg>
-              <span className={`text-[12px] ${currentPage === 'me' ? 'font-semibold text-black' : 'text-gray-500'}`}>
-                {t.me}
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={musicVolume}
+                onChange={handleVolumeChange}
+                className="flex-1 h-1.5 rounded-lg appearance-none cursor-pointer music-volume-slider"
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 ${musicVolume * 100}%, rgba(255,255,255,0.3) ${musicVolume * 100}%)`,
+                }}
+              />
+              <span className="text-white font-semibold text-right" style={{ fontSize: 'var(--music-time-size)', width: 'var(--music-volume-width)' }}>
+                {Math.round(musicVolume * 100)}%
               </span>
-            </button>
+            </div>
           </div>
         </div>
       )}
-    </div>
-  )
+
+      <style jsx global>{`
+        :root {
+          --seat-size: 77px;
+          --header-btn-size: 42px;
+          --header-btn-padding: 4px 8px;
+          --header-icon-size: 26px;
+          --header-room-img-size: 44px;
+          --header-room-name-size: 16px;
+          --header-id-size: 11px;
+          --header-follow-btn-size: 22px;
+          --header-follow-icon-size: 14px;
+          --header-count-size: 11px;
+          --footer-btn-size: 47px;
+          --footer-icon-size: 30px;
+          --footer-input-text: 13px;
+          --announcement-text-size: 13px;
+          --msg-avatar-size: 26px;
+          --msg-name-size: 13px;
+          --msg-text-size: 13px;
+          --msg-jointime-size: 11px;
+          --exit-btn-size: 67px;
+          --exit-icon-size: 24px;
+          --exit-text-size: 14px;
+          --music-controller-bottom: 8vh;
+          --music-padding: 10px;
+          --music-icon-size: 16px;
+          --music-title-size: 13px;
+          --music-time-size: 9px;
+          --music-control-size: 20px;
+          --music-play-size: 24px;
+          --music-volume-width: 28px;
         }
+
+        @media (max-width: 400px) {
+          :root {
+            --seat-size: 75px;
+            --header-btn-size: 38px;
+            --header-icon-size: 22px;
+            --header-room-img-size: 38px;
+            --header-room-name-size: 15px;
+            --footer-btn-size: 42px;
+            --footer-icon-size: 26px;
+          }
+        }
+
+        .music-volume-slider, .music-progress-slider {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .music-volume-slider::-webkit-slider-thumb, .music-progress-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 0px;
+          height: 0px;
+          background: transparent;
+        }
+        .music-volume-slider::-moz-range-thumb, .music-progress-slider::-moz-range-thumb {
+          width: 0px;
+          height: 0px;
+          background: transparent;
+          border: none;
+        }
+        .music-volume-slider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; }
+        .music-volume-slider::-moz-range-track { height: 8px; border-radius: 4px; }
+        .music-progress-slider::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; }
+        .music-progress-slider::-moz-range-track { height: 6px; border-radius: 3px; }
+
+        @keyframes rotate-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .music-minimize-icon {
+          animation: rotate-slow 4s linear infinite;
+        }
+
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes waveBehind { 0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.9; } 50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
+        @keyframes voicePulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.08); } }
+        .wave-ripple { animation: waveBehind 1.2s ease-out infinite; }
+        .wave-ripple-delayed { animation: waveBehind 1.2s ease-out 0.4s infinite; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+      `}</style>
+
+      {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
+      {showGiftPicker && (
+        <GiftPicker
+          onClose={() => setShowGiftPicker(false)}
+          seats={seats}
+          onSend={(count: number) => setCupCount((prev) => prev + count)}
+        />
+      )}
+    </div>
+  );
+}
+
+function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
+  seatNumber: number;
+  seatData?: Seat;
+  onClick: (e: React.MouseEvent) => void;
+  onAvatarClick?: (e: React.MouseEvent) => void;
+  accountId: string;
+  roomOwnerId: string;
+}) {
+  const isLocked = seatData?.isLocked ?? false;
+  const isOccupied = seatData?.isOccupied ?? false;
+  const isSpeaking = seatData?.isSpeaking ?? false;
+  const isMuted = seatData?.isMuted ?? false;
+  const user = seatData?.user;
+  const isRoomOwnerSeat = isOccupied && user?.accountId === roomOwnerId;
+  const gif = seatData?.gif;
+
+  const isUserSpeaking = React.useMemo(() => {
+    if (!isOccupied || isMuted) return false;
+    return isSpeaking;
+  }, [isOccupied, isMuted, isSpeaking]);
+
+  const activeSpeaking = isSpeaking || isUserSpeaking;
+
+  return (
+    <div className="relative flex flex-col items-center cursor-pointer select-none" onClick={onClick}>
+      {seatNumber === 1 && (
+        <div
+          className="absolute pointer-events-none hidden sm:flex bg-black/40 backdrop-blur-md border border-white/20 px-2 py-1 rounded-full shadow-lg"
+          style={{
+            left: '-100px',
+            top: '-15px',
+            transform: 'none',
+            zIndex: 40,
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <div
+            className="relative overflow-visible"
+            style={{
+              width: 'calc(var(--seat-size) * 0.33)',
+              height: 'calc(var(--seat-size) * 0.33)',
+              flexShrink: 0,
+            }}
+          >
+            <WhiteColorRemovalShader
+              imageSrc="/1787158869902.png"
+              threshold={0.85}
+              className="w-full h-full"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                maxWidth: 'none',
+                maxHeight: 'none',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+
+          <span
+            className="font-bold whitespace-nowrap"
+            style={{
+              color: '#FFD700',
+              textShadow: '0 0 4px rgba(255,215,0,0.8), 0 0 8px rgba(255,215,0,0.5)',
+              letterSpacing: '0.2px',
+              fontSize: 'calc(var(--seat-size) * 0.15)',
+            }}
+          >
+            500K
+          </span>
+        </div>
+      )}
+
+      <div className="relative overflow-visible">
+        {activeSpeaking && (
+          <>
+            <div className="absolute rounded-full bg-blue-400 wave-ripple pointer-events-none" style={{ width: 'var(--seat-size)', height: 'var(--seat-size)', left: '50%', top: '50%', zIndex: 0 }} />
+            <div className="absolute rounded-full bg-blue-500 wave-ripple-delayed pointer-events-none" style={{ width: 'var(--seat-size)', height: 'var(--seat-size)', left: '50%', top: '50%', zIndex: 0 }} />
+            <div className="absolute rounded-full pointer-events-none" style={{ width: 'calc(var(--seat-size) * 1.066)', height: 'calc(var(--seat-size) * 1.066)', left: '50%', top: '50%', zIndex: 0, backgroundColor: 'rgba(59, 130, 246, 0.35)', filter: 'blur(6px)', animation: 'voicePulse 1.2s ease-in-out infinite' }} />
+          </>
+        )}
+        <div className={`w-[var(--seat-size)] h-[var(--seat-size)] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-all duration-300 hover:scale-105 pointer-events-auto overflow-visible ${activeSpeaking ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)]' : ''}`}>
+          {isLocked ? (
+            <div className="w-full h-full flex items-center justify-center overflow-visible">
+              <img
+                src="/file_00000000d2f08211baedcbfa57f4c3e6.png"
+                alt="Locked Seat"
+                className="w-full h-full object-contain pointer-events-none"
+                draggable={false}
+              />
+            </div>
+          ) : isOccupied && user ? (
+            <div className="relative w-full h-full flex items-center justify-center overflow-visible">
+              <img
+                src="/file_00000000d23082118655299af1610f9c.png"
+                alt="Seat Base"
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-0"
+                draggable={false}
+              />
+              <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center z-10"
+                style={{ width: '71%', height: '71%' }}>
+                <img
+                  src={user.image || "/default-avatar.png"}
+                  alt={user.name}
+                  className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer"
+                  draggable={false}
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }}
+                  onClick={onAvatarClick}
+                />
+              </div>
+
+              {gif && (
+                <div
+                  className="absolute pointer-events-none overflow-visible flex items-center justify-center"
+                  style={{
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '70%',
+                    height: '70%',
+                    zIndex: 30,
+                  }}
+                >
+                  <img
+                    key={`${gif.src}-${gif.timestamp}`}
+                    src={`${encodeURI(gif.src)}?t=${gif.timestamp}`}
+                    alt="Reaction"
+                    className="w-full h-full object-contain select-none pointer-events-none"
+                    style={{ maxWidth: 'none', maxHeight: 'none' }}
+                  />
+                </div>
+              )}
+
+              <div
+                className="absolute pointer-events-none"
+                style={{
+                  top: '52%',
+                  left: '51%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '100%',
+                  height: '100%',
+                  zIndex: 20,
+                  overflow: 'visible',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <WhiteColorRemovalShader
+                  imageSrc="/1786867564769.png"
+                  threshold={0.85}
+                  className="w-full h-full"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    overflow: 'visible',
+                  }}
+                />
+              </div>
+
+              {isMuted && (
+                <div
+                  className="absolute right-0.5 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
+                  style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
+                >
+                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center relative pointer-events-none">
+              <img
+                src="/file_00000000d23082118655299af1610f9c.png"
+                alt="Empty Seat"
+                className="w-full h-full object-contain pointer-events-none"
+                draggable={false}
+              />
+              {isMuted && (
+                <div
+                  className="absolute right-1 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
+                  style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
+                >
+                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <span
+        className="font-medium text-white/90 pointer-events-none flex items-center justify-center gap-1 leading-tight text-center max-w-[var(--seat-size)] truncate mt-0.5"
+        style={{ fontSize: 'calc(var(--seat-size) * 0.16)' }}
+      >
+        {isRoomOwnerSeat && (
+          <span className="rounded-full bg-blue-500 flex items-center justify-center shrink-0 inline-flex" style={{ width: 'calc(var(--seat-size) * 0.18)', height: 'calc(var(--seat-size) * 0.18)' }}>
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--seat-size) * 0.12)', height: 'calc(var(--seat-size) * 0.12)' }}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+          </span>
+        )}
+        {isLocked ? `${seatNumber}` : (isOccupied && user ? user.name : `${seatNumber}`)}
+      </span>
+    </div>
+  );
+}
+
+function RoomSideBanner() {
+  const bannerImages = [
+    '/1788339540059~2.jpg',
+    '/1788339681679~2.jpg',
+  ];
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % bannerImages.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [bannerImages.length]);
+
+  return (
+    <div className="flex flex-col items-center select-none">
+      <div
+        className="relative overflow-hidden shadow-lg"
+        style={{ width: '60px', height: '84px', borderRadius: '8px' }}
+      >
+        <div
+          className="flex h-full transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        >
+          {bannerImages.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt={`Banner ${i + 1}`}
+              className="w-full h-full object-cover flex-shrink-0 select-none pointer-events-none"
+              draggable={false}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center gap-[2px] mt-1" style={{ height: '8px' }}>
+        {bannerImages.map((_, i) => (
+          <div
+            key={i}
+            className={`transition-all duration-300 rounded-md ${
+              currentIndex === i
+                ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
+                : 'w-1 h-1 bg-white/40'
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GreenColorRemovalShader({ imageSrc, threshold = 0.5, className = "", style = {} }: any) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return;
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+
+        if (g > r * 1.2 && g > b * 1.2 && g > 70) {
+          data[i + 3] = 0;
+        }
+      }
+      ctx.putImageData(imageData, 0, 0);
+    };
+    img.src = imageSrc;
+  }, [imageSrc, threshold]);
+
+  return <canvas ref={canvasRef} className={className} style={style} />;
+      }
+
+
+
+
+
+
