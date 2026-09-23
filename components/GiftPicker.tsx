@@ -94,9 +94,11 @@ interface Seat {
 export default function GiftPicker({
   onClose,
   seats = [],
+  onSend,
 }: {
   onClose: () => void;
   seats?: Seat[];
+  onSend?: (count: number) => void;
 }) {
   const [activeTab, setActiveTab] = useState("Hot");
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
@@ -211,6 +213,12 @@ export default function GiftPicker({
     setSending(true);
     setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
+
+    // 🔥 Cup count badhao
+    if (onSend) {
+      onSend(parseMultiplier(selectedMultiplier));
+    }
+
     setSending(false);
     if (selectedGiftObj.video) {
       setPlayingVideo({
@@ -254,11 +262,9 @@ export default function GiftPicker({
     const isFade = playingVideo.style === "fade";
     const isArabKing = playingVideo.src.includes("17e19680");
 
-    // 🧸 TEDDY video fade — PEHLE JAISA (original)
     const teddyVideoMask =
       "linear-gradient(to bottom, transparent 0%, transparent 18%, black 26%, black 70%, transparent 83%, transparent 100%)";
 
-    // 👑 KING video fade — NAYA (alag)
     const kingVideoMask =
       "linear-gradient(to bottom, transparent 0%, transparent 10%, black 16%, black 85%, transparent 94%, transparent 100%)";
 
@@ -303,14 +309,12 @@ export default function GiftPicker({
               isFade
                 ? isArabKing
                   ? {
-                      // 👑 KING — alag fade + upar shift
                       WebkitMaskImage: kingVideoMask,
                       maskImage: kingVideoMask,
                       transform: "translateY(2%)",
                       transformOrigin: "center",
                     }
                   : {
-                      // 🧸 TEDDY — purana fade, no shift
                       WebkitMaskImage: teddyVideoMask,
                       maskImage: teddyVideoMask,
                     }
@@ -472,14 +476,12 @@ export default function GiftPicker({
                     activeTab === "Hot" && !gift.noMask
                       ? gift.sideFade
                         ? {
-                            // 👑 KING image → chaaron taraf (top/bottom/left/right) fade
                             WebkitMaskImage:
                               "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
                             maskImage:
                               "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
                           }
                         : {
-                            // 🧸 TEDDY image → apna alag fade
                             WebkitMaskImage:
                               "radial-gradient(circle, black 40%, transparent 80%)",
                             maskImage:
@@ -589,4 +591,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-      }
+                }
