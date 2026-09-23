@@ -159,7 +159,7 @@ const tiersList: TierData[] = [
   },
 ]
 
-// Coin badges ke liye Shader abhi bhi rakha hai (kyunki unme white bg remove karna hota hai)
+// Coin badges ke liye Shader
 function ShaderImageBadge({
   src,
   isWhiteBg,
@@ -240,10 +240,56 @@ function ShaderImageBadge({
   )
 }
 
+// Name valid check
+const isValidName = (val?: string | null): boolean => {
+  if (!val) return false;
+  const clean = val.trim().toLowerCase();
+  return clean !== '' && clean !== 'guest' && clean !== 'user' && clean !== 'null' && clean !== 'undefined';
+}
+
 export default function Level({ onBack }: LevelProps) {
   const [activeTierIdx, setActiveTierIdx] = useState(0)
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
   const tierSectionRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  // ====== Dynamic User Data (MePage se sync) ======
+  const [userName, setUserName] = useState<string>('')
+  const [userPhoto, setUserPhoto] = useState<string>('')
+  const [userUid, setUserUid] = useState<string>('')
+
+  const loadUserFromLocal = () => {
+    if (typeof window === 'undefined') return
+    const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || ''
+    const localName = localStorage.getItem('userName') || ''
+    const photo = localStorage.getItem('userPhoto') || ''
+
+    setUserUid(uid)
+    setUserName(isValidName(localName) ? localName : '')
+    setUserPhoto(photo || '')
+  }
+
+  useEffect(() => {
+    loadUserFromLocal()
+
+    // Poll localStorage to keep in sync (same as MePage)
+    const interval = setInterval(loadUserFromLocal, 500)
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'userName' || e.key === 'userPhoto' || e.key === 'userUID') {
+        loadUserFromLocal()
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [])
+
+  // Display name fallback
+  const displayName = userName || (userUid ? userUid.substring(0, 8) : 'Guest')
+  const avatarLetter = displayName ? displayName.charAt(0).toUpperCase() : '?'
 
   const currentTier = tiersList[activeTierIdx] || tiersList[0]
 
@@ -267,7 +313,7 @@ export default function Level({ onBack }: LevelProps) {
   }
 
   return (
-    <div className="relative w-full max-w-[440px] mx-auto h-screen bg-[#04060a] text-white flex flex-col font-sans select-none overflow-hidden">
+    <div className="relative w-full max-w-[440px] mx-auto h- bg-[#04060a] text-white flex flex-col font-sans select-none overflow-hidden">
       {/* 1. TOP BACKGROUND IMAGE */}
       <div className="absolute top-0 left-0 w-full h-[280px] pointer-events-none z-0 overflow-hidden">
         <div
@@ -280,9 +326,9 @@ export default function Level({ onBack }: LevelProps) {
 
       {/* 2. FIXED / PINNED TOP CONTAINER */}
       <div className="relative z-30 flex flex-col shrink-0 px-4">
-        {/* Top App Bar */}
+        {/* Top App Bar - buttons edge-to-edge (px-3 from screen edge) */}
         <div
-          className="flex items-center justify-center w-full px-2 pb-2 pt-2 bg-transparent relative z-50"
+          className="flex items-center justify-center w-full -mx-4 px-3 pb-2 pt-2 bg-transparent relative z-50"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
         >
           <button
@@ -309,24 +355,38 @@ export default function Level({ onBack }: LevelProps) {
             className="w-full h-auto block"
           />
 
-          <div className="absolute inset-0 z-10 flex items-center px-6 gap-3.5">
-            {/* User Avatar */}
+          {/* Avatar thora sa right shift (px-8) */}
+          <div className="absolute inset-0 z-10 flex items-center px-8 gap-3.5">
+            {/* User Avatar - Dynamic */}
             <div className="relative shrink-0">
-              <img
-                src="/IMG-20260905-WA0078.jpg"
-                alt="User"
-                className="w-12 h-12 rounded-full object-cover shadow-lg ring-2 ring-[#e0b76e]/70"
-              />
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt="User"
+                  className="w-12 h-12 rounded-full object-cover shadow-lg ring-2 ring-[#e0b76e]/70"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div
+                className={`w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center text-lg font-bold text-white shadow-lg ring-2 ring-[#e0b76e]/70 ${
+                  userPhoto ? 'hidden' : ''
+                }`}
+              >
+                {avatarLetter}
+              </div>
             </div>
 
-            {/* Profile Info Details */}
+            {/* Profile Info Details - Dynamic Name */}
             <div className="flex-1 flex flex-col justify-center min-w-0 pr-2">
               <div className="flex items-center gap-2">
                 <span className="text-white font-serif font-black text-[17px] tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] truncate">
-                  KāziR Khān
+                  {displayName}
                 </span>
 
-                {/* Profile level tag updated size and removed shader logic */}
+                {/* Profile level tag */}
                 <img
                   src={tiersList[0].medalBadgeSrc}
                   alt="User Level"
@@ -434,11 +494,10 @@ export default function Level({ onBack }: LevelProps) {
                 </div>
               </div>
 
-              {/* 3 Square Cards Row at the top of each section (No Borders) */}
+              {/* 3 Square Cards Row */}
               <div className="grid grid-cols-3 gap-2 w-full mb-4 px-0.5">
-                {/* 1. First Coins Card of this specific section */}
+                {/* 1. First Coins Card */}
                 <div className="relative bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                  {/* Top Left Level Tag */}
                   <span className="absolute top-1 left-1.5 text-[9px] font-bold text-white/70">
                     Lv.{tier.rewards[0].level}
                   </span>
@@ -463,7 +522,7 @@ export default function Level({ onBack }: LevelProps) {
 
                 {/* 3. Empty Frame Card */}
                 <div className="bg-gradient-to-br from-[#06080d] to-[#132c54]/60 rounded-lg p-2.5 flex flex-col items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
-                  <div className="w-8 h-8 mb-1.5"></div> {/* Empty space for frame */}
+                  <div className="w-8 h-8 mb-1.5"></div>
                   <span className="text-[11px] font-semibold text-white/90">Frame</span>
                 </div>
               </div>
@@ -471,7 +530,7 @@ export default function Level({ onBack }: LevelProps) {
               {/* Lambe Lambe Level Reward Cards */}
               <div className="flex flex-col gap-2.5 w-full">
                 
-                {/* Frame wali image (Level Badge Upgraded) */}
+                {/* Level Badge Upgraded */}
                 <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
                   <div className="flex flex-col justify-center z-10">
                     <span className="text-[13.5px] font-semibold text-white tracking-wide">
@@ -482,7 +541,6 @@ export default function Level({ onBack }: LevelProps) {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0 z-10">
-                    {/* BADA ICON + GREEN REMOVING HATA DIYA */}
                     <img
                       src={tier.medalBadgeSrc}
                       alt="Level Badge"
@@ -491,13 +549,12 @@ export default function Level({ onBack }: LevelProps) {
                   </div>
                 </div>
 
-                {/* Room Send Image ki wapsi - Level Badge ke theek niche */}
+                {/* Room Send Image */}
                 <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
                   <div className="flex flex-col justify-center z-10">
                     <span className="text-[13.5px] font-semibold text-white tracking-wide">
                       Room Send image
                     </span>
-                    {/* Lv.5 sirf first section (tier 1-10) mein show hoga */}
                     {tIdx === 0 && (
                       <span className="text-[11px] text-gray-400 mt-0.5 font-normal">
                         Lv.5
@@ -521,7 +578,7 @@ export default function Level({ onBack }: LevelProps) {
                   </div>
                 </div>
 
-                {/* Background Image Card (Tier 3 / Lv 21 aur uske baad aayega) */}
+                {/* Background Image Card */}
                 {tIdx >= 2 && (
                   <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
                     <div className="flex flex-col justify-center z-10">
@@ -547,7 +604,7 @@ export default function Level({ onBack }: LevelProps) {
                   </div>
                 )}
 
-                {/* Room Theme Card (Tier 8 / Lv 71 aur uske baad aayega) */}
+                {/* Room Theme Card */}
                 {tIdx >= 7 && (
                   <div className="w-full relative overflow-hidden rounded-md bg-gradient-to-r from-[#06080d] via-[#080d17] to-[#132c54]/45 px-3.5 py-3 flex items-center justify-between backdrop-blur-md transition-all duration-200 hover:to-[#173a70]/60 shadow-[0_4px_12px_rgba(0,0,0,0.7)]">
                     <div className="flex flex-col justify-center z-10">
@@ -573,7 +630,7 @@ export default function Level({ onBack }: LevelProps) {
                   </div>
                 )}
 
-                {/* Baki bache hue Coin Rewards (Index 1 se shuru, sabse end mein) */}
+                {/* Baki Coin Rewards */}
                 {tier.rewards.slice(1).map((reward, rIdx) => (
                   <div
                     key={rIdx}
@@ -604,5 +661,4 @@ export default function Level({ onBack }: LevelProps) {
       </div>
     </div>
   )
-}
-
+                                  }
