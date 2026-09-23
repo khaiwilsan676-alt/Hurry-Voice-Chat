@@ -233,19 +233,19 @@ function WhiteColorRemovalShader({
 }
 
 // ==========================================
-// Details Page Component
+// Details Page Component (UPDATED AS PER IMAGE)
 // ==========================================
 const TRANSACTIONS = [
-  { id: 1, title: 'Fruit Bet Placed.', date: '2026.09.23 11:53', amount: -50000 },
-  { id: 2, title: 'Task Reward', date: '2026.09.23 11:52', amount: 4000 },
-  { id: 3, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -100000 },
-  { id: 4, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
-  { id: 5, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
-  { id: 6, title: 'Fruit Bet Placed.', date: '2026.09.23 11:38', amount: -500000 },
-  { id: 7, title: 'Sign In Gift', date: '2026.09.23 09:44', amount: 20000 },
-  { id: 8, title: 'Room Support', date: '2026.09.23 03:13', amount: 1560000 },
-  { id: 9, title: 'Sign In Gift', date: '2026.09.22 06:46', amount: 10000 },
-  { id: 10, title: 'Sign In Gift', date: '2026.09.21 21:00', amount: 50000 },
+  { id: 1, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
+  { id: 2, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
+  { id: 3, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
+  { id: 4, title: 'Lucky Gift in Room.', date: '2026.09.15 16:25', amount: 200 },
+  { id: 5, title: 'Lucky Gift in Room.', date: '2026.09.15 16:25', amount: 200 },
+  { id: 6, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 200 },
+  { id: 7, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 200 },
+  { id: 8, title: 'Magic Box', date: '2026.09.15 16:24', amount: 15000 },
+  { id: 9, title: 'Magic Box', date: '2026.09.15 16:24', amount: 1000 },
+  { id: 10, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 140 },
 ]
 
 function DetailsPage({ onBack }: { onBack: () => void }) {
@@ -298,11 +298,7 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
                   {tx.date}
                 </span>
               </div>
-              <span
-                className={`text-[15px] font-bold ${
-                  tx.amount > 0 ? 'text-amber-500' : 'text-amber-500'
-                }`}
-              >
+              <span className="text-[15px] font-bold text-cyan-500">
                 {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()}
               </span>
             </div>
@@ -314,7 +310,7 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
 }
 
 // ==========================================
-// Main Wallet Component
+// Main Wallet Component (NO CHANGES)
 // ==========================================
 interface WalletProps {
   onBack: () => void
