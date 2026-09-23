@@ -315,7 +315,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       `}</style>
 
       {/* TOP HEADER */}
-      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-0 pr-4 z-20 h-12">
+      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
         {/* Back button — classic left arrow, ekdam left corner */}
         <button
           onClick={onBack}
