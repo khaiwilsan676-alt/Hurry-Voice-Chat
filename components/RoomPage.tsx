@@ -18,7 +18,6 @@ import EntryEffect from './EntryEffect';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 
-// Jitsi imports for Voice Audio
 import { JitsiMeeting } from "@jitsi/react-sdk";
 
 interface RoomPageProps {
@@ -85,7 +84,6 @@ const THEME_BACKGROUNDS: { [key: string]: string } = {
   'mood-light': '/1784533036732~2.jpg',
 };
 
-
 const ROOM_SETTINGS_DB_NAME = "HurryRoomSettingsDB";
 const ROOM_SETTINGS_STORE = "roomSettings";
 
@@ -103,81 +101,37 @@ interface RoomSettingsCache {
 
 const openRoomSettingsDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
-    const request = indexedDB.open(
-      ROOM_SETTINGS_DB_NAME,
-      1
-    );
-
-    request.onerror = () =>
-      reject(request.error);
-
-    request.onsuccess = () =>
-      resolve(request.result);
-
+    const request = indexedDB.open(ROOM_SETTINGS_DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
     request.onupgradeneeded = () => {
       const db = request.result;
-
-      if (
-        !db.objectStoreNames.contains(
-          ROOM_SETTINGS_STORE
-        )
-      ) {
-        db.createObjectStore(
-          ROOM_SETTINGS_STORE,
-          { keyPath: "roomId" }
-        );
+      if (!db.objectStoreNames.contains(ROOM_SETTINGS_STORE)) {
+        db.createObjectStore(ROOM_SETTINGS_STORE, { keyPath: "roomId" });
       }
     };
   });
 
-const saveRoomSettingsToIndexedDB = async (
-  data: RoomSettingsCache
-) => {
+const saveRoomSettingsToIndexedDB = async (data: RoomSettingsCache) => {
   const db = await openRoomSettingsDB();
-
   await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(
-      ROOM_SETTINGS_STORE,
-      "readwrite"
-    );
-
-    tx.objectStore(
-      ROOM_SETTINGS_STORE
-    ).put(data);
-
+    const tx = db.transaction(ROOM_SETTINGS_STORE, "readwrite");
+    tx.objectStore(ROOM_SETTINGS_STORE).put(data);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
-
   db.close();
 };
 
-const loadRoomSettingsFromIndexedDB = async (
-  roomId: string
-): Promise<RoomSettingsCache | null> => {
+const loadRoomSettingsFromIndexedDB = async (roomId: string): Promise<RoomSettingsCache | null> => {
   if (!roomId) return null;
-
   const db = await openRoomSettingsDB();
-
-  const result = await new Promise<RoomSettingsCache | null>(
-    (resolve, reject) => {
-      const tx = db.transaction(
-        ROOM_SETTINGS_STORE,
-        "readonly"
-      );
-
-      const request = tx
-        .objectStore(ROOM_SETTINGS_STORE)
-        .get(roomId);
-
-      request.onsuccess = () =>
-        resolve(request.result || null);
-
-      request.onerror = () =>
-        reject(request.error);
-    }
-  );
-
+  const result = await new Promise<RoomSettingsCache | null>((resolve, reject) => {
+    const tx = db.transaction(ROOM_SETTINGS_STORE, "readonly");
+    const request = tx.objectStore(ROOM_SETTINGS_STORE).get(roomId);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
   db.close();
   return result;
 };
@@ -188,26 +142,14 @@ const ROOM_MESSAGES_STORE = "messages";
 const openRoomMessagesDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     const request = indexedDB.open(ROOM_MESSAGES_DB_NAME, 1);
-
     request.onerror = () => reject(request.error);
-
     request.onsuccess = () => resolve(request.result);
-
     request.onupgradeneeded = () => {
       const db = request.result;
-
       if (!db.objectStoreNames.contains(ROOM_MESSAGES_STORE)) {
-        const store = db.createObjectStore(ROOM_MESSAGES_STORE, {
-          keyPath: "id",
-        });
-
-        store.createIndex("roomId", "roomId", {
-          unique: false,
-        });
-
-        store.createIndex("timestamp", "timestamp", {
-          unique: false,
-        });
+        const store = db.createObjectStore(ROOM_MESSAGES_STORE, { keyPath: "id" });
+        store.createIndex("roomId", "roomId", { unique: false });
+        store.createIndex("timestamp", "timestamp", { unique: false });
       }
     };
   });
@@ -216,8 +158,6 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const [jitsiApi, setJitsiApi] = useState<any>(null);
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
-
-
 
   return (
     <RoomVoiceJitsi
@@ -255,7 +195,6 @@ function RoomVoiceJitsi({
   children: React.ReactNode;
   onApiReady: (api: any) => void;
 }) {
-
   return (
     <>
       <div
@@ -277,32 +216,21 @@ function RoomVoiceJitsi({
             startAudioOnly: true,
             startWithAudioMuted: true,
             startWithVideoMuted: true,
-            prejoinConfig: {
-              enabled: false,
-            },
+            prejoinConfig: { enabled: false },
           }}
-          interfaceConfigOverwrite={{
-            TOOLBAR_BUTTONS: [],
-          }}
-          userInfo={{
-            displayName: userName,
-            email: userEmail || "",
-          }}
+          interfaceConfigOverwrite={{ TOOLBAR_BUTTONS: [] }}
+          userInfo={{ displayName: userName, email: userEmail || "" }}
           getIFrameRef={(iframeRef) => {
             iframeRef.style.width = "1px";
             iframeRef.style.height = "1px";
           }}
-          onApiReady={(externalApi) => {
-            onApiReady(externalApi);
-          }}
+          onApiReady={(externalApi) => { onApiReady(externalApi); }}
         />
       </div>
-
       {children}
     </>
   );
 }
-
 function RoomContent({
   roomOwner,
   currentUser,
@@ -327,7 +255,6 @@ function RoomContent({
   const [copied, setCopied] = useState(false);
   const [localUser, setLocalUser] = useState<{ name: string; image: string; accountId: string }>({ name: 'User', image: '/default-avatar.png', accountId: '' });
 
-  // Game Sheet States
   const [showGameSheet, setShowGameSheet] = useState(false);
   const [showWildParty, setShowWildParty] = useState<boolean | 'minimized'>(false);
   const [showFruitParty, setShowFruitParty] = useState<boolean | 'minimized'>(false);
@@ -337,8 +264,6 @@ function RoomContent({
   const [showCupIcon, setShowCupIcon] = useState(false);
   const [cupCount, setCupCount] = useState(0);
 
-
-  // Music Controller State (hidden | full | minimized)
   const [musicControllerState, setMusicControllerState] = useState<'hidden' | 'full' | 'minimized'>('hidden');
   const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
@@ -349,7 +274,6 @@ function RoomContent({
   const [musicDuration, setMusicDuration] = useState(0);
   const musicAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Draggable Minimize Music Icon State
   const [miniPos, setMiniPos] = useState({ x: 20, y: 150 });
   const isDraggingMiniRef = useRef(false);
   const miniDragOffset = useRef({ x: 0, y: 0 });
@@ -365,10 +289,11 @@ function RoomContent({
   }, []);
 
   const formatCupCount = (n: number): string => {
-  if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
-  return String(n);
-};
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+    return String(n);
+  };
+
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [profileUser, setProfileUser] = useState<{
     name: string;
@@ -404,8 +329,9 @@ function RoomContent({
   const [roomUsers, setRoomUsers] = useState<RoomUser[]>([]);
 
   useEffect(() => {
-  localStorage.setItem('cupCount', String(cupCount));
-}, [cupCount]);
+    localStorage.setItem('cupCount', String(cupCount));
+  }, [cupCount]);
+
   const getInitialSeats = (mode: number): Seat[] => {
     const seats: Seat[] = [];
     for (let i = 1; i <= mode; i++) {
@@ -418,12 +344,9 @@ function RoomContent({
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [showSeatSheet, setShowSeatSheet] = useState(false);
 
-  // Listen to hardware back press
   useEffect(() => {
     const handleHardwareBack = (e: Event) => {
-      e.preventDefault(); // Prevent default minimize app action
-
-      // Close other sheets/modals if open, otherwise open exit menu
+      e.preventDefault();
       if (showSettingPage) {
         setShowSettingPage(false);
       } else if (showSeatSheet) {
@@ -450,18 +373,14 @@ function RoomContent({
       } else if (showMessageSheet) {
         setShowMessageSheet(false);
       } else {
-        // If nothing else is open, show the exit menu
         setShowExitMenu(true);
       }
     };
-
     window.addEventListener('hardwareBackPress', handleHardwareBack);
-
     return () => {
       window.removeEventListener('hardwareBackPress', handleHardwareBack);
     };
   }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
-
 
   const hasSeat = seats.some(s => s.isOccupied && s.user?.accountId === userAccountId);
   const currentUserSeat = seats.find(s => s.isOccupied && s.user?.accountId === userAccountId);
@@ -483,38 +402,33 @@ function RoomContent({
     setShowUserProfile(true);
   };
 
-    const desiredAudioStateRef = useRef<boolean | null>(null);
+  const desiredAudioStateRef = useRef<boolean | null>(null);
 
-    useEffect(() => {
-      if (!jitsiApi) return; // Wait until API is ready
-
-      const isMuted = currentUserSeat?.isMuted ?? true;
-      const isInSeat = hasSeat;
-      const desiredState = isInSeat && !isMuted;
-
-      // Always sync state if the API just became ready or if desired state changed
-      if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
-        desiredAudioStateRef.current = desiredState;
-
-        try {
-          console.log("Synchronizing Jitsi microphone state:", desiredState ? "unmuted" : "muted");
-          jitsiApi.executeCommand("setAudioMute", !desiredState);
-        } catch (e) {
-          console.error("Failed to sync Jitsi audio state:", e);
-        }
+  useEffect(() => {
+    if (!jitsiApi) return;
+    const isMuted = currentUserSeat?.isMuted ?? true;
+    const isInSeat = hasSeat;
+    const desiredState = isInSeat && !isMuted;
+    if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
+      desiredAudioStateRef.current = desiredState;
+      try {
+        console.log("Synchronizing Jitsi microphone state:", desiredState ? "unmuted" : "muted");
+        jitsiApi.executeCommand("setAudioMute", !desiredState);
+      } catch (e) {
+        console.error("Failed to sync Jitsi audio state:", e);
       }
-    }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
-      useEffect(() => {
+    }
+  }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
+
+  useEffect(() => {
     let mounted = true;
 
     const loadRoomSettings = async () => {
       if (!roomId) return;
 
-      // STEP 1: Pehle Local DB se check karo (for fast loading)
       try {
         const cached = await loadRoomSettingsFromIndexedDB(String(roomId));
         if (!mounted) return;
-
         if (cached) {
           if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
           if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
@@ -526,7 +440,6 @@ function RoomContent({
           if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
           if (cached.roomPassword) setRoomPassword(cached.roomPassword);
         } else {
-          // Fallback if no cache
           setRoomName("hurry User@");
           setRoomDp("/IMG_20260921_210113.png");
         }
@@ -534,13 +447,11 @@ function RoomContent({
         console.error("Room settings IndexedDB load error:", err);
       }
 
-      // STEP 2: Hamesha MongoDB API se fresh Room Settings fetch karo
       try {
         const response = await fetch(apiUrl(`/api/rooms?roomId=${roomId}`));
         if (response.ok) {
           const result = await response.json();
           const dbRoom = result?.room;
-
           if (dbRoom && mounted) {
             const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
             const realDp = dbRoom.dp || dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
@@ -551,14 +462,12 @@ function RoomContent({
             if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") {
               setRoomDp(realDp);
             }
-
             if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
             if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
             if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
             if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
             if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
 
-            // Save exact DB settings to local IndexedDB
             await saveRoomSettingsToIndexedDB({
               roomId: String(roomId),
               roomName: realName || roomName,
@@ -584,14 +493,11 @@ function RoomContent({
     };
   }, [roomId, roomOwner.name, roomOwner.image]);
 
-
   useEffect(() => {
     setSeats(prev => {
       const newSeats = getInitialSeats(micMode);
-
       return newSeats.map(newSeat => {
         const oldSeat = prev.find(s => s.number === newSeat.number);
-
         if (oldSeat && oldSeat.isOccupied) {
           return {
             ...newSeat,
@@ -603,7 +509,6 @@ function RoomContent({
             gif: oldSeat.gif,
           };
         }
-
         return newSeat;
       });
     });
@@ -618,49 +523,15 @@ function RoomContent({
 
   useEffect(() => {
     if (!roomId) return;
-
     let cancelled = false;
-
-        const openDB_UNUSED = (): Promise<IDBDatabase> =>
-      new Promise((resolve, reject) => {
-        const request = indexedDB.open(ROOM_MESSAGES_DB_NAME, 1);
-
-        request.onerror = () => reject(request.error);
-
-        request.onsuccess = () => resolve(request.result);
-
-        request.onupgradeneeded = () => {
-          const db = request.result;
-
-          if (!db.objectStoreNames.contains(ROOM_MESSAGES_STORE)) {
-            const store = db.createObjectStore(ROOM_MESSAGES_STORE, {
-              keyPath: "id",
-            });
-
-            store.createIndex("roomId", "roomId", {
-              unique: false,
-            });
-
-            store.createIndex("timestamp", "timestamp", {
-              unique: false,
-            });
-          }
-        };
-      });
 
     const loadMessages = async () => {
       if (cancelled) return;
-
-      // Do NOT restore old room messages when entering/re-entering.
-      // Only new realtime messages received after entering are shown.
       setMessages([]);
     };
-
     loadMessages();
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [roomId]);
 
   useEffect(() => {
@@ -669,216 +540,106 @@ function RoomContent({
     const currentRoomUser: RoomUser = {
       accountId: String(userAccountId),
       name: currentUser.name || "User",
-      image:
-        currentUser.image ||
-        "/default-avatar.png",
+      image: currentUser.image || "/default-avatar.png",
     };
 
     const handleRoomPresence = (data: any) => {
-      if (
-        !data ||
-        String(data.roomId) !== String(roomId)
-      ) {
-        return;
-      }
-
-      if (!Array.isArray(data.users)) {
-        return;
-      }
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      if (!Array.isArray(data.users)) return;
 
       const users: RoomUser[] = data.users
         .map((user: any) => ({
-          accountId: String(
-            user?.accountId ||
-            user?.userId ||
-            user?.id ||
-            ""
-          ),
+          accountId: String(user?.accountId || user?.userId || user?.id || ""),
           name: user?.name || "User",
-          image:
-            user?.image ||
-            user?.dp ||
-            "/default-avatar.png",
+          image: user?.image || user?.dp || "/default-avatar.png",
         }))
-        .filter(
-          (user: RoomUser) =>
-            Boolean(user.accountId)
-        );
+        .filter((user: RoomUser) => Boolean(user.accountId));
 
       setRoomUsers(users);
     };
 
     const handleRoomUserOnline = (data: any) => {
-      if (
-        !data ||
-        String(data.roomId) !== String(roomId) ||
-        !data.userId
-      ) {
-        return;
-      }
-
+      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
       const userId = String(data.userId);
 
       setRoomUsers(prev => {
-        const existing = prev.find(
-          user =>
-            String(user.accountId) === userId
-        );
-
+        const existing = prev.find(user => String(user.accountId) === userId);
         if (existing) {
           return prev.map(user =>
             String(user.accountId) === userId
               ? {
                   ...user,
-                  name:
-                    data.user?.name ||
-                    user.name ||
-                    "User",
-                  image:
-                    data.user?.image ||
-                    user.image ||
-                    "/default-avatar.png",
+                  name: data.user?.name || user.name || "User",
+                  image: data.user?.image || user.image || "/default-avatar.png",
                 }
               : user
           );
         }
-
         return [
           ...prev,
           {
             accountId: userId,
-            name:
-              data.user?.name ||
-              "User",
-            image:
-              data.user?.image ||
-              "/default-avatar.png",
+            name: data.user?.name || "User",
+            image: data.user?.image || "/default-avatar.png",
           },
         ];
       });
     };
 
     const handleRoomUserOffline = (data: any) => {
-      if (
-        !data ||
-        String(data.roomId) !== String(roomId) ||
-        !data.userId
-      ) {
-        return;
-      }
-
+      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
       const userId = String(data.userId);
-
-      setRoomUsers(prev =>
-        prev.filter(
-          user =>
-            String(user.accountId) !== userId
-        )
-      );
+      setRoomUsers(prev => prev.filter(user => String(user.accountId) !== userId));
     };
 
     const handleRoomMessage = async (data: any) => {
-      if (
-        !data ||
-        String(data.roomId) !== String(roomId)
-      ) {
-        return;
-      }
+      if (!data || String(data.roomId) !== String(roomId)) return;
 
       const incoming: Message = {
-        id: String(
-          data.id ||
-          `${data.senderId || "user"}-${data.createdAt || Date.now()}`
-        ),
+        id: String(data.id || `${data.senderId || "user"}-${data.createdAt || Date.now()}`),
         text: data.text || "",
-        sender:
-          data.senderName || "Unknown",
-        senderImage:
-          data.senderAvatar ||
-          "/default-avatar.png",
-        senderAccountId:
-          data.senderAccountId || data.senderId || "",
-        timestamp: Number(
-          data.createdAt || Date.now()
-        ),
-        type:
-          data.type || "message",
-        imageUrl:
-          data.imageUrl || undefined,
+        sender: data.senderName || "Unknown",
+        senderImage: data.senderAvatar || "/default-avatar.png",
+        senderAccountId: data.senderAccountId || data.senderId || "",
+        timestamp: Number(data.createdAt || Date.now()),
+        type: data.type || "message",
+        imageUrl: data.imageUrl || undefined,
       };
 
       setMessages(prev => {
-        if (
-          prev.some(
-            msg => msg.id === incoming.id
-          )
-        ) {
-          return prev;
-        }
-
+        if (prev.some(msg => msg.id === incoming.id)) return prev;
         return [...prev, incoming];
       });
 
       try {
         const db = await openRoomMessagesDB();
-        const transaction = db.transaction(
-          [ROOM_MESSAGES_STORE],
-          "readwrite"
-        );
-        const store =
-          transaction.objectStore(
-            ROOM_MESSAGES_STORE
-          );
-
-        store.put({
-          ...incoming,
-          roomId,
-        });
-
-        transaction.oncomplete = () =>
-          db.close();
-
-        transaction.onerror = () =>
-          db.close();
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+        store.put({ ...incoming, roomId });
+        transaction.oncomplete = () => db.close();
+        transaction.onerror = () => db.close();
       } catch (err) {
-        console.error(
-          "IndexedDB room message save error:",
-          err
-        );
+        console.error("IndexedDB room message save error:", err);
       }
     };
 
     const handleRoomChatCleared = async (data: any) => {
       if (!data || String(data.roomId) !== String(roomId)) return;
-
       const clearTime = Number(data.timestamp || Date.now());
       clearedAtRef.current = clearTime;
       setMessages([]);
 
       try {
         const db = await openRoomMessagesDB();
-        const transaction = db.transaction(
-          [ROOM_MESSAGES_STORE],
-          "readwrite"
-        );
+        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
         const store = transaction.objectStore(ROOM_MESSAGES_STORE);
         const index = store.index("roomId");
         const request = index.openCursor(roomId);
-
         request.onsuccess = () => {
           const cursor = request.result;
-
-          if (cursor) {
-            cursor.delete();
-            cursor.continue();
-          } else {
-            db.close();
-          }
+          if (cursor) { cursor.delete(); cursor.continue(); } else { db.close(); }
         };
-
-        request.onerror = () => {
-          db.close();
-        };
+        request.onerror = () => { db.close(); };
       } catch (err) {
         console.error("Room chat cleared socket error:", err);
       }
@@ -891,186 +652,96 @@ function RoomContent({
         accountId: userAccountId,
         name: currentRoomUser.name,
         dp: currentRoomUser.image,
-        email:
-          (currentUser as any)?.email ||
-          (currentUser as any)?.emailPhone ||
-          "",
+        email: (currentUser as any)?.email || (currentUser as any)?.emailPhone || "",
       });
-
-      // Request the latest live seat state after the room_join event.
-      socket.emit("room_seats_request", {
-        roomId,
-      });
+      socket.emit("room_seats_request", { roomId });
     };
 
-    socket.emit("room_presence_request", {
-      roomId,
+    socket.emit("room_presence_request", { roomId });
+
+    socket.on("room_settings_updated", async (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      if (data.roomName) setRoomName(data.roomName);
+      if (data.roomDp) setRoomDp(data.roomDp);
+      if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
+      if (data.micMode !== undefined) setMicMode(Number(data.micMode));
+      if (data.theme && THEME_BACKGROUNDS[data.theme]) {
+        setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+      }
+      if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
+      if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
+
+      try {
+        await saveRoomSettingsToIndexedDB({
+          roomId: String(roomId),
+          roomName: data.roomName || roomName,
+          roomDp: data.roomDp || roomDp,
+          announcement: data.announcement || "",
+          micMode: Number(data.micMode || 15),
+          theme: data.theme || "mood-light",
+          isLocked: Boolean(data.isLocked),
+          roomPassword: data.roomPassword || "",
+          updatedAt: Number(data.updatedAt || Date.now()),
+        });
+      } catch (err) {
+        console.error("Realtime room settings IndexedDB save error:", err);
+      }
     });
 
-    socket.on(
-      "room_settings_updated",
-      async (data: any) => {
-        if (!data || String(data.roomId) !== String(roomId)) {
-          return;
-        }
+    socket.on("room_seats", (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.seats)) return;
 
-        if (data.roomName) setRoomName(data.roomName);
-        if (data.roomDp) setRoomDp(data.roomDp);
-        
-        if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
-        if (data.micMode !== undefined) setMicMode(Number(data.micMode));
-        if (data.theme && THEME_BACKGROUNDS[data.theme]) {
-          setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
-        }
-        if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
-        if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
+      setSeats(() => {
+        const base = getInitialSeats(micMode);
+        const byNumber = new Map(base.map(seat => [seat.number, seat]));
 
-        try {
-          await saveRoomSettingsToIndexedDB({
-            roomId: String(roomId),
-            roomName: data.roomName || roomName,
-            roomDp: data.roomDp || roomDp,
-            announcement: data.announcement || "",
-            micMode: Number(data.micMode || 15),
-            theme: data.theme || "mood-light",
-            isLocked: Boolean(data.isLocked),
-            roomPassword: data.roomPassword || "",
-            updatedAt: Number(data.updatedAt || Date.now()),
-          });
-        } catch (err) {
-          console.error("Realtime room settings IndexedDB save error:", err);
-        }
-      }
-    );
-
-
-    socket.on(
-      "room_seats",
-      (data: any) => {
-        if (
-          !data ||
-          String(data.roomId) !== String(roomId) ||
-          !Array.isArray(data.seats)
-        ) {
-          return;
-        }
-
-        setSeats(() => {
-          // Always rebuild from the server snapshot.
-          // This prevents stale occupied seats from surviving
-          // when the server sends an empty seat list.
-          const base = getInitialSeats(micMode);
-
-          const byNumber = new Map(
-            base.map(seat => [seat.number, seat])
-          );
-
-          for (const incoming of data.seats) {
-            const number = Number(incoming?.number);
-
-            if (!Number.isFinite(number)) {
-              continue;
-            }
-
-            const existing = byNumber.get(number);
-
-            byNumber.set(number, {
-              ...(existing || {
-                number,
-                isOccupied: false,
-                isLocked: false,
-                isMuted: false,
-                isSpeaking: false,
-              }),
-              ...incoming,
+        for (const incoming of data.seats) {
+          const number = Number(incoming?.number);
+          if (!Number.isFinite(number)) continue;
+          const existing = byNumber.get(number);
+          byNumber.set(number, {
+            ...(existing || {
               number,
-            });
-          }
+              isOccupied: false,
+              isLocked: false,
+              isMuted: false,
+              isSpeaking: false,
+            }),
+            ...incoming,
+            number,
+          });
+        }
 
-          return Array.from(byNumber.values()).sort(
-            (a, b) => a.number - b.number
-          );
-        });
-      }
-    );
+        return Array.from(byNumber.values()).sort((a, b) => a.number - b.number);
+      });
+    });
 
-    socket.on(
-      "room_presence",
-      handleRoomPresence
-    );
+    socket.on("room_presence", handleRoomPresence);
+    socket.on("room_user_online", handleRoomUserOnline);
+    socket.on("room_user_offline", handleRoomUserOffline);
+    socket.on("room_message", handleRoomMessage);
+    socket.on("room_chat_cleared", handleRoomChatCleared);
 
-    socket.on(
-      "room_user_online",
-      handleRoomUserOnline
-    );
-
-    socket.on(
-      "room_user_offline",
-      handleRoomUserOffline
-    );
-
-    socket.on(
-      "room_message",
-      handleRoomMessage
-    );
-
-    socket.on(
-      "room_chat_cleared",
-      handleRoomChatCleared
-    );
-
-      setRoomUsers(prev => {
-      const exists = prev.some(
-        user =>
-          String(user.accountId) ===
-          String(userAccountId)
-      );
-
-      if (exists) {
-        return prev;
-      }
-
-      return [
-        ...prev,
-        currentRoomUser,
-      ];
+    setRoomUsers(prev => {
+      const exists = prev.some(user => String(user.accountId) === String(userAccountId));
+      if (exists) return prev;
+      return [...prev, currentRoomUser];
     });
 
     if (socket.connected) {
-    joinRoom();
-  } else {
-    socket.once("connect", joinRoom);
-    socket.connect();
-  }
+      joinRoom();
+    } else {
+      socket.once("connect", joinRoom);
+      socket.connect();
+    }
 
-  return () => {
-    socket.off("connect", joinRoom);
-
-
-      socket.off(
-        "room_presence",
-        handleRoomPresence
-      );
-
-      socket.off(
-        "room_user_online",
-        handleRoomUserOnline
-      );
-
-      socket.off(
-        "room_user_offline",
-        handleRoomUserOffline
-      );
-
-      socket.off(
-        "room_message",
-        handleRoomMessage
-      );
-
-      socket.off(
-        "room_chat_cleared",
-        handleRoomChatCleared
-      );
+    return () => {
+      socket.off("connect", joinRoom);
+      socket.off("room_presence", handleRoomPresence);
+      socket.off("room_user_online", handleRoomUserOnline);
+      socket.off("room_user_offline", handleRoomUserOffline);
+      socket.off("room_message", handleRoomMessage);
+      socket.off("room_chat_cleared", handleRoomChatCleared);
 
       if (!isKeepingRef.current) {
         socket.emit("room_leave", {
@@ -1078,17 +749,10 @@ function RoomContent({
           userId: userAccountId,
         });
       }
+    };
+  }, [roomId, userAccountId, currentUser.name, currentUser.image]);
 
-  };
-
-  }, [
-    roomId,
-    userAccountId,
-    currentUser.name,
-    currentUser.image,
-  ]);
-
-const sendMessageToSocket = async (
+  const sendMessageToSocket = async (
     text: string,
     imageUrl?: string,
     type: "message" | "join" | "leave" = "message"
@@ -1113,22 +777,17 @@ const sendMessageToSocket = async (
       createdAt: Date.now(),
     };
 
-    // Make sure Socket.IO is connected before sending.
-    if (!socket.connected) {
-      socket.connect();
-    }
+    if (!socket.connected) socket.connect();
 
     if (socket.connected) {
       socket.emit("room_message", message);
       return;
     }
 
-    // If connection is still being established, send once it connects.
     const sendAfterConnect = () => {
       socket.emit("room_message", message);
       socket.off("connect", sendAfterConnect);
     };
-
     socket.once("connect", sendAfterConnect);
   };
 
@@ -1229,7 +888,6 @@ const sendMessageToSocket = async (
     extra: Record<string, any> = {}
   ) => {
     if (!roomId || userAccountId === "guest") return;
-
     const send = () => {
       socket.emit("room_seat_action", {
         roomId,
@@ -1244,32 +902,18 @@ const sendMessageToSocket = async (
         ...extra,
       });
     };
-
-    if (socket.connected) {
-      send();
-    } else {
-      socket.once("connect", send);
-      socket.connect();
-    }
+    if (socket.connected) send();
+    else { socket.once("connect", send); socket.connect(); }
   };
 
   const handleTakeSeat = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (selectedSeat === null) return;
 
     try {
       const targetSeat = seats.find(s => s.number === selectedSeat);
-      if (targetSeat?.isLocked && !targetSeat.isOccupied) {
-        alert("This seat is locked!");
-        return;
-      }
-      if (targetSeat?.isOccupied && targetSeat.user?.accountId !== userAccountId) {
-        alert("This seat is already taken!");
-        return;
-      }
+      if (targetSeat?.isLocked && !targetSeat.isOccupied) { alert("This seat is locked!"); return; }
+      if (targetSeat?.isOccupied && targetSeat.user?.accountId !== userAccountId) { alert("This seat is already taken!"); return; }
 
       const updatedSeats = seats.map(s => {
         if (s.isOccupied && s.user?.accountId === userAccountId && s.number !== selectedSeat) {
@@ -1289,7 +933,6 @@ const sendMessageToSocket = async (
       });
 
       setSeats(updatedSeats);
-
       emitSeatAction("take", selectedSeat, {
         user: {
           name: currentUser.name || "User",
@@ -1297,7 +940,6 @@ const sendMessageToSocket = async (
           accountId: userAccountId,
         },
       });
-
       setShowSeatSheet(false);
       setSelectedSeat(null);
     } catch (err) {
@@ -1306,10 +948,7 @@ const sendMessageToSocket = async (
   };
 
   const handleLeaveSeat = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (selectedSeat === null) return;
 
     try {
@@ -1319,11 +958,8 @@ const sendMessageToSocket = async (
         }
         return s;
       });
-
       setSeats(updatedSeats);
-
       emitSeatAction("leave", selectedSeat);
-
       setShowSeatSheet(false);
       setSelectedSeat(null);
     } catch (err) {
@@ -1334,7 +970,6 @@ const sendMessageToSocket = async (
   const handleLeaveUserSeat = async (accountId: string) => {
     const targetSeat = seats.find(s => s.isOccupied && s.user?.accountId === accountId);
     if (!targetSeat) return;
-
     const updatedSeats = seats.map(seat =>
       seat.number === targetSeat.number
         ? { ...seat, isOccupied: false, user: undefined, isSpeaking: false, isMuted: false, gif: undefined }
@@ -1346,70 +981,46 @@ const sendMessageToSocket = async (
   const handleBottomMicToggle = async (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (!currentUserSeat) return;
-
     const newMuteState = !currentUserSeat.isMuted;
     const updatedSeats = seats.map(seat =>
       seat.number === currentUserSeat.number
         ? { ...seat, isMuted: newMuteState }
         : seat
     );
-
     setSeats(updatedSeats);
-
-    emitSeatAction("mute", currentUserSeat.number, {
-      isMuted: newMuteState,
-    });
+    emitSeatAction("mute", currentUserSeat.number, { isMuted: newMuteState });
   };
 
   const handleToggleMute = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (selectedSeat === null) return;
-
     const target = seats.find(s => s.number === selectedSeat);
     if (!target) return;
 
     const newMuteState = !target.isMuted;
     const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isMuted: newMuteState } : s);
     setSeats(updatedSeats);
-
-    emitSeatAction("mute", target.number, {
-      isMuted: newMuteState,
-    });
-
+    emitSeatAction("mute", target.number, { isMuted: newMuteState });
     setShowSeatSheet(false);
     setSelectedSeat(null);
   };
 
   const handleToggleLock = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (selectedSeat === null) return;
-
     const target = seats.find(s => s.number === selectedSeat);
     if (!target) return;
 
     const newLockState = !target.isLocked;
     const updatedSeats = seats.map(s => s.number === selectedSeat ? { ...s, isLocked: newLockState } : s);
     setSeats(updatedSeats);
-
-    emitSeatAction("lock", target.number, {
-      isLocked: newLockState,
-    });
-
+    emitSeatAction("lock", target.number, { isLocked: newLockState });
     setShowSeatSheet(false);
     setSelectedSeat(null);
   };
 
   const handleInvite = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     if (selectedSeat === null) return;
     alert(`Invite sent to join seat ${selectedSeat}!`);
     setShowSeatSheet(false);
@@ -1418,16 +1029,11 @@ const sendMessageToSocket = async (
 
   const isCurrentUsersSeat = (seat?: Seat) => Boolean(seat && seat.isOccupied && seat.user?.accountId === userAccountId);
 
-  const showPublicMsgOffAlert = () => {
-    setShowPublicMsgModal(true);
-  };
+  const showPublicMsgOffAlert = () => { setShowPublicMsgModal(true); };
 
   const handleSendMessage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (publicMsgOff && !isRoomOwner) {
-      showPublicMsgOffAlert();
-      return;
-    }
+    if (publicMsgOff && !isRoomOwner) { showPublicMsgOffAlert(); return; }
     if (!message.trim()) return;
     sendMessageToSocket(message.trim());
     setMessage("");
@@ -1442,10 +1048,7 @@ const sendMessageToSocket = async (
 
   const openChatInput = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (publicMsgOff && !isRoomOwner) {
-      showPublicMsgOffAlert();
-      return;
-    }
+    if (publicMsgOff && !isRoomOwner) { showPublicMsgOffAlert(); return; }
     setShowChatInput(true);
     setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 100);
   };
@@ -1471,103 +1074,152 @@ const sendMessageToSocket = async (
     setShowSettingPage(true);
   };
 
-     const roomSettings: RoomSettingsCache = {
-    roomId: String(roomId),
-    roomName:
-      nextRoomName || "hurry User@",
-    roomDp:
-      nextRoomDp || "/IMG_20260921_210113.png",
-    announcement: nextAnnouncement || "",
-    micMode: Number(nextMicMode || 0),
-    theme: nextTheme || "mood-light",
-    isLocked: Boolean(nextLocked),
-    roomPassword: nextPassword || "",
-    updatedAt: Date.now(),
-  };
+  const closeSettings = () => setShowSettingPage(false);
+    const handleSaveSettings = async (
+    data: Partial<RoomSettingsData>
+  ) => {
+    const nextRoomName =
+      data.roomName !== undefined
+        ? data.roomName
+        : roomName;
 
-  await saveRoomSettingsToIndexedDB(
-    roomSettings
-  );
+    const nextRoomDp =
+      data.roomDp !== undefined
+        ? data.roomDp
+        : roomDp;
 
-  const isOwnerOfRoom =
-    String(roomId) === String(currentUser.id) ||
-    String(roomId) === String(currentUser.accountId) ||
-    String(roomOwner.id) === String(currentUser.id) ||
-    String(roomOwner.accountId) === String(currentUser.accountId);
+    const nextAnnouncement =
+      data.announcement !== undefined
+        ? data.announcement
+        : roomAnnouncement;
 
-  // ✅ Save to MongoDB — sab field formats me
-  try {
-    const dbRoomData = {
-      accountId: roomOwner.accountId || roomId,
-      id: roomOwner.accountId || roomId,
-      roomId: roomOwner.accountId || roomId,
-      name: roomSettings.roomName,
-      roomName: roomSettings.roomName,
-      'Room Name': roomSettings.roomName,
-      image: roomSettings.roomDp,
-      roomDp: roomSettings.roomDp,
-      'Room dp': roomSettings.roomDp,
-      country: localStorage.getItem('userCountry') || '🇮🇳',
-      message: roomSettings.announcement,
-      announcement: roomSettings.announcement,
-      theme: roomSettings.theme,
-      micMode: roomSettings.micMode,
-      isLocked: roomSettings.isLocked,
-      roomPassword: roomSettings.roomPassword,
-    };
+    const nextMicMode =
+      data.micMode !== undefined
+        ? data.micMode
+        : micMode;
 
-    const res = await fetch(apiUrl('/api/rooms'), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dbRoomData),
-    });
+    const nextTheme =
+      data.theme !== undefined
+        ? data.theme
+        : Object.keys(THEME_BACKGROUNDS).find(
+            key => THEME_BACKGROUNDS[key] === backgroundImage
+          );
 
-    if (!res.ok) {
-      console.warn('Room settings save failed:', res.status);
-    }
-  } catch (error) {
-    console.error("Failed to save room settings to MongoDB", error);
-  }
+    const nextLocked =
+      data.isLocked !== undefined
+        ? data.isLocked
+        : isLocked;
 
-  if (isOwnerOfRoom) {
-    let existingMyRoom: any = {};
-    try {
-      const rawMyRoom = localStorage.getItem('myRoom');
-      if (rawMyRoom) {
-        existingMyRoom = JSON.parse(rawMyRoom);
-      }
-    } catch (e) {
-      console.error("Error parsing myRoom", e);
+    const nextPassword =
+      data.roomPassword !== undefined
+        ? data.roomPassword
+        : roomPassword;
+
+    setRoomName(nextRoomName);
+    setRoomAnnouncement(nextAnnouncement);
+    setRoomDp(nextRoomDp);
+    setMicMode(nextMicMode);
+
+    if (nextTheme && THEME_BACKGROUNDS[nextTheme]) {
+      setBackgroundImage(THEME_BACKGROUNDS[nextTheme]);
     }
 
-    const updatedMyRoomCard = {
-      ...existingMyRoom,
-      id: currentUser.id || roomId,
-      accountId: currentUser.accountId || roomOwner.accountId,
-      name: roomSettings.roomName,
-      image: roomSettings.roomDp,
-      country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
-    };
-    localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
-    window.dispatchEvent(new Event('storage'));
-  }
+    setIsLocked(nextLocked);
+    setRoomPassword(nextPassword);
 
-  // ✅ Realtime — HomePage turant update ho
-  socket.emit(
-    "room_settings_updated",
-    {
-      roomId: roomOwner.accountId || roomId,
-      roomName: roomSettings.roomName,
-      roomDp: roomSettings.roomDp,
-      announcement: roomSettings.announcement,
-      micMode: roomSettings.micMode,
-      theme: roomSettings.theme,
-      isLocked: roomSettings.isLocked,
-      roomPassword: roomSettings.roomPassword,
+    if (!roomId) return;
+
+    const roomSettings: RoomSettingsCache = {
+      roomId: String(roomId),
+      roomName: nextRoomName || "hurry User@",
+      roomDp: nextRoomDp || "/IMG_20260921_210113.png",
+      announcement: nextAnnouncement || "",
+      micMode: Number(nextMicMode || 0),
+      theme: nextTheme || "mood-light",
+      isLocked: Boolean(nextLocked),
+      roomPassword: nextPassword || "",
       updatedAt: Date.now(),
+    };
+
+    await saveRoomSettingsToIndexedDB(roomSettings);
+
+    const isOwnerOfRoom =
+      String(roomId) === String(currentUser.id) ||
+      String(roomId) === String(currentUser.accountId) ||
+      String(roomOwner.id) === String(currentUser.id) ||
+      String(roomOwner.accountId) === String(currentUser.accountId);
+
+    try {
+      const dbRoomData = {
+        accountId: roomOwner.accountId || roomId,
+        id: roomOwner.accountId || roomId,
+        roomId: roomOwner.accountId || roomId,
+        name: roomSettings.roomName,
+        roomName: roomSettings.roomName,
+        'Room Name': roomSettings.roomName,
+        image: roomSettings.roomDp,
+        roomDp: roomSettings.roomDp,
+        'Room dp': roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || '🇮🇳',
+        message: roomSettings.announcement,
+        announcement: roomSettings.announcement,
+        theme: roomSettings.theme,
+        micMode: roomSettings.micMode,
+        isLocked: roomSettings.isLocked,
+        roomPassword: roomSettings.roomPassword,
+      };
+
+      const res = await fetch(apiUrl('/api/rooms'), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dbRoomData),
+      });
+
+      if (!res.ok) {
+        console.warn('Room settings save failed:', res.status);
+      }
+    } catch (error) {
+      console.error("Failed to save room settings to MongoDB", error);
     }
-  );
-};
+
+    if (isOwnerOfRoom) {
+      let existingMyRoom: any = {};
+      try {
+        const rawMyRoom = localStorage.getItem('myRoom');
+        if (rawMyRoom) {
+          existingMyRoom = JSON.parse(rawMyRoom);
+        }
+      } catch (e) {
+        console.error("Error parsing myRoom", e);
+      }
+
+      const updatedMyRoomCard = {
+        ...existingMyRoom,
+        id: currentUser.id || roomId,
+        accountId: currentUser.accountId || roomOwner.accountId,
+        name: roomSettings.roomName,
+        image: roomSettings.roomDp,
+        country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
+      };
+      localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    socket.emit(
+      "room_settings_updated",
+      {
+        roomId: roomOwner.accountId || roomId,
+        roomName: roomSettings.roomName,
+        roomDp: roomSettings.roomDp,
+        announcement: roomSettings.announcement,
+        micMode: roomSettings.micMode,
+        theme: roomSettings.theme,
+        isLocked: roomSettings.isLocked,
+        roomPassword: roomSettings.roomPassword,
+        updatedAt: Date.now(),
+      }
+    );
+  };
 
   const handleExit = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -1575,7 +1227,6 @@ const sendMessageToSocket = async (
     setShowExitMenu(false);
     localStorage.removeItem('keptRoom');
     setMessages([]);
-
     if (onBack) onBack();
     if (onClose) onClose();
   };
@@ -1583,17 +1234,10 @@ const sendMessageToSocket = async (
   const handleKeep = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     isKeepingRef.current = true;
-    const keptAccId =
-      roomOwner.accountId ||
-      (roomId ? generateStableId(roomId) : "");
-
+    const keptAccId = roomOwner.accountId || (roomId ? generateStableId(roomId) : "");
     const roomData = {
-      name:
-        roomName ||
-        "hurry User@",
-      image:
-        roomDp ||
-        "/IMG_20260921_210113.png",
+      name: roomName || "hurry User@",
+      image: roomDp || "/IMG_20260921_210113.png",
       accountId: keptAccId,
       id: roomId,
       roomId,
@@ -1604,7 +1248,7 @@ const sendMessageToSocket = async (
     if (onBack) onBack();
   };
 
-   const handleSeatEmoji = async (emojiData: any) => {
+  const handleSeatEmoji = async (emojiData: any) => {
     if (!hasSeat || !currentUserSeat) return;
 
     const sendTimestamp = Date.now();
@@ -1612,10 +1256,7 @@ const sendMessageToSocket = async (
 
     setSeats(prev => prev.map(s => s.number === seatNum ? {
       ...s,
-      gif: {
-        src: emojiData.src,
-        timestamp: sendTimestamp,
-      }
+      gif: { src: emojiData.src, timestamp: sendTimestamp }
     } : s));
 
     emitSeatAction("emoji", seatNum, {
@@ -1623,16 +1264,11 @@ const sendMessageToSocket = async (
       timestamp: sendTimestamp,
     });
 
-    // 5 second baad emoji apne aap remove ho jayega
     setTimeout(() => {
-      setSeats(prev => prev.map(s => s.number === seatNum ? {
-        ...s,
-        gif: undefined
-      } : s));
+      setSeats(prev => prev.map(s => s.number === seatNum ? { ...s, gif: undefined } : s));
     }, 5000);
   };
 
- 
   const liveUserCount = roomUsers.length;
   const selectedSeatData = selectedSeat !== null ? seats.find(s => s.number === selectedSeat) : null;
   const isSelectedSeatMySeat = selectedSeatData ? isCurrentUsersSeat(selectedSeatData) : false;
@@ -1702,15 +1338,9 @@ const sendMessageToSocket = async (
       musicAudioRef.current = audio;
       audio.play();
 
-      audio.addEventListener('timeupdate', () => {
-        setMusicCurrentTime(audio.currentTime);
-      });
-      audio.addEventListener('loadedmetadata', () => {
-        setMusicDuration(audio.duration);
-      });
-      audio.addEventListener('ended', () => {
-        handleNextTrack();
-      });
+      audio.addEventListener('timeupdate', () => { setMusicCurrentTime(audio.currentTime); });
+      audio.addEventListener('loadedmetadata', () => { setMusicDuration(audio.duration); });
+      audio.addEventListener('ended', () => { handleNextTrack(); });
     }
 
     setCurrentTrack(track);
@@ -1734,17 +1364,13 @@ const sendMessageToSocket = async (
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setMusicVolume(newVolume);
-    if (musicAudioRef.current) {
-      musicAudioRef.current.volume = newVolume;
-    }
+    if (musicAudioRef.current) musicAudioRef.current.volume = newVolume;
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseFloat(e.target.value);
     setMusicCurrentTime(newTime);
-    if (musicAudioRef.current) {
-      musicAudioRef.current.currentTime = newTime;
-    }
+    if (musicAudioRef.current) musicAudioRef.current.currentTime = newTime;
   };
 
   const handleNextTrack = () => {
@@ -1757,7 +1383,6 @@ const sendMessageToSocket = async (
       musicAudioRef.current.volume = musicVolume;
       musicAudioRef.current.play();
     }
-
     setCurrentTrackIndex(nextIndex);
     setCurrentTrack(nextTrack);
     setIsMusicPlaying(true);
@@ -1775,7 +1400,6 @@ const sendMessageToSocket = async (
       musicAudioRef.current.volume = musicVolume;
       musicAudioRef.current.play();
     }
-
     setCurrentTrackIndex(prevIndex);
     setCurrentTrack(prevTrack);
     setIsMusicPlaying(true);
@@ -1803,9 +1427,7 @@ const sendMessageToSocket = async (
   }, []);
 
   useEffect(() => {
-    if (musicAudioRef.current) {
-      musicAudioRef.current.volume = musicVolume;
-    }
+    if (musicAudioRef.current) musicAudioRef.current.volume = musicVolume;
   }, [musicVolume]);
 
   const formatTime = (seconds: number) => {
@@ -1815,7 +1437,6 @@ const sendMessageToSocket = async (
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Drag & Drop handlers for floating minimize icon
   const handleTouchStartMini = (e: React.TouchEvent) => {
     const touch = e.touches[0];
     isDraggingMiniRef.current = true;
@@ -1834,9 +1455,7 @@ const sendMessageToSocket = async (
     });
   };
 
-  const handleTouchEndMini = () => {
-    isDraggingMiniRef.current = false;
-  };
+  const handleTouchEndMini = () => { isDraggingMiniRef.current = false; };
 
   const handleMouseDownMini = (e: React.MouseEvent) => {
     isDraggingMiniRef.current = true;
@@ -1881,10 +1500,7 @@ const sendMessageToSocket = async (
   return (
     <div
       className="fixed inset-0 z-50 bg-black flex flex-col"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        height: '100%'
-      }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: '100%' }}
     >
       <img
         src={backgroundImage}
@@ -1906,14 +1522,8 @@ const sendMessageToSocket = async (
               style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}
             >
               <img
-                src={
-                  roomDp && roomDp !== "undefined" && roomDp !== "null"
-                    ? roomDp
-                    : "/default-avatar.png"
-                }
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/default-avatar.png";
-                }}
+                src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"}
+                onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
                 alt="Room Cover"
                 className="w-full h-full object-cover"
                 draggable={false}
@@ -1931,11 +1541,7 @@ const sendMessageToSocket = async (
                       if (onFollowToggle) onFollowToggle(roomId, newFollow);
                     }}
                     className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600"
-                    style={{
-                      width: 'var(--header-follow-btn-size)',
-                      height: 'var(--header-follow-btn-size)',
-                      border: 'none',
-                    }}
+                    style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}
                     title={isFollowed ? 'Unfollow Room' : 'Follow Room'}
                   >
                     <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}>
@@ -1945,8 +1551,8 @@ const sendMessageToSocket = async (
                 )}
               </div>
               <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>
-              ID:{roomOwner.accountId || ''}
-            </p>
+                ID:{roomOwner.accountId || ''}
+              </p>
             </div>
           </div>
 
@@ -1987,36 +1593,21 @@ const sendMessageToSocket = async (
         <div className="h-0 w-full relative z-20">
           <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
             <button
-  onClick={() => setShowCupIcon(true)}
-  className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none"
->
+              onClick={() => setShowCupIcon(true)}
+              className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none"
+            >
               <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
                 <GreenColorRemovalShader
                   imageSrc="/1788258883971~2.jpg"
                   threshold={0.5}
                   className="w-full h-full"
-                  style={{
-                    width: '115%',
-                    height: '115%',
-                    objectFit: 'contain',
-                    maxWidth: 'none',
-                    maxHeight: 'none',
-                    pointerEvents: 'none'
-                  }}
+                  style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }}
                 />
               </div>
-              <span
-  className="font-bold text-[13px] leading-none tracking-tight"
-  style={{ color: '#eef3a3' }}
->
-  {formatCupCount(cupCount)}
-</span>
-              <svg
-                viewBox="0 0 24 24"
-                className="fill-none stroke-[3] ml-1 opacity-90"
-                stroke="#eef3a3"
-                style={{ width: '10px', height: '10px' }}
-              >
+              <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>
+                {formatCupCount(cupCount)}
+              </span>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}>
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
@@ -2030,34 +1621,14 @@ const sendMessageToSocket = async (
           </div>
 
           <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
-            {/* Announcement Box */}
             <div className="mx-1 mb-3 flex justify-start">
-              <div
-                className="max-w-[75%] bg-black/30 border border-none shadow-sm"
-                style={{
-                  padding: '12px 14px',
-                  borderRadius: '8px',
-                }}
-              >
-                <p
-                  className="leading-snug font-medium"
-                  style={{
-                    fontSize: 'var(--announcement-text-size)',
-                    color: '#e2c67d',
-                  }}
-                >
+              <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+                <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
                   Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
                 </p>
-
                 {roomAnnouncement && (
                   <div className="mt-2 pt-2 border-t border-white/10">
-                    <p
-                      className="leading-snug font-medium"
-                      style={{
-                        fontSize: 'var(--announcement-text-size)',
-                        color: '#e2c67d',
-                      }}
-                    >
+                    <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
                       <span className="font-bold mr-1">ANNOUNCEMENT: </span>
                       {roomAnnouncement}
                     </p>
@@ -2066,7 +1637,6 @@ const sendMessageToSocket = async (
               </div>
             </div>
 
-            {/* Chat Messages */}
             <div className="space-y-0.5">
               {messages.map((msg) => (
                 <div key={msg.id} className="leading-[1.8rem]">
@@ -2091,11 +1661,7 @@ const sendMessageToSocket = async (
                     </>
                   ) : msg.imageUrl ? (
                     <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
-                      <div
-                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
-                        style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
-                      >
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
                       <div className="flex flex-col min-w-0">
@@ -2107,19 +1673,15 @@ const sendMessageToSocket = async (
                     </div>
                   ) : (
                     <div className="flex items-start gap-2 max-w-[75%]">
-                      <div
-                        className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10"
-                        style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                        onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
-                      >
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
                         <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
                         {msg.equippedBubble ? (
-                           <div className="px-3 py-2 mt-0.5 flex items-center justify-center relative min-w-[60px]" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
-                             <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                           </div>
+                          <div className="px-3 py-2 mt-0.5 flex items-center justify-center relative min-w-[60px]" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                            <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
                         ) : (
                           <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
                             <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
@@ -2228,9 +1790,7 @@ const sendMessageToSocket = async (
           <div
             ref={inputContainerRef}
             className="fixed bottom-0 left-0 right-0 z-[10000] flex items-center w-full"
-            style={{
-              paddingBottom: 'env(safe-area-inset-bottom)'
-            }}
+            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
               <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
@@ -2270,16 +1830,9 @@ const sendMessageToSocket = async (
           onTouchMove={handleTouchMoveMini}
           onTouchEnd={handleTouchEndMini}
           onMouseDown={handleMouseDownMini}
-          onClick={() => {
-            if (!isDraggingMiniRef.current) {
-              setMusicControllerState('full');
-            }
-          }}
+          onClick={() => { if (!isDraggingMiniRef.current) setMusicControllerState('full'); }}
           className="fixed z-[9999] cursor-pointer touch-none select-none transition-transform hover:scale-105 active:scale-95"
-          style={{
-            left: `${miniPos.x}px`,
-            top: `${miniPos.y}px`,
-          }}
+          style={{ left: `${miniPos.x}px`, top: `${miniPos.y}px` }}
           title={currentTrack.name}
         >
           <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
@@ -2293,58 +1846,34 @@ const sendMessageToSocket = async (
       {/* RIGHT SIDE FLOATING STACK */}
       <div
         className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
-        style={{
-          top: 'calc(100lvh - 270px)',
-          right: '10px',
-        }}
+        style={{ top: 'calc(100lvh - 270px)', right: '10px' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 1. AUTO-SCROLL BANNER */}
         <RoomSideBanner />
 
-        {/* 2. Room Task Click */}
         <div
           onClick={() => setShowRoomTask(true)}
           className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center"
-          style={{
-            width: 'calc(var(--footer-btn-size) * 1.35)',
-            height: 'calc(var(--footer-btn-size) * 1.35)',
-          }}
+          style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}
         >
           <GreenColorRemovalShader
             imageSrc="/IMG-20260902-WA0066.jpg"
             threshold={0.45}
             className="w-full h-full"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              pointerEvents: 'none',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }}
           />
         </div>
 
-        {/* 3. Game Image */}
         <div
           className="relative cursor-pointer transition-transform hover:scale-105 mt-1"
-          style={{
-            width: 'calc(var(--footer-btn-size) * 1.2)',
-            height: 'calc(var(--footer-btn-size) * 1.2)',
-          }}
+          style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }}
           onClick={() => setShowGameSheet(true)}
         >
           <WhiteColorRemovalShader
             imageSrc="/IMG_20260814_111008.png"
             threshold={0.85}
             className="w-full h-full"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              maxWidth: 'none',
-              maxHeight: 'none',
-              pointerEvents: 'none',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }}
           />
         </div>
       </div>
@@ -2674,77 +2203,68 @@ const sendMessageToSocket = async (
         <Fruitparty onClose={() => setShowFruitParty(false)} onMinimize={() => setShowFruitParty('minimized')} />
       )}
 
-    {/* Minimized Game Icons - Positioned right above the side banner */}
-<div
-  className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
-  style={{
-    bottom: 'calc(100lvh - (100lvh - 310px) + 6px)', // Banner ke theek upar rahega
-    right: '10px',
-    width: '60px', // Banner ki width se align
-  }}
-  onClick={(e) => e.stopPropagation()}
->
-  {/* Wild Party Minimized Icon (White border removed) */}
-  {showWildParty === 'minimized' && (
-    <button
-      onClick={() => setShowWildParty(true)}
-      className="w-15 h-15 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
-    >
-      <img
-        src="/file_000000009d808211b8ffb7c2183b4ef5.png"
-        alt="Wild Party"
-        className="w-full h-full object-contain"
-        draggable={false}
-      />
-    </button>
-  )}
+      <div
+        className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
+        style={{
+          bottom: 'calc(100lvh - (100lvh - 310px) + 6px)',
+          right: '10px',
+          width: '60px',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {showWildParty === 'minimized' && (
+          <button
+            onClick={() => setShowWildParty(true)}
+            className="w-15 h-15 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
+          >
+            <img
+              src="/file_000000009d808211b8ffb7c2183b4ef5.png"
+              alt="Wild Party"
+              className="w-full h-full object-contain"
+              draggable={false}
+            />
+          </button>
+        )}
 
-  {/* Fruit Party Minimized Icon (object-contain + rounded-md) */}
-  {showFruitParty === 'minimized' && (
-    <button
-      onClick={() => setShowFruitParty(true)}
-      className="w-10 h-10 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
-    >
-      <img
-        src="/fruit-party-logo.jpg"
-        alt="Fruit Party"
-        className="w-full h-full object-contain rounded-md"
-        draggable={false}
-      />
-    </button>
-  )}
-</div>
-
+        {showFruitParty === 'minimized' && (
+          <button
+            onClick={() => setShowFruitParty(true)}
+            className="w-10 h-10 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0"
+          >
+            <img
+              src="/fruit-party-logo.jpg"
+              alt="Fruit Party"
+              className="w-full h-full object-contain rounded-md"
+              draggable={false}
+            />
+          </button>
+        )}
+      </div>
 
       {showRoomTask && (
         <div className="absolute inset-0 z-[11000] pointer-events-none">
           <Roomtask onBack={() => setShowRoomTask(false)} />
         </div>
       )}
-        {showCupIcon && (
-  <div className="absolute inset-0 z-[11000] pointer-events-none">
-    <CupIcon
-      onBack={() => setShowCupIcon(false)}
-      count={cupCount}
-    />
-  </div>
-)}
-      
-      {/* FULL MUSIC CONTROLLER */}
+
+      {showCupIcon && (
+        <div className="absolute inset-0 z-[11000] pointer-events-none">
+          <CupIcon
+            onBack={() => setShowCupIcon(false)}
+            count={cupCount}
+          />
+        </div>
+      )}
+
       {musicControllerState === 'full' && currentTrack && !showFourGride && (
         <div
           className="fixed left-1/2 transform -translate-x-1/2 z-[45] w-full max-w-sm px-3"
-          style={{
-            bottom: 'var(--music-controller-bottom)',
-          }}
+          style={{ bottom: 'var(--music-controller-bottom)' }}
           onClick={(e) => e.stopPropagation()}
         >
           <div
             className="relative rounded-2xl overflow-hidden bg-black/90 backdrop-blur-md border border-white/10"
-            style={{
-              padding: 'var(--music-padding)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-            }}
+            style={{ padding: 'var(--music-padding)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}
           >
             <button
               onClick={handleCloseMusicController}
@@ -2930,12 +2450,12 @@ const sendMessageToSocket = async (
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
       {showGiftPicker && (
-  <GiftPicker
-    onClose={() => setShowGiftPicker(false)}
-    seats={seats}
-    onSend={(count: number) => setCupCount((prev) => prev + count)}
-  />
-)}
+        <GiftPicker
+          onClose={() => setShowGiftPicker(false)}
+          seats={seats}
+          onSend={(count: number) => setCupCount((prev) => prev + count)}
+        />
+      )}
     </div>
   );
 }
@@ -3024,7 +2544,6 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
         )}
         <div className={`w-[var(--seat-size)] h-[var(--seat-size)] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-all duration-300 hover:scale-105 pointer-events-auto overflow-visible ${activeSpeaking ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)]' : ''}`}>
           {isLocked ? (
-            /* Custom Locked Seat Image */
             <div className="w-full h-full flex items-center justify-center overflow-visible">
               <img
                 src="/file_00000000d2f08211baedcbfa57f4c3e6.png"
@@ -3034,7 +2553,6 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               />
             </div>
           ) : isOccupied && user ? (
-            /* User Avatar & Frame matches Seat Size */
             <div className="relative w-full h-full flex items-center justify-center overflow-visible">
               <img
                 src="/file_00000000d23082118655299af1610f9c.png"
@@ -3044,7 +2562,6 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               />
               <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center z-10"
                 style={{ width: '71%', height: '71%' }}>
-                
                 <img
                   src={user.image || "/default-avatar.png"}
                   alt={user.name}
@@ -3072,10 +2589,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                     src={`${encodeURI(gif.src)}?t=${gif.timestamp}`}
                     alt="Reaction"
                     className="w-full h-full object-contain select-none pointer-events-none"
-                    style={{
-                      maxWidth: 'none',
-                      maxHeight: 'none',
-                    }}
+                    style={{ maxWidth: 'none', maxHeight: 'none' }}
                   />
                 </div>
               )}
@@ -3111,20 +2625,19 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
               </div>
 
               {isMuted && (
-  <div
-    className="absolute right-0.5 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
-    style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
-  >
-    <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
-      <line x1="1" y1="1" x2="23" y2="23" />
-      <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
-      <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
-    </svg>
-  </div>
-)}
+                <div
+                  className="absolute right-0.5 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
+                  style={{ width: 'calc(var(--seat-size) * 0.24)', height: 'calc(var(--seat-size) * 0.24)' }}
+                >
+                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[3] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--seat-size) * 0.15)', height: 'calc(var(--seat-size) * 0.15)' }}>
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                    <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
+                    <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
+                  </svg>
+                </div>
+              )}
             </div>
-                  ) : (
-            /* Empty Seat */
+          ) : (
             <div className="w-full h-full flex items-center justify-center relative pointer-events-none">
               <img
                 src="/file_00000000d23082118655299af1610f9c.png"
@@ -3149,7 +2662,6 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
         </div>
       </div>
 
-      {/* SEAT NUMBER / USER NAME */}
       <span
         className="font-medium text-white/90 pointer-events-none flex items-center justify-center gap-1 leading-tight text-center max-w-[var(--seat-size)] truncate mt-0.5"
         style={{ fontSize: 'calc(var(--seat-size) * 0.16)' }}
@@ -3165,10 +2677,6 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
   );
 }
 
-
-// ----------------------------------------------------------------------
-// AUTO-SCROLL ROOM SIDE BANNER
-// ----------------------------------------------------------------------
 function RoomSideBanner() {
   const bannerImages = [
     '/1788339540059~2.jpg',
@@ -3181,7 +2689,6 @@ function RoomSideBanner() {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % bannerImages.length);
     }, 3000);
-
     return () => clearInterval(timer);
   }, [bannerImages.length]);
 
@@ -3189,11 +2696,7 @@ function RoomSideBanner() {
     <div className="flex flex-col items-center select-none">
       <div
         className="relative overflow-hidden shadow-lg"
-        style={{
-          width: '60px',
-          height: '84px',
-          borderRadius: '8px',
-        }}
+        style={{ width: '60px', height: '84px', borderRadius: '8px' }}
       >
         <div
           className="flex h-full transition-transform duration-500 ease-out"
@@ -3212,24 +2715,21 @@ function RoomSideBanner() {
       </div>
 
       <div className="flex items-center justify-center gap-[2px] mt-1" style={{ height: '8px' }}>
-  {bannerImages.map((_, i) => (
-    <div
-      key={i}
-      className={`transition-all duration-300 rounded-md ${
-        currentIndex === i
-          ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
-          : 'w-1 h-1 bg-white/40'
-      }`}
-    />
-  ))}
-</div>
+        {bannerImages.map((_, i) => (
+          <div
+            key={i}
+            className={`transition-all duration-300 rounded-md ${
+              currentIndex === i
+                ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
+                : 'w-1 h-1 bg-white/40'
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-// ----------------------------------------------------------------------
-// GREEN COLOR REMOVAL SHADER
-// ----------------------------------------------------------------------
 function GreenColorRemovalShader({ imageSrc, threshold = 0.5, className = "", style = {} }: any) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -3264,5 +2764,4 @@ function GreenColorRemovalShader({ imageSrc, threshold = 0.5, className = "", st
   }, [imageSrc, threshold]);
 
   return <canvas ref={canvasRef} className={className} style={style} />;
-}
-
+      }
