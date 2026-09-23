@@ -30,7 +30,7 @@ const SINGULAR: { [key: string]: string } = {
   following: 'Following',
 }
 
-// ============ FOLLOW LIST COMPONENT ============
+// ============ FOLLOW LIST ============
 export function FollowList({ onBack, type }: FollowListProps) {
   const initialTab = type === 'visitors' ? 'friends' : type
   const [activeTab, setActiveTab] = useState<string>(initialTab)
@@ -72,17 +72,17 @@ export function FollowList({ onBack, type }: FollowListProps) {
         </h1>
       </div>
 
-      {/* Tabs Bar — transparent, corner md */}
+      {/* Tabs Bar — blue tab pura fit */}
       <div className="px-3 mb-3">
-        <div className="bg-white/40 rounded-md p-1 flex items-center gap-1">
+        <div className="bg-white/40 rounded-md p-1 flex items-center">
           {FOLLOW_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2.5 text-[12px] font-semibold rounded-md transition-all ${
+              className={`flex-1 text-[12px] font-semibold rounded-md transition-all flex items-center justify-center ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-600'
+                  ? 'bg-blue-500 text-white h-[38px]'
+                  : 'bg-transparent text-gray-600 h-[38px]'
               }`}
             >
               {tab.label}
@@ -91,14 +91,14 @@ export function FollowList({ onBack, type }: FollowListProps) {
         </div>
       </div>
 
-      {/* User List — no cards, plain items */}
+      {/* User List — tight spacing */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {users.map(item => (
           <div
             key={item}
-            className="flex items-center gap-3 py-3"
+            className="flex items-center gap-3 py-2"
           >
-            <div className="w-11 h-11 rounded-full bg-gray-300 flex-shrink-0" />
+            <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="font-semibold text-gray-900 text-sm truncate">
                 {singularLabel} {item}
@@ -114,7 +114,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
   )
 }
 
-// ============ VISITORS COMPONENT ============
+// ============ VISITORS ============
 export function VisitorsPage({ onBack }: VisitorsProps) {
   const [activeTab, setActiveTab] = useState<'visitors' | 'visited'>('visitors')
 
@@ -146,17 +146,17 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
         </h1>
       </div>
 
-      {/* Tabs Bar — transparent, corner md */}
+      {/* Tabs Bar */}
       <div className="px-3 mb-3">
-        <div className="bg-white/40 rounded-md p-1 flex items-center gap-1">
+        <div className="bg-white/40 rounded-md p-1 flex items-center">
           {VISITOR_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
-              className={`flex-1 py-2.5 text-[12px] font-semibold rounded-md transition-all ${
+              className={`flex-1 text-[12px] font-semibold rounded-md transition-all flex items-center justify-center ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-600'
+                  ? 'bg-blue-500 text-white h-[38px]'
+                  : 'bg-transparent text-gray-600 h-[38px]'
               }`}
             >
               {tab.label}
