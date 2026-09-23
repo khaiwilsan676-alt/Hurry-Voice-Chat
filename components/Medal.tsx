@@ -1,4 +1,4 @@
-'use client'
+ ' user client'
  
 import React, { useState, useEffect, useRef } from 'react'
 import { ChevronLeft, Plus, Star, X, HelpCircle } from 'lucide-react'
@@ -516,4 +516,3 @@ export default function Medal({ onBack }: MedalProps) {
     </div>
   )
 }
-
