@@ -1029,32 +1029,32 @@ export default function HomePage({ onLogout }: HomePageProps) {
         if (String(room.id) === roomId || String(room.accountId) === roomId) {
           return {
             ...room,
-            name: data.roomName || room.name,
-            image: data.roomDp || room.image,
+            name: data.roomName || data['Room Name'] || room.name,
+            image: data.roomDp || data['Room dp'] || room.image,
             isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : room.isLocked,
             roomPassword: data.roomPassword !== undefined ? data.roomPassword : room.roomPassword,
           };
         }
         return room;
       }));
-      // ✅ YE NAYA BLOCK ADD KARO — setGlobalRooms ke baad, function ke closing } se pehle
-setMyRoom(prev => {
-  if (!prev) return prev;
-  const isMine =
-    String(prev.id) === roomId ||
-    String(prev.accountId) === roomId;
-  if (!isMine) return prev;
 
-  const updated = {
-    ...prev,
-    name: data.roomName || prev.name,
-    image: data.roomDp || prev.image,
-    isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : prev.isLocked,
-    roomPassword: data.roomPassword !== undefined ? data.roomPassword : prev.roomPassword,
-  };
-  localStorage.setItem('myRoom', JSON.stringify(updated));
-  return updated;
-});
+      setMyRoom(prev => {
+        if (!prev) return prev;
+        const isMine =
+          String(prev.id) === roomId ||
+          String(prev.accountId) === roomId;
+        if (!isMine) return prev;
+
+        const updated = {
+          ...prev,
+          name: data.roomName || data['Room Name'] || prev.name,
+          image: data.roomDp || data['Room dp'] || prev.image,
+          isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : prev.isLocked,
+          roomPassword: data.roomPassword !== undefined ? data.roomPassword : prev.roomPassword,
+        };
+        localStorage.setItem('myRoom', JSON.stringify(updated));
+        return updated;
+      });
     };
 
     socket.on('private_message', handleIncomingPrivateMsg);
@@ -1275,9 +1275,9 @@ setMyRoom(prev => {
             const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
             return {
               id: roomId,
-              name: data['Room Name'] || data.name || 'hurry User@',
+              name: data['Room Name'] || 'hurry User@',
               country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || data.image || '/IMG_20260921_210113.png',
+              image: data['Room dp'] || '/IMG_20260921_210113.png',
               accountId: accId,
               createdAt: data.createdAt || Date.now(),
               isLocked: Boolean(data.isLocked),
@@ -1338,9 +1338,9 @@ setMyRoom(prev => {
               const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
               return {
                 id: roomId,
-                name: data['Room Name'] || data.name || 'hurry User@',
+                name: data['Room Name'] || 'hurry User@',
                 country: data.Country || data.country || '🇮🇳',
-                image: data['Room dp'] || data.image || '/IMG_20260921_210113.png',
+                image: data['Room dp'] || '/IMG_20260921_210113.png',
                 accountId: accId,
                 createdAt: data.createdAt || Date.now(),
                 isLocked: Boolean(data.isLocked),
@@ -1385,6 +1385,7 @@ setMyRoom(prev => {
       clearInterval(interval);
     };
   }, []);
+
   // ============ LIVE USER ONLINE OFFLINE PRESENCE ============
   useEffect(() => {
     const handlePresenceStatus = ({ userId, accountId, online }: { userId?: string; accountId?: string; online?: boolean }) => {
@@ -1420,66 +1421,66 @@ setMyRoom(prev => {
   useEffect(() => {
     if (!userUID || userUID === 'N/A') return;
 
-  const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
-  if (!Array.isArray(rooms)) return;
+    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
+      if (!Array.isArray(rooms)) return;
 
-  const activeRooms = rooms.filter(
-    (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
-  );
-
-  setGlobalRooms((prev) => {
-    const merged = prev.map((room) => ({ ...room, activeUserCount: 0 }));
-
-    activeRooms.forEach((liveRoom) => {
-      const roomId = String(liveRoom.roomId || "");
-      if (!roomId) return;
-
-      const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
-      const firstUser = liveUsers[0];
-
-      const existing = merged.find((room) =>
-        String(room.id || '') === roomId ||
-        String(room.accountId || '') === roomId
+      const activeRooms = rooms.filter(
+        (room) => room && String(room.roomId || "") && Number(room.activeUserCount || 0) > 0
       );
 
-      if (existing) {
-        existing.activeUserCount = Number(liveRoom.activeUserCount || liveUsers.length || 0);
-      } else {
-        merged.push({
-          id: roomId,
-          accountId: firstUser?.accountId || roomId,
-          name: firstUser?.name || "Room",
-          country: "🇮🇳",
-          image: firstUser?.image || "/default-avatar.png",
-          createdAt: Date.now(),
-          isLocked: false,
-          roomPassword: undefined,
-          isExplicitlyCreated: true,
-          activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
+      setGlobalRooms((prev) => {
+        const merged = prev.map((room) => ({ ...room, activeUserCount: 0 }));
+
+        activeRooms.forEach((liveRoom) => {
+          const roomId = String(liveRoom.roomId || "");
+          if (!roomId) return;
+
+          const liveUsers = Array.isArray(liveRoom.users) ? liveRoom.users : [];
+          const firstUser = liveUsers[0];
+
+          const existing = merged.find((room) =>
+            String(room.id || '') === roomId ||
+            String(room.accountId || '') === roomId
+          );
+
+          if (existing) {
+            existing.activeUserCount = Number(liveRoom.activeUserCount || liveUsers.length || 0);
+          } else {
+            merged.push({
+              id: roomId,
+              accountId: firstUser?.accountId || roomId,
+              name: firstUser?.name || "Room",
+              country: "🇮🇳",
+              image: firstUser?.image || "/default-avatar.png",
+              createdAt: Date.now(),
+              isLocked: false,
+              roomPassword: undefined,
+              isExplicitlyCreated: true,
+              activeUserCount: Number(liveRoom.activeUserCount || liveUsers.length || 0),
+            });
+          }
         });
-      }
-    });
 
-    return merged;
-  });
-
-  setSearchResults((prev) =>
-    prev.map((room) => {
-      const roomId = String(room.id || "");
-      const accountId = String(room.accountId || "");
-      const liveRoom = activeRooms.find((item) => {
-        const liveId = String(item.roomId || "");
-        return liveId === roomId || liveId === accountId;
+        return merged;
       });
-      return {
-        ...room,
-        activeUserCount: liveRoom
-          ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
-          : 0,
-      };
-    })
-  );
-};
+
+      setSearchResults((prev) =>
+        prev.map((room) => {
+          const roomId = String(room.id || "");
+          const accountId = String(room.accountId || "");
+          const liveRoom = activeRooms.find((item) => {
+            const liveId = String(item.roomId || "");
+            return liveId === roomId || liveId === accountId;
+          });
+          return {
+            ...room,
+            activeUserCount: liveRoom
+              ? Number(liveRoom.activeUserCount || (Array.isArray(liveRoom.users) ? liveRoom.users.length : 0))
+              : 0,
+          };
+        })
+      );
+    };
 
     const handleSocketConnect = () => {
       const accountId = localStorage.getItem('accountNumber') || '';
@@ -1577,8 +1578,8 @@ setMyRoom(prev => {
               try {
                 const mongoRoom = await fetchRoomFromMongoDB(uid);
                 if (mongoRoom) {
-                  const mName = mongoRoom['Room Name'] || mongoRoom.roomName || mongoRoom.name;
-                  const mDp = mongoRoom['Room dp'] || mongoRoom.roomDp || mongoRoom.image;
+                  const mName = mongoRoom['Room Name'];
+                  const mDp = mongoRoom['Room dp'];
                   if (mName && mName !== 'My Room' && mName !== 'My room') actualName = mName;
                   if (mDp && mDp !== 'undefined' && mDp !== 'null') actualDp = mDp;
                 }
@@ -2152,7 +2153,7 @@ setMyRoom(prev => {
       return
     }
 
-     const roomUser: UserCard = {
+    const roomUser: UserCard = {
       ...user,
       id: canonicalRoomId,
       accountId: String(foundRoom?.accountId || user.accountId || canonicalRoomId),
@@ -2186,22 +2187,18 @@ setMyRoom(prev => {
           return
         }
 
-        if (roomData['Room Name'] || roomData.roomName || roomData.name) {
-          const rName = roomData['Room Name'] || roomData.roomName || roomData.name;
-          if (rName && rName !== 'My Room' && rName !== 'My room' && rName !== 'User') {
-            roomUser.name = rName;
-          } else {
-            roomUser.name = 'hurry User@';
-          }
+        const rName = roomData['Room Name'];
+        if (rName && rName !== 'My Room' && rName !== 'My room' && rName !== 'User') {
+          roomUser.name = rName;
+        } else {
+          roomUser.name = 'hurry User@';
         }
 
-        if (roomData['Room dp'] || roomData.roomDp || roomData.image) {
-          const rDp = roomData['Room dp'] || roomData.roomDp || roomData.image;
-          if (rDp && rDp !== 'undefined' && rDp !== 'null' && rDp !== '/default-avatar.png') {
-            roomUser.image = rDp;
-          } else {
-            roomUser.image = '/IMG_20260921_210113.png';
-          }
+        const rDp = roomData['Room dp'];
+        if (rDp && rDp !== 'undefined' && rDp !== 'null' && rDp !== '/default-avatar.png') {
+          roomUser.image = rDp;
+        } else {
+          roomUser.image = '/IMG_20260921_210113.png';
         }
 
         roomUser.isLocked = Boolean(roomData.isLocked)
@@ -2318,9 +2315,9 @@ setMyRoom(prev => {
         handleUserCardClick({
           id: roomData.ID || roomData.id || roomData.roomId || id,
           accountId: roomData["Room Admin"] || roomData.accountId || id,
-          name: roomData["Room Name"] || roomData.name || "hurry User@",
+          name: roomData["Room Name"] || "hurry User@",
           country: roomData.Country || roomData.country || "🇮🇳",
-          image: roomData["Room dp"] || roomData.image || "/IMG_20260921_210113.png",
+          image: roomData["Room dp"] || "/IMG_20260921_210113.png",
         });
         return;
       }
@@ -2329,8 +2326,7 @@ setMyRoom(prev => {
       console.error("Error joining room:", error);
     }
   };
-
-  // ============ REAL-TIME LIVE SEARCH ============
+    // ============ REAL-TIME LIVE SEARCH ============
   const handlePerformSearch = useCallback(async (queryParam?: string) => {
     const queryRaw = (typeof queryParam === 'string' ? queryParam : searchQuery).trim();
     if (!queryRaw) {
@@ -2428,37 +2424,36 @@ setMyRoom(prev => {
   }, [currentPage])
 
   // ============ ALL ROOMS FILTER ============
- const allRooms = (() => {
-  const seenKeys = new Set<string>();
-  const result: GlobalRoom[] = [];
+  const allRooms = (() => {
+    const seenKeys = new Set<string>();
+    const result: GlobalRoom[] = [];
 
-  for (const room of globalRooms) {
-    if (!room || !room.name || !room.image) continue;
-    if (room.name === 'My Room' || room.name === 'My room' || room.name === 'User') continue;
-    if (/jiys/i.test(room.name)) continue;
-    if (
-      room.accountId === 'undefined' || room.accountId === 'null' ||
-      room.accountId === '' || room.accountId === null
-    ) continue;
+    for (const room of globalRooms) {
+      if (!room || !room.name || !room.image) continue;
+      if (room.name === 'My Room' || room.name === 'My room' || room.name === 'User') continue;
+      if (/jiys/i.test(room.name)) continue;
+      if (
+        room.accountId === 'undefined' || room.accountId === 'null' ||
+        room.accountId === '' || room.accountId === null
+      ) continue;
 
-    // ✅ 0 users wale rooms hide
-    if (!(Number(room.activeUserCount || 0) > 0)) continue;
+      if (!(Number(room.activeUserCount || 0) > 0)) continue;
 
-    const rid = String(room.id || '');
-    const racc = String(room.accountId || '');
+      const rid = String(room.id || '');
+      const racc = String(room.accountId || '');
 
-    // ✅ Dono IDs pe dedup — ek bhi match hua to skip
-    if (rid && seenKeys.has(rid)) continue;
-    if (racc && seenKeys.has(racc)) continue;
+      if (rid && seenKeys.has(rid)) continue;
+      if (racc && seenKeys.has(racc)) continue;
 
-    if (rid) seenKeys.add(rid);
-    if (racc) seenKeys.add(racc);
+      if (rid) seenKeys.add(rid);
+      if (racc) seenKeys.add(racc);
 
-    result.push(room);
-  }
+      result.push(room);
+    }
 
-  return result;
-})();
+    return result;
+  })();
+
   // ============ RENDER POPULAR TAB ============
   const renderPopularTab = () => {
     return (
@@ -2576,89 +2571,88 @@ setMyRoom(prev => {
           </div>
         </div>
 
-       {allRooms.length > 0 ? (
-  <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
-    <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
-      {allRooms.map((room, index) => (
-        <div
-          key={room.accountId}
-          onClick={() =>
-            handleUserCardClick({
-              id: room.id,
-              accountId: room.accountId,
-              name: room.name,
-              country: room.country,
-              image: room.image,
-              isLocked: room.isLocked,
-            })
-          }
-        >
-          <div
-            className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
-          >
-            <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
-              <img
-                src={
-                  (room.dp || room.image) && (room.dp || room.image) !== "undefined" && (room.dp || room.image) !== "null"
-                    ? (room.dp || room.image)
-                    : "/IMG_20260921_210113.png"
-                }
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/IMG_20260921_210113.png";
-                }}
-                alt={room.name}
-                className="w-full h-full object-cover"
-                draggable="false"
-              />
+        {allRooms.length > 0 ? (
+          <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
+            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
+              {allRooms.map((room, index) => (
+                <div
+                  key={room.accountId}
+                  onClick={() =>
+                    handleUserCardClick({
+                      id: room.id,
+                      accountId: room.accountId,
+                      name: room.name,
+                      country: room.country,
+                      image: room.image,
+                      isLocked: room.isLocked,
+                    })
+                  }
+                >
+                  <div
+                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
+                  >
+                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+                      <img
+                        src={
+                          room.image && room.image !== "undefined" && room.image !== "null"
+                            ? room.image
+                            : "/IMG_20260921_210113.png"
+                        }
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "/IMG_20260921_210113.png";
+                        }}
+                        alt={room.name}
+                        className="w-full h-full object-cover"
+                        draggable="false"
+                      />
+                    </div>
+
+                    {(index === 0 || index === 1 || index === 2) && (
+                      <img
+                        src={
+                          index === 0
+                            ? "/IMG_20260922_112156.png"
+                            : index === 1
+                            ? "/IMG_20260922_112129.png"
+                            : "/IMG_20260922_112110.png"
+                        }
+                        alt={`Rank ${index + 1} badge`}
+                        className="absolute pointer-events-none z-50"
+                        style={{
+                          top: '-11px',
+                          right: '-6px',
+                          width: '55px',
+                          height: '55px',
+                          objectFit: 'contain',
+                        }}
+                        draggable="false"
+                      />
+                    )}
+
+                    {room.isLocked && (
+                      <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50 z-50">
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
+                          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" />
+                        </svg>
+                      </div>
+                    )}
+
+                    <LiveRoomStats />
+                  </div>
+
+                  <div className="mt-0.5 px-1">
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-sm">{room.country}</span>
+                      <span className="font-semibold text-gray-900 text-sm truncate">
+                        {room.name}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Top 3 badge only (frame removed) */}
-            {(index === 0 || index === 1 || index === 2) && (
-              <img
-                src={
-                  index === 0
-                    ? "/IMG_20260922_112156.png"
-                    : index === 1
-                    ? "/IMG_20260922_112129.png"
-                    : "/IMG_20260922_112110.png"
-                }
-                alt={`Rank ${index + 1} badge`}
-                className="absolute pointer-events-none z-50"
-                style={{
-                  top: '-11px',
-                  right: '-6px',
-                  width: '55px',
-                  height: '55px',
-                  objectFit: 'contain',
-                }}
-                draggable="false"
-              />
-            )}
-
-            {room.isLocked && (
-              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-md rounded-full p-1.5 border border-white/50 z-50">
-                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-white">
-                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z" />
-                </svg>
-              </div>
-            )}
-
-            <LiveRoomStats />
           </div>
-
-          <div className="mt-0.5 px-1">
-            <div className="flex items-center gap-0.5">
-              <span className="text-sm">{room.country}</span>
-              <span className="font-semibold text-gray-900 text-sm truncate">
-                {room.name}
-              </span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-) : null}
+        ) : null}
       </>
     );
   };
@@ -3171,4 +3165,4 @@ setMyRoom(prev => {
       )}
     </div>
   )
-              }
+        }
