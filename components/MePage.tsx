@@ -401,41 +401,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
   const [showSvip, setShowSvip] = useState(false)
   
   const [showFollowList, setShowFollowList] = useState(false)
-  const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors' | 'friends'>('followers')
-
-
-  const [counts, setCounts] = useState({ friends: 0, followers: 0, following: 0, visitors: 0 });
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && user) {
-        const accountId = user.accountNumber || user.displayAccountNumber || user.uid;
-        if (accountId) {
-          const followers = JSON.parse(localStorage.getItem(`followers_${accountId}`) || '[]');
-          const following = JSON.parse(localStorage.getItem(`following_${accountId}`) || '[]');
-          const visitors = JSON.parse(localStorage.getItem(`visitors_${accountId}`) || '[]');
-
-          const friends = followers.filter((f: any) => following.some((fw: any) => fw.accountId === f.accountId));
-
-          setCounts({
-            friends: friends.length,
-            followers: followers.length,
-            following: following.length,
-            visitors: visitors.length
-          });
-        }
-      }
-    } catch(err) {}
-  }, [user]);
-
-
-
-
+  const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors'>('followers')
 
   useEffect(() => {
     if (onPublicProfileChange) {
@@ -948,12 +914,8 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
         {/* Stats Row - Friends | Followers | Following | Visitors - ab px-3 hai yahan */}
         <div className="flex items-center justify-between mt-2 px-0.5">
-          <div className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
-            onClick={() => {
-              setFollowListType('friends');
-              setShowFollowList(true);
-            }}>
-            <div className="text-xl font-bold text-gray-900">{isClient ? counts.friends : 0}</div>
+          <div className="flex-1 text-center cursor-pointer active:scale-95 transition-transform">
+            <div className="text-xl font-bold text-gray-900">0</div>
             <div className="text-[11px] text-gray-600 mt-0.5">Friends</div>
           </div>
           
@@ -966,7 +928,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               setShowFollowList(true);
             }}
           >
-            <div className="text-xl font-bold text-gray-900">{isClient ? counts.followers : 0}</div>
+            <div className="text-xl font-bold text-gray-900">1</div>
             <div className="text-[11px] text-gray-600 mt-0.5">{t.followers || 'Followers'}</div>
           </div>
 
@@ -979,7 +941,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               setShowFollowList(true);
             }}
           >
-            <div className="text-xl font-bold text-gray-900">{isClient ? counts.following : 0}</div>
+            <div className="text-xl font-bold text-gray-900">0</div>
             <div className="text-[11px] text-gray-600 mt-0.5">{t.following || 'Following'}</div>
           </div>
 
@@ -992,7 +954,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
               setShowFollowList(true);
             }}
           >
-            <div className="text-xl font-bold text-gray-900">{isClient ? counts.visitors : 0}</div>
+            <div className="text-xl font-bold text-gray-900">1</div>
             <div className="text-[11px] text-gray-600 mt-0.5">{t.visitors || 'Visitors'}</div>
           </div>
         </div>
