@@ -2193,7 +2193,7 @@ const sendMessageToSocket = async (
               </svg>
             </button>
 
-            <div className="flex items-center gap-0.8">
+            <div className="flex items-center gap-1.5">
               {hasSeat && (
                 <button
                   onClick={handleBottomMicToggle}
@@ -2338,7 +2338,7 @@ const sendMessageToSocket = async (
       <div
         className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
         style={{
-          top: 'calc(100lvh - 310px)',
+          top: 'calc(100lvh - 270px)',
           right: '10px',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -2349,7 +2349,7 @@ const sendMessageToSocket = async (
         {/* 2. Room Task Click */}
         <div
           onClick={() => setShowRoomTask(true)}
-          className="relative cursor-pointer transition-transform hover:scale-105 mt-2 flex items-center justify-center"
+          className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center"
           style={{
             width: 'calc(var(--footer-btn-size) * 1.35)',
             height: 'calc(var(--footer-btn-size) * 1.35)',
@@ -3255,18 +3255,18 @@ function RoomSideBanner() {
         </div>
       </div>
 
-      <div className="flex items-center gap-[2px] mt-1">
-        {bannerImages.map((_, i) => (
-          <div
-            key={i}
-            className={`transition-all duration-300 rounded-full ${
-              currentIndex === i
-                ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
-                : 'w-1 h-1 bg-white/40'
-            }`}
-          />
-        ))}
-      </div>
+      <div className="flex items-center justify-center gap-[2px] mt-1" style={{ height: '8px' }}>
+  {bannerImages.map((_, i) => (
+    <div
+      key={i}
+      className={`transition-all duration-300 rounded-md ${
+        currentIndex === i
+          ? 'w-1.5 h-1.5 bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]'
+          : 'w-1 h-1 bg-white/40'
+      }`}
+    />
+  ))}
+</div>
     </div>
   );
 }
