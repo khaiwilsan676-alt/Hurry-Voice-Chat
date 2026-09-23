@@ -19,7 +19,7 @@ import InviteFriends from './InviteFriends'
 // ============ MONGODB / INDEXEDDB DATA HELPERS ============
 
 const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
-  const response = await fetch("/api/rooms");
+  const response = await fetch(apiUrl("/api/rooms"));
   if (!response.ok) {
     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
   }
@@ -29,7 +29,7 @@ const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
 
 const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
   if (!roomId) return null;
-  const response = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomId)}`);
+  const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(roomId)}`));
   if (!response.ok) {
     if (response.status === 404) return null;
     throw new Error(`MongoDB room fetch failed: ${response.status}`);
@@ -39,7 +39,7 @@ const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
 };
 
 const saveRoomToMongoDB = async (roomData: any) => {
-  const response = await fetch("/api/rooms", {
+  const response = await fetch(apiUrl("/api/rooms"), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(roomData),
@@ -1275,9 +1275,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
             const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
             return {
               id: roomId,
-              name: data['Room Name'] || 'hurry User@',
+              name: data.name || data.roomName || data['Room Name'] || 'hurry User@',
               country: data.Country || data.country || '🇮🇳',
-              image: data['Room dp'] || '/IMG_20260921_210113.png',
+              image: data.dp || data.roomDp || data.image || data['Room dp'] || '/IMG_20260921_210113.png',
               accountId: accId,
               createdAt: data.createdAt || Date.now(),
               isLocked: Boolean(data.isLocked),
@@ -1338,9 +1338,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
               const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
               return {
                 id: roomId,
-                name: data['Room Name'] || 'hurry User@',
+                name: data.name || data.roomName || data['Room Name'] || 'hurry User@',
                 country: data.Country || data.country || '🇮🇳',
-                image: data['Room dp'] || '/IMG_20260921_210113.png',
+                image: data.dp || data.roomDp || data.image || data['Room dp'] || '/IMG_20260921_210113.png',
                 accountId: accId,
                 createdAt: data.createdAt || Date.now(),
                 isLocked: Boolean(data.isLocked),
