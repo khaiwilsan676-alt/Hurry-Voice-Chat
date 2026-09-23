@@ -31,7 +31,7 @@ interface CupIconProps {
 
 export default function CupIcon({ onBack, count = 0 }: CupIconProps) {
   return (
-    <div className="fixed inset-0 z-[11000] flex items-end justify-center pointer-events-none">
+    <div className="absolute inset-0 z-[11000] flex items-end justify-center pointer-events-none">
 
       {/* Invisible backdrop - click to close */}
       <div

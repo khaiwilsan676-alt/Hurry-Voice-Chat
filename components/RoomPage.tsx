@@ -389,7 +389,7 @@ function RoomContent({
   const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
-  const [roomImage, setRoomImage] = useState<string>("/IMG_20260921_210113.png");
+  const [roomDp, setRoomDp] = useState<string>("/IMG_20260921_210113.png");
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -517,7 +517,7 @@ function RoomContent({
 
         if (cached) {
           if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
-          if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomImage(cached.roomDp);
+          if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
           if (cached.announcement) setRoomAnnouncement(cached.announcement);
           if (cached.micMode) setMicMode(Number(cached.micMode));
           if (cached.theme && THEME_BACKGROUNDS[cached.theme]) {
@@ -528,7 +528,7 @@ function RoomContent({
         } else {
           // Fallback if no cache
           setRoomName("hurry User@");
-          setRoomImage("/IMG_20260921_210113.png");
+          setRoomDp("/IMG_20260921_210113.png");
         }
       } catch (err) {
         console.error("Room settings IndexedDB load error:", err);
@@ -543,13 +543,13 @@ function RoomContent({
 
           if (dbRoom && mounted) {
             const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
-            const realDp = dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
+            const realDp = dbRoom.dp || dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
 
             if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") {
               setRoomName(realName);
             }
             if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") {
-              setRoomImage(realDp);
+              setRoomDp(realDp);
             }
 
             if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
@@ -562,7 +562,7 @@ function RoomContent({
             await saveRoomSettingsToIndexedDB({
               roomId: String(roomId),
               roomName: realName || roomName,
-              roomDp: realDp || roomImage,
+              roomDp: realDp || roomDp,
               announcement: dbRoom.announcement || "",
               micMode: Number(dbRoom.micMode || 15),
               theme: dbRoom.theme || "mood-light",
@@ -915,7 +915,7 @@ function RoomContent({
         }
 
         if (data.roomName) setRoomName(data.roomName);
-        if (data.roomDp) setRoomImage(data.roomDp);
+        if (data.roomDp) setRoomDp(data.roomDp);
         
         if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
         if (data.micMode !== undefined) setMicMode(Number(data.micMode));
@@ -929,7 +929,7 @@ function RoomContent({
           await saveRoomSettingsToIndexedDB({
             roomId: String(roomId),
             roomName: data.roomName || roomName,
-            roomDp: data.roomDp || roomImage,
+            roomDp: data.roomDp || roomDp,
             announcement: data.announcement || "",
             micMode: Number(data.micMode || 15),
             theme: data.theme || "mood-light",
@@ -1481,10 +1481,10 @@ const sendMessageToSocket = async (
         ? data.roomName
         : roomName;
 
-    const nextRoomImage =
-      data.roomImage !== undefined
-        ? data.roomImage
-        : roomImage;
+    const nextRoomDp =
+      data.roomDp !== undefined
+        ? data.roomDp
+        : roomDp;
 
     const nextAnnouncement =
       data.announcement !== undefined
@@ -1517,7 +1517,7 @@ const sendMessageToSocket = async (
     // Update local state with the complete current values.
     setRoomName(nextRoomName);
     setRoomAnnouncement(nextAnnouncement);
-    setRoomImage(nextRoomImage);
+    setRoomDp(nextRoomDp);
     setMicMode(nextMicMode);
 
     if (
@@ -1539,7 +1539,7 @@ const sendMessageToSocket = async (
       roomName:
         nextRoomName || "hurry User@",
       roomDp:
-        nextRoomImage || "/IMG_20260921_210113.png",
+        nextRoomDp || "/IMG_20260921_210113.png",
       announcement: nextAnnouncement || "",
       micMode: Number(nextMicMode || 0),
       theme: nextTheme || "mood-light",
@@ -1636,7 +1636,7 @@ const sendMessageToSocket = async (
         roomName ||
         "hurry User@",
       image:
-        roomImage ||
+        roomDp ||
         "/IMG_20260921_210113.png",
       accountId: keptAccId,
       id: roomId,
@@ -1916,7 +1916,7 @@ const sendMessageToSocket = async (
       <RoomSettingPage
         onBack={closeSettings}
         roomOwnerId={roomId}
-        roomData={{ roomName, roomImage, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
+        roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
         onSave={handleSaveSettings}
       />
     );
@@ -1951,8 +1951,8 @@ const sendMessageToSocket = async (
             >
               <img
                 src={
-                  roomImage && roomImage !== "undefined" && roomImage !== "null"
-                    ? roomImage
+                  roomDp && roomDp !== "undefined" && roomDp !== "null"
+                    ? roomDp
                     : "/default-avatar.png"
                 }
                 onError={(e) => {
@@ -2456,7 +2456,7 @@ const sendMessageToSocket = async (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <div className="rounded-xl overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
-                      <img src={roomImage} alt="Room" className="w-full h-full object-cover" />
+                      <img src={roomDp} alt="Room" className="w-full h-full object-cover" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-800 text-sm">{roomName || 'Room'}</h3>
@@ -2621,7 +2621,7 @@ const sendMessageToSocket = async (
               </svg>
             </button>
             <div className="h-full overflow-y-auto">
-              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "hurry User@", roomImage: roomImage || "/IMG_20260921_210113.png" }} />
+              <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "hurry User@", roomDp: roomDp || "/IMG_20260921_210113.png" }} />
             </div>
           </div>
         </div>
@@ -2761,12 +2761,12 @@ const sendMessageToSocket = async (
 
 
       {showRoomTask && (
-        <div className="fixed inset-0 z-[11000] bg-black">
+        <div className="absolute inset-0 z-[11000] pointer-events-none">
           <Roomtask onBack={() => setShowRoomTask(false)} />
         </div>
       )}
         {showCupIcon && (
-  <div className="fixed inset-0 z-[11000] bg-black">
+  <div className="absolute inset-0 z-[11000] pointer-events-none">
     <CupIcon
       onBack={() => setShowCupIcon(false)}
       count={cupCount}

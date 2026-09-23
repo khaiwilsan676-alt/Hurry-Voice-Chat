@@ -2588,12 +2588,12 @@ export default function HomePage({ onLogout }: HomePageProps) {
             <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
               <img
                 src={
-                  room.image && room.image !== "undefined" && room.image !== "null"
-                    ? room.image
-                    : "/default-avatar.png"
+                  (room.dp || room.image) && (room.dp || room.image) !== "undefined" && (room.dp || room.image) !== "null"
+                    ? (room.dp || room.image)
+                    : "/IMG_20260921_210113.png"
                 }
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/default-avatar.png";
+                  (e.target as HTMLImageElement).src = "/IMG_20260921_210113.png";
                 }}
                 alt={room.name}
                 className="w-full h-full object-cover"

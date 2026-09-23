@@ -13,7 +13,7 @@ import {
   Mic
 } from 'lucide-react'
 import WhiteColorRemovalShader from './WhiteColorRemovalShader'
-import Reports from './Reports'
+import UserReportScreen from './userreport'
 
 // ============ Green Color Removal Shader Component ============
 const GreenColorRemovalShader = ({ 
@@ -654,7 +654,7 @@ export default function RoomProfile({
 
       {/* Reports Overlay */}
       {showReports && (
-        <Reports onClose={() => setShowReports(false)} />
+        <UserReportScreen currentUser={{ accountId: isCurrentUser ? accountId : undefined }} targetUser={user} onClose={() => setShowReports(false)} />
       )}
 
       <style jsx>{`

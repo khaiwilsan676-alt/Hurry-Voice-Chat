@@ -167,7 +167,7 @@ interface Message {
   roomData?: {
     roomId: string;
     roomName: string;
-    roomImage: string;
+    roomDp: string;
   };
   replyTo?: {
     id: string;
@@ -184,7 +184,7 @@ interface ChatScreenProps {
   sharedRoomData?: {
     roomId: string;
     roomName: string;
-    roomImage: string;
+    roomDp: string;
   } | null;
 }
 

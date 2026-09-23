@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 
 export interface RoomSettingsData {
-  roomImage: string;
+  roomDp: string;
   roomName: string;
   announcement: string;
   isLocked: boolean;
@@ -24,7 +24,7 @@ interface RoomSettingPageProps {
   roomOwnerId?: string
   roomData?: {
     roomName?: string
-    roomImage?: string
+    roomDp?: string
     announcement?: string
     theme?: string
     admin?: string[]
@@ -109,7 +109,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 // ------------------------------------------------------------
 
 export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave }: RoomSettingPageProps) {
-  const [roomImage, setRoomImage] = useState<string>(roomData?.roomImage || '/1784533036732~2.jpg')
+  const [roomDp, setRoomDp] = useState<string>(roomData?.roomDp || '/1784533036732~2.jpg')
   const [roomName, setRoomName] = useState<string>(roomData?.roomName || '')
   const [announcement, setAnnouncement] = useState<string>(roomData?.announcement || '')
   const [isLocked, setIsLocked] = useState<boolean>(roomData?.isLocked || false)
@@ -168,7 +168,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     }
     const reader = new FileReader()
     reader.onload = (event) => {
-      setRoomImage(event.target?.result as string)
+      setRoomDp(event.target?.result as string)
     }
     reader.readAsDataURL(file)
   }
@@ -199,7 +199,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
   const handleSave = async () => {
     const settingsData = {
-      roomImage,
+      roomDp,
       roomName,
       announcement,
       isLocked,
@@ -247,7 +247,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           <div className="mb-6 flex flex-col items-center">
             <label className="cursor-pointer relative group">
               <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md">
-                <img src={roomImage} alt="Room Cover" className="w-full h-full object-cover" />
+                <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
                   <svg viewBox="0 0 24 24" className="w-8 h-8 fill-white opacity-0 group-hover:opacity-100">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
