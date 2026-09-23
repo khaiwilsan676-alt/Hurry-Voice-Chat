@@ -315,13 +315,13 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       `}</style>
 
       {/* TOP HEADER */}
-      <div className="w-full relative flex-shrink-0 flex items-center justify-between px-4 z-20 h-12">
+      <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
         <button
           onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center active:scale-90 transition-all text-gray-900"
+          className="w-9 h-9 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-0.5"
           aria-label="Back"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6" />
           </svg>
         </button>
@@ -389,12 +389,13 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 minHeight: '115px',
               }}
             >
-              {/* Larger Half Overflow Coin Image */}
+              {/* Larger Half Overflow Coin Image — plain img (no white removal) */}
               <div className="absolute -top-9 right-3 w-28 h-28 pointer-events-none z-20 drop-shadow-xl">
-                <WhiteColorRemovalShader
-                  imageSrc="/file_00000000e56882119c217d508b6733dc.png"
+                <img
+                  src="/file_00000000e56882119c217d508b6733dc.png"
                   className="w-full h-full object-contain"
-                  threshold={0.88}
+                  alt=""
+                  draggable={false}
                 />
               </div>
               <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wider mb-1">
@@ -420,20 +421,22 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 <div className="absolute -top-2 left-2 z-10 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-extrabold rounded shadow-xs flex items-center gap-1">
                   +20,000
                   <div className="w-2.5 h-2.5">
-                    <WhiteColorRemovalShader
-                      imageSrc="/file_00000000e56882119c217d508b6733dc.png"
+                    <img
+                      src="/file_00000000e56882119c217d508b6733dc.png"
                       className="w-full h-full object-contain"
-                      threshold={0.88}
+                      alt=""
+                      draggable={false}
                     />
                   </div>
                 </div>
 
-                {/* Center Coin Image */}
+                {/* Center Coin Image — plain img */}
                 <div className="w-12 h-12 my-2 flex items-center justify-center">
-                  <WhiteColorRemovalShader
-                    imageSrc="/file_00000000e56882119c217d508b6733dc.png"
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
                     className="w-full h-full object-contain"
-                    threshold={0.88}
+                    alt=""
+                    draggable={false}
                   />
                 </div>
 
@@ -500,10 +503,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                   <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
                     <span>100 =</span>
                     <div className="w-3.5 h-3.5 inline-block align-middle">
-                      <WhiteColorRemovalShader
-                        imageSrc="/file_00000000e56882119c217d508b6733dc.png"
+                      <img
+                        src="/file_00000000e56882119c217d508b6733dc.png"
                         className="w-full h-full object-contain"
-                        threshold={0.88}
+                        alt=""
+                        draggable={false}
                       />
                     </div>
                     <span>33</span>
@@ -532,7 +536,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
                   <span className="text-gray-300 font-bold">=</span>
 
-                  {/* Right Coin Output Box */}
+                  {/* Right Coin Output Box — plain coin img */}
                   <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
                     <input
                       type="number"
@@ -542,10 +546,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                       placeholder="Coins"
                     />
                     <div className="w-4 h-4 flex-shrink-0 ml-1.5">
-                      <WhiteColorRemovalShader
-                        imageSrc="/file_00000000e56882119c217d508b6733dc.png"
+                      <img
+                        src="/file_00000000e56882119c217d508b6733dc.png"
                         className="w-full h-full object-contain"
-                        threshold={0.88}
+                        alt=""
+                        draggable={false}
                       />
                     </div>
                   </div>
@@ -586,4 +591,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       </div>
     </div>
   )
-    }
+                                                     }
