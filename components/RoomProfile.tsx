@@ -522,7 +522,7 @@ export default function RoomProfile({
                   alt="Level"
                   className="h-8 w-auto object-contain"
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-4 pt-1">
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-4.5 pt-1">
                   Lv.1
                 </span>
               </div>
@@ -583,9 +583,9 @@ export default function RoomProfile({
 
           {/* Action Buttons for OTHER users */}
           {showActions && (
-            <div className="mt-3 w-full flex flex-col gap-2 shrink-0">
+            <div className="mt-2 w-full flex flex-col gap-2 shrink-0">
               {/* Row: Follow, Chat, Image */}
-              <div className="flex items-center gap-8 w-full justify-center">
+              <div className="flex items-center gap-9 w-full justify-center">
                 <button
                   onClick={onFollow}
                   className="flex items-center gap-1.5 text-pink-500 font-medium text-base hover:text-pink-600 transition-colors active:scale-95"
