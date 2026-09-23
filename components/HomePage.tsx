@@ -1449,9 +1449,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
             merged.push({
               id: roomId,
               accountId: firstUser?.accountId || roomId,
-              name: firstUser?.name || "Room",
+              name: "Room",
               country: "🇮🇳",
-              image: firstUser?.image || "/default-avatar.png",
+              image: "/default-avatar.png",
               createdAt: Date.now(),
               isLocked: false,
               roomPassword: undefined,
