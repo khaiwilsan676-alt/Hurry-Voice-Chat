@@ -13,6 +13,7 @@ import {
   Mic
 } from 'lucide-react'
 import WhiteColorRemovalShader from './WhiteColorRemovalShader'
+import Reports from './Reports'
 
 // ============ Green Color Removal Shader Component ============
 const GreenColorRemovalShader = ({ 
@@ -256,6 +257,9 @@ export default function RoomProfile({
     premiumTag: false,
   })
 
+  // Reports overlay
+  const [showReports, setShowReports] = useState(false)
+
   const hasAnyTag =
     tags.adminTag ||
     tags.officialTag ||
@@ -360,27 +364,19 @@ export default function RoomProfile({
   const showActions = !isCurrentUser // Show actions for all other users
 
   // Determine sheet height based on content
-  // Agar tag hai → jitna original height tha wahi
-  // Agar tag nahi hai → 4vh kam
   const getSheetHeight = () => {
-    // Base height nikal pehle (original logic)
     let baseHeight = 27 // default
 
-    // If both actions and moderation are shown
     if (showActions && showModerationRow) {
       baseHeight = 40
     }
-    // If only actions (follow, chat, image) without moderation
     else if (showActions && !showModerationRow) {
       baseHeight = 32
     }
-    // If only leave seat button
     else if (showLeaveSeat) {
       baseHeight = 34
     }
 
-    // Agar tag hai → wahi height
-    // Agar tag nahi hai → 4vh kam
     const finalHeight = hasAnyTag ? baseHeight : baseHeight - 6
 
     return `${finalHeight}vh`
@@ -447,21 +443,24 @@ export default function RoomProfile({
           </div>
         </div>
 
-        {/* Top Left - Warning Icon */}
-        <div className="absolute top-3 left-4 z-30">
-          <button
-            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-            aria-label="Warning"
-          >
-            <AlertTriangle size={22} className="text-gray-700" strokeWidth={2.5} />
-          </button>
-        </div>
+        {/* Top Left - Warning Icon (only for OTHER users, not own profile) */}
+        {!isCurrentUser && (
+          <div className="absolute top-3 left-4 z-30">
+            <button
+              onClick={() => setShowReports(true)}
+              className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Warning"
+            >
+              <AlertTriangle size={22} className="text-gray-700" strokeWidth={2.5} />
+            </button>
+          </div>
+        )}
 
         {/* Top Right - @ Mention Icon */}
         <div className="absolute top-3 right-4 z-30">
           <button
             onClick={handleMention}
-            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+            className="px-3 py-1.5 rounded-full hover:bg-gray-100 transition-colors"
             aria-label="Mention user"
           >
             <AtSign size={22} className="text-gray-700" strokeWidth={2.5} />
@@ -519,9 +518,9 @@ export default function RoomProfile({
                 <img
                   src="/IMG_20260917_220530.png"
                   alt="Level"
-                  className="h-6 w-auto object-contain"
+                  className="h-7 w-auto object-contain"
                 />
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-sm pl-2">
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-white drop-shadow-sm pl-2">
                   Lv.1
                 </span>
               </div>
@@ -651,6 +650,11 @@ export default function RoomProfile({
         </div>
       </div>
 
+      {/* Reports Overlay */}
+      {showReports && (
+        <Reports onClose={() => setShowReports(false)} />
+      )}
+
       <style jsx>{`
         @keyframes slideUp {
           from {
@@ -668,4 +672,4 @@ export default function RoomProfile({
       `}</style>
     </div>
   )
-        }
+          }
