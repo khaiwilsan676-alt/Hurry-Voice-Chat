@@ -543,7 +543,7 @@ function RoomContent({
 
           if (dbRoom && mounted) {
             const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
-            const realDp = dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
+            const realDp = dbRoom.dp || dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
 
             if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") {
               setRoomName(realName);
@@ -2766,12 +2766,10 @@ const sendMessageToSocket = async (
         </div>
       )}
         {showCupIcon && (
-  <div className="fixed inset-0 z-[11000] bg-black">
-    <CupIcon
+  <CupIcon
       onBack={() => setShowCupIcon(false)}
       count={cupCount}
     />
-  </div>
 )}
       
       {/* FULL MUSIC CONTROLLER */}
