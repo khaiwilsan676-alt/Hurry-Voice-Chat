@@ -688,36 +688,29 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* --- 1/1 Progress Bar & Text --- */}
-            <div className="w-full max-w-[280px] mt-4 relative z-10">
-              <div className="w-full h-2 bg-[#3b2b6b] rounded-full overflow-hidden">
-                <div className="h-full w-full bg-[#9b7bff] rounded-full"></div>
+            {/* --- UPDATED TEXT SECTION (AS PER IMAGE 2) --- */}
+            <div className="flex flex-col items-center justify-center mt-2 relative z-10">
+              {/* Stars */}
+              <div className="flex items-center justify-center gap-1 text-[#facc15] text-[20px] drop-shadow-md">
+                {Array.from({ length: displayMedal.stars }).map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
               </div>
-              <p className="text-center text-white text-[15px] font-medium mt-2">
-                1/1
+
+              {/* Name */}
+              <h3 className="mt-1 text-[20px] font-bold text-white tracking-wide text-center">
+                {displayMedal.name}
+              </h3>
+
+              {/* Subtitle (Reach Level 1 to obtain) */}
+              <p className="text-[#facc15] text-[15px] font-medium mt-1 text-center">
+                Reach Level 1 to obtain
               </p>
             </div>
 
-            {/* --- Stars --- */}
-            <div className="flex items-center justify-center gap-1 mt-4 relative z-10 text-yellow-400 text-[16px]">
-              {Array.from({ length: displayMedal.stars }).map((_, i) => (
-                <span key={i}>★</span>
-              ))}
-            </div>
-
-            {/* --- Name --- */}
-            <h3 className="mt-2 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10 text-center">
-              {displayMedal.name}
-            </h3>
-
-            {/* --- Gift Text (subtitle) --- */}
-            <p className="text-gray-400 text-[14px] mt-1 relative z-10 text-center px-4">
-              {displayMedal.giftText}
-            </p>
-
             {/* --- Tier Tabs (1/2/3) --- */}
             {showTabs && (
-              <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
+              <div className="flex items-center justify-center gap-3 mt-6 relative z-10">
                 {tierMedals.map((_, i) => (
                   <React.Fragment key={i}>
                     {i > 0 && (
