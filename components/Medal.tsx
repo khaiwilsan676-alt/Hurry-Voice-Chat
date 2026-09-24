@@ -383,7 +383,7 @@ export default function Medal({ onBack }: MedalProps) {
             <img
               src="/IMG_20260924_132006.png"
               alt=""
-              className="absolute inset-0 w-full h-full object-cover object-top block pointer-events-none select-none"
+              className="absolute inset-0 w-full h-full object-contain object-top block pointer-events-none select-none"
             />
 
             {/* Back arrow */}
@@ -400,7 +400,7 @@ export default function Medal({ onBack }: MedalProps) {
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
-                className="w-96 h-96 object-contain"
+                className="w-96 h-96 object-cover"
               />
             </div>
           </div>
