@@ -21,9 +21,8 @@ interface MedalItem {
   sheetVideoSize: string
   sheetVideoTop: string
 
-  // New properties for grouping tabs logic
-  groupIds?: string[]
-  isSubMedal?: boolean
+  /** NEW: group key — same group shares the 1/2/3 tier tabs */
+  tierGroup?: string
 }
 
 const MedalFilters = () => (
@@ -84,7 +83,7 @@ function MedalVideo({
         videoRef.current.currentTime = 0
       }
     }
-  }, [autoPlay])
+  }, [autoPlay, src])
 
   const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
@@ -213,17 +212,25 @@ function WebGLBackground() {
   )
 }
 
+const TIER_TAB_IMAGES = [
+  '/IMG_20260924_132022.png',
+  '/IMG_20260924_132038.png',
+  '/IMG_20260924_132051.png',
+]
+
 export default function Medal({ onBack }: MedalProps) {
   const [activeTab, setActiveTab] = useState<
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
-  
-  // Sheet-specific states for sliding between 1, 2, 3 tabs
-  const [currentSheetId, setCurrentSheetId] = useState<string | null>(null)
-  const [slideDir, setSlideDir] = useState<'left' | 'right' | 'none'>('none')
+  const [activeTier, setActiveTier] = useState(0)
+
+  // swipe refs
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
 
   const medals: MedalItem[] = [
+    // ---- CP TOP group (1 / 2 / 3) ----
     {
       id: '1',
       name: 'CP-TOP1',
@@ -235,23 +242,11 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      groupIds: ['1', '2', '3']
+      tierGroup: 'cp-top',
     },
+    // ---- CP-TOP2 & CP-TOP3 swapped ----
     {
       id: '2',
-      name: 'CP-TOP2',
-      video: '/1000200510-background.mp4',
-      stars: 5,
-      category: 'achievement',
-      variant: 'black',
-      cardVideoSize: '500px',
-      cardVideoTop: '50%',
-      sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
-      isSubMedal: true
-    },
-    {
-      id: '3',
       name: 'CP-TOP 3',
       video: '/1000200509-background.mp4',
       stars: 4,
@@ -261,8 +256,22 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      isSubMedal: true
+      tierGroup: 'cp-top',
     },
+    {
+      id: '3',
+      name: 'CP-TOP2',
+      video: '/1000200510-background.mp4',
+      stars: 5,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+      tierGroup: 'cp-top',
+    },
+    // ---- Medal 4 (no tier tabs) ----
     {
       id: 'new-1',
       name: 'Medal 4',
@@ -274,20 +283,21 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
-      // No groupIds -> Tabs will hide
+      // no tierGroup → tabs hidden
     },
+    // ---- Medal 5 / 6 / 7  (5 & 7 swapped) ----
     {
       id: 'new-2',
-      name: 'Medal 5',
-      video: '/1000200522-background.mp4',
+      name: 'Medal 7',
+      video: '/1000200518-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '440px',
+      cardVideoSize: '500px',
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '137%',
-      groupIds: ['new-2', 'new-3', 'new-4']
+      sheetVideoTop: '140%',
+      tierGroup: 'm567',
     },
     {
       id: 'new-3',
@@ -300,33 +310,34 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
-      isSubMedal: true
+      tierGroup: 'm567',
     },
     {
       id: 'new-4',
-      name: 'Medal 7',
-      video: '/1000200518-background.mp4',
+      name: 'Medal 5',
+      video: '/1000200522-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
+      cardVideoSize: '440px',
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '140%',
-      isSubMedal: true
+      sheetVideoTop: '137%',
+      tierGroup: 'm567',
     },
+    // ---- Medal 8 / 9 / 10  (8 & 10 swapped) ----
     {
       id: 'new-5',
-      name: 'Medal 8',
-      video: '/1000200516-background.mp4',
+      name: 'Medal 10',
+      video: '/1000200514-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '300px',
-      cardVideoTop: '55%',
+      cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      groupIds: ['new-5', 'new-6', 'new-7']
+      tierGroup: 'm8910',
     },
     {
       id: 'new-6',
@@ -339,25 +350,26 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      isSubMedal: true
+      tierGroup: 'm8910',
     },
     {
       id: 'new-7',
-      name: 'Medal 10',
-      video: '/1000200514-background.mp4',
+      name: 'Medal 8',
+      video: '/1000200516-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '300px',
-      cardVideoTop: '50%',
+      cardVideoTop: '55%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      isSubMedal: true
+      tierGroup: 'm8910',
     },
+    // ---- Medal 11 / 12 / 13  (11 & 13 swapped) ----
     {
       id: 'new-8',
-      name: 'Medal 11',
-      video: '/1000200513-background.mp4',
+      name: 'Medal 13',
+      video: '/1000200511-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
@@ -365,7 +377,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      groupIds: ['new-8', 'new-9', 'new-10']
+      tierGroup: 'm111213',
     },
     {
       id: 'new-9',
@@ -378,12 +390,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      isSubMedal: true
+      tierGroup: 'm111213',
     },
     {
       id: 'new-10',
-      name: 'Medal 13',
-      video: '/1000200511-background.mp4',
+      name: 'Medal 11',
+      video: '/1000200513-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
@@ -391,12 +403,13 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      isSubMedal: true
+      tierGroup: 'm111213',
     },
+    // ---- Pure Love / VIP1 / VIP2  (Pure Love & VIP2 swapped) ----
     {
       id: '4',
-      name: 'Pure Love',
-      video: '/1000200507-background.mp4',
+      name: 'VIP2',
+      video: '/1000200505-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
@@ -404,6 +417,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      tierGroup: 'love',
     },
     {
       id: '5',
@@ -416,11 +430,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      tierGroup: 'love',
     },
     {
       id: '6',
-      name: 'VIP2',
-      video: '/1000200505-background.mp4',
+      name: 'Pure Love',
+      video: '/1000200507-background.mp4',
       stars: 4,
       category: 'achievement',
       variant: 'black',
@@ -428,34 +443,54 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      tierGroup: 'love',
     },
   ]
 
-  // Main grid pe only wo medals dikhenge jo sub-medal nahi hain
-  const filteredMedals = medals.filter((m) => m.category === activeTab && !m.isSubMedal)
+  const filteredMedals = medals.filter((m) => m.category === activeTab)
 
-  const openMedal = (medal: MedalItem) => {
+  // ---- tier helpers ----
+  const getTierMedals = (medal: MedalItem | null): MedalItem[] => {
+    if (!medal) return []
+    if (!medal.tierGroup) return [medal]
+    return medals.filter((m) => m.tierGroup === medal.tierGroup)
+  }
+
+  const openSheet = (medal: MedalItem) => {
+    const group = getTierMedals(medal)
+    const idx = group.findIndex((m) => m.id === medal.id)
+    setActiveTier(idx >= 0 ? idx : 0)
     setSelectedMedal(medal)
-    setCurrentSheetId(medal.id)
-    setSlideDir('none')
   }
 
-  const closeMedal = () => {
+  const closeSheet = () => {
     setSelectedMedal(null)
-    setCurrentSheetId(null)
+    setActiveTier(0)
   }
 
-  const handleTabClick = (newId: string) => {
-    if (newId === currentSheetId || !selectedMedal?.groupIds) return
-    const oldIndex = selectedMedal.groupIds.indexOf(currentSheetId!)
-    const newIndex = selectedMedal.groupIds.indexOf(newId)
-    
-    setSlideDir(newIndex > oldIndex ? 'right' : 'left')
-    setCurrentSheetId(newId)
+  // ---- swipe handlers ----
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
   }
 
-  const activeSheetMedal = medals.find(m => m.id === currentSheetId) || selectedMedal
-  const tabImages = ['/IMG_20260924_132022.png', '/IMG_20260924_132038.png', '/IMG_20260924_132051.png']
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!selectedMedal) return
+    const dx = touchStartX.current - e.changedTouches[0].clientX
+    const dy = touchStartY.current - e.changedTouches[0].clientY
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      const group = getTierMedals(selectedMedal)
+      if (dx > 0 && activeTier < group.length - 1) {
+        setActiveTier(activeTier + 1)
+      } else if (dx < 0 && activeTier > 0) {
+        setActiveTier(activeTier - 1)
+      }
+    }
+  }
+
+  const tierMedals = getTierMedals(selectedMedal)
+  const displayMedal = tierMedals[activeTier] ?? selectedMedal
+  const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
@@ -466,8 +501,10 @@ export default function Medal({ onBack }: MedalProps) {
         className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
         style={{
           backgroundImage: `url('/file_00000000f1dc821196bf96f688c3b2f6.png')`,
-          maskImage: 'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
+          maskImage:
+            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#02050e]/30 to-[#02050e]" />
@@ -555,13 +592,16 @@ export default function Medal({ onBack }: MedalProps) {
           {filteredMedals.map((medal) => (
             <div
               key={medal.id}
-              onClick={() => openMedal(medal)}
+              onClick={() => openSheet(medal)}
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
               <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
                 <div
                   className="absolute left-1/2 -translate-x-1/2"
-                  style={{ top: medal.cardVideoTop, transform: 'translateY(-50%)' }}
+                  style={{
+                    top: medal.cardVideoTop,
+                    transform: 'translateY(-50%)',
+                  }}
                 >
                   <MedalVideo
                     src={medal.video}
@@ -595,8 +635,12 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      {selectedMedal && activeSheetMedal && (
-        <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
+      {selectedMedal && displayMedal && (
+        <div
+          className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -605,35 +649,30 @@ export default function Medal({ onBack }: MedalProps) {
             />
 
             <button
-              onClick={closeMedal}
+              onClick={closeSheet}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
             >
               <ArrowLeft size={28} />
             </button>
 
-            {/* Swipeable Video Container */}
-            <div 
-              key={`video-${activeSheetMedal.id}`} 
-              className={`absolute inset-0 w-full h-full pointer-events-none z-30 ${slideDir === 'right' ? 'animate-slide-right' : slideDir === 'left' ? 'animate-slide-left' : ''}`}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 ease-out"
+              style={{
+                top: displayMedal.sheetVideoTop,
+                transform: 'translateY(-50%)',
+                width: displayMedal.sheetVideoSize,
+                height: displayMedal.sheetVideoSize,
+              }}
             >
-              <div
-                className="absolute left-1/2 -translate-x-1/2"
-                style={{ 
-                  top: activeSheetMedal.sheetVideoTop, 
-                  transform: 'translateY(-50%)',
-                  width: activeSheetMedal.sheetVideoSize,
-                  height: activeSheetMedal.sheetVideoSize,
-                }}
-              >
-                <MedalVideo
-                  src={activeSheetMedal.video}
-                  variant={activeSheetMedal.variant ?? 'black'}
-                  autoPlay={true}
-                  isColorless={false}
-                  className="w-full h-full max-w-none max-h-none object-contain relative z-10"
-                />
-              </div>
+              <MedalVideo
+                key={displayMedal.id}
+                src={displayMedal.video}
+                variant={displayMedal.variant ?? 'black'}
+                autoPlay={true}
+                isColorless={false}
+                className="w-full h-full max-w-none max-h-none object-contain relative z-10"
+              />
             </div>
           </div>
 
@@ -644,72 +683,49 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* Swipeable Text Container */}
-            <div 
-              key={`text-${activeSheetMedal.id}`}
-              className={`flex flex-col items-center w-full ${slideDir === 'right' ? 'animate-slide-right' : slideDir === 'left' ? 'animate-slide-left' : ''}`}
-            >
-              <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
-                {activeSheetMedal.name}
-              </h3>
-              <p className="text-gray-500 text-[16px] mt-1 relative z-10">
-                0/50000 Coins Of gifts Send
-              </p>
-            </div>
+            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
+              {displayMedal.name}
+            </h3>
 
-            {/* Dynamic Tabs Block */}
-            {selectedMedal.groupIds && selectedMedal.groupIds.length > 0 && (
+            <p className="text-gray-500 text-[16px] mt-1 relative z-10">
+              0/50000 Coins Of gifts Send
+            </p>
+
+            {showTabs && (
               <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
-                {selectedMedal.groupIds.map((id, index) => {
-                  const isActive = currentSheetId === id;
-                  return (
-                    <React.Fragment key={id}>
-                      <div
-                        onClick={() => handleTabClick(id)}
-                        className={`cursor-pointer p-[2px] transition-all duration-200 ${
-                          isActive 
-                            ? 'border-2 border-[#facc15] rounded-md opacity-100 scale-110 shadow-[0_0_10px_rgba(250,204,21,0.4)]' 
-                            : 'border-2 border-transparent opacity-60 hover:opacity-80 scale-100'
-                        }`}
-                      >
-                        <img
-                          src={tabImages[index]}
-                          alt={`Tab ${index + 1}`}
-                          className="w-[42px] h-[42px] object-contain rounded-sm"
-                        />
-                      </div>
-                      {index < selectedMedal.groupIds!.length - 1 && (
-                        <span className="text-white/50 text-lg font-bold mx-1">&gt;</span>
-                      )}
-                    </React.Fragment>
-                  )
-                })}
+                {tierMedals.map((_, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && (
+                      <span className="text-white text-lg font-bold">&gt;</span>
+                    )}
+                    <img
+                      src={TIER_TAB_IMAGES[i]}
+                      alt={`${i + 1}`}
+                      onClick={() => setActiveTier(i)}
+                      draggable={false}
+                      className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
+                        activeTier === i
+                          ? 'rounded-md border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.45)]'
+                          : 'opacity-80'
+                      }`}
+                    />
+                  </React.Fragment>
+                ))}
               </div>
             )}
           </div>
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from { opacity: 0; }
-              to { opacity: 1; }
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
-            }
-            
-            @keyframes slideInRight {
-              0% { transform: translateX(50px); opacity: 0; }
-              100% { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideInLeft {
-              0% { transform: translateX(-50px); opacity: 0; }
-              100% { transform: translateX(0); opacity: 1; }
-            }
-            .animate-slide-right {
-              animation: slideInRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-            }
-            .animate-slide-left {
-              animation: slideInLeft 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             }
           `}</style>
         </div>
@@ -717,4 +733,3 @@ export default function Medal({ onBack }: MedalProps) {
     </div>
   )
 }
-
