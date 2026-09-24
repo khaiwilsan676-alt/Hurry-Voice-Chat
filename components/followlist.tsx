@@ -156,7 +156,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
 
   return (
     <div
-      className="min-h-screen flex flex-col select-none"
+      className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
         paddingTop:
@@ -166,13 +166,13 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
         paddingBottom: '80px',
       }}
     >
-      {/* Header — Heading on the left */}
-      <div className="relative flex items-center w-full h-[58px] shrink-0 px-5">
+      {/* Header — FIXED */}
+      <div className="relative flex items-center w-full h-[58px] shrink-0 px-4 bg-transparent">
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
       </div>
 
-      {/* Tabs Bar — Blue full cover */}
-      <div className="px-3 mb-3">
+      {/* Tabs Bar — FIXED */}
+      <div className="px-3 mb-3 shrink-0">
         <div className="rounded-md flex items-center overflow-hidden shadow-sm">
           {FOLLOW_TABS.map((tab, i) => (
             <button
@@ -192,7 +192,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
         </div>
       </div>
 
-      {/* User List */}
+      {/* User List — SIRF YAHI SCROLL HOGA */}
       <div className="flex-1 overflow-y-auto px-3 pb-4">
         {users.map((item) => (
           <div key={item} className="flex items-center gap-2 py-2">
@@ -222,23 +222,33 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
 
   return (
     <div
-      className="min-h-screen flex flex-col select-none"
+      className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
-        paddingBottom: '80px',
       }}
     >
-      {/* Header — Heading on the left */}
-      <div className="relative flex items-center w-full h-[58px] shrink-0 px-5">
+      {/* Header — Back arrow left, Heading middle (FIXED) */}
+      <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 px-3">
+        <button
+          onClick={onBack}
+          className="absolute left-3 top-0 h-full flex items-center justify-center active:opacity-70 transition-opacity cursor-pointer"
+          aria-label="Back"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M19 12H5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 19L5 12L12 5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
       </div>
 
-      {/* Tabs Bar — Blue full cover */}
-      <div className="px-3 mb-3">
+      {/* Tabs Bar — FIXED */}
+      <div className="px-3 mb-3 shrink-0">
         <div className="rounded-md flex items-center overflow-hidden shadow-sm">
           {VISITOR_TABS.map((tab, i) => (
             <button
@@ -258,11 +268,8 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
         </div>
       </div>
 
-      {/* Content — Empty */}
+      {/* Content — SIRF YAHI SCROLL HOGA (abhi empty) */}
       <div className="flex-1 overflow-y-auto px-3 pb-4" />
-
-      {/* Bottom Nav Bar */}
-      <BottomNavBar activePage="message" onNavigate={onNavigate} />
     </div>
   )
 }
