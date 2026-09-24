@@ -356,7 +356,6 @@ export default function Medal({ onBack }: MedalProps) {
               onClick={() => setSelectedMedal(medal)}
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
-              {/* ✅ Video — strictly square */}
               <div className="w-32 h-32 flex items-center justify-center relative shrink-0">
                 <MedalVideo
                   src={medal.video}
@@ -387,51 +386,45 @@ export default function Medal({ onBack }: MedalProps) {
           MEDAL DETAIL
           ============================================================ */}
       {selectedMedal && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black overflow-y-auto animate-fade-in">
-          {/* Top Background — 30vh */}
-          <div
-            className="absolute top-0 left-0 right-0 h-[30vh] pointer-events-none z-0"
-            style={{
-              backgroundImage: `url('/IMG_20260924_132006.png')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'top center',
-              backgroundRepeat: 'no-repeat',
-            }}
-          />
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
+          {/* ✅ TOP SECTION — STRICTLY 30vh, hard cut, NO mixing */}
+          <div className="relative w-full h-[30vh] overflow-hidden bg-black">
+            {/* BG image — block class, hard edge */}
+            <img
+              src="/IMG_20260924_132006.png"
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover object-top block pointer-events-none select-none"
+            />
 
-          <button
-            onClick={() => setSelectedMedal(null)}
-            className="absolute left-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
-            style={{
-              top: 'max(env(safe-area-inset-top), 0px)',
-            }}
-          >
-            <ArrowLeft size={28} />
-          </button>
+            {/* Back arrow — above bg */}
+            <button
+              onClick={() => setSelectedMedal(null)}
+              className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
+              style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
+            >
+              <ArrowLeft size={28} />
+            </button>
 
-          {/* ✅ Content moved UP — frame image sits right at 30vh boundary */}
-          <div className="relative z-10 flex flex-col items-center w-full max-w-md px-6 mt-[20vh] pb-16">
-            {/* Square container — frame + video */}
-            <div className="relative w-72 h-72 flex items-center justify-center">
+            {/* Video + frame — centered within 30vh area */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 flex items-center justify-center z-20 pointer-events-none">
               <img
                 src="/IMG_20260924_132112.png"
                 alt="frame"
                 className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
               />
-
-              {/* ✅ Video — square, slight up */}
-              <div className="absolute inset-0 flex items-start justify-center -pt-4 z-20">
-                <div className="w-80 h-80 flex items-center justify-center">
-                  <MedalVideo
-                    src={selectedMedal.video}
-                    variant={selectedMedal.variant ?? 'black'}
-                    className="w-70 h-70 object-contain"
-                  />
-                </div>
+              <div className="absolute inset-0 flex items-center justify-center z-20">
+                <MedalVideo
+                  src={selectedMedal.video}
+                  variant={selectedMedal.variant ?? 'black'}
+                  className="w-48 h-48 object-contain"
+                />
               </div>
             </div>
+          </div>
 
-            <h3 className="mt-3 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
+          {/* ✅ Content — 30vh ke bilkul NEECHE, normal flow */}
+          <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto px-6 pt-4 pb-16">
+            <h3 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
               {selectedMedal.name}
             </h3>
 
@@ -479,4 +472,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-                                                                       }
+      }
