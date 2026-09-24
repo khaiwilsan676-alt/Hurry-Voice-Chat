@@ -13,12 +13,13 @@ interface MedalItem {
   video: string
   stars: number
   category: 'achievement' | 'gift' | 'activity'
+  variant?: 'black' | 'green' // 'black' = remove-black (default), 'green' = remove-green
 }
 
 // ==========================================
-// SVG filter (black remove) — ek baar render
+// SVG filters — ek baar render
 // ==========================================
-const BlackRemovalFilter = () => (
+const MedalFilters = () => (
   <svg
     style={{ width: 0, height: 0, position: 'absolute' }}
     aria-hidden="true"
@@ -34,18 +35,31 @@ const BlackRemovalFilter = () => (
         "
       />
     </filter>
+    <filter id="remove-green" colorInterpolationFilters="sRGB">
+      <feColorMatrix
+        type="matrix"
+        values="
+          1 0 0 0 0
+          0 1 0 0 0
+          0 0 1 0 0
+          1.5 -2.5 1.5 1 0
+        "
+      />
+    </filter>
   </svg>
 )
 
 // ==========================================
-// Video Medal (black removed, transparent mix)
+// Video Medal — variant-based removal
 // ==========================================
 function MedalVideo({
   src,
+  variant = 'black',
   className = '',
   style = {},
 }: {
   src: string
+  variant?: 'black' | 'green'
   className?: string
   style?: React.CSSProperties
 }) {
@@ -63,7 +77,10 @@ function MedalVideo({
       style={{
         mixBlendMode: 'screen',
         backgroundColor: 'transparent',
-        filter: 'url(#remove-black)',
+        filter:
+          variant === 'green'
+            ? 'url(#remove-green)'
+            : 'url(#remove-black)',
         pointerEvents: 'none',
         ...style,
       }}
@@ -189,6 +206,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/VID_20260924_124439.mp4',
       stars: 5,
       category: 'achievement',
+      variant: 'green', // ← green remove
     },
     {
       id: '2',
@@ -196,6 +214,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/1000200510-background.mp4',
       stars: 5,
       category: 'achievement',
+      variant: 'black',
     },
     {
       id: '3',
@@ -203,6 +222,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/1000200509-background.mp4',
       stars: 4,
       category: 'achievement',
+      variant: 'black',
     },
     {
       id: '4',
@@ -210,6 +230,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/1000200507-background.mp4',
       stars: 4,
       category: 'activity',
+      variant: 'black',
     },
     {
       id: '5',
@@ -217,6 +238,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/1000200506-background.mp4',
       stars: 4,
       category: 'activity',
+      variant: 'black',
     },
     {
       id: '6',
@@ -224,6 +246,7 @@ export default function Medal({ onBack }: MedalProps) {
       video: '/1000200505-background.mp4',
       stars: 4,
       category: 'gift',
+      variant: 'black',
     },
   ]
 
@@ -231,8 +254,8 @@ export default function Medal({ onBack }: MedalProps) {
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
-      {/* SVG filter for black removal */}
-      <BlackRemovalFilter />
+      {/* SVG filters */}
+      <MedalFilters />
 
       {/* WebGL bg */}
       <WebGLBackground />
@@ -296,6 +319,15 @@ export default function Medal({ onBack }: MedalProps) {
               </div>
             ))}
           </div>
+
+          <div className="relative mt-6 flex flex-col items-center">
+            <div className="flex items-center justify-center text-[15px] font-medium text-gray-200 mb-2 z-10">
+              Obtained Medal(s): <span className="text-[#facc15] ml-1">3</span>
+              <button className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors">
+                Check&gt;
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -330,18 +362,21 @@ export default function Medal({ onBack }: MedalProps) {
             <div
               key={medal.id}
               onClick={() => setSelectedMedal(medal)}
-              className="relative bg-gradient-to-b from-[#312061] to-[#181036] rounded-md p-3 flex flex-col items-center justify-between text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
+              className="relative bg-gradient-to-b from-[#312061] to-[#181036] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
-              <div className="w-24 h-24 my-auto flex items-center justify-center relative">
+              {/* Video — square, fills the container */}
+              <div className="w-28 h-28 aspect-square flex items-center justify-center relative">
                 <MedalVideo
                   src={medal.video}
-                  className="w-full h-full object-contain"
+                  variant={medal.variant ?? 'black'}
+                  className="w-full h-full object-cover"
                 />
               </div>
 
+              {/* Stars only — name hidden */}
               <div className="mt-auto w-full flex flex-col items-center pb-1">
                 {medal.stars > 0 && (
-                  <div className="flex items-center justify-center gap-[2px] mt-2 mb-1.5">
+                  <div className="flex items-center justify-center gap-[2px] mt-2">
                     {Array.from({ length: medal.stars }).map((_, i) => (
                       <Star
                         key={i}
@@ -351,10 +386,6 @@ export default function Medal({ onBack }: MedalProps) {
                     ))}
                   </div>
                 )}
-
-                <h3 className="text-[14px] font-semibold text-white tracking-wide line-clamp-1 drop-shadow-sm">
-                  {medal.name}
-                </h3>
               </div>
             </div>
           ))}
@@ -377,7 +408,7 @@ export default function Medal({ onBack }: MedalProps) {
             }}
           />
 
-          {/* Back Arrow only — corner, right below safe area */}
+          {/* Back Arrow only */}
           <button
             onClick={() => setSelectedMedal(null)}
             className="absolute left-0 z-50 p-1 pl-1 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
@@ -398,10 +429,11 @@ export default function Medal({ onBack }: MedalProps) {
                 alt="frame"
                 className="absolute inset-0 w-full h-full object-contain pointer-events-none z-20"
               />
-              {/* Video inside frame (black removed) */}
+              {/* Video inside frame (variant-based removal) */}
               <div className="absolute inset-0 flex items-center justify-center p-6 z-10">
                 <MedalVideo
                   src={selectedMedal.video}
+                  variant={selectedMedal.variant ?? 'black'}
                   className="w-full h-full object-contain"
                 />
               </div>
@@ -420,8 +452,8 @@ export default function Medal({ onBack }: MedalProps) {
               0/50000 Coins Of gifts Send
             </p>
 
-            {/* 3 images with > between */}
-            <div className="flex items-center justify-center gap-3 mt-8">
+            {/* 3 images with > between — thora aur niche */}
+            <div className="flex items-center justify-center gap-3 mt-14">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
@@ -459,4 +491,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-            }
+}
