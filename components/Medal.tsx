@@ -377,9 +377,9 @@ export default function Medal({ onBack }: MedalProps) {
           MEDAL DETAIL
           ============================================================ */}
       {selectedMedal && (
-        <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
-          {/* ✅ TOP 30VH BG — STRICT */}
-          <div className="relative w-full h-[30vh] overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in">
+          {/* ✅ TOP 30VH BG — STRICT (video ko bahar nikalne ke liye overflow visible) */}
+          <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
               alt=""
@@ -395,30 +395,30 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ VIDEO — EXACT center of 30vh, BADI, ON TOP of bg image */}
+            {/* ✅ VIDEO — BADI SIZE (80vh) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
-                className="w-96 h-96 object-cover"
+                className="w-[80vh] h-[80vh] object-contain"
               />
             </div>
           </div>
 
           {/* ✅ CONTENT — frame image on top of content */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
-            {/* Frame image — on content, overlapping up */}
+            {/* Frame image — on content, overlapping up (zyada upar khisak gaya) */}
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none -mt-24"
+              className="w-72 h-72 object-contain pointer-events-none -mt-32"
             />
 
             <h3 className="mt-2 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
               {selectedMedal.name}
             </h3>
 
-            <p className="text-white text-[15px] font-medium mt-1">Rich</p>
+            {/* ❌ "Rich" text removed */}
 
             <p className="text-gray-500 text-[13px] mt-2">
               0/50000 Coins Of gifts Send
@@ -462,4 +462,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-            }
+    }
