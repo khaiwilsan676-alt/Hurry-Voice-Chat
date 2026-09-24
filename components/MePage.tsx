@@ -135,6 +135,7 @@ interface MenuItem {
   icon?: React.ReactNode
   action?: string
   badge?: string
+  showGoldButton?: boolean
 }
 
 interface MePageProps {
@@ -143,7 +144,7 @@ interface MePageProps {
 }
 
 const menuItems: MenuItem[] = [
-  { id: '1', labelKey: 'inviteFriends', src: '/IMG_20260915_225333.png' },
+  { id: '1', labelKey: 'inviteFriends', src: '/IMG_20260915_225333.png', showGoldButton: true },
   { id: '2', labelKey: 'family', src: '/IMG_20260915_225349.png' },
   { id: '3', labelKey: 'level', src: '/IMG_20260915_225404.png' },
   { id: '4', labelKey: 'medal', src: '/IMG_20260915_225426.png' },
@@ -1046,6 +1047,25 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                     : String(item.labelKey)}
                 </p>
               </div>
+
+              {/* === YAHAN NAYA BUTTON ADD KIYA HAI === */}
+              {item.showGoldButton && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation(); // Parent div ke click ko rokne ke liye
+                    setShowInviteFriends(true);
+                  }}
+                  className="flex-shrink-0 focus:outline-none active:scale-95 transition-transform"
+                >
+                  <img
+                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan aap apni "Get Gold Coins" wali image ka path daal dena
+                    alt="Get Gold Coins"
+                    className="h-9 object-contain"
+                  />
+                </button>
+              )}
+              {/* ===================================== */}
+
               {item.action && (
                 <span className="text-sm font-medium text-gray-500">{item.action}</span>
               )}
@@ -1101,4 +1121,4 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
     </div>
   )
-                                            }
+}
