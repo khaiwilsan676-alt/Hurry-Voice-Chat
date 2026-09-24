@@ -574,57 +574,54 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden">
 
-      {/* ============ TOP BLUE BAND (Homepage jaise but chhota) ============ */}
+      {/* ============ TOP SHEET — Blue band + Tabs (EK HI SHEET) ============ */}
       <div
-        className="w-full"
+        className="w-full sticky top-0 z-30"
         style={{
-          height: '60px',
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 70%, #ffffff 100%)',
-        }}
-      />
-
-      {/* ============ HEADER TABS ============ */}
-      <div
-        className="px-5 pb-2 flex items-center gap-2 sticky top-0 z-30"
-        style={{
-          background: 'linear-gradient(to bottom, #dbeafe 0%, #ffffff 100%)',
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {/* Inbox Tab */}
-        <div
-          className="flex flex-col items-center cursor-pointer select-none outline-none"
-          onClick={() => setActiveTab('messages')}
-          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-        >
-          <h1
-            className={`text-lg transition-colors outline-none ${
-              activeTab === 'messages'
-                ? 'text-black font-bold'
-                : 'text-gray-400 font-medium'
-            }`}
-            style={{ textDecoration: 'none' }}
-          >
-            Inbox
-          </h1>
-        </div>
+        {/* Top spacing — jo pehle blue band tha */}
+        <div style={{ height: '45px' }} />
 
-        {/* Friends Tab */}
-        <div
-          className="flex flex-col items-center cursor-pointer select-none outline-none"
-          onClick={() => setActiveTab('friends')}
-          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-        >
-          <h1
-            className={`text-lg transition-colors outline-none ${
-              activeTab === 'friends'
-                ? 'text-black font-bold'
-                : 'text-gray-400 font-medium'
-            }`}
-            style={{ textDecoration: 'none' }}
+        {/* Tabs row */}
+        <div className="px-5 pb-3 flex items-center gap-2">
+          {/* Inbox Tab */}
+          <div
+            className="flex flex-col items-center cursor-pointer select-none outline-none"
+            onClick={() => setActiveTab('messages')}
+            style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
           >
-            Friends
-          </h1>
+            <h1
+              className={`text-lg transition-colors outline-none ${
+                activeTab === 'messages'
+                  ? 'text-black font-bold'
+                  : 'text-gray-400 font-medium'
+              }`}
+              style={{ textDecoration: 'none' }}
+            >
+              Inbox
+            </h1>
+          </div>
+
+          {/* Friends Tab */}
+          <div
+            className="flex flex-col items-center cursor-pointer select-none outline-none"
+            onClick={() => setActiveTab('friends')}
+            style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
+          >
+            <h1
+              className={`text-lg transition-colors outline-none ${
+                activeTab === 'friends'
+                  ? 'text-black font-bold'
+                  : 'text-gray-400 font-medium'
+              }`}
+              style={{ textDecoration: 'none' }}
+            >
+              Friends
+            </h1>
+          </div>
         </div>
       </div>
 
@@ -711,7 +708,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             )}
           </>
         ) : (
-          /* ============ FRIENDS TAB → FollowList component ============ */
+          /* ============ FRIENDS TAB → FollowList ============ */
           <FollowList />
         )}
       </div>
@@ -728,4 +725,4 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       )}
     </div>
   );
-          }
+    }
