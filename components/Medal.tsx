@@ -14,13 +14,14 @@ interface MedalItem {
   stars: number
   category: 'achievement' | 'gift' | 'activity'
   variant?: 'black' | 'green'
-  // HAR SINGLE VIDEO KA APNA SEPARATE SIZE AUR TOP (UP/DOWN)
-  listWidth: string
-  listHeight: string
-  listTop: string
-  modalWidth: string
-  modalHeight: string
-  modalTop: string
+  
+  // 👉 CARD KI VIDEO KA CONTROL (Alag Size)
+  cardVideoSize: string
+  cardVideoTop: string
+  
+  // 👉 SHEET KI VIDEO KA CONTROL (Alag Size)
+  sheetVideoSize: string
+  sheetVideoTop: string
 }
 
 const MedalFilters = () => (
@@ -195,8 +196,8 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
-  // 👇 YAHAN DEKH BHAI: Har ek Medal ka apna ekdum ALAG Size aur ALAG Top hai.
-  // Ek video ki value change karne se kisi aur video par asar nahi padega.
+  // YAHAN CHECK KAR BHAI: Har ek Medal ke Card ka size Chota (150px) rakha hai
+  // Aur Sheet ka size Bada (850px) rakha hai. Dono ekdum alag hain.
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -205,12 +206,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'green',
-      listWidth: '150px',
-      listHeight: '150px',
-      listTop: '50%',
-      modalWidth: '700px',    // Iska apna Sheet me size
-      modalHeight: '700px',
-      modalTop: '30%',        // Iska apna Sheet me Up/Down
+      cardVideoSize: '200px',   // Card mein Video Choti 
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  // Sheet mein Video Badi
+      sheetVideoTop: '80%',
     },
     {
       id: '2',
@@ -219,12 +218,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'black',
-      listWidth: '130px',
-      listHeight: '130px',
-      listTop: '50%',
-      modalWidth: '700px',    // Iska apna alag Sheet size
-      modalHeight: '700px',
-      modalTop: '30%',        // Iska apna alag Up/Down
+      cardVideoSize: '200px',   
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  
+      sheetVideoTop: '80%',
     },
     {
       id: '3',
@@ -233,12 +230,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      listWidth: '140px',
-      listHeight: '140px',
-      listTop: '50%',
-      modalWidth: '700px',
-      modalHeight: '700px',
-      modalTop: '30%',
+      cardVideoSize: '200px',   
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  
+      sheetVideoTop: '80%',
     },
     {
       id: '4',
@@ -247,12 +242,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      listWidth: '120px',
-      listHeight: '120px',
-      listTop: '45%',
-      modalWidth: '700px',
-      modalHeight: '700px',
-      modalTop: '30%',
+      cardVideoSize: '200px',   
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  
+      sheetVideoTop: '80%',
     },
     {
       id: '5',
@@ -261,12 +254,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      listWidth: '160px',
-      listHeight: '160px',
-      listTop: '50%',
-      modalWidth: '700px',
-      modalHeight: '700px',
-      modalTop: '30%',
+      cardVideoSize: '200px',   
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  
+      sheetVideoTop: '80%',
     },
     {
       id: '6',
@@ -275,12 +266,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'gift',
       variant: 'black',
-      listWidth: '180px',
-      listHeight: '180px',
-      listTop: '55%',
-      modalWidth: '700px',
-      modalHeight: '700px',
-      modalTop: '30%',
+      cardVideoSize: '200px',   
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',  
+      sheetVideoTop: '80%',
     },
   ]
 
@@ -291,15 +280,13 @@ export default function Medal({ onBack }: MedalProps) {
       <MedalFilters />
       <WebGLBackground />
 
-      {/* Top Background Image (main page) */}
+      {/* Top Background Image */}
       <div
         className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
         style={{
           backgroundImage: `url('/file_00000000f1dc821196bf96f688c3b2f6.png')`,
-          maskImage:
-            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
-          WebkitMaskImage:
-            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#02050e]/30 to-[#02050e]" />
@@ -383,7 +370,7 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      {/* SCROLLABLE GRID */}
+      {/* SCROLLABLE GRID (CARD VIEW) */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10 w-full max-w-md mx-auto scrollbar-thin scrollbar-thumb-blue-900/40 mt-3">
         <div className="grid grid-cols-2 gap-4">
           {filteredMedals.map((medal) => (
@@ -393,19 +380,19 @@ export default function Medal({ onBack }: MedalProps) {
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
               
-              {/* CHOTE DABBE (GRID) me custom listWidth/listHeight yaha apply ho rahi hai */}
+              {/* 👉 YAHAN CARD KI ALAG SETTINGS HAIN */}
               <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
                 <div 
                   className="absolute left-1/2 -translate-x-1/2"
-                  style={{ top: medal.listTop, transform: 'translateY(-50%)' }}
+                  style={{ top: medal.cardVideoTop, transform: 'translateY(-50%)' }}
                 >
                   <MedalVideo
                     src={medal.video}
                     variant={medal.variant ?? 'black'}
                     className="max-w-none max-h-none object-contain"
                     style={{
-                      width: medal.listWidth,
-                      height: medal.listHeight,
+                      width: medal.cardVideoSize,
+                      height: medal.cardVideoSize,
                     }}
                   />
                 </div>
@@ -430,7 +417,7 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {/* ============================================================
-          MEDAL DETAIL (Sheet View)
+          MEDAL DETAIL (SHEET VIEW)
           ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
@@ -450,18 +437,18 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ SHEET WALI VIDEO KA STRICT CONTROL (modalWidth, modalHeight, modalTop) */}
+            {/* 👉 YAHAN SHEET KI ALAG SETTINGS HAIN */}
             <div 
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-              style={{ top: selectedMedal.modalTop, transform: 'translateY(-50%)' }}
+              style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
             >
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
                 className="max-w-none max-h-none object-contain"
                 style={{ 
-                  width: selectedMedal.modalWidth, 
-                  height: selectedMedal.modalHeight 
+                  width: selectedMedal.sheetVideoSize, 
+                  height: selectedMedal.sheetVideoSize 
                 }}
               />
             </div>
@@ -475,15 +462,15 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-10"
             />
 
-            <h3 className="-mt-8 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
+            <h3 className="-mt-12 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
               {selectedMedal.name}
             </h3>
 
-            <p className="text-gray-500 text-[15px] -mt-2 relative z-10">
+            <p className="text-gray-500 text-[15px] mt-1 relative z-10">
               0/50000 Coins Of gifts Send
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-5 relative z-10">
+            <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
