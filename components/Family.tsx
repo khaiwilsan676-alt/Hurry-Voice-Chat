@@ -563,7 +563,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* BLUE BUTTON - Only Color Changed to Blue */}
+        {/* BUTTON: Inner Red Pill (SAME AS BEFORE), Outer Gold Frame changed to BLUE as per Image */}
         <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
           <button 
             className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
@@ -577,51 +577,51 @@ export default function Family({ onBack }: FamilyProps) {
               padding: '0 12px'
             }}
           >
-            {/* Main Inner Dark Blue Pill */}
+            {/* Main Inner Dark Red Pill - SAME AS BEFORE */}
             <div 
               className="w-full h-[80%] flex items-center justify-center relative"
               style={{
-                background: 'linear-gradient(to bottom, #0056b3 0%, #003d82 50%, #0056b3 100%)',
+                background: 'linear-gradient(to bottom, #8B0000 0%, #5C0000 50%, #8B0000 100%)',
                 borderRadius: '50px',
-                border: '2px solid #4DA3FF',
-                boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(77,163,255,0.4)'
+                border: '2px solid #d4af37',
+                boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(212,175,55,0.4)'
               }}
             >
-              {/* Left Decorative Flare */}
+              {/* Left Decorative Flare - GOLD */}
               <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10">
                 <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#007BFF" />
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#blueGradient)" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
                 </svg>
               </div>
               
-              {/* Right Decorative Flare */}
+              {/* Right Decorative Flare - GOLD */}
               <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10 rotate-180">
                 <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#007BFF" />
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#blueGradient)" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
                 </svg>
               </div>
 
-              {/* Left Gem */}
+              {/* Left Gem - SAME */}
               <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
 
-              {/* Right Gem */}
+              {/* Right Gem - SAME */}
               <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
 
-              {/* Text */}
-              <span className="text-[#E0F7FA] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
+              {/* Text - SAME GOLD */}
+              <span className="text-[#FFD700] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
                 Create Family
               </span>
             </div>
 
-            {/* Define SVG Gradient for Reuse */}
+            {/* SVG Gradient Definitions */}
             <svg style={{ width: 0, height: 0, position: 'absolute' }}>
               <defs>
-                <linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#4DA3FF" />
-                  <stop offset="50%" stopColor="#007BFF" />
-                  <stop offset="100%" stopColor="#0056b3" />
+                <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffdf00" />
+                  <stop offset="50%" stopColor="#d4af37" />
+                  <stop offset="100%" stopColor="#b8860b" />
                 </linearGradient>
               </defs>
             </svg>
