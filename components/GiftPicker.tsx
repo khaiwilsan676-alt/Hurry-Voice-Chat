@@ -11,7 +11,7 @@ const DEFAULT_BALANCE = 82927;
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === "undefined") return reject("No window");
-    const request = indexedDB.open(SHARED_DB, 2);
+    const request = indexedDB.open(SHARED_DB, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
@@ -213,6 +213,7 @@ export default function GiftPicker({
     setSending(true);
     setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
+    recordTransaction(`Sent gift ${selectedGiftObj.name}`, -totalCost);
 
     // 🔥 Cup count badhao — gift ki total coin value (coins × multiplier)
     if (onSend) {

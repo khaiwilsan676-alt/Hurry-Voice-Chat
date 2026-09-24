@@ -28,7 +28,7 @@ const DEFAULT_BALANCE = 82927;
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject('No window');
-    const request = indexedDB.open(SHARED_DB, 2);
+    const request = indexedDB.open(SHARED_DB, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
@@ -645,6 +645,7 @@ export default function StorePage({
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
+    recordTransaction(`Purchased ${item.name}`, -cost);
 
     setBuying(null);
   };

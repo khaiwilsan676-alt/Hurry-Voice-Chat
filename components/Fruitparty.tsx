@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import socket from '../src/lib/socket';
+import { recordTransaction } from './Wallet';
 
 interface FruitpartyProps {
   onClose: () => void;
@@ -31,7 +33,7 @@ let sessionBetsGlobal: Record<number, number> = {};
 async function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject("No window");
-    const request = indexedDB.open(DB_NAME, 2);
+    const request = indexedDB.open(DB_NAME, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -109,6 +111,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
   
   const [lastRoundStats, setLastRoundStats] = useState({ bet: 0, won: 0 });
   const [processedRound, setProcessedRound] = useState(-1);
+  const [realWinners, setRealWinners] = useState<{name: string, win: number, avatar: string}[]>([]);
   const stateRefs = useRef({ balance, totalWon, bets });
 
   const [showHistory, setShowHistory] = useState(false);
@@ -205,6 +208,21 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
       sessionBetsGlobal = bets;
     }
   }, [balance, totalWon, bets]);
+
+  useEffect(() => {
+    const handleFruitWinner = (data: {name: string, win: number, avatar: string}) => {
+      setRealWinners(prev => {
+        const newWinners = [data, ...prev];
+        return newWinners.slice(0, 3); // keep top 3
+      });
+    };
+
+    socket.on('fruitparty_winner', handleFruitWinner);
+
+    return () => {
+      socket.off('fruitparty_winner', handleFruitWinner);
+    };
+  }, []);
 
   useEffect(() => {
     if (isAppMinimizedSession) {
@@ -419,6 +437,27 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         setBalance(nextBalance);
         setTotalWon(nextTotalWon);
         setLastRoundStats({ bet: totalBetThisRound, won: earned });
+        if (earned > 0) {
+            recordTransaction('Won in Fruit Party', earned);
+
+            // get current user from localStorage
+            let currentUserName = "Alex";
+            let currentUserAvatar = "/default-avatar.png";
+            try {
+                const userData = localStorage.getItem('currentUser');
+                if (userData) {
+                    const parsed = JSON.parse(userData);
+                    currentUserName = parsed.name || "User";
+                    currentUserAvatar = parsed.photoUrl || parsed.photoURL || "/default-avatar.png";
+                }
+            } catch (e) {}
+
+            socket.emit('fruitparty_winner_update', {
+                name: currentUserName,
+                win: earned,
+                avatar: currentUserAvatar
+            });
+        }
         
         setBets({});
         sessionBetsGlobal = {};
@@ -446,6 +485,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
       
       if (balance >= betAmt) {
         setBalance(prev => prev - betAmt);
+        recordTransaction('Bet placed on Fruit Party', -betAmt);
         setBets(prev => {
           const updated = { ...prev, [fruitId]: (prev[fruitId] || 0) + betAmt };
           sessionBetsGlobal = updated;
@@ -742,47 +782,40 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
                   <span className="text-yellow-100 font-extrabold text-[10px] mb-1 drop-shadow-md uppercase tracking-wider">Top winner Of this Round</span>
                   
                   <div className="flex flex-row items-end justify-center gap-8 w-full px-2">
-                    <div className="flex flex-col items-center gap-0.5 w-[60px] animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-                      <div className="relative w-[38px] h-[38px]">
-                        <div className="w-full h-full rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 border-[2px] border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-                        <div className="absolute -top-1 -left-1 w-[16px] h-[16px] bg-gradient-to-br from-yellow-300 to-yellow-600 rounded-full flex items-center justify-center border border-white shadow-md">
-                          <span className="text-[9px] font-black text-black leading-none mt-[1px]">1</span>
-                        </div>
-                      </div>
-                      <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">Alex</span>
-                      <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
-                        <span className="text-yellow-300 text-[9px] font-extrabold drop-shadow-md truncate">72882</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-center gap-0.5 w-[60px] animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-                      <div className="relative w-[34px] h-[34px]">
-                        <div className="w-full h-full rounded-full bg-gradient-to-tr from-pink-400 to-red-500 border-[2px] border-gray-300 shadow-[0_0_8px_rgba(209,213,219,0.5)]" />
-                        <div className="absolute -top-1 -left-1 w-[14px] h-[14px] bg-gradient-to-br from-gray-200 to-gray-500 rounded-full flex items-center justify-center border border-white shadow-md">
-                          <span className="text-[8px] font-black text-black leading-none mt-[1px]">2</span>
-                        </div>
-                      </div>
-                      <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">Simi</span>
-                      <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
-                        <span className="text-gray-200 text-[9px] font-extrabold drop-shadow-md truncate">8889</span>
-                      </div>
-                    </div>
+                    {realWinners.slice(0, 3).map((winner, idx) => {
+                      const colors = [
+                        { ring: 'from-cyan-400 to-blue-600', border: 'border-amber-400', shadow: 'shadow-[0_0_8px_rgba(251,191,36,0.6)]', badge: 'from-yellow-300 to-yellow-600', text: 'text-yellow-300' },
+                        { ring: 'from-pink-400 to-red-500', border: 'border-gray-300', shadow: 'shadow-[0_0_8px_rgba(209,213,219,0.5)]', badge: 'from-gray-200 to-gray-500', text: 'text-gray-200' },
+                        { ring: 'from-green-400 to-teal-500', border: 'border-orange-500', shadow: 'shadow-[0_0_8px_rgba(249,115,22,0.5)]', badge: 'from-orange-300 to-orange-600', text: 'text-orange-300' }
+                      ][idx];
 
-                    <div className="flex flex-col items-center gap-0.5 w-[60px] animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                      <div className="relative w-[32px] h-[32px]">
-                        <div className="w-full h-full rounded-full bg-gradient-to-tr from-green-400 to-teal-500 border-[2px] border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
-                        <div className="absolute -top-1 -left-1 w-[14px] h-[14px] bg-gradient-to-br from-orange-300 to-orange-600 rounded-full flex items-center justify-center border border-white shadow-md">
-                          <span className="text-[8px] font-black text-black leading-none mt-[1px]">3</span>
+                      const sizes = [
+                        { container: 'w-[38px] h-[38px]', badge: 'w-[16px] h-[16px]' },
+                        { container: 'w-[34px] h-[34px]', badge: 'w-[14px] h-[14px]' },
+                        { container: 'w-[32px] h-[32px]', badge: 'w-[14px] h-[14px]' },
+                      ][idx];
+
+                      return (
+                        <div key={idx} className="flex flex-col items-center gap-0.5 w-[60px] animate-fade-in-up" style={{ animationDelay: `${0.1 * (idx + 1)}s` }}>
+                          <div className={`relative ${sizes.container}`}>
+                            <div className={`w-full h-full rounded-full bg-gradient-to-tr ${colors.ring} border-[2px] ${colors.border} ${colors.shadow} overflow-hidden`}>
+                              <img src={winner.avatar || '/default-avatar.png'} className="w-full h-full object-cover" />
+                            </div>
+                            <div className={`absolute -top-1 -left-1 ${sizes.badge} bg-gradient-to-br ${colors.badge} rounded-full flex items-center justify-center border border-white shadow-md`}>
+                              <span className={`text-[${idx === 0 ? '9' : '8'}px] font-black text-black leading-none mt-[1px]`}>{idx + 1}</span>
+                            </div>
+                          </div>
+                          <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">{winner.name}</span>
+                          <div className="flex items-center justify-center gap-1 w-full">
+                            <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
+                            <span className={`${colors.text} text-[9px] font-extrabold drop-shadow-md truncate`}>{winner.win}</span>
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-white text-[10px] font-bold drop-shadow-md truncate w-full text-center mt-0.5">kbhir</span>
-                      <div className="flex items-center justify-center gap-1 w-full">
-                        <div className="w-3 h-3 flex-shrink-0"><WebGLShaderImage src="/file_00000000e56882119c217d508b6733dc.png" /></div>
-                        <span className="text-orange-300 text-[9px] font-extrabold drop-shadow-md truncate">8373</span>
-                      </div>
-                    </div>
+                      );
+                    })}
+                    {realWinners.length === 0 && (
+                      <span className="text-white text-xs font-bold my-4">No winners yet.</span>
+                    )}
                   </div>
                 </div>
               </div>

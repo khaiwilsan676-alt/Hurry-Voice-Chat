@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import socket from '../src/lib/socket';
+import { recordTransaction } from './Wallet';
 
 interface WildpartyProps {
   onClose: () => void;
@@ -45,7 +47,7 @@ const DEFAULT_BALANCE = 82927;
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject('No window');
-    const request = indexedDB.open(SHARED_DB, 2);
+    const request = indexedDB.open(SHARED_DB, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
@@ -291,6 +293,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   const [roundHistory, setRoundHistory] = useState<RoundHistoryRecord[]>([]);
   const [winnerAnimal, setWinnerAnimal] = useState<AnimalItem | null>(null);
   const [roundWinningAmount, setRoundWinningAmount] = useState<number>(0);
+  const [realWinners, setRealWinners] = useState<{name: string, win: number, avatar: string}[]>([]);
   const [roundBetAmount, setRoundBetAmount] = useState<number>(0);
 
   const [balance, setBalance] = useState<number>(0);
@@ -403,6 +406,21 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   }, []);
 
   // Real-time sync — betting phase me har 1.5s
+  useEffect(() => {
+    const handleWildWinner = (data: {name: string, win: number, avatar: string}) => {
+      setRealWinners(prev => {
+        const newWinners = [data, ...prev];
+        return newWinners.slice(0, 3); // keep top 3
+      });
+    };
+
+    socket.on('wildparty_winner', handleWildWinner);
+
+    return () => {
+      socket.off('wildparty_winner', handleWildWinner);
+    };
+  }, []);
+
   useEffect(() => {
     if (loading || gamePhase !== 'betting') return;
     let alive = true;
@@ -685,6 +703,24 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           setBalance((prev) => prev + totalWinnings);
           // DB write — ek hi baar, functional updater ke bahar
           await updateWalletBalance(totalWinnings);
+          recordTransaction('Won in Wild Party', totalWinnings);
+
+          let currentUserName = "User";
+          let currentUserAvatar = "/default-avatar.png";
+          try {
+              const userData = localStorage.getItem('currentUser');
+              if (userData) {
+                  const parsed = JSON.parse(userData);
+                  currentUserName = parsed.name || "User";
+                  currentUserAvatar = parsed.photoUrl || parsed.photoURL || "/default-avatar.png";
+              }
+          } catch (e) {}
+
+          socket.emit('wildparty_winner_update', {
+              name: currentUserName,
+              win: totalWinnings,
+              avatar: currentUserAvatar
+          });
         }
         setWinnerCountdown(5);
         setShowWinnerSheet(true);
@@ -722,6 +758,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     const newBalance = balance - selectedChip.value;
     setBalance(newBalance);
     await updateWalletBalance(-selectedChip.value);
+    recordTransaction(`Bet on ${animalAlt} in Wild Party`, -selectedChip.value);
 
     setBets((prev) => ({
       ...prev,
@@ -738,6 +775,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
     const newBalance = balance - totalRepeatCost;
     setBalance(newBalance);
     await updateWalletBalance(-totalRepeatCost);
+    recordTransaction('Repeat Bet in Wild Party', -totalRepeatCost);
 
     setBets((prev) => {
       const updated = { ...prev };
@@ -757,18 +795,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
   const isBigGroupActive = gamePhase === 'result' && winMode === 'mix_big';
   const isSmallGroupActive = gamePhase === 'result' && winMode === 'mix_small';
 
-  const getFakeUsers = (roundNo: number) => {
-    const seed1 = (roundNo * 11) % 50 + 1;
-    const seed2 = (roundNo * 17) % 50 + 1;
-    const seed3 = (roundNo * 23) % 50 + 1;
-    return [
-      { name: 'Rahul', avatar: `https://i.pravatar.cc/150?img=${seed1}`, win: 500000 + seed1 * 1000 },
-      { name: 'Aman', avatar: `https://i.pravatar.cc/150?img=${seed2}`, win: 200000 + seed2 * 1000 },
-      { name: 'Neha', avatar: `https://i.pravatar.cc/150?img=${seed3}`, win: 100000 + seed3 * 1000 },
-    ];
-  };
-
-  const fakePodiumUsers = getFakeUsers(currentRoundNo);
+  // Using realWinners from socket
 
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center select-none overflow-hidden touch-none">
@@ -1220,41 +1247,56 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               <img src="/IMG_20260913_000423.png" alt="Heading" className="w-[80%] h-auto object-cover mb-8- drop-shadow-md" />
 
               <div className="flex items-end justify-center gap-2 w-full px-1">
-                <div className="flex flex-col items-center mb-14">
-                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[1].avatar} className="w-15 h-15 rounded-full object-cover" />
-                    <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
-                  </div>
-                  <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[1].name}</span>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
-                    <span className="text-yellow-400 font-bold text-[10px]">{fakePodiumUsers[1].win.toLocaleString()}</span>
-                  </div>
-                </div>
+                {realWinners.length === 0 ? (
+                  <span className="text-white text-xs font-bold mb-10">No winners yet.</span>
+                ) : (
+                  <>
+                    {/* Rank 2 */}
+                    {realWinners[1] && (
+                      <div className="flex flex-col items-center mb-14">
+                        <div className="relative w-22 h-22 flex items-center justify-center mb-1">
+                          <img src={realWinners[1].avatar || '/default-avatar.png'} className="w-15 h-15 rounded-full object-cover" />
+                          <img src="/IMG_20260912_235156.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
+                        </div>
+                        <span className="text-white font-bold text-[10px] drop-shadow-md">{realWinners[1].name}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
+                          <span className="text-yellow-400 font-bold text-[10px]">{realWinners[1].win.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
 
-                <div className="flex flex-col items-center mb-15">
-                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[0].avatar} className="w-18 h-18 rounded-full object-cover" />
-                    <img src="/IMG_20260912_235215.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
-                  </div>
-                  <span className="text-white font-bold text-xs drop-shadow-md">{fakePodiumUsers[0].name}</span>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
-                    <span className="text-yellow-400 font-black text-xs">{fakePodiumUsers[0].win.toLocaleString()}</span>
-                  </div>
-                </div>
+                    {/* Rank 1 */}
+                    {realWinners[0] && (
+                      <div className="flex flex-col items-center mb-15">
+                        <div className="relative w-22 h-22 flex items-center justify-center mb-1">
+                          <img src={realWinners[0].avatar || '/default-avatar.png'} className="w-18 h-18 rounded-full object-cover" />
+                          <img src="/IMG_20260912_235215.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
+                        </div>
+                        <span className="text-white font-bold text-xs drop-shadow-md">{realWinners[0].name}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" />
+                          <span className="text-yellow-400 font-black text-xs">{realWinners[0].win.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
 
-                <div className="flex flex-col items-center mb-14">
-                  <div className="relative w-22 h-22 flex items-center justify-center mb-1">
-                    <img src={fakePodiumUsers[2].avatar} className="w-15 h-15 rounded-full object-cover" />
-                    <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
-                  </div>
-                  <span className="text-white font-bold text-[10px] drop-shadow-md">{fakePodiumUsers[2].name}</span>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
-                    <span className="text-yellow-400 font-bold text-[10px]">{fakePodiumUsers[2].win.toLocaleString()}</span>
-                  </div>
-                </div>
+                    {/* Rank 3 */}
+                    {realWinners[2] && (
+                      <div className="flex flex-col items-center mb-14">
+                        <div className="relative w-22 h-22 flex items-center justify-center mb-1">
+                          <img src={realWinners[2].avatar || '/default-avatar.png'} className="w-15 h-15 rounded-full object-cover" />
+                          <img src="/IMG_20260912_235230.png" className="absolute inset-0 w-full h-full object-contain z-10 scale-110" />
+                        </div>
+                        <span className="text-white font-bold text-[10px] drop-shadow-md">{realWinners[2].name}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <LoadingShaderImage src="/file_00000000e56882119c217d508b6733dc.png" className="w-3.5 h-3.5 object-contain" />
+                          <span className="text-yellow-400 font-bold text-[10px]">{realWinners[2].win.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>

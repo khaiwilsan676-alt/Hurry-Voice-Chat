@@ -12,11 +12,14 @@ const DEFAULT_BALANCE = 0;
 async function initDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject("No window");
-    const request = indexedDB.open(DB_NAME, 2);
+    const request = indexedDB.open(DB_NAME, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME);
+      }
+      if (!db.objectStoreNames.contains('transactions')) {
+        db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -64,6 +67,27 @@ async function addCoinsToDB(amountToAdd: number): Promise<void> {
     });
   } catch (e) {
     console.error("Failed to update coins in DB", e);
+  }
+}
+
+export async function recordTransaction(title: string, amount: number): Promise<void> {
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('transactions', 'readwrite');
+      const store = tx.objectStore('transactions');
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const record = { title, amount, date: dateStr, timestamp: now.getTime() };
+
+      const putReq = store.add(record);
+      putReq.onsuccess = () => resolve();
+      putReq.onerror = () => reject(putReq.error);
+    });
+  } catch (e) {
+    console.error("Failed to record transaction in DB", e);
   }
 }
 
@@ -235,20 +259,32 @@ function WhiteColorRemovalShader({
 // ==========================================
 // Details Page Component (UPDATED AS PER IMAGE)
 // ==========================================
-const TRANSACTIONS = [
-  { id: 1, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
-  { id: 2, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
-  { id: 3, title: 'Send gifts in the room.', date: '2026.09.21 10:50', amount: 500 },
-  { id: 4, title: 'Lucky Gift in Room.', date: '2026.09.15 16:25', amount: 200 },
-  { id: 5, title: 'Lucky Gift in Room.', date: '2026.09.15 16:25', amount: 200 },
-  { id: 6, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 200 },
-  { id: 7, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 200 },
-  { id: 8, title: 'Magic Box', date: '2026.09.15 16:24', amount: 15000 },
-  { id: 9, title: 'Magic Box', date: '2026.09.15 16:24', amount: 1000 },
-  { id: 10, title: 'Lucky Gift in Room.', date: '2026.09.15 16:24', amount: 140 },
-]
-
 function DetailsPage({ onBack }: { onBack: () => void }) {
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTransactions = async () => {
+      try {
+        const db = await initDB();
+        const tx = db.transaction('transactions', 'readonly');
+        const store = tx.objectStore('transactions');
+        const req = store.getAll();
+        req.onsuccess = () => {
+          if (isMounted) {
+            const data = req.result || [];
+            data.sort((a, b) => b.timestamp - a.timestamp);
+            setTransactions(data);
+          }
+        };
+      } catch (e) {
+        console.error("Failed to load transactions", e);
+      }
+    };
+    fetchTransactions();
+    return () => { isMounted = false; };
+  }, []);
+
   return (
     <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col bg-white pt-[env(safe-area-inset-top,12px)] pb-[env(safe-area-inset-bottom,12px)]">
       {/* HEADER */}
@@ -283,11 +319,11 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
       {/* TRANSACTION LIST */}
       <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
         <div className="flex flex-col">
-          {TRANSACTIONS.map((tx, index) => (
+          {transactions.map((tx, index) => (
             <div
               key={tx.id}
               className={`flex justify-between items-start py-4 ${
-                index !== TRANSACTIONS.length - 1 ? 'border-b border-gray-100' : ''
+                index !== transactions.length - 1 ? 'border-b border-gray-100' : ''
               }`}
             >
               <div className="flex flex-col gap-1">
@@ -367,6 +403,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const handleBuyCoins = async (amount: number) => {
     setWalletBalance((prev) => (prev ?? 0) + amount)
     await addCoinsToDB(amount)
+    await recordTransaction('Buy Coins', amount)
     setWalletBalance(await loadBalanceFromDB())
   }
 

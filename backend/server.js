@@ -730,6 +730,15 @@ io.on("connection", (socket) => {
     });
   });
 
+
+  socket.on("fruitparty_winner_update", (payload) => {
+    io.emit("fruitparty_winner", payload);
+  });
+
+  socket.on("wildparty_winner_update", (payload) => {
+    io.emit("wildparty_winner", payload);
+  });
+
   socket.on("presence_online", (userId) => {
     if (!userId) return;
 
