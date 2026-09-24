@@ -323,12 +323,12 @@ export default function Level({ onBack }: LevelProps) {
       <div className="relative z-30 flex flex-col shrink-0 px-4">
         {/* Top App Bar */}
         <div
-          className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
+          className="flex items-center justify-between w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
         >
           <button
             onClick={onBack}
-            className="absolute left-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50 ml-1"
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
@@ -337,7 +337,7 @@ export default function Level({ onBack }: LevelProps) {
             Level
           </h1>
 
-          <button className="absolute right-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer">
+          <button className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer mr-1">
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
         </div>
