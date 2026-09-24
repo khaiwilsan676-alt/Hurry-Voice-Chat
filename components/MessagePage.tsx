@@ -579,14 +579,12 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         className="w-full sticky top-0 z-30"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        {/* Top spacing — jo pehle blue band tha */}
-        <div style={{ height: '45px' }} />
-
-        {/* Tabs row */}
-        <div className="px-5 pb-3 flex items-center gap-2">
+        {/* Tabs row — safe area ke turant niche */}
+        <div className="px-5 pt-3 pb-3 flex items-center gap-3">
           {/* Inbox Tab */}
           <div
             className="flex flex-col items-center cursor-pointer select-none outline-none"
@@ -594,9 +592,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
           >
             <h1
-              className={`text-lg transition-colors outline-none ${
+              className={`text-2xl transition-colors outline-none ${
                 activeTab === 'messages'
-                  ? 'text-black font-bold'
+                  ? 'text-black font-extrabold'
                   : 'text-gray-400 font-medium'
               }`}
               style={{ textDecoration: 'none' }}
@@ -612,9 +610,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
           >
             <h1
-              className={`text-lg transition-colors outline-none ${
+              className={`text-2xl transition-colors outline-none ${
                 activeTab === 'friends'
-                  ? 'text-black font-bold'
+                  ? 'text-black font-extrabold'
                   : 'text-gray-400 font-medium'
               }`}
               style={{ textDecoration: 'none' }}
@@ -625,93 +623,96 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         </div>
       </div>
 
-      {/* ============ MAIN CONTENT ============ */}
+      {/* ============ MAIN CONTENT (Inbox only) ============ */}
       <div className="pt-2 pb-24 flex flex-col gap-1">
-        {activeTab === 'messages' ? (
-          <>
-            {/* Fixed chats */}
-            {fixedChats.map((chat) => {
-              const preview = officialPreviews[chat.uid];
-              return (
-                <div
-                  key={chat.id}
-                  onClick={() => {
-                    setOfficialPreviews((prev) => ({
-                      ...prev,
-                      [chat.uid]: prev[chat.uid]
-                        ? { ...prev[chat.uid], unreadCount: 0 }
-                        : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
-                    }));
-                    handleOpenFixedChat(chat);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-                >
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
-                    {preview?.lastMessage && (
-                      <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
-                    )}
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    {preview?.lastTimestamp ? (
-                      <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
-                    ) : null}
-                    {preview?.unreadCount && preview.unreadCount > 0 ? (
-                      <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
-                        {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Dynamic chats */}
-            {dynamicChats.map((chat) => (
-              <div
-                key={chat.chatId}
-                onClick={() => handleOpenDynamicChat(chat)}
-                className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
-              >
-                <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  <Image
-                    src={chat.otherUser.photo || '/default-avatar.png'}
-                    alt={chat.otherUser.name}
-                    width={56}
-                    height={56}
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
-                  <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
-                </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span className="text-xs text-gray-400">{formatTime(chat.lastTimestamp)}</span>
-                  {chat.unreadCount > 0 && (
-                    <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
-                      {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
-                    </span>
-                  )}
-                </div>
+        {/* Fixed chats */}
+        {fixedChats.map((chat) => {
+          const preview = officialPreviews[chat.uid];
+          return (
+            <div
+              key={chat.id}
+              onClick={() => {
+                setOfficialPreviews((prev) => ({
+                  ...prev,
+                  [chat.uid]: prev[chat.uid]
+                    ? { ...prev[chat.uid], unreadCount: 0 }
+                    : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                }));
+                handleOpenFixedChat(chat);
+              }}
+              className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+            >
+              <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <Image src={chat.image} alt={chat.name} width={56} height={56} className="object-cover" />
               </div>
-            ))}
-
-            {/* Empty state */}
-            {!isLoading && dynamicChats.length === 0 && fixedChats.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-400 text-sm"></p>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
+                {preview?.lastMessage && (
+                  <p className="text-sm text-gray-500 truncate">{preview.lastMessage}</p>
+                )}
               </div>
-            )}
-          </>
-        ) : (
-          /* ============ FRIENDS TAB → FollowList ============ */
-          <FollowList />
+              <div className="flex flex-col items-end gap-1">
+                {preview?.lastTimestamp ? (
+                  <span className="text-xs text-gray-400">{formatTime(preview.lastTimestamp)}</span>
+                ) : null}
+                {preview?.unreadCount && preview.unreadCount > 0 ? (
+                  <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                    {preview.unreadCount > 99 ? '99+' : preview.unreadCount}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Dynamic chats */}
+        {dynamicChats.map((chat) => (
+          <div
+            key={chat.chatId}
+            onClick={() => handleOpenDynamicChat(chat)}
+            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer active:opacity-60 transition-opacity"
+          >
+            <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Image
+                src={chat.otherUser.photo || '/default-avatar.png'}
+                alt={chat.otherUser.name}
+                width={56}
+                height={56}
+                className="object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
+              <p className="text-sm text-gray-500 truncate">{chat.lastMessage}</p>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-xs text-gray-400">{formatTime(chat.lastTimestamp)}</span>
+              {chat.unreadCount > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5">
+                  {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* Empty state */}
+        {!isLoading && dynamicChats.length === 0 && fixedChats.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-sm"></p>
+          </div>
         )}
       </div>
+
+      {/* ============ FRIENDS FULL PAGE OVERLAY ============ */}
+      {activeTab === 'friends' && (
+        <div
+          className="fixed inset-0 z-[100] bg-white"
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+        >
+          <FollowList onBack={() => setActiveTab('messages')} />
+        </div>
+      )}
 
       {/* Chat Screen Overlay */}
       {activeChat && (
@@ -725,4 +726,4 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       )}
     </div>
   );
-    }
+                                      }
