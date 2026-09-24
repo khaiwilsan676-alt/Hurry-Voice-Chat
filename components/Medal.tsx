@@ -58,28 +58,49 @@ function MedalVideo({
   variant = 'black',
   className = '',
   style = {},
+  autoPlay = true,
+  isColorless = false,
 }: {
   src: string
   variant?: 'black' | 'green'
   className?: string
   style?: React.CSSProperties
+  autoPlay?: boolean
+  isColorless?: boolean
 }) {
   const isGreen = variant === 'green'
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (autoPlay) {
+        videoRef.current.play().catch(() => {})
+      } else {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+      }
+    }
+  }, [autoPlay])
+
+  const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
+  const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
 
   return (
     <video
+      ref={videoRef}
       src={src}
-      autoPlay
+      autoPlay={autoPlay}
       muted
       loop
       playsInline
       controls={false}
+      preload="auto"
       disablePictureInPicture
       disableRemotePlayback
       className={className}
       style={{
         backgroundColor: 'transparent',
-        filter: isGreen ? 'url(#remove-green)' : 'url(#remove-black)',
+        filter: finalFilter,
         pointerEvents: 'none',
         ...style,
       }}
@@ -241,7 +262,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoSize: '400px',
       cardVideoTop: '50%',
       sheetVideoSize: '660px',
-      sheetVideoTop: '100%',
+      sheetVideoTop: '120%',
     },
     {
       id: 'new-2',
@@ -250,8 +271,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '400px',
-      cardVideoTop: '70%',
+      cardVideoSize: '430px',
+      cardVideoTop: '76%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
     },
@@ -263,7 +284,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '70%',
+      cardVideoTop: '76%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
     },
@@ -275,7 +296,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '70%',
+      cardVideoTop: '76%',
       sheetVideoSize: '700px',
       sheetVideoTop: '140%',
     },
@@ -286,8 +307,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '200px',
-      cardVideoTop: '50%',
+      cardVideoSize: '300px',
+      cardVideoTop: '70%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -298,8 +319,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '200px',
-      cardVideoTop: '50%',
+      cardVideoSize: '300px',
+      cardVideoTop: '70%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -310,8 +331,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '200px',
-      cardVideoTop: '50%',
+      cardVideoSize: '300px',
+      cardVideoTop: '70%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -323,9 +344,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '70%',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '140%',
+      sheetVideoTop: '150%',
     },
     {
       id: 'new-9',
@@ -335,9 +356,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '70%',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '140%',
+      sheetVideoTop: '150%',
     },
     {
       id: 'new-10',
@@ -347,9 +368,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '70%',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '140%',
+      sheetVideoTop: '150%',
     },
     {
       id: '4',
@@ -500,6 +521,8 @@ export default function Medal({ onBack }: MedalProps) {
                   <MedalVideo
                     src={medal.video}
                     variant={medal.variant ?? 'black'}
+                    autoPlay={false}
+                    isColorless={true}
                     className="max-w-none max-h-none object-contain"
                     style={{
                       width: medal.cardVideoSize,
@@ -544,6 +567,24 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
+            {/* Background Golden Rays (Bhagwaan style divine effect) */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+              style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
+            >
+              <div
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+                style={{
+                  width: `calc(${selectedMedal.sheetVideoSize} * 1.5)`,
+                  height: `calc(${selectedMedal.sheetVideoSize} * 1.5)`,
+                  background: 'repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.5) 0deg 10deg, transparent 10deg 20deg)',
+                  maskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
+                  WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
+                  animation: 'spinRays 25s linear infinite'
+                }}
+              />
+            </div>
+
             <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
               style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
@@ -551,6 +592,8 @@ export default function Medal({ onBack }: MedalProps) {
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
+                autoPlay={true}
+                isColorless={false}
                 className="max-w-none max-h-none object-contain"
                 style={{
                   width: selectedMedal.sheetVideoSize,
@@ -601,6 +644,10 @@ export default function Medal({ onBack }: MedalProps) {
               from { opacity: 0; }
               to { opacity: 1; }
             }
+            @keyframes spinRays {
+              from { transform: translate(-50%, -50%) rotate(0deg); }
+              to { transform: translate(-50%, -50%) rotate(360deg); }
+            }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
             }
@@ -609,4 +656,5 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-                        }
+}
+
