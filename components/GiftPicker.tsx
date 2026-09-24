@@ -115,6 +115,7 @@ export default function GiftPicker({
   const targetMenuRef = useRef<HTMLDivElement>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
+  const videoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
@@ -200,12 +201,29 @@ export default function GiftPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [showTargetMenu]);
 
+  // cleanup video timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
+    };
+  }, []);
+
   const parseMultiplier = (m: string) => parseInt(m.replace("×", ""), 10) || 1;
   const selectedGiftObj = currentGifts.find((g) => g.id === selectedGift);
   const totalCost = selectedGiftObj
     ? selectedGiftObj.coins * parseMultiplier(selectedMultiplier)
     : 0;
   const canAfford = totalCost <= walletBalance;
+
+  const finishVideo = () => {
+    if (videoTimeoutRef.current) {
+      clearTimeout(videoTimeoutRef.current);
+      videoTimeoutRef.current = null;
+    }
+    setPlayingVideo(null);
+    setSending(false);
+    onClose();
+  };
 
   const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
@@ -215,7 +233,6 @@ export default function GiftPicker({
     await updateWalletBalance(-totalCost);
     recordTransaction(`Sent gift ${selectedGiftObj.name}`, -totalCost);
 
-    // 🔥 Cup count badhao — gift ki total coin value (coins × multiplier)
     if (onSend) {
       onSend(totalCost);
     }
@@ -225,6 +242,11 @@ export default function GiftPicker({
         src: selectedGiftObj.video,
         style: selectedGiftObj.videoStyle ?? "fade",
       });
+      // 🔥 safety fallback: agar video kisi wajah se start/end na ho, 10s me close
+      if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
+      videoTimeoutRef.current = setTimeout(() => {
+        finishVideo();
+      }, 10000);
     } else {
       setSending(false);
       onClose();
@@ -256,8 +278,6 @@ export default function GiftPicker({
 
   // ============================================================
   // 🎬 VIDEO
-  // 🧸 Teddy  → purana original fade (18% / 83%)
-  // 👑 King   → naya alag fade (6% / 94%) + upar shift
   // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
@@ -293,16 +313,10 @@ export default function GiftPicker({
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            onEnded={() => {
-              setPlayingVideo(null);
-              setSending(false);
-              onClose();
-            }}
-            onError={() => {
-              setPlayingVideo(null);
-              setSending(false);
-              onClose();
-            }}
+            onLoadedData={() => setSending(false)}
+            onPlaying={() => setSending(false)}
+            onEnded={finishVideo}
+            onError={finishVideo}
             className={
               isFade
                 ? "w-full h-full object-cover"
@@ -594,4 +608,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-    }
+}
