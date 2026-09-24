@@ -48,7 +48,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
     <div
       className="min-h-screen flex flex-col select-none"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 42%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 35%, #f3f4f6 100%)',
         paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
         WebkitUserSelect: 'none'
@@ -122,7 +122,7 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
     <div
       className="min-h-screen flex flex-col select-none"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 42%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 35%, #f3f4f6 100%)',
         paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
         WebkitUserSelect: 'none'
