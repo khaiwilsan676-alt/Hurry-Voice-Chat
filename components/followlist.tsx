@@ -173,7 +173,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
 
       {/* Tabs Bar — FIXED, no card look */}
       <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
+        <div className="rounded-md flex items-center overflow-hidden bg-white/30">
           {FOLLOW_TABS.map((tab, i) => (
             <button
               key={tab.id}
