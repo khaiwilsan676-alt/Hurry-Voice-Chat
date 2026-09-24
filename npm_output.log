@@ -1,0 +1,1148 @@
+
+> my-project@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 532ms
+
+ GET /app 404 in 2.3s (next.js: 1999ms, application-code: 341ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+○ Compiling / ...
+ GET / 200 in 6.0s (next.js: 5.5s, application-code: 456ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 84ms (next.js: 15ms, application-code: 70ms)
+ GET / 200 in 73ms (next.js: 7ms, application-code: 66ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /video-thumbnail.jpg 404 in 71ms (next.js: 3ms, application-code: 68ms)
+ GET / 200 in 68ms (next.js: 3ms, application-code: 65ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 114ms (next.js: 3ms, application-code: 111ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+ GET /api/rooms 404 in 1343ms (next.js: 3ms, application-code: 1341ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 1248ms (next.js: 3ms, application-code: 1245ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /default-avatar.png 404 in 175ms (next.js: 3ms, application-code: 172ms)
+ GET /api/rooms 404 in 1364ms (next.js: 3ms, application-code: 1361ms)
+ GET /api/rooms 404 in 143ms (next.js: 3ms, application-code: 140ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 49ms (next.js: 2ms, application-code: 47ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 48ms (next.js: 2ms, application-code: 45ms)
+ GET / 200 in 55ms (next.js: 3ms, application-code: 52ms)
+ GET / 200 in 102ms (next.js: 6ms, application-code: 96ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+ GET /api/rooms 404 in 613ms (next.js: 5ms, application-code: 608ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /default-avatar.png 404 in 118ms (next.js: 3ms, application-code: 115ms)
+ GET /api/rooms 404 in 622ms (next.js: 2ms, application-code: 620ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /api/rooms 404 in 239ms (next.js: 3ms, application-code: 236ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 48ms)
+ GET /api/rooms 404 in 120ms (next.js: 2ms, application-code: 118ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 3ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 117ms (next.js: 7ms, application-code: 110ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 45ms (next.js: 2ms, application-code: 43ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET / 200 in 74ms (next.js: 4ms, application-code: 70ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 68ms (next.js: 3ms, application-code: 66ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /api/rooms 404 in 199ms (next.js: 3ms, application-code: 196ms)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 618ms (next.js: 3ms, application-code: 615ms)
+ GET /default-avatar.png 404 in 104ms (next.js: 2ms, application-code: 102ms)
+ GET /api/rooms 404 in 560ms (next.js: 2ms, application-code: 557ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /api/rooms 404 in 127ms (next.js: 2ms, application-code: 125ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 66ms (next.js: 2ms, application-code: 63ms)
+ GET /default-avatar.png 404 in 130ms (next.js: 2ms, application-code: 127ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 3ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 68ms (next.js: 3ms, application-code: 65ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1957µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 6ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 3ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 3ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 69ms (next.js: 4ms, application-code: 65ms)
+ GET /default-avatar.png 404 in 100ms (next.js: 7ms, application-code: 93ms)
+ GET /default-avatar.png 404 in 192ms (next.js: 3ms, application-code: 189ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 79ms (next.js: 2ms, application-code: 76ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1995µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 2ms, application-code: 37ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 1980µs, application-code: 46ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 3ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 58ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 74ms (next.js: 2ms, application-code: 72ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 2ms, application-code: 37ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 3ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 1984µs, application-code: 43ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 2ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 3ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 63ms (next.js: 3ms, application-code: 60ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 102ms (next.js: 53ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 3ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 62ms (next.js: 3ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 76ms (next.js: 2ms, application-code: 74ms)
+ GET /default-avatar.png 404 in 111ms (next.js: 7ms, application-code: 104ms)
+ GET /default-avatar.png 404 in 209ms (next.js: 7ms, application-code: 202ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 84ms (next.js: 2ms, application-code: 82ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 83ms (next.js: 1996µs, application-code: 81ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 58ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1981µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 4ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 3ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 5ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 3ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 89ms (next.js: 2ms, application-code: 87ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 47ms)
+ GET /api/rooms 404 in 111ms (next.js: 2ms, application-code: 109ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 2ms, application-code: 58ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 2ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 3ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 3ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 2ms, application-code: 37ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 1999µs, application-code: 50ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1948µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 58ms)
+ GET /default-avatar.png 404 in 183ms (next.js: 2ms, application-code: 180ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 1996µs, application-code: 46ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 3ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 2ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 3ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 3ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 6ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1940µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 4ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 4ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 67ms (next.js: 3ms, application-code: 64ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 93ms (next.js: 2ms, application-code: 91ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 1964µs, application-code: 50ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 7ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 130ms (next.js: 3ms, application-code: 127ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 3ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1993µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 3ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1991µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 3ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 63ms (next.js: 2ms, application-code: 61ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 3ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 1991µs, application-code: 45ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 3ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 73ms (next.js: 3ms, application-code: 70ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 3ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 68ms (next.js: 2ms, application-code: 66ms)
+ GET /default-avatar.png 404 in 86ms (next.js: 3ms, application-code: 83ms)
+ GET /default-avatar.png 404 in 80ms (next.js: 3ms, application-code: 77ms)
+ GET /default-avatar.png 404 in 929ms (next.js: 3ms, application-code: 926ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 1945µs, application-code: 41ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 1943µs, application-code: 52ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 1951µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 1940µs, application-code: 52ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1948µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 3ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 1987µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1932µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 57ms (next.js: 2ms, application-code: 55ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 1979µs, application-code: 50ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1977µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1926µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1911µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 2ms, application-code: 57ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1931µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1975µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 1934µs, application-code: 48ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1988µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1850µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 1831µs, application-code: 46ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1947µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 3ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 85ms (next.js: 3ms, application-code: 82ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /default-avatar.png 404 in 58ms (next.js: 3ms, application-code: 55ms)
+ GET /api/rooms 404 in 111ms (next.js: 1964µs, application-code: 109ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1899µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1969µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1884µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1917µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1946µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1863µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1955µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1923µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1922µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 3ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 1834µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1995µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 1946µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1972µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 2ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1987µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1914µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 38ms (next.js: 1904µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1825µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1969µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 1950µs, application-code: 54ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1904µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1945µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 50ms (next.js: 1956µs, application-code: 48ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 1977µs, application-code: 47ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 3ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1936µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 2ms, application-code: 54ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1978µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 132ms (next.js: 3ms, application-code: 129ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1943µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1936µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1883µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1996µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 1958µs, application-code: 52ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 3ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 1881µs, application-code: 39ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 1969µs, application-code: 49ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 1896µs, application-code: 54ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 1919µs, application-code: 49ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 3ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1995µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 3ms, application-code: 37ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 63ms (next.js: 2ms, application-code: 60ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1927µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 1941µs, application-code: 54ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1974µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1957µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 1871µs, application-code: 41ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 1951µs, application-code: 51ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 62ms (next.js: 1916µs, application-code: 60ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 63ms (next.js: 2ms, application-code: 61ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 3ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1956µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 49ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 1995µs, application-code: 38ms)
+ GET /default-avatar.png 404 in 51ms (next.js: 2ms, application-code: 48ms)
+ GET /default-avatar.png 404 in 63ms (next.js: 3ms, application-code: 60ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 3ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 41ms (next.js: 2ms, application-code: 39ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 2ms, application-code: 42ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 1905µs, application-code: 57ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 1918µs, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1883µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 39ms (next.js: 1915µs, application-code: 37ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 1866µs, application-code: 41ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 1978µs, application-code: 59ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 4ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 2ms, application-code: 40ms)
+ GET /default-avatar.png 404 in 60ms (next.js: 1897µs, application-code: 58ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 2ms, application-code: 56ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 1857µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 3ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 42ms (next.js: 1941µs, application-code: 40ms)
+ GET /default-avatar.png 404 in 40ms (next.js: 2ms, application-code: 38ms)
+ GET /default-avatar.png 404 in 49ms (next.js: 3ms, application-code: 47ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 1937µs, application-code: 45ms)
+ GET /default-avatar.png 404 in 52ms (next.js: 2ms, application-code: 50ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 43ms)
+ GET / 200 in 41ms (next.js: 3ms, application-code: 38ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 119ms (next.js: 12ms, application-code: 107ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /api/rooms 404 in 614ms (next.js: 5ms, application-code: 609ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 644ms (next.js: 5ms, application-code: 639ms)
+ GET /default-avatar.png 404 in 127ms (next.js: 1955µs, application-code: 125ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /api/rooms 404 in 240ms (next.js: 7ms, application-code: 233ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 1970µs, application-code: 46ms)
+ GET /api/rooms 404 in 114ms (next.js: 2ms, application-code: 112ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET /default-avatar.png 404 in 53ms (next.js: 2ms, application-code: 51ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 1934µs, application-code: 42ms)
+ GET /default-avatar.png 404 in 56ms (next.js: 1855µs, application-code: 54ms)
+ GET /default-avatar.png 404 in 44ms (next.js: 3ms, application-code: 41ms)
+ GET /default-avatar.png 404 in 43ms (next.js: 1953µs, application-code: 41ms)
+ GET /default-avatar.png 404 in 62ms (next.js: 2ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 45ms (next.js: 2ms, application-code: 43ms)
+ GET / 200 in 48ms (next.js: 3ms, application-code: 45ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET / 200 in 86ms (next.js: 15ms, application-code: 71ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+ GET /api/rooms 404 in 634ms (next.js: 2ms, application-code: 631ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 661ms (next.js: 3ms, application-code: 658ms)
+ GET /default-avatar.png 404 in 115ms (next.js: 2ms, application-code: 113ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /api/rooms 404 in 244ms (next.js: 4ms, application-code: 240ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 3ms, application-code: 55ms)
+ GET /api/rooms 404 in 134ms (next.js: 1944µs, application-code: 132ms)
+ GET /default-avatar.png 404 in 59ms (next.js: 15ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 70ms (next.js: 1912µs, application-code: 68ms)
+ GET /default-avatar.png 404 in 61ms (next.js: 2ms, application-code: 59ms)
+ GET /default-avatar.png 404 in 102ms (next.js: 2ms, application-code: 100ms)
+ GET /default-avatar.png 404 in 337ms (next.js: 6ms, application-code: 331ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 47ms (next.js: 2ms, application-code: 44ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET / 200 in 85ms (next.js: 4ms, application-code: 81ms)
+ GET / 200 in 130ms (next.js: 3ms, application-code: 128ms)
+[browser] StatusBar setup failed: Error: "StatusBar" plugin is not implemented on web
+    at async StatusBarController.useEffect.setup (app/StatusBarController.tsx:11:9)
+   9 |       try {
+  10 |         // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
+> 11 |         await StatusBar.setOverlaysWebView({ overlay: true })
+     |         ^
+  12 |
+  13 |         // Transparent status bar
+  14 |         await StatusBar.setBackgroundColor({ (app/StatusBarController.tsx:23:17)
+ GET /api/rooms 404 in 114ms (next.js: 3ms, application-code: 111ms)
+[browser] Error initializing Jitsi: TypeError: JitsiMeetExternalAPI is not a constructor
+    at HomePage.useCallback[initializeJitsiForListening] (components/HomePage.tsx:1204:19)
+    at HomePage.useEffect (components/HomePage.tsx:1221:7)
+    at Page (app/page.tsx:166:7)
+  1202 |     try {
+  1203 |       const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
+> 1204 |       const api = new JitsiMeetExternalAPI(domain, options)
+       |                   ^
+  1205 |       jitsiApiRef.current = api
+  1206 |       jitsiJoinedRef.current = false
+  1207 | (components/HomePage.tsx:1215:15)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Updating a style property during rerender (animation) when a conflicting property is set (animationDelay) can lead to styling bugs. To avoid this, don't mix shorthand and non-shorthand properties for the same value; instead, replace the shorthand with separate values.
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /default-avatar.png 404 in 117ms (next.js: 2ms, application-code: 115ms)
+[browser] Error fetching rooms from API: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.loadRooms (components/HomePage.tsx:1270:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1319:17)
+ GET /api/rooms 404 in 667ms (next.js: 2ms, application-code: 665ms)
+[browser] Error/timeout syncing rooms: Error: MongoDB rooms fetch failed: 404
+    at fetchAllRoomsFromMongoDB (components/HomePage.tsx:24:11)
+    at async HomePage.useEffect.fetchRoomsWithTimeout (components/HomePage.tsx:1331:26)
+  22 |   const response = await fetch("/api/rooms");
+  23 |   if (!response.ok) {
+> 24 |     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
+     |           ^
+  25 |   }
+  26 |   const result = await response.json();
+  27 |   return Array.isArray(result?.rooms) ? result.rooms : []; (components/HomePage.tsx:1378:17)
+ GET /default-avatar.png 404 in 66ms (next.js: 2ms, application-code: 64ms)
+ GET /api/rooms 404 in 218ms (next.js: 3ms, application-code: 215ms)
+ GET /default-avatar.png 404 in 55ms (next.js: 2ms, application-code: 53ms)
+ GET /api/rooms 404 in 181ms (next.js: 2ms, application-code: 179ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 58ms (next.js: 1956µs, application-code: 56ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 47ms (next.js: 2ms, application-code: 45ms)
+ GET /default-avatar.png 404 in 54ms (next.js: 2ms, application-code: 52ms)
+ GET /default-avatar.png 404 in 46ms (next.js: 2ms, application-code: 44ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 2ms, application-code: 46ms)
+ GET /default-avatar.png 404 in 48ms (next.js: 3ms, application-code: 45ms)

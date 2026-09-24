@@ -17,7 +17,7 @@ import Family from './Family'
 import Level from './Level'
 import Medal from './Medal'
 import SellerCenter from './sellercenter'
-import FollowList from './followlist'
+import FollowList, { VisitorsPage } from './followlist'
 import Svip from './Svip'
 
 // ============ IndexedDB Functions for User Data ============
@@ -402,7 +402,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
   const [showSvip, setShowSvip] = useState(false)
   
   const [showFollowList, setShowFollowList] = useState(false)
-  const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors'>('followers')
+  const [followListType, setFollowListType] = useState<'followers' | 'following' | 'visitors' | 'friends'>('followers')
 
   useEffect(() => {
     if (onPublicProfileChange) {
@@ -668,6 +668,9 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
   // Early returns - FollowList check first
   if (showFollowList) {
+    if (followListType === 'visitors') {
+      return <VisitorsPage onBack={() => setShowFollowList(false)} onNavigate={onNavigate} />
+    }
     return <FollowList activePage="me" onNavigate={onNavigate}
       onBack={() => setShowFollowList(false)} 
       type={followListType} 
@@ -915,7 +918,13 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
         {/* Stats Row - Friends | Followers | Following | Visitors - ab px-3 hai yahan */}
         <div className="flex items-center justify-between mt-2 px-0.5">
-          <div className="flex-1 text-center cursor-pointer active:scale-95 transition-transform">
+          <div
+            className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
+            onClick={() => {
+              setFollowListType('friends');
+              setShowFollowList(true);
+            }}
+          >
             <div className="text-xl font-bold text-gray-900">0</div>
             <div className="text-[11px] text-gray-600 mt-0.5">Friends</div>
           </div>
