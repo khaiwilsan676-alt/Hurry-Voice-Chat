@@ -24,17 +24,7 @@ const MedalFilters = () => (
     style={{ width: 0, height: 0, position: 'absolute' }}
     aria-hidden="true"
   >
-    <filter id="remove-black" colorInterpolationFilters="sRGB">
-      <feColorMatrix
-        type="matrix"
-        values="
-          1 0 0 0 0
-          0 1 0 0 0
-          0 0 1 0 0
-          1.5 1.5 1.5 0 -0.2
-        "
-      />
-    </filter>
+    {/* GREEN background chroma key only */}
     <filter id="remove-green" colorInterpolationFilters="sRGB">
       <feColorMatrix
         type="matrix"
@@ -45,12 +35,15 @@ const MedalFilters = () => (
           1.5 -2.5 1.5 1 0
         "
       />
+      <feComponentTransfer>
+        <feFuncA type="gamma" amplitude="1" exponent="0.9" offset="0" />
+      </feComponentTransfer>
     </filter>
   </svg>
 )
 
 // ==========================================
-// Video Medal — variant-based removal
+// Video Medal — variant based rendering
 // ==========================================
 function MedalVideo({
   src,
@@ -63,6 +56,8 @@ function MedalVideo({
   className?: string
   style?: React.CSSProperties
 }) {
+  const isGreen = variant === 'green'
+
   return (
     <video
       src={src}
@@ -75,12 +70,13 @@ function MedalVideo({
       disableRemotePlayback
       className={className}
       style={{
-        mixBlendMode: 'screen',
+        // BLACK bg → screen blend alone (black = transparent, clean & bright)
+        // GREEN bg → chroma-key filter (normal blend)
+        mixBlendMode: isGreen ? 'normal' : 'screen',
         backgroundColor: 'transparent',
-        filter:
-          variant === 'green'
-            ? 'url(#remove-green)'
-            : 'url(#remove-black)',
+        filter: isGreen
+          ? 'url(#remove-green)'
+          : 'brightness(1.15) contrast(1.15) saturate(1.1)',
         pointerEvents: 'none',
         ...style,
       }}
@@ -89,7 +85,7 @@ function MedalVideo({
 }
 
 // ==========================================
-// WebGL Background (unchanged)
+// WebGL Background
 // ==========================================
 function WebGLBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -198,7 +194,6 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
-  // 6 video medals
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -254,10 +249,7 @@ export default function Medal({ onBack }: MedalProps) {
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
-      {/* SVG filters */}
       <MedalFilters />
-
-      {/* WebGL bg */}
       <WebGLBackground />
 
       {/* Top Background Image (main page) */}
@@ -362,10 +354,10 @@ export default function Medal({ onBack }: MedalProps) {
             <div
               key={medal.id}
               onClick={() => setSelectedMedal(medal)}
-              className="relative bg-gradient-to-b from-[#312061] to-[#181036] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
+              className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
               {/* Video — square */}
-              <div className="w-35 h-35 aspect-square flex items-center justify-center relative">
+              <div className="w-32 h-32 aspect-square flex items-center justify-center relative">
                 <MedalVideo
                   src={medal.video}
                   variant={medal.variant ?? 'black'}
@@ -394,7 +386,6 @@ export default function Medal({ onBack }: MedalProps) {
 
       {/* ============================================================
           MEDAL DETAIL — BLACK BACKGROUND
-          Top bg → Video (on top) → Frame image (below video)
           ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-start bg-black overflow-y-auto animate-fade-in">
@@ -420,14 +411,10 @@ export default function Medal({ onBack }: MedalProps) {
             <ArrowLeft size={28} />
           </button>
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center w-full max-w-md px-6 mt-[14vh] pb-16">
-            {/* Square container:
-                - Frame image (z-10) → BEHIND
-                - Video (z-20) → ON TOP
-                Isse video dikhega, frame image uske peeche rahegi.
-            */}
-            <div className="relative w-64 h-64 flex items-center justify-center">
+          {/* Content — pushed further down so top bg doesn't overlap */}
+          <div className="relative z-10 flex flex-col items-center w-full max-w-md px-6 mt-[22vh] pb-16">
+            {/* Bigger square container — video & frame dono bade */}
+            <div className="relative w-80 h-80 flex items-center justify-center">
               {/* Frame image — BEHIND (z-10) */}
               <img
                 src="/IMG_20260924_132112.png"
@@ -435,8 +422,8 @@ export default function Medal({ onBack }: MedalProps) {
                 className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
               />
 
-              {/* Video — ON TOP (z-20) */}
-              <div className="absolute inset-0 flex items-center justify-center p-6 z-20">
+              {/* Video — ON TOP (z-20), bigger & less padding */}
+              <div className="absolute inset-0 flex items-center justify-center p-2 z-20">
                 <MedalVideo
                   src={selectedMedal.video}
                   variant={selectedMedal.variant ?? 'black'}
@@ -446,20 +433,20 @@ export default function Medal({ onBack }: MedalProps) {
             </div>
 
             {/* Name */}
-            <h3 className="mt-3 text-[20px] font-bold text-white tracking-wide drop-shadow-md">
+            <h3 className="mt-4 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
               {selectedMedal.name}
             </h3>
 
             {/* Rich — white text */}
             <p className="text-white text-[15px] font-medium mt-1">Rich</p>
 
-            {/* 0/50000 Coins Of gifts Send — grey text */}
+            {/* Coins text */}
             <p className="text-gray-500 text-[13px] mt-2">
               0/50000 Coins Of gifts Send
             </p>
 
             {/* 3 images with > between */}
-            <div className="flex items-center justify-center gap-3 mt-14">
+            <div className="flex items-center justify-center gap-3 mt-12">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
@@ -497,4 +484,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-  }
+      }
