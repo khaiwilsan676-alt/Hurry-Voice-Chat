@@ -965,19 +965,25 @@ export default function HomePage({ onLogout }: HomePageProps) {
       saveIncomingMessageToDB(msgObj);
 
       if (senderId !== userUID) {
-        setTopNotification({
-          id: String(data.id || Date.now()),
-          senderName: data.senderName || 'User',
-          senderPhoto: data.senderPhoto || '/default-avatar.png',
-          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-          senderId,
-        });
+        const notificationsEnabled = localStorage.getItem('appNotifications') !== 'false';
+        if (notificationsEnabled) {
+          setTopNotification({
+            id: String(data.id || Date.now()),
+            senderName: data.senderName || 'User',
+            senderPhoto: data.senderPhoto || '/default-avatar.png',
+            text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+            senderId,
+          });
 
-        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-        notificationTimerRef.current = setTimeout(() => {
-          setTopNotification(null);
-          notificationTimerRef.current = null;
-        }, 3800);
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(err => console.error('Audio play blocked:', err));
+
+          if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+          notificationTimerRef.current = setTimeout(() => {
+            setTopNotification(null);
+            notificationTimerRef.current = null;
+          }, 3800);
+        }
       }
     };
 
@@ -1006,19 +1012,25 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
       saveIncomingMessageToDB(msgObj);
 
-      setTopNotification({
-        id: String(data.id || Date.now()),
-        senderName: msgObj.senderName,
-        senderPhoto: msgObj.senderPhoto,
-        text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
-        senderId,
-      });
+      const notificationsEnabled = localStorage.getItem('appNotifications') !== 'false';
+      if (notificationsEnabled) {
+        setTopNotification({
+          id: String(data.id || Date.now()),
+          senderName: msgObj.senderName,
+          senderPhoto: msgObj.senderPhoto,
+          text: data.type === 'image' ? '📷 Image' : String(data.text || ''),
+          senderId,
+        });
 
-      if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
-      notificationTimerRef.current = setTimeout(() => {
-        setTopNotification(null);
-        notificationTimerRef.current = null;
-      }, 3800);
+        const audio = new Audio('/notification.mp3');
+        audio.play().catch(err => console.error('Audio play blocked:', err));
+
+        if (notificationTimerRef.current) clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = setTimeout(() => {
+          setTopNotification(null);
+          notificationTimerRef.current = null;
+        }, 3800);
+      }
     };
 
     const handleRoomSettingsUpdated = (data: any) => {
