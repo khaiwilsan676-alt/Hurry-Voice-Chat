@@ -21,13 +21,11 @@ interface MedalItem {
   sheetVideoSize: string
   sheetVideoTop: string
 
-  /** group key — same group shares the 1/2/3 tier tabs */
   tierGroup?: string
 
-  /** per-video gift text (shown under the name in the sheet) */
   giftText: string
   
-  // 👇 NAYE FIELDS IMAGE KE TEXT KE LIYE 👇
+  // 👇 IMAGE KE TEXT KE LIYE FIELDS 👇
   badgeTitle: string
   unlockText: string
 }
@@ -232,7 +230,7 @@ export default function Medal({ onBack }: MedalProps) {
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
 
-  // 👇 YAHAN HAR MEDAL KE LIYE TEXT ADD KIYA HAI (IMAGE KE HISAB SE) 👇
+  // 👇 IMAGE KE HISAB SE TEXT SET KIYA GAYA HAI 👇
   const medals: MedalItem[] = [
     // ================= RICH GROUP (1 / 2 / 3) =================
     {
@@ -288,7 +286,7 @@ export default function Medal({ onBack }: MedalProps) {
       id: 'new-1',
       name: 'Super Gamer',
       video: '/1000201032-background.mp4',
-      stars: 4,
+      stars: 4, // 👈 Image mein 4 stars hain
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '400px',
@@ -499,7 +497,6 @@ export default function Medal({ onBack }: MedalProps) {
 
   const filteredMedals = medals.filter((m) => m.category === activeTab)
 
-  // ---- tier helpers ----
   const getTierMedals = (medal: MedalItem | null): MedalItem[] => {
     if (!medal) return []
     if (!medal.tierGroup) return [medal]
@@ -522,7 +519,6 @@ export default function Medal({ onBack }: MedalProps) {
   const displayMedal = tierMedals[activeTier] ?? selectedMedal
   const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
 
-  // group ki common top position (pehla medal ka top anchor)
   const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
   const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
 
@@ -722,21 +718,21 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* 👇 YAHAN STARS, BADGE TITLE, AUR UNLOCK TEXT ADD KIYA HAI 👇 */}
+            {/* 👇 STARS, BADGE TITLE, AUR UNLOCK TEXT (IMAGE JAISA) 👇 */}
             <div className="flex flex-col items-center -mt-15 relative z-10">
-              {/* Stars */}
+              {/* Stars - Image mein 4 stars hain */}
               <div className="flex gap-1 mb-1">
-                {Array.from({ length: displayMedal.stars }).map((_, i) => (
-                  <span key={i} className="text-[#facc15] text-[18px]">★</span>
+                {Array.from({ length: 4 }).map((_, i) => ( // 👈 Fixed 4 stars
+                  <span key={i} className="text-[#facc15] text-[20px]">★</span>
                 ))}
               </div>
 
-              {/* Badge Title */}
+              {/* Badge Title - Image jaisa */}
               <h3 className="text-[20px] font-bold text-white tracking-wide drop-shadow-md">
                 {displayMedal.badgeTitle}
               </h3>
 
-              {/* Unlock Text */}
+              {/* Unlock Text - Image jaisa */}
               <p className="text-[#facc15] text-[14px] mt-0.5 font-medium">
                 {displayMedal.unlockText}
               </p>
