@@ -21,8 +21,11 @@ interface MedalItem {
   sheetVideoSize: string
   sheetVideoTop: string
 
-  /** NEW: group key — same group shares the 1/2/3 tier tabs */
+  /** group key — same group shares the 1/2/3 tier tabs */
   tierGroup?: string
+
+  /** per-video gift text (shown under the name in the sheet) */
+  giftText: string
 }
 
 const MedalFilters = () => (
@@ -230,10 +233,10 @@ export default function Medal({ onBack }: MedalProps) {
   const touchStartY = useRef(0)
 
   const medals: MedalItem[] = [
-    // ---- CP TOP group (1 / 2 / 3) ----
+    // ================= RICH GROUP (1 / 2 / 3) =================
     {
       id: '1',
-      name: 'CP-TOP1',
+      name: 'Rich',
       video: '/VID_20260924_124439.mp4',
       stars: 5,
       category: 'achievement',
@@ -242,12 +245,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'cp-top',
+      tierGroup: 'rich',
+      giftText: '0/5000000000000 Coins Of gifts Send',
     },
-    // ---- CP-TOP2 & CP-TOP3 swapped ----
     {
       id: '2',
-      name: 'CP-TOP 3',
+      name: 'Rich',
       video: '/1000200509-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -256,11 +259,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'cp-top',
+      tierGroup: 'rich',
+      giftText: '0/400000000000 Coins Of gifts Send',
     },
     {
       id: '3',
-      name: 'CP-TOP2',
+      name: 'Rich',
       video: '/1000200510-background.mp4',
       stars: 5,
       category: 'achievement',
@@ -269,12 +273,13 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'cp-top',
+      tierGroup: 'rich',
+      giftText: '0/30000000000  Coins Of gifts Send',
     },
-    // ---- Medal 4 (no tier tabs) ----
+    // ================= SUPER GAMER (no tier tabs) =================
     {
       id: 'new-1',
-      name: 'Medal 4',
+      name: 'Super Gamer',
       video: '/1000201032-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -284,11 +289,12 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
       // no tierGroup → tabs hidden
+      giftText: '0/1000000000000 Coins You won from game',
     },
-    // ---- Medal 5 / 6 / 7  (5 & 7 swapped) ----
+    // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
     {
       id: 'new-2',
-      name: 'Medal 7',
+      name: 'Millionaire',
       video: '/1000200518-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -297,11 +303,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '140%',
-      tierGroup: 'm567',
+      tierGroup: 'millionaire',
+      giftText: '0/1000000 Online Recharge',
     },
     {
       id: 'new-3',
-      name: 'Medal 6',
+      name: 'Millionaire',
       video: '/1000200521-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -310,11 +317,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
-      tierGroup: 'm567',
+      tierGroup: 'millionaire',
+      giftText: '0/50000000 Online Recharge',
     },
     {
       id: 'new-4',
-      name: 'Medal 5',
+      name: 'Millionaire',
       video: '/1000200522-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -323,12 +331,13 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
-      tierGroup: 'm567',
+      tierGroup: 'millionaire',
+      giftText: '0/100000000 Online Recharge',
     },
-    // ---- Medal 8 / 9 / 10  (8 & 10 swapped) ----
+    // ================= ROOM TOP GROUP (8 / 9 / 10) =================
     {
       id: 'new-5',
-      name: 'Medal 10',
+      name: 'Room Top 1',
       video: '/1000200514-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -337,11 +346,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      tierGroup: 'm8910',
+      tierGroup: 'roomtop',
+      giftText: 'Event Based',
     },
     {
       id: 'new-6',
-      name: 'Medal 9',
+      name: 'Room Top 2',
       video: '/1000200515-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -350,11 +360,12 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      tierGroup: 'm8910',
+      tierGroup: 'roomtop',
+      giftText: 'Event Based',
     },
     {
       id: 'new-7',
-      name: 'Medal 8',
+      name: 'Room Top 3',
       video: '/1000200516-background.mp4',
       stars: 4,
       category: 'achievement',
@@ -363,9 +374,10 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '55%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
-      tierGroup: 'm8910',
+      tierGroup: 'roomtop',
+      giftText: 'Event Based',
     },
-    // ---- Medal 11 / 12 / 13  (11 & 13 swapped) ----
+    // ================= MEDAL 11 / 12 / 13 GROUP =================
     {
       id: 'new-8',
       name: 'Medal 13',
@@ -377,7 +389,8 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      tierGroup: 'm111213',
+      tierGroup: 'medal111213',
+      giftText: '0/50000 Coins Of gifts Send',
     },
     {
       id: 'new-9',
@@ -390,7 +403,8 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      tierGroup: 'm111213',
+      tierGroup: 'medal111213',
+      giftText: '0/50000 Coins Of gifts Send',
     },
     {
       id: 'new-10',
@@ -403,9 +417,10 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
-      tierGroup: 'm111213',
+      tierGroup: 'medal111213',
+      giftText: '0/50000 Coins Of gifts Send',
     },
-    // ---- Pure Love / VIP1 / VIP2  (Pure Love & VIP2 swapped) ----
+    // ================= VIP GROUP (VIP2 / VIP1 / Pure Love) =================
     {
       id: '4',
       name: 'VIP2',
@@ -417,7 +432,8 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'love',
+      tierGroup: 'vip',
+      giftText: '0/50000 Coins Of gifts Send',
     },
     {
       id: '5',
@@ -430,7 +446,8 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'love',
+      tierGroup: 'vip',
+      giftText: '0/50000 Coins Of gifts Send',
     },
     {
       id: '6',
@@ -443,7 +460,8 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
-      tierGroup: 'love',
+      tierGroup: 'vip',
+      giftText: '0/50000 Coins Of gifts Send',
     },
   ]
 
@@ -491,6 +509,10 @@ export default function Medal({ onBack }: MedalProps) {
   const tierMedals = getTierMedals(selectedMedal)
   const displayMedal = tierMedals[activeTier] ?? selectedMedal
   const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
+
+  // group ki common top position (pehla medal ka top anchor)
+  const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
+  const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
@@ -656,23 +678,41 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
+            {/* --- SLIDING VIDEO TRACK --- */}
             <div
-              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none transition-all duration-300 ease-out"
+              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none overflow-hidden"
               style={{
-                top: displayMedal.sheetVideoTop,
+                top: groupTop,
                 transform: 'translateY(-50%)',
-                width: displayMedal.sheetVideoSize,
-                height: displayMedal.sheetVideoSize,
+                width: groupSize,
+                height: groupSize,
               }}
             >
-              <MedalVideo
-                key={displayMedal.id}
-                src={displayMedal.video}
-                variant={displayMedal.variant ?? 'black'}
-                autoPlay={true}
-                isColorless={false}
-                className="w-full h-full max-w-none max-h-none object-contain relative z-10"
-              />
+              <div
+                className="flex h-full transition-transform duration-500 ease-out will-change-transform"
+                style={{
+                  width: `${tierMedals.length * 100}%`,
+                  transform: `translateX(-${
+                    (activeTier * 100) / tierMedals.length
+                  }%)`,
+                }}
+              >
+                {tierMedals.map((m) => (
+                  <div
+                    key={m.id}
+                    className="h-full flex items-center justify-center shrink-0"
+                    style={{ width: `${100 / tierMedals.length}%` }}
+                  >
+                    <MedalVideo
+                      src={m.video}
+                      variant={m.variant ?? 'black'}
+                      autoPlay={true}
+                      isColorless={false}
+                      className="w-full h-full max-w-none max-h-none object-contain"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -687,8 +727,9 @@ export default function Medal({ onBack }: MedalProps) {
               {displayMedal.name}
             </h3>
 
+            {/* PER-VIDEO GIFT TEXT — displayMedal ke saath change hota hai */}
             <p className="text-gray-500 text-[16px] mt-1 relative z-10">
-              0/50000 Coins Of gifts Send
+              {displayMedal.giftText}
             </p>
 
             {showTabs && (
@@ -732,4 +773,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-}
+    }
