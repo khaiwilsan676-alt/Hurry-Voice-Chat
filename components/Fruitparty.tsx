@@ -210,19 +210,22 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
   }, [balance, totalWon, bets]);
 
   useEffect(() => {
-    const handleFruitWinner = (data: {name: string, win: number, avatar: string}) => {
-      setRealWinners(prev => {
-        const newWinners = [data, ...prev];
-        return newWinners.slice(0, 3); // keep top 3
-      });
+    const handleFruitWinner = (data: {name: string, win: number, avatar: string}[]) => {
+      setRealWinners(data);
     };
 
-    socket.on('fruitparty_winner', handleFruitWinner);
+    socket.on('fruitparty_top_winners', handleFruitWinner);
 
     return () => {
-      socket.off('fruitparty_winner', handleFruitWinner);
+      socket.off('fruitparty_top_winners', handleFruitWinner);
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState.phase === 'betting') {
+      setRealWinners([]);
+    }
+  }, [gameState.phase]);
 
   useEffect(() => {
     if (isAppMinimizedSession) {
@@ -455,7 +458,8 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             socket.emit('fruitparty_winner_update', {
                 name: currentUserName,
                 win: earned,
-                avatar: currentUserAvatar
+                avatar: currentUserAvatar,
+                round: gameState.round
             });
         }
         
