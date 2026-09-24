@@ -584,7 +584,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         }}
       >
         {/* Tabs row — safe area ke turant niche */}
-        <div className="px-4 pt-6 pb-3 flex items-center gap-3">
+        <div className="px-4 pt-4 pb-3 flex items-center gap-3">
           {/* Inbox Tab */}
           <div
             className="flex flex-col items-center cursor-pointer select-none outline-none"
