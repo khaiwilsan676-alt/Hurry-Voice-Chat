@@ -20,6 +20,10 @@ interface MedalItem {
 
   sheetVideoSize: string
   sheetVideoTop: string
+
+  // New properties for grouping tabs logic
+  groupIds?: string[]
+  isSubMedal?: boolean
 }
 
 const MedalFilters = () => (
@@ -214,6 +218,10 @@ export default function Medal({ onBack }: MedalProps) {
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
+  
+  // Sheet-specific states for sliding between 1, 2, 3 tabs
+  const [currentSheetId, setCurrentSheetId] = useState<string | null>(null)
+  const [slideDir, setSlideDir] = useState<'left' | 'right' | 'none'>('none')
 
   const medals: MedalItem[] = [
     {
@@ -227,6 +235,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      groupIds: ['1', '2', '3']
     },
     {
       id: '2',
@@ -239,6 +248,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      isSubMedal: true
     },
     {
       id: '3',
@@ -251,6 +261,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '700px',
       sheetVideoTop: '120%',
+      isSubMedal: true
     },
     {
       id: 'new-1',
@@ -263,6 +274,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
+      // No groupIds -> Tabs will hide
     },
     {
       id: 'new-2',
@@ -275,6 +287,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
+      groupIds: ['new-2', 'new-3', 'new-4']
     },
     {
       id: 'new-3',
@@ -287,6 +300,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
+      isSubMedal: true
     },
     {
       id: 'new-4',
@@ -299,6 +313,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '140%',
+      isSubMedal: true
     },
     {
       id: 'new-5',
@@ -311,6 +326,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '55%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
+      groupIds: ['new-5', 'new-6', 'new-7']
     },
     {
       id: 'new-6',
@@ -323,6 +339,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
+      isSubMedal: true
     },
     {
       id: 'new-7',
@@ -335,6 +352,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
+      isSubMedal: true
     },
     {
       id: 'new-8',
@@ -347,6 +365,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
+      groupIds: ['new-8', 'new-9', 'new-10']
     },
     {
       id: 'new-9',
@@ -359,6 +378,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
+      isSubMedal: true
     },
     {
       id: 'new-10',
@@ -371,6 +391,7 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
+      isSubMedal: true
     },
     {
       id: '4',
@@ -410,7 +431,31 @@ export default function Medal({ onBack }: MedalProps) {
     },
   ]
 
-  const filteredMedals = medals.filter((m) => m.category === activeTab)
+  // Main grid pe only wo medals dikhenge jo sub-medal nahi hain
+  const filteredMedals = medals.filter((m) => m.category === activeTab && !m.isSubMedal)
+
+  const openMedal = (medal: MedalItem) => {
+    setSelectedMedal(medal)
+    setCurrentSheetId(medal.id)
+    setSlideDir('none')
+  }
+
+  const closeMedal = () => {
+    setSelectedMedal(null)
+    setCurrentSheetId(null)
+  }
+
+  const handleTabClick = (newId: string) => {
+    if (newId === currentSheetId || !selectedMedal?.groupIds) return
+    const oldIndex = selectedMedal.groupIds.indexOf(currentSheetId!)
+    const newIndex = selectedMedal.groupIds.indexOf(newId)
+    
+    setSlideDir(newIndex > oldIndex ? 'right' : 'left')
+    setCurrentSheetId(newId)
+  }
+
+  const activeSheetMedal = medals.find(m => m.id === currentSheetId) || selectedMedal
+  const tabImages = ['/IMG_20260924_132022.png', '/IMG_20260924_132038.png', '/IMG_20260924_132051.png']
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
@@ -510,7 +555,7 @@ export default function Medal({ onBack }: MedalProps) {
           {filteredMedals.map((medal) => (
             <div
               key={medal.id}
-              onClick={() => setSelectedMedal(medal)}
+              onClick={() => openMedal(medal)}
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
               <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
@@ -550,7 +595,7 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      {selectedMedal && (
+      {selectedMedal && activeSheetMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
           <div className="relative w-full h-[30vh]">
             <img
@@ -560,30 +605,35 @@ export default function Medal({ onBack }: MedalProps) {
             />
 
             <button
-              onClick={() => setSelectedMedal(null)}
+              onClick={closeMedal}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
             >
               <ArrowLeft size={28} />
             </button>
 
-            <div
-              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-              style={{ 
-                top: selectedMedal.sheetVideoTop, 
-                transform: 'translateY(-50%)',
-                width: selectedMedal.sheetVideoSize,
-                height: selectedMedal.sheetVideoSize,
-              }}
+            {/* Swipeable Video Container */}
+            <div 
+              key={`video-${activeSheetMedal.id}`} 
+              className={`absolute inset-0 w-full h-full pointer-events-none z-30 ${slideDir === 'right' ? 'animate-slide-right' : slideDir === 'left' ? 'animate-slide-left' : ''}`}
             >
-              {/* Original Video */}
-              <MedalVideo
-                src={selectedMedal.video}
-                variant={selectedMedal.variant ?? 'black'}
-                autoPlay={true}
-                isColorless={false}
-                className="w-full h-full max-w-none max-h-none object-contain relative z-10"
-              />
+              <div
+                className="absolute left-1/2 -translate-x-1/2"
+                style={{ 
+                  top: activeSheetMedal.sheetVideoTop, 
+                  transform: 'translateY(-50%)',
+                  width: activeSheetMedal.sheetVideoSize,
+                  height: activeSheetMedal.sheetVideoSize,
+                }}
+              >
+                <MedalVideo
+                  src={activeSheetMedal.video}
+                  variant={activeSheetMedal.variant ?? 'black'}
+                  autoPlay={true}
+                  isColorless={false}
+                  className="w-full h-full max-w-none max-h-none object-contain relative z-10"
+                />
+              </div>
             </div>
           </div>
 
@@ -594,33 +644,48 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
-              {selectedMedal.name}
-            </h3>
-
-            <p className="text-gray-500 text-[16px] mt-1 relative z-10">
-              0/50000 Coins Of gifts Send
-            </p>
-
-            <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
-              <img
-                src="/IMG_20260924_132022.png"
-                alt="1"
-                className="w-12 h-12 object-contain"
-              />
-              <span className="text-white text-lg font-bold">&gt;</span>
-              <img
-                src="/IMG_20260924_132038.png"
-                alt="2"
-                className="w-12 h-12 object-contain"
-              />
-              <span className="text-white text-lg font-bold">&gt;</span>
-              <img
-                src="/IMG_20260924_132051.png"
-                alt="3"
-                className="w-12 h-12 object-contain"
-              />
+            {/* Swipeable Text Container */}
+            <div 
+              key={`text-${activeSheetMedal.id}`}
+              className={`flex flex-col items-center w-full ${slideDir === 'right' ? 'animate-slide-right' : slideDir === 'left' ? 'animate-slide-left' : ''}`}
+            >
+              <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
+                {activeSheetMedal.name}
+              </h3>
+              <p className="text-gray-500 text-[16px] mt-1 relative z-10">
+                0/50000 Coins Of gifts Send
+              </p>
             </div>
+
+            {/* Dynamic Tabs Block */}
+            {selectedMedal.groupIds && selectedMedal.groupIds.length > 0 && (
+              <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
+                {selectedMedal.groupIds.map((id, index) => {
+                  const isActive = currentSheetId === id;
+                  return (
+                    <React.Fragment key={id}>
+                      <div
+                        onClick={() => handleTabClick(id)}
+                        className={`cursor-pointer p-[2px] transition-all duration-200 ${
+                          isActive 
+                            ? 'border-2 border-[#facc15] rounded-md opacity-100 scale-110 shadow-[0_0_10px_rgba(250,204,21,0.4)]' 
+                            : 'border-2 border-transparent opacity-60 hover:opacity-80 scale-100'
+                        }`}
+                      >
+                        <img
+                          src={tabImages[index]}
+                          alt={`Tab ${index + 1}`}
+                          className="w-[42px] h-[42px] object-contain rounded-sm"
+                        />
+                      </div>
+                      {index < selectedMedal.groupIds!.length - 1 && (
+                        <span className="text-white/50 text-lg font-bold mx-1">&gt;</span>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           <style jsx global>{`
@@ -630,6 +695,21 @@ export default function Medal({ onBack }: MedalProps) {
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
+            }
+            
+            @keyframes slideInRight {
+              0% { transform: translateX(50px); opacity: 0; }
+              100% { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideInLeft {
+              0% { transform: translateX(-50px); opacity: 0; }
+              100% { transform: translateX(0); opacity: 1; }
+            }
+            .animate-slide-right {
+              animation: slideInRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            }
+            .animate-slide-left {
+              animation: slideInLeft 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
             }
           `}</style>
         </div>
