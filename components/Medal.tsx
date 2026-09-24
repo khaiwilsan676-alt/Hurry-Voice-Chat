@@ -410,7 +410,7 @@ export default function Medal({ onBack }: MedalProps) {
           </button>
 
           {/* ✅ Content moved UP — frame image sits right at 30vh boundary */}
-          <div className="relative z-10 flex flex-col items-center w-full max-w-md px-6 mt-[14vh] pb-16">
+          <div className="relative z-10 flex flex-col items-center w-full max-w-md px-6 mt-[20vh] pb-16">
             {/* Square container — frame + video */}
             <div className="relative w-72 h-72 flex items-center justify-center">
               <img
@@ -420,12 +420,12 @@ export default function Medal({ onBack }: MedalProps) {
               />
 
               {/* ✅ Video — square, slight up */}
-              <div className="absolute inset-0 flex items-start justify-center pt-4 z-20">
-                <div className="w-52 h-52 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-start justify-center -pt-4 z-20">
+                <div className="w-80 h-80 flex items-center justify-center">
                   <MedalVideo
                     src={selectedMedal.video}
                     variant={selectedMedal.variant ?? 'black'}
-                    className="w-52 h-52 object-contain"
+                    className="w-70 h-70 object-contain"
                   />
                 </div>
               </div>
