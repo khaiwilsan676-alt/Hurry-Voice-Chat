@@ -1055,21 +1055,38 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                     e.stopPropagation(); // Parent div ke click ko rokne ke liye
                     setShowInviteFriends(true);
                   }}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full focus:outline-none active:scale-95 transition-transform mr-1"
+                  className="flex-shrink-0 relative flex items-center justify-between w-[200px] h-[52px] rounded-full focus:outline-none active:scale-[0.98] transition-transform mr-2"
                   style={{
-                    background: 'linear-gradient(to bottom, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
-                    boxShadow: '0 2px 4px rgba(180, 83, 9, 0.3), inset 0 1px 1px rgba(255,255,255,0.8)',
-                    border: '1px solid #d97706'
+                    background: '#FDF3C7',
+                    border: '2px solid #E8C56A',
+                    boxShadow: '0 4px 0 #B88A2E, 0 6px 6px rgba(0,0,0,0.2), inset 0 2px 4px rgba(255,255,255,0.9)',
                   }}
                 >
-                  <img
-                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan "Get Gold Coins" wali treasure chest image ka path daal dena
-                    alt="Get Gold Coins"
-                    className="h-5 w-5 object-contain"
-                  />
-                  <span className="text-[10px] font-extrabold text-amber-800 whitespace-nowrap">
+                  {/* Left Side: Treasure Chest Icon */}
+                  <div className="absolute left-[-14px] top-1/2 -translate-y-1/2 w-14 h-14 flex items-center justify-center z-10">
+                    <img
+                      src="/file_00000000f26c81f88083bc494a0f229b.png" 
+                      alt="Treasure"
+                      className="w-full h-full object-contain drop-shadow-md"
+                    />
+                  </div>
+
+                  {/* Center: Text */}
+                  <span className="flex-1 text-center text-[15px] font-extrabold text-[#6B4A1E] pl-4 whitespace-nowrap">
                     Get Gold Coins
                   </span>
+
+                  {/* Right Side: Arrow & Hand Pointer */}
+                  <div className="flex items-center gap-0.5 pr-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8CA6C9" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                    <img 
+                      src="/hand-pointer.png" 
+                      alt="Click" 
+                      className="w-10 h-10 object-contain -ml-2 -mb-2" 
+                    />
+                  </div>
                 </button>
               )}
               {/* ===================================== */}
