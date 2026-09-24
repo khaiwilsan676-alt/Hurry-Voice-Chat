@@ -148,6 +148,10 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   
   // Tab state: 'messages' or 'friends'
   const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -630,27 +634,31 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
+  // ---------- Filtered Chats for Search ----------
+  const filteredFixedChats = fixedChats.filter(chat => 
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredDynamicChats = dynamicChats.filter(chat => 
+    chat.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="w-full min-h-screen bg-white">
-      {/* Header - Updated as per image */}
-      <div
-        className="px-4 pb-2 flex items-center justify-between sticky top-0 z-10 safe-top"
-        style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-          paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
-        }}
-      >
-        <div className="flex items-center gap-6">
+    <div className="w-full min-h-screen bg-white relative overflow-hidden">
+      
+      {/* Header - Exactly as per image */}
+      <div className="px-5 pt-6 pb-2 flex items-center justify-between sticky top-0 z-30 bg-white safe-top">
+        <div className="flex items-center gap-8">
           {/* Message Tab */}
           <div 
             className="flex flex-col items-center cursor-pointer"
             onClick={() => setActiveTab('messages')}
           >
-            <h1 className={`text-3xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
+            <h1 className={`text-4xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
               Message
             </h1>
             {activeTab === 'messages' && (
-              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
+              <div className="w-10 h-1.5 bg-yellow-400 rounded-full mt-1"></div>
             )}
           </div>
 
@@ -659,21 +667,24 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             className="flex flex-col items-center cursor-pointer"
             onClick={() => setActiveTab('friends')}
           >
-            <h1 className={`text-3xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
+            <h1 className={`text-4xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
               Friends
             </h1>
             {activeTab === 'friends' && (
-              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
+              <div className="w-10 h-1.5 bg-yellow-400 rounded-full mt-1"></div>
             )}
           </div>
         </div>
 
         {/* Search Icon */}
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer">
+        <div 
+          className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer"
+          onClick={() => setIsSearchOpen(true)}
+        >
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-yellow-600" 
+              className="h-7 w-7 text-yellow-600" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor" 
@@ -685,12 +696,106 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         </div>
       </div>
 
+      {/* Search Bar Overlay - Slide from Right */}
+      <div 
+        className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out ${
+          isSearchOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
+        <div className="absolute inset-0 bg-black/20" onClick={() => setIsSearchOpen(false)}></div>
+        <div className="absolute top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl p-4 flex flex-col">
+          <div className="flex items-center gap-3 mb-4">
+            <button 
+              onClick={() => setIsSearchOpen(false)}
+              className="p-2 rounded-full hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="relative flex-1 flex items-center bg-white rounded-full shadow-sm border border-gray-200">
+              <div className="absolute left-4 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Please enter your friend's nickname"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-full text-gray-600 placeholder-gray-400 text-base outline-none bg-white"
+                autoFocus={isSearchOpen}
+              />
+            </div>
+          </div>
+
+          {/* Search Results in Slide Panel */}
+          <div className="flex-1 overflow-y-auto">
+            {searchQuery ? (
+              <>
+                {filteredFixedChats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    onClick={() => {
+                      setOfficialPreviews((prev) => ({
+                        ...prev,
+                        [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                      }));
+                      handleOpenFixedChat(chat);
+                      setIsSearchOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-2 py-3 cursor-pointer active:opacity-60 border-b border-gray-50"
+                  >
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <Image src={chat.image} alt={chat.name} width={48} height={48} className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
+                    </div>
+                  </div>
+                ))}
+                {filteredDynamicChats.map((chat) => (
+                  <div
+                    key={chat.chatId}
+                    onClick={() => {
+                      handleOpenDynamicChat(chat);
+                      setIsSearchOpen(false);
+                    }}
+                    className="flex items-center gap-3 px-2 py-3 cursor-pointer active:opacity-60 border-b border-gray-50"
+                  >
+                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                      <Image
+                        src={chat.otherUser.photo || '/default-avatar.png'}
+                        alt={chat.otherUser.name}
+                        width={48}
+                        height={48}
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
+                      <p className="text-sm text-gray-400 truncate">ID: {chat.otherUser.uid}</p>
+                    </div>
+                  </div>
+                ))}
+                {filteredFixedChats.length === 0 && filteredDynamicChats.length === 0 && (
+                  <p className="text-center text-gray-400 mt-10">No results found</p>
+                )}
+              </>
+            ) : (
+              <p className="text-center text-gray-400 mt-10">Type to search...</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Main content: Chats only */}
       <div className="pt-2 pb-24 flex flex-col gap-1">
         {activeTab === 'messages' ? (
           <>
             {/* Fixed chats */}
-            {fixedChats.map((chat) => {
+            {filteredFixedChats.map((chat) => {
               const preview = officialPreviews[chat.uid];
               return (
                 <div
@@ -728,7 +833,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             })}
 
             {/* Dynamic chats from IndexedDB */}
-            {dynamicChats.map((chat) => (
+            {filteredDynamicChats.map((chat) => (
               <div
                 key={chat.chatId}
                 onClick={() => handleOpenDynamicChat(chat)}
@@ -759,16 +864,41 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             ))}
 
             {/* Empty state */}
-            {!isLoading && dynamicChats.length === 0 && (
+            {!isLoading && dynamicChats.length === 0 && filteredFixedChats.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-sm"></p>
               </div>
             )}
           </>
         ) : (
-          /* Friends Tab Content - Empty for now as per instruction */
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-gray-400 text-lg">Friends list will appear here</p>
+          /* Friends Tab Content - Showing Friend IDs */
+          <div className="flex flex-col gap-1">
+            {filteredDynamicChats.length > 0 ? (
+              filteredDynamicChats.map((chat) => (
+                <div
+                  key={chat.chatId}
+                  className="flex items-center gap-3 px-4 py-3 bg-white"
+                >
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={chat.otherUser.photo || '/default-avatar.png'}
+                      alt={chat.otherUser.name}
+                      width={48}
+                      height={48}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
+                    <p className="text-sm text-gray-500">ID: {chat.otherUser.uid}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-gray-400 text-lg">No friends found</p>
+              </div>
+            )}
           </div>
         )}
       </div>
