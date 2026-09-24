@@ -326,9 +326,11 @@ export default function Level({ onBack }: LevelProps) {
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
         >
+          {/* Back Button - Top Left */}
           <button
             onClick={onBack}
             className="absolute left-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
@@ -337,7 +339,11 @@ export default function Level({ onBack }: LevelProps) {
             Level
           </h1>
 
-          <button className="absolute right-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer">
+          {/* ✅ Help Button - Top Right Corner (fixed) */}
+          <button
+            className="absolute right-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
+          >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
         </div>
