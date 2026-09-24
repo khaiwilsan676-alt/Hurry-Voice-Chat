@@ -271,8 +271,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '430px',
-      cardVideoTop: '76%',
+      cardVideoSize: '440px',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
     },
@@ -284,7 +284,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '76%',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '137%',
     },
@@ -296,7 +296,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '76%',
+      cardVideoTop: '78%',
       sheetVideoSize: '700px',
       sheetVideoTop: '140%',
     },
@@ -308,7 +308,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '300px',
-      cardVideoTop: '70%',
+      cardVideoTop: '65%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -320,7 +320,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '300px',
-      cardVideoTop: '70%',
+      cardVideoTop: '65%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -332,7 +332,7 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '300px',
-      cardVideoTop: '70%',
+      cardVideoTop: '65%',
       sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
@@ -343,8 +343,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
-      cardVideoTop: '78%',
+      cardVideoSize: '400px',
+      cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
     },
@@ -355,8 +355,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
-      cardVideoTop: '78%',
+      cardVideoSize: '400px',
+      cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
     },
@@ -367,8 +367,8 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
-      cardVideoTop: '78%',
+      cardVideoSize: '400px',
+      cardVideoTop: '80%',
       sheetVideoSize: '700px',
       sheetVideoTop: '150%',
     },
@@ -567,38 +567,38 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* Background Golden Rays (Bhagwaan style divine effect) */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
-              style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
-            >
-              <div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
-                style={{
-                  width: `calc(${selectedMedal.sheetVideoSize} * 1.5)`,
-                  height: `calc(${selectedMedal.sheetVideoSize} * 1.5)`,
-                  background: 'repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.5) 0deg 10deg, transparent 10deg 20deg)',
-                  maskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
-                  WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
-                  animation: 'spinRays 25s linear infinite'
-                }}
-              />
-            </div>
-
+            {/* MAIN FIX: Video aur Golden Rays ab ek hi container ke andar hain. 
+                Is se rays ekdam perfect Video ke center par rahengi. */}
             <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-              style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
+              style={{ 
+                top: selectedMedal.sheetVideoTop, 
+                transform: 'translateY(-50%)',
+                width: selectedMedal.sheetVideoSize,
+                height: selectedMedal.sheetVideoSize,
+              }}
             >
+              {/* Background Golden Rays */}
+              <div
+                className="absolute left-1/2 top-1/2 rounded-full mix-blend-screen"
+                style={{
+                  width: '130%',
+                  height: '130%',
+                  zIndex: -1, // Video ke theek peeche 
+                  background: 'repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.4) 0deg 8deg, transparent 8deg 18deg)',
+                  maskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
+                  WebkitMaskImage: 'radial-gradient(circle, rgba(0,0,0,1) 15%, rgba(0,0,0,0) 65%)',
+                  animation: 'spinRays 20s linear infinite'
+                }}
+              />
+
+              {/* Original Video */}
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
                 autoPlay={true}
                 isColorless={false}
-                className="max-w-none max-h-none object-contain"
-                style={{
-                  width: selectedMedal.sheetVideoSize,
-                  height: selectedMedal.sheetVideoSize,
-                }}
+                className="w-full h-full max-w-none max-h-none object-contain relative z-10"
               />
             </div>
           </div>
@@ -607,7 +607,7 @@ export default function Medal({ onBack }: MedalProps) {
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none mt-10"
+              className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
             <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
@@ -657,4 +657,3 @@ export default function Medal({ onBack }: MedalProps) {
     </div>
   )
 }
-
