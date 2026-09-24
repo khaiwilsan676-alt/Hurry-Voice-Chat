@@ -188,84 +188,12 @@ function WebGLBackground() {
   )
 }
 
-/* 👉 GOLDEN SHINING RAYS (Video ke niche se nikalne wali) */
-function GoldenRays() {
-  return (
-    <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20"
-      style={{ top: '50%', marginTop: '0px' }}
-    >
-      <div className="relative w-[420px] h-[420px]">
-        <div
-          className="absolute inset-0 rounded-full rays-spin"
-          style={{
-            background:
-              'conic-gradient(from 0deg, transparent 0deg, rgba(255,200,60,0.55) 6deg, transparent 14deg, transparent 30deg, rgba(255,220,120,0.45) 36deg, transparent 46deg, transparent 60deg, rgba(255,180,40,0.55) 68deg, transparent 78deg, transparent 95deg, rgba(255,210,90,0.5) 102deg, transparent 112deg, transparent 130deg, rgba(255,190,60,0.45) 138deg, transparent 148deg, transparent 165deg, rgba(255,225,130,0.55) 172deg, transparent 182deg, transparent 200deg, rgba(255,200,60,0.5) 208deg, transparent 218deg, transparent 235deg, rgba(255,215,90,0.45) 242deg, transparent 252deg, transparent 270deg, rgba(255,185,45,0.55) 278deg, transparent 288deg, transparent 305deg, rgba(255,220,110,0.5) 312deg, transparent 322deg, transparent 340deg, rgba(255,200,70,0.45) 347deg, transparent 360deg)',
-            maskImage:
-              'radial-gradient(circle, transparent 30%, black 45%, black 70%, transparent 95%)',
-            WebkitMaskImage:
-              'radial-gradient(circle, transparent 30%, black 45%, black 70%, transparent 95%)',
-            filter: 'blur(1.5px)',
-            animation: 'raysSpin 18s linear infinite',
-          }}
-        />
-        <div
-          className="absolute inset-0 rounded-full rays-spin-rev"
-          style={{
-            background:
-              'conic-gradient(from 90deg, transparent 0deg, rgba(255,230,140,0.35) 8deg, transparent 18deg, transparent 45deg, rgba(255,210,80,0.35) 52deg, transparent 62deg, transparent 90deg, rgba(255,235,150,0.35) 98deg, transparent 108deg, transparent 140deg, rgba(255,205,70,0.35) 148deg, transparent 158deg, transparent 190deg, rgba(255,225,120,0.35) 198deg, transparent 208deg, transparent 240deg, rgba(255,200,60,0.35) 248deg, transparent 258deg, transparent 290deg, rgba(255,230,130,0.35) 298deg, transparent 308deg, transparent 340deg, rgba(255,210,80,0.35) 348deg, transparent 358deg)',
-            maskImage:
-              'radial-gradient(circle, transparent 35%, black 50%, black 75%, transparent 98%)',
-            WebkitMaskImage:
-              'radial-gradient(circle, transparent 35%, black 50%, black 75%, transparent 98%)',
-            filter: 'blur(2px)',
-            animation: 'raysSpinRev 24s linear infinite',
-          }}
-        />
-        <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(255,215,110,0.55) 0%, rgba(255,180,50,0.28) 35%, rgba(255,160,20,0.08) 60%, transparent 75%)',
-            filter: 'blur(8px)',
-            animation: 'glowPulse 3.2s ease-in-out infinite',
-          }}
-        />
-        <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, transparent 55%, rgba(255,235,160,0.35) 70%, transparent 85%)',
-            filter: 'blur(3px)',
-            animation: 'glowPulse 3.2s ease-in-out infinite',
-          }}
-        />
-      </div>
-
-      <style jsx global>{`
-        @keyframes raysSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes raysSpinRev {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
-        }
-        @keyframes glowPulse {
-          0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
-          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
-        }
-      `}</style>
-    </div>
-  )
-}
-
 export default function Medal({ onBack }: MedalProps) {
   const [activeTab, setActiveTab] = useState<
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
-  /* 👇 SAARE MEDALS - Sab Achievement tab me 👇 */
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -310,10 +238,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
+      cardVideoSize: '400px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoSize: '660px',
+      sheetVideoTop: '100%',
     },
     {
       id: 'new-2',
@@ -322,10 +250,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoSize: '400px',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '137%',
     },
     {
       id: 'new-3',
@@ -335,9 +263,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '137%',
     },
     {
       id: 'new-4',
@@ -347,9 +275,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '140%',
     },
     {
       id: 'new-5',
@@ -358,9 +286,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
+      cardVideoSize: '200px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',
+      sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
     {
@@ -370,9 +298,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
+      cardVideoSize: '200px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',
+      sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
     {
@@ -382,9 +310,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',
+      cardVideoSize: '200px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',
+      sheetVideoSize: '500px',
       sheetVideoTop: '120%',
     },
     {
@@ -395,9 +323,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '140%',
     },
     {
       id: 'new-9',
@@ -407,9 +335,9 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '140%',
     },
     {
       id: 'new-10',
@@ -419,11 +347,10 @@ export default function Medal({ onBack }: MedalProps) {
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '500px',
-      cardVideoTop: '50%',
+      cardVideoTop: '70%',
       sheetVideoSize: '700px',
-      sheetVideoTop: '120%',
+      sheetVideoTop: '140%',
     },
-    /* 👇 PURANE MEDALS (bhi achievement me) 👇 */
     {
       id: '4',
       name: 'Pure Love',
@@ -617,10 +544,6 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* 👉 GOLDEN SHINING RAYS - Video ke niche se nikal rahi hain */}
-            <GoldenRays />
-
-            {/* 👉 VIDEO (Rays ke upar overlap) */}
             <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
               style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
@@ -686,4 +609,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-    }
+                        }
