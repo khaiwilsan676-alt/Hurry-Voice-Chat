@@ -220,13 +220,13 @@ export default function GiftPicker({
       onSend(totalCost);
     }
 
-    setSending(false);
     if (selectedGiftObj.video) {
       setPlayingVideo({
         src: selectedGiftObj.video,
         style: selectedGiftObj.videoStyle ?? "fade",
       });
     } else {
+      setSending(false);
       onClose();
     }
   };
@@ -295,10 +295,12 @@ export default function GiftPicker({
             disableRemotePlayback
             onEnded={() => {
               setPlayingVideo(null);
+              setSending(false);
               onClose();
             }}
             onError={() => {
               setPlayingVideo(null);
+              setSending(false);
               onClose();
             }}
             className={
