@@ -523,6 +523,7 @@ export default function Medal({ onBack }: MedalProps) {
           <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white tracking-wide drop-shadow-md">
             Medal
           </h1>
+          {/* 👇 RIGHT SIDE HELP BUTTON (?) 👇 */}
           <button className="p-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10">
             <HelpCircle size={22} className="opacity-80" />
           </button>
@@ -698,7 +699,7 @@ export default function Medal({ onBack }: MedalProps) {
               {displayMedal.giftText}
             </p>
 
-            {/* 👇 YAHAN PROGRESS LINE ADD KI HAI (Screenshot ke mutabik) 👇 */}
+            {/* 👇 PROGRESS LINE 👇 */}
             <div className="w-full max-w-[280px] mt-5 relative z-10 flex flex-col items-center">
               {/* Purple Progress Bar */}
               <div className="w-full h-[6px] bg-[#3b2b5c] rounded-full overflow-hidden">
@@ -713,30 +714,40 @@ export default function Medal({ onBack }: MedalProps) {
                 1/1
               </span>
             </div>
-            {/* 👆 PROGRESS LINE END 👆 */}
 
+            {/* 👇 YAHAN BOTTOM MEDALS LIST ADD KI HAI (IMAGE JAISA) 👇 */}
             {showTabs && (
-              <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
-                {tierMedals.map((_, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 && (
-                      <span className="text-white text-lg font-bold">&gt;</span>
-                    )}
-                    <img
-                      src={TIER_TAB_IMAGES[i]}
-                      alt={`${i + 1}`}
-                      onClick={() => setActiveTier(i)}
-                      draggable={false}
-                      className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
-                        activeTier === i ? 'opacity-100' : 'opacity-50'
-                      }`}
-                    />
-                  </React.Fragment>
+              <div className="flex items-center justify-center gap-4 mt-6 relative z-10">
+                {tierMedals.map((m, i) => (
+                  <div 
+                    key={i} 
+                    onClick={() => setActiveTier(i)}
+                    className={`flex flex-col items-center cursor-pointer transition-all duration-200 ${
+                      activeTier === i ? 'opacity-100 scale-110' : 'opacity-50 scale-100'
+                    }`}
+                  >
+                    {/* Small Medal Icon */}
+                    <div className="w-14 h-14 rounded-full border border-[#5a4b8a] bg-[#1a1230] flex items-center justify-center overflow-hidden relative">
+                       <MedalVideo
+                          src={m.video}
+                          variant={m.variant ?? 'black'}
+                          autoPlay={true}
+                          isColorless={true}
+                          className="w-[200%] h-[200%] max-w-none max-h-none object-contain"
+                          style={{ transform: 'scale(0.8)' }}
+                        />
+                    </div>
+                    {/* Lv Text */}
+                    <span className="text-[12px] text-gray-300 mt-1 font-medium">
+                      Lv.{i + 1}
+                    </span>
+                  </div>
                 ))}
               </div>
             )}
+            {/* 👆 BOTTOM MEDALS LIST END 👆 */}
 
-            {/* 👇 OBTAINED BUTTON YAHAN ADD KIYA HAI 👇 */}
+            {/* 👇 OBTAINED BUTTON 👇 */}
             <button className="w-full max-w-[280px] mt-8 bg-gradient-to-r from-[#facc15] to-[#f59e0b] text-[#4a2c0a] font-bold text-[16px] py-3 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer z-10">
               obtained
             </button>
