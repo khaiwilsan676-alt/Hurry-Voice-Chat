@@ -111,7 +111,6 @@ interface FixedChat {
 }
 
 interface MessagePageProps {
-  onNavigate?: (page: "home" | "message" | "me") => void;
   onChatOpen?: (open: boolean) => void;
   onJoinRoom?: (roomId: string) => void;
   sharedRoomData?: {
@@ -123,7 +122,7 @@ interface MessagePageProps {
 
 const FIXED_CHAT_UIDS = ['hurry_team_official', 'hurry_system_official'];
 
-export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, onNavigate }: MessagePageProps) {
+export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: MessagePageProps) {
   const [fixedChats] = useState<FixedChat[]>([
     { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
     { id: 'hawa-system', name: 'Hurry System', image: '/file_00000000a66881f8aa9e15d2fe2b9a0c.png', uid: 'hurry_system_official', isFixed: true }
@@ -711,7 +710,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
           className="fixed inset-0 z-[100] bg-white"
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
-          <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />
+          <FollowList onBack={() => setActiveTab('messages')} />
         </div>
       )}
 

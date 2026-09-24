@@ -3016,14 +3016,13 @@ export default function HomePage({ onLogout }: HomePageProps) {
         )}
 
         {currentPage === 'message' && (
-          <MessagePage onChatOpen={setIsChatOpen} onJoinRoom={handleJoinRoomFromChat} onNavigate={(page) => setCurrentPage(page)} />
+          <MessagePage onChatOpen={setIsChatOpen} onJoinRoom={handleJoinRoomFromChat} />
         )}
 
         {currentPage === 'me' && (
           <MePage
             onLogout={onLogout}
             onPublicProfileChange={(active: boolean) => setIsPublicProfileActive(active)}
-            onNavigate={(page) => setCurrentPage(page)}
           />
         )}
 
