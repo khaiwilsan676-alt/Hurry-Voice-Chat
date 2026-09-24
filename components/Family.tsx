@@ -159,7 +159,6 @@ const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, ima
         style={{ 
           mixBlendMode: 'screen',
           filter: 'url(#remove-black)',
-          // Yeh mask add kiya taaki other vehicle cards jaisa edge smoothly blend ho
           maskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)',
           WebkitMaskImage: 'radial-gradient(circle at center, rgba(0,0,0,1) 45%, rgba(0,0,0,0) 90%)'
         }} 
@@ -463,7 +462,6 @@ export default function Family({ onBack }: FamilyProps) {
                 />
               </div>
             ) : activeVideoModal.type === 'mixed' ? (
-              /* NEW: Mixed Modal Edge to Edge with TOP & BOTTOM fade exactly same as vehicle */
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
@@ -565,11 +563,68 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
+        {/* BLUE BUTTON - Only Color Changed to Blue */}
         <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
-          <button className="w-[90%] max-w-md bg-[#3b82f6] shadow-[0_5px_0_#2563eb] active:shadow-[0_0px_0_#2563eb] active:translate-y-1 rounded-full transition-all cursor-pointer flex flex-row items-center justify-center py-3.5 gap-2 pointer-events-auto">
-            <span className="text-white font-bold text-lg tracking-wide">Create</span>
-            <img src="/file_00000000e56882119c217d508b6733dc.png" alt="Coin" className="w-5 h-5 object-contain" style={{ filter: 'url(#remove-white)' }} />
-            <span className="font-bold text-white/90 text-sm tracking-wider mt-0.5">1500000</span>
+          <button 
+            className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
+            style={{
+              backgroundColor: '#007BFF',
+              backgroundImage: 'linear-gradient(to bottom, #4DA3FF 0%, #007BFF 50%, #0056b3 100%)',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)',
+              border: '1px solid #66B2FF',
+              borderRadius: '8px',
+              height: '56px',
+              padding: '0 12px'
+            }}
+          >
+            {/* Main Inner Dark Blue Pill */}
+            <div 
+              className="w-full h-[80%] flex items-center justify-center relative"
+              style={{
+                background: 'linear-gradient(to bottom, #0056b3 0%, #003d82 50%, #0056b3 100%)',
+                borderRadius: '50px',
+                border: '2px solid #4DA3FF',
+                boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(77,163,255,0.4)'
+              }}
+            >
+              {/* Left Decorative Flare */}
+              <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10">
+                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#007BFF" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#blueGradient)" />
+                </svg>
+              </div>
+              
+              {/* Right Decorative Flare */}
+              <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10 rotate-180">
+                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#007BFF" />
+                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#blueGradient)" />
+                </svg>
+              </div>
+
+              {/* Left Gem */}
+              <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
+
+              {/* Right Gem */}
+              <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
+
+              {/* Text */}
+              <span className="text-[#E0F7FA] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
+                Create Family
+              </span>
+            </div>
+
+            {/* Define SVG Gradient for Reuse */}
+            <svg style={{ width: 0, height: 0, position: 'absolute' }}>
+              <defs>
+                <linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#4DA3FF" />
+                  <stop offset="50%" stopColor="#007BFF" />
+                  <stop offset="100%" stopColor="#0056b3" />
+                </linearGradient>
+              </defs>
+            </svg>
           </button>
         </div>
 
