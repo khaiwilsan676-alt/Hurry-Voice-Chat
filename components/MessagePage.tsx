@@ -584,7 +584,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         }}
       >
         {/* Tabs row — safe area ke turant niche */}
-        <div className="px-5 pt-3 pb-3 flex items-center gap-3">
+        <div className="px-5 pt-5 pb-3 flex items-center gap-3">
           {/* Inbox Tab */}
           <div
             className="flex flex-col items-center cursor-pointer select-none outline-none"
@@ -624,7 +624,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       </div>
 
       {/* ============ MAIN CONTENT (Inbox only) ============ */}
-      <div className="pt-2 pb-24 flex flex-col gap-1">
+      <div className="pt-1 pb-24 flex flex-col gap-0.7">
         {/* Fixed chats */}
         {fixedChats.map((chat) => {
           const preview = officialPreviews[chat.uid];
