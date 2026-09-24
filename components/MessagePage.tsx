@@ -5,6 +5,7 @@ import { socket } from '../src/lib/socket';
 import Image from 'next/image';
 
 import ChatScreen from './ChatScreen';
+import FollowList from './followlist';
 
 // ============ Simple IndexedDB Functions ============
 const STORE_NAME = 'conversations';
@@ -12,14 +13,11 @@ const STORE_NAME = 'conversations';
 const getConversationsDBName = (userId: string) => `MessagesDB_${userId || 'guest'}`;
 const getChatMessagesDBName = (userId: string) => `ChatMessagesDB_${userId || 'guest'}`;
 
-// IndexedDB kholo
 const openDB = (userId: string): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(getConversationsDBName(userId), 2);
-
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -29,43 +27,33 @@ const openDB = (userId: string): Promise<IDBDatabase> => {
   });
 };
 
-// IndexedDB mein save karo
 const saveToDB = async (userId: string, conversations: ChatPreview[]) => {
   if (!userId || userId === 'N/A') return;
   try {
     const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
-
-    // Purana data clear karo
     store.clear();
-
-    // Naya data save karo
     conversations.forEach(chat => {
       store.put(chat);
     });
-
     db.close();
-    console.log('IndexedDB mein save ho gaya:', conversations.length);
   } catch (error) {
     console.error('Save error:', error);
   }
 };
 
-// IndexedDB se load karo
 const loadFromDB = async (userId: string): Promise<ChatPreview[]> => {
   if (!userId || userId === 'N/A') return [];
   try {
     const db = await openDB(userId);
     const transaction = db.transaction([STORE_NAME], 'readonly');
     const store = transaction.objectStore(STORE_NAME);
-
     const chats = await new Promise<ChatPreview[]>((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
     return chats;
   } catch (error) {
@@ -74,7 +62,6 @@ const loadFromDB = async (userId: string): Promise<ChatPreview[]> => {
   }
 };
 
-// Fallback: load messages from ChatMessagesDB to build missing conversation entries
 const loadAllChatMessagesDB = async (userId: string): Promise<any[]> => {
   if (!userId || userId === 'N/A') return [];
   try {
@@ -145,13 +132,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   const [activeChat, setActiveChat] = useState<{ uid: string; name: string; photo: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }>>({});
-  
-  // Tab state: 'messages' or 'friends'
+
   const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
-  
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -162,7 +144,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
   const currentUserUid = getCurrentUserData().uid;
 
-  // Load cached conversations once + receive realtime private messages
   useEffect(() => {
     let isMounted = true;
 
@@ -187,8 +168,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
         const existing = chatMap.get(msg.chatId);
         const msgTime = Number(msg.timestamp || Date.now());
-        const isMe =
-          msg.senderId === currentUserUid || msg.sender === 'me';
+        const isMe = msg.senderId === currentUserUid || msg.sender === 'me';
 
         const otherUid = isMe
           ? (msg.receiverId || msg.targetUid)
@@ -211,35 +191,23 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
                 name: otherName,
                 photo: otherPhoto,
               },
-              lastMessage:
-                msg.type === 'image' ? '📷 Image' : (msg.text || ''),
+              lastMessage: msg.type === 'image' ? '📷 Image' : (msg.text || ''),
               lastTimestamp: msgTime,
               unreadCount: 0,
             });
           }
         } else if (msgTime > (existing.lastTimestamp || 0)) {
-          existing.lastMessage =
-            msg.type === 'image'
-              ? '📷 Image'
-              : (msg.text || existing.lastMessage);
+          existing.lastMessage = msg.type === 'image' ? '📷 Image' : (msg.text || existing.lastMessage);
           existing.lastTimestamp = msgTime;
-
-          if (otherName && otherName !== 'User') {
-            existing.otherUser.name = otherName;
-          }
-
-          if (otherPhoto && otherPhoto !== '/default-avatar.png') {
-            existing.otherUser.photo = otherPhoto;
-          }
+          if (otherName && otherName !== 'User') existing.otherUser.name = otherName;
+          if (otherPhoto && otherPhoto !== '/default-avatar.png') existing.otherUser.photo = otherPhoto;
         }
       });
 
-      // Filter out fixed chat UIDs from dynamicChats to strictly avoid duplicates
       const nonFixedChats = Array.from(chatMap.values())
         .filter((chat) => !FIXED_CHAT_UIDS.includes(chat.otherUser.uid))
         .sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
-      // Extract official message previews for fixed chats
       const officialMap: Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }> = {};
       fixedChats.forEach((fc) => {
         const cId = [currentUserUid, fc.uid].sort().join('_');
@@ -273,17 +241,13 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       if (
         String(data.receiverId) !== String(currentUserUid) &&
         String(data.senderId) !== String(currentUserUid)
-      ) {
-        return;
-      }
+      ) return;
 
       const isMe = String(data.senderId) === String(currentUserUid);
       const otherUid = isMe ? String(data.receiverId) : String(data.senderId);
-
       const chatId = [currentUserUid, otherUid].sort().join('_');
       const timestamp = Number(data.timestamp || Date.now());
-      const lastMessage =
-        data.type === 'image' ? '📷 Image' : String(data.text || '');
+      const lastMessage = data.type === 'image' ? '📷 Image' : String(data.text || '');
 
       const localMessage = {
         id: String(data.id || `${data.senderId}_${timestamp}`),
@@ -315,7 +279,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             }
           };
         });
-
         const tx = db.transaction(['messages'], 'readwrite');
         tx.objectStore('messages').put(localMessage);
         tx.oncomplete = () => db.close();
@@ -326,22 +289,17 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
       if (!isMounted) return;
 
-      // If message is for fixed chats, update officialPreviews instead of dynamicChats
       if (FIXED_CHAT_UIDS.includes(otherUid)) {
-        if (isMounted) {
-          setOfficialPreviews((prev) => ({
-            ...prev,
-            [otherUid]: {
-              lastMessage,
-              lastTimestamp: timestamp,
-              unreadCount: isMe ? 0 : ((prev[otherUid]?.unreadCount || 0) + 1),
-            },
-          }));
-        }
+        setOfficialPreviews((prev) => ({
+          ...prev,
+          [otherUid]: {
+            lastMessage,
+            lastTimestamp: timestamp,
+            unreadCount: isMe ? 0 : ((prev[otherUid]?.unreadCount || 0) + 1),
+          },
+        }));
         return;
       }
-
-      if (!isMounted) return;
 
       setDynamicChats((prev) => {
         const existing = prev.find((chat) => chat.chatId === chatId);
@@ -351,19 +309,14 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
               ...existing,
               lastMessage,
               lastTimestamp: timestamp,
-              unreadCount: isMe
-                ? existing.unreadCount
-                : (existing.unreadCount || 0) + 1,
+              unreadCount: isMe ? existing.unreadCount : (existing.unreadCount || 0) + 1,
             }
           : {
               chatId,
               otherUser: {
                 uid: otherUid,
                 name: data.senderName || data.otherUserName || 'User',
-                photo:
-                  data.senderPhoto ||
-                  data.otherUserPhoto ||
-                  '/default-avatar.png',
+                photo: data.senderPhoto || data.otherUserPhoto || '/default-avatar.png',
               },
               lastMessage,
               lastTimestamp: timestamp,
@@ -373,9 +326,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         const next = [
           ...prev.filter((chat) => chat.chatId !== chatId && !FIXED_CHAT_UIDS.includes(chat.otherUser.uid)),
           updatedChat,
-        ].sort(
-          (a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0)
-        );
+        ].sort((a, b) => (b.lastTimestamp || 0) - (a.lastTimestamp || 0));
 
         saveToDB(currentUserUid, next).catch(() => {});
         return next;
@@ -389,15 +340,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       setDynamicChats((prev) => {
         const next = prev.map((chat) =>
           chat.chatId === clearedChatId
-            ? {
-                ...chat,
-                lastMessage: '',
-                lastTimestamp: 0,
-                unreadCount: 0,
-              }
+            ? { ...chat, lastMessage: '', lastTimestamp: 0, unreadCount: 0 }
             : chat
         );
-
         saveToDB(currentUserUid, next).catch(() => {});
         return next;
       });
@@ -405,7 +350,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
     const handleOfficialBroadcastMessage = async (data: any) => {
       if (!data?.senderId) return;
-
       const senderId = String(data.senderId);
       if (senderId !== 'hurry_team_official' && senderId !== 'hurry_system_official') return;
 
@@ -441,7 +385,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             }
           };
         });
-
         const tx = db.transaction(['messages'], 'readwrite');
         tx.objectStore('messages').put(localMessage);
         tx.oncomplete = () => db.close();
@@ -530,10 +473,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
 
     const registerUser = () => {
       const accNum = typeof window !== 'undefined' ? localStorage.getItem('accountNumber') || '' : '';
-      socket.emit('register', {
-        userId: currentUserUid,
-        accountId: accNum
-      });
+      socket.emit('register', { userId: currentUserUid, accountId: accNum });
       socket.emit('official_message_history_request');
     };
 
@@ -578,7 +518,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   };
 
   const handleOpenDynamicChat = (chat: ChatPreview) => {
-    // Clear unread count for this dynamic chat locally and update IndexedDB
     setDynamicChats((prev) => {
       const next = prev.map((item) =>
         item.chatId === chat.chatId ? { ...item, unreadCount: 0 } : item
@@ -587,7 +526,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       return next;
     });
 
-    // Also mark messages as read in ChatMessagesDB
     loadAllChatMessagesDB(currentUserUid).then(async (messages) => {
       try {
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -621,7 +559,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     setActiveChat({
       uid: chat.otherUser.uid,
       name: chat.otherUser.name,
-      photo: chat.otherUser.photo
+      photo: chat.otherUser.photo,
     });
   };
 
@@ -629,173 +567,73 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     setActiveChat(null);
   };
 
-  // ---------- Notify parent about chat open state ----------
   useEffect(() => {
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
-  // ---------- Filtered Chats for Search ----------
-  const filteredFixedChats = fixedChats.filter(chat => 
-    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredDynamicChats = dynamicChats.filter(chat => 
-    chat.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden">
-      
-      {/* Header - Exactly as per image (Buttons made smaller) */}
-      <div className="px-5 pt-6 pb-2 flex items-center justify-between sticky top-0 z-30 bg-white safe-top">
-        <div className="flex items-center gap-6">
-          {/* Message Tab */}
-          <div 
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => setActiveTab('messages')}
-          >
-            <h1 className={`text-2xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
-              Message
-            </h1>
-            {activeTab === 'messages' && (
-              <div className="w-8 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
-            )}
-          </div>
 
-          {/* Friends Tab */}
-          <div 
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => setActiveTab('friends')}
-          >
-            <h1 className={`text-2xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
-              Friends
-            </h1>
-            {activeTab === 'friends' && (
-              <div className="w-8 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
-            )}
-          </div>
-        </div>
+      {/* ============ TOP BLUE BAND (Homepage jaise but chhota) ============ */}
+      <div
+        className="w-full"
+        style={{
+          height: '60px',
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 70%, #ffffff 100%)',
+        }}
+      />
 
-        {/* Search Icon */}
-        <div 
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer"
-          onClick={() => setIsSearchOpen(true)}
-        >
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 text-yellow-600" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor" 
-              strokeWidth={3}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      {/* Search Bar Overlay - Slide from Right */}
-      <div 
-        className={`fixed inset-0 z-40 transition-transform duration-300 ease-in-out ${
-          isSearchOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+      {/* ============ HEADER TABS ============ */}
+      <div
+        className="px-5 pb-2 flex items-center gap-2 sticky top-0 z-30"
+        style={{
+          background: 'linear-gradient(to bottom, #dbeafe 0%, #ffffff 100%)',
+          WebkitTapHighlightColor: 'transparent',
+        }}
       >
-        <div className="absolute inset-0 bg-black/20" onClick={() => setIsSearchOpen(false)}></div>
-        <div className="absolute top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl p-4 flex flex-col">
-          <div className="flex items-center gap-3 mb-4">
-            <button 
-              onClick={() => setIsSearchOpen(false)}
-              className="p-2 rounded-full hover:bg-gray-100"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="relative flex-1 flex items-center bg-white rounded-full shadow-sm border border-gray-200">
-              <div className="absolute left-4 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Please enter your friend's nickname"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-full text-gray-600 placeholder-gray-400 text-base outline-none bg-white"
-                autoFocus={isSearchOpen}
-              />
-            </div>
-          </div>
+        {/* Inbox Tab */}
+        <div
+          className="flex flex-col items-center cursor-pointer select-none outline-none"
+          onClick={() => setActiveTab('messages')}
+          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
+        >
+          <h1
+            className={`text-lg transition-colors outline-none ${
+              activeTab === 'messages'
+                ? 'text-black font-bold'
+                : 'text-gray-400 font-medium'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            Inbox
+          </h1>
+        </div>
 
-          {/* Search Results in Slide Panel */}
-          <div className="flex-1 overflow-y-auto">
-            {searchQuery ? (
-              <>
-                {filteredFixedChats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    onClick={() => {
-                      setOfficialPreviews((prev) => ({
-                        ...prev,
-                        [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
-                      }));
-                      handleOpenFixedChat(chat);
-                      setIsSearchOpen(false);
-                    }}
-                    className="flex items-center gap-3 px-2 py-3 cursor-pointer active:opacity-60 border-b border-gray-50"
-                  >
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                      <Image src={chat.image} alt={chat.name} width={48} height={48} className="object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-800 text-base">{chat.name}</h3>
-                    </div>
-                  </div>
-                ))}
-                {filteredDynamicChats.map((chat) => (
-                  <div
-                    key={chat.chatId}
-                    onClick={() => {
-                      handleOpenDynamicChat(chat);
-                      setIsSearchOpen(false);
-                    }}
-                    className="flex items-center gap-3 px-2 py-3 cursor-pointer active:opacity-60 border-b border-gray-50"
-                  >
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                      <Image
-                        src={chat.otherUser.photo || '/default-avatar.png'}
-                        alt={chat.otherUser.name}
-                        width={48}
-                        height={48}
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
-                      <p className="text-sm text-gray-400 truncate">ID: {chat.otherUser.uid}</p>
-                    </div>
-                  </div>
-                ))}
-                {filteredFixedChats.length === 0 && filteredDynamicChats.length === 0 && (
-                  <p className="text-center text-gray-400 mt-10">No results found</p>
-                )}
-              </>
-            ) : (
-              <p className="text-center text-gray-400 mt-10">Type to search...</p>
-            )}
-          </div>
+        {/* Friends Tab */}
+        <div
+          className="flex flex-col items-center cursor-pointer select-none outline-none"
+          onClick={() => setActiveTab('friends')}
+          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
+        >
+          <h1
+            className={`text-lg transition-colors outline-none ${
+              activeTab === 'friends'
+                ? 'text-black font-bold'
+                : 'text-gray-400 font-medium'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            Friends
+          </h1>
         </div>
       </div>
 
-      {/* Main content: Chats only */}
+      {/* ============ MAIN CONTENT ============ */}
       <div className="pt-2 pb-24 flex flex-col gap-1">
         {activeTab === 'messages' ? (
           <>
             {/* Fixed chats */}
-            {filteredFixedChats.map((chat) => {
+            {fixedChats.map((chat) => {
               const preview = officialPreviews[chat.uid];
               return (
                 <div
@@ -803,7 +641,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
                   onClick={() => {
                     setOfficialPreviews((prev) => ({
                       ...prev,
-                      [chat.uid]: prev[chat.uid] ? { ...prev[chat.uid], unreadCount: 0 } : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
+                      [chat.uid]: prev[chat.uid]
+                        ? { ...prev[chat.uid], unreadCount: 0 }
+                        : { lastMessage: '', lastTimestamp: 0, unreadCount: 0 },
                     }));
                     handleOpenFixedChat(chat);
                   }}
@@ -832,8 +672,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
               );
             })}
 
-            {/* Dynamic chats from IndexedDB */}
-            {filteredDynamicChats.map((chat) => (
+            {/* Dynamic chats */}
+            {dynamicChats.map((chat) => (
               <div
                 key={chat.chatId}
                 onClick={() => handleOpenDynamicChat(chat)}
@@ -864,42 +704,15 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             ))}
 
             {/* Empty state */}
-            {!isLoading && dynamicChats.length === 0 && filteredFixedChats.length === 0 && (
+            {!isLoading && dynamicChats.length === 0 && fixedChats.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-sm"></p>
               </div>
             )}
           </>
         ) : (
-          /* Friends Tab Content - Showing Friend IDs */
-          <div className="flex flex-col gap-1">
-            {filteredDynamicChats.length > 0 ? (
-              filteredDynamicChats.map((chat) => (
-                <div
-                  key={chat.chatId}
-                  className="flex items-center gap-3 px-4 py-3 bg-white"
-                >
-                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                    <Image
-                      src={chat.otherUser.photo || '/default-avatar.png'}
-                      alt={chat.otherUser.name}
-                      width={48}
-                      height={48}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
-                    <p className="text-sm text-gray-500">ID: {chat.otherUser.uid}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20">
-                <p className="text-gray-400 text-lg">No friends found</p>
-              </div>
-            )}
-          </div>
+          /* ============ FRIENDS TAB → FollowList component ============ */
+          <FollowList />
         )}
       </div>
 
@@ -915,4 +728,4 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
       )}
     </div>
   );
-}
+          }
