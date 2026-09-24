@@ -698,6 +698,23 @@ export default function Medal({ onBack }: MedalProps) {
               {displayMedal.giftText}
             </p>
 
+            {/* 👇 YAHAN PROGRESS LINE ADD KI HAI (Screenshot ke mutabik) 👇 */}
+            <div className="w-full max-w-[280px] mt-5 relative z-10 flex flex-col items-center">
+              {/* Purple Progress Bar */}
+              <div className="w-full h-[6px] bg-[#3b2b5c] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#8b5cf6] rounded-full" 
+                  style={{ width: '100%' }} // 1/1 matlab 100% progress
+                ></div>
+              </div>
+              
+              {/* Text 1/1 */}
+              <span className="text-white text-[14px] font-medium mt-1.5">
+                1/1
+              </span>
+            </div>
+            {/* 👆 PROGRESS LINE END 👆 */}
+
             {showTabs && (
               <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
                 {tierMedals.map((_, i) => (
