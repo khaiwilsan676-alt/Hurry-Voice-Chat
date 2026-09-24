@@ -14,12 +14,10 @@ interface MedalItem {
   stars: number
   category: 'achievement' | 'gift' | 'activity'
   variant?: 'black' | 'green'
-  
-  // 👉 CARD KI VIDEO KA CONTROL (Alag Size)
+
   cardVideoSize: string
   cardVideoTop: string
-  
-  // 👉 SHEET KI VIDEO KA CONTROL (Alag Size)
+
   sheetVideoSize: string
   sheetVideoTop: string
 }
@@ -190,14 +188,84 @@ function WebGLBackground() {
   )
 }
 
+/* 👉 GOLDEN SHINING RAYS (Video ke niche se nikalne wali) */
+function GoldenRays() {
+  return (
+    <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none z-20"
+      style={{ top: '50%', marginTop: '0px' }}
+    >
+      <div className="relative w-[420px] h-[420px]">
+        <div
+          className="absolute inset-0 rounded-full rays-spin"
+          style={{
+            background:
+              'conic-gradient(from 0deg, transparent 0deg, rgba(255,200,60,0.55) 6deg, transparent 14deg, transparent 30deg, rgba(255,220,120,0.45) 36deg, transparent 46deg, transparent 60deg, rgba(255,180,40,0.55) 68deg, transparent 78deg, transparent 95deg, rgba(255,210,90,0.5) 102deg, transparent 112deg, transparent 130deg, rgba(255,190,60,0.45) 138deg, transparent 148deg, transparent 165deg, rgba(255,225,130,0.55) 172deg, transparent 182deg, transparent 200deg, rgba(255,200,60,0.5) 208deg, transparent 218deg, transparent 235deg, rgba(255,215,90,0.45) 242deg, transparent 252deg, transparent 270deg, rgba(255,185,45,0.55) 278deg, transparent 288deg, transparent 305deg, rgba(255,220,110,0.5) 312deg, transparent 322deg, transparent 340deg, rgba(255,200,70,0.45) 347deg, transparent 360deg)',
+            maskImage:
+              'radial-gradient(circle, transparent 30%, black 45%, black 70%, transparent 95%)',
+            WebkitMaskImage:
+              'radial-gradient(circle, transparent 30%, black 45%, black 70%, transparent 95%)',
+            filter: 'blur(1.5px)',
+            animation: 'raysSpin 18s linear infinite',
+          }}
+        />
+        <div
+          className="absolute inset-0 rounded-full rays-spin-rev"
+          style={{
+            background:
+              'conic-gradient(from 90deg, transparent 0deg, rgba(255,230,140,0.35) 8deg, transparent 18deg, transparent 45deg, rgba(255,210,80,0.35) 52deg, transparent 62deg, transparent 90deg, rgba(255,235,150,0.35) 98deg, transparent 108deg, transparent 140deg, rgba(255,205,70,0.35) 148deg, transparent 158deg, transparent 190deg, rgba(255,225,120,0.35) 198deg, transparent 208deg, transparent 240deg, rgba(255,200,60,0.35) 248deg, transparent 258deg, transparent 290deg, rgba(255,230,130,0.35) 298deg, transparent 308deg, transparent 340deg, rgba(255,210,80,0.35) 348deg, transparent 358deg)',
+            maskImage:
+              'radial-gradient(circle, transparent 35%, black 50%, black 75%, transparent 98%)',
+            WebkitMaskImage:
+              'radial-gradient(circle, transparent 35%, black 50%, black 75%, transparent 98%)',
+            filter: 'blur(2px)',
+            animation: 'raysSpinRev 24s linear infinite',
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px] rounded-full pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(255,215,110,0.55) 0%, rgba(255,180,50,0.28) 35%, rgba(255,160,20,0.08) 60%, transparent 75%)',
+            filter: 'blur(8px)',
+            animation: 'glowPulse 3.2s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(circle, transparent 55%, rgba(255,235,160,0.35) 70%, transparent 85%)',
+            filter: 'blur(3px)',
+            animation: 'glowPulse 3.2s ease-in-out infinite',
+          }}
+        />
+      </div>
+
+      <style jsx global>{`
+        @keyframes raysSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes raysSpinRev {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export default function Medal({ onBack }: MedalProps) {
   const [activeTab, setActiveTab] = useState<
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
-  // YAHAN CHECK KAR BHAI: Har ek Medal ke Card ka size Chota (150px) rakha hai
-  // Aur Sheet ka size Bada (850px) rakha hai. Dono ekdum alag hain.
+  /* 👇 SAARE MEDALS - Sab Achievement tab me 👇 */
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -206,9 +274,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'green',
-      cardVideoSize: '500px',   // Card mein Video Choti 
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  // Sheet mein Video Badi
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
     {
@@ -218,9 +286,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',   
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
     {
@@ -230,21 +298,142 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',   
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
+    {
+      id: 'new-1',
+      name: 'Medal 4',
+      video: '/1000201032-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-2',
+      name: 'Medal 5',
+      video: '/1000200522-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-3',
+      name: 'Medal 6',
+      video: '/1000200521-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-4',
+      name: 'Medal 7',
+      video: '/1000200518-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-5',
+      name: 'Medal 8',
+      video: '/1000200516-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-6',
+      name: 'Medal 9',
+      video: '/1000200515-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-7',
+      name: 'Medal 10',
+      video: '/1000200514-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-8',
+      name: 'Medal 11',
+      video: '/1000200513-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-9',
+      name: 'Medal 12',
+      video: '/1000200512-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    {
+      id: 'new-10',
+      name: 'Medal 13',
+      video: '/1000200511-background.mp4',
+      stars: 4,
+      category: 'achievement',
+      variant: 'black',
+      cardVideoSize: '500px',
+      cardVideoTop: '50%',
+      sheetVideoSize: '700px',
+      sheetVideoTop: '120%',
+    },
+    /* 👇 PURANE MEDALS (bhi achievement me) 👇 */
     {
       id: '4',
       name: 'Pure Love',
       video: '/1000200507-background.mp4',
       stars: 4,
-      category: 'activity',
+      category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',   
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
     {
@@ -252,11 +441,11 @@ export default function Medal({ onBack }: MedalProps) {
       name: 'VIP1',
       video: '/1000200506-background.mp4',
       stars: 4,
-      category: 'activity',
+      category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',   
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
     {
@@ -264,11 +453,11 @@ export default function Medal({ onBack }: MedalProps) {
       name: 'VIP2',
       video: '/1000200505-background.mp4',
       stars: 4,
-      category: 'gift',
+      category: 'achievement',
       variant: 'black',
-      cardVideoSize: '500px',   
+      cardVideoSize: '500px',
       cardVideoTop: '50%',
-      sheetVideoSize: '700px',  
+      sheetVideoSize: '700px',
       sheetVideoTop: '120%',
     },
   ]
@@ -280,7 +469,6 @@ export default function Medal({ onBack }: MedalProps) {
       <MedalFilters />
       <WebGLBackground />
 
-      {/* Top Background Image */}
       <div
         className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
         style={{
@@ -292,7 +480,6 @@ export default function Medal({ onBack }: MedalProps) {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#02050e]/30 to-[#02050e]" />
       </div>
 
-      {/* FIXED TOP AREA */}
       <div
         className="relative z-10 flex-none w-full max-w-md mx-auto px-3 pb-2"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)' }}
@@ -370,7 +557,6 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      {/* SCROLLABLE GRID (CARD VIEW) */}
       <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10 w-full max-w-md mx-auto scrollbar-thin scrollbar-thumb-blue-900/40 mt-3">
         <div className="grid grid-cols-2 gap-4">
           {filteredMedals.map((medal) => (
@@ -379,10 +565,8 @@ export default function Medal({ onBack }: MedalProps) {
               onClick={() => setSelectedMedal(medal)}
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
-              
-              {/* 👉 YAHAN CARD KI ALAG SETTINGS HAIN */}
               <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
-                <div 
+                <div
                   className="absolute left-1/2 -translate-x-1/2"
                   style={{ top: medal.cardVideoTop, transform: 'translateY(-50%)' }}
                 >
@@ -416,12 +600,8 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      {/* ============================================================
-          MEDAL DETAIL (SHEET VIEW)
-          ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
-          {/* ✅ TOP BG */}
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -437,8 +617,11 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* 👉 YAHAN SHEET KI ALAG SETTINGS HAIN */}
-            <div 
+            {/* 👉 GOLDEN SHINING RAYS - Video ke niche se nikal rahi hain */}
+            <GoldenRays />
+
+            {/* 👉 VIDEO (Rays ke upar overlap) */}
+            <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
               style={{ top: selectedMedal.sheetVideoTop, transform: 'translateY(-50%)' }}
             >
@@ -446,15 +629,14 @@ export default function Medal({ onBack }: MedalProps) {
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
                 className="max-w-none max-h-none object-contain"
-                style={{ 
-                  width: selectedMedal.sheetVideoSize, 
-                  height: selectedMedal.sheetVideoSize 
+                style={{
+                  width: selectedMedal.sheetVideoSize,
+                  height: selectedMedal.sheetVideoSize,
                 }}
               />
             </div>
           </div>
 
-          {/* ✅ CONTENT */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
             <img
               src="/IMG_20260924_132112.png"
@@ -504,5 +686,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-}
-
+    }
