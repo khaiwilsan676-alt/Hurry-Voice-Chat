@@ -377,8 +377,8 @@ export default function Medal({ onBack }: MedalProps) {
           MEDAL DETAIL
           ============================================================ */}
       {selectedMedal && (
-        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in">
-          {/* ✅ TOP 30VH BG — STRICT (video ko bahar nikalne ke liye overflow visible) */}
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
+          {/* ✅ TOP BG — no overflow-x-hidden so video can overflow visually */}
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -395,32 +395,30 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ VIDEO — BADI SIZE (80vh) */}
+            {/* ✅ VIDEO — BADI SIZE (600px) — Video Style */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
-                className="w-[80vh] h-[80vh] object-contain"
+                className="w-[600px] h-[600px] object-contain"
               />
             </div>
           </div>
 
-          {/* ✅ CONTENT — frame image on top of content */}
+          {/* ✅ CONTENT */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
-            {/* Frame image — on content, overlapping up (zyada upar khisak gaya) */}
+            {/* Frame image — moved DOWN (was -mt-32, now -mt-6) */}
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none -mt-32"
+              className="w-72 h-72 object-contain pointer-events-none -mt-10"
             />
 
             <h3 className="mt-2 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
               {selectedMedal.name}
             </h3>
 
-            {/* ❌ "Rich" text removed */}
-
-            <p className="text-gray-500 text-[13px] mt-2">
+            <p className="text-gray-500 text-[15px] mt-2">
               0/50000 Coins Of gifts Send
             </p>
 
@@ -428,19 +426,19 @@ export default function Medal({ onBack }: MedalProps) {
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
-                className="w-16 h-16 object-contain"
+                className="w-12 h-12 object-contain"
               />
               <span className="text-white text-lg font-bold">&gt;</span>
               <img
                 src="/IMG_20260924_132038.png"
                 alt="2"
-                className="w-16 h-16 object-contain"
+                className="w-12 h-12 object-contain"
               />
               <span className="text-white text-lg font-bold">&gt;</span>
               <img
                 src="/IMG_20260924_132051.png"
                 alt="3"
-                className="w-16 h-16 object-contain"
+                className="w-12 h-12 object-contain"
               />
             </div>
           </div>
@@ -462,4 +460,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-    }
+          }
