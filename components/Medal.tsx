@@ -25,7 +25,6 @@ interface MedalItem {
 
   giftText: string
   
-  // 👇 IMAGE KE TEXT KE LIYE FIELDS 👇
   badgeTitle: string
   unlockText: string
 }
@@ -230,7 +229,6 @@ export default function Medal({ onBack }: MedalProps) {
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
 
-  // 👇 IMAGE KE HISAB SE TEXT SET KIYA GAYA HAI 👇
   const medals: MedalItem[] = [
     // ================= RICH GROUP (1 / 2 / 3) =================
     {
@@ -286,7 +284,7 @@ export default function Medal({ onBack }: MedalProps) {
       id: 'new-1',
       name: 'Super Gamer',
       video: '/1000201032-background.mp4',
-      stars: 4, // 👈 Image mein 4 stars hain
+      stars: 4, 
       category: 'achievement',
       variant: 'black',
       cardVideoSize: '400px',
@@ -294,8 +292,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
       giftText: '0/1000000000000 Coins You won from game',
-      badgeTitle: 'CP Level Badge', // 👈 Image jaisa text
-      unlockText: 'Reach Level 1 to obtain', // 👈 Image jaisa text
+      badgeTitle: 'CP Level Badge', 
+      unlockText: 'Reach Level 1 to obtain', 
     },
     // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
     {
@@ -711,18 +709,20 @@ export default function Medal({ onBack }: MedalProps) {
             </div>
           </div>
 
+          {/* PARENT CONTAINER KO RELATIVE KIYA */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
+            {/* FRAME IMAGE - MT-14 HATA DIYA */}
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none mt-14"
+              className="w-72 h-72 object-contain pointer-events-none mt-0"
             />
 
-            {/* 👇 STARS, BADGE TITLE, AUR UNLOCK TEXT (IMAGE JAISA) 👇 */}
-            <div className="flex flex-col items-center -mt-15 relative z-10">
+            {/* STARS, BADGE TITLE, AUR UNLOCK TEXT - ABSOLUTE POSITIONING */}
+            <div className="absolute top-[190px] flex flex-col items-center z-30 w-full">
               {/* Stars - Image mein 4 stars hain */}
               <div className="flex gap-1 mb-1">
-                {Array.from({ length: 4 }).map((_, i) => ( // 👈 Fixed 4 stars
+                {Array.from({ length: 4 }).map((_, i) => (
                   <span key={i} className="text-[#facc15] text-[20px]">★</span>
                 ))}
               </div>
@@ -737,10 +737,9 @@ export default function Medal({ onBack }: MedalProps) {
                 {displayMedal.unlockText}
               </p>
             </div>
-            {/* 👆 STARS, BADGE TITLE, AUR UNLOCK TEXT END 👆 */}
 
-            {/* PER-VIDEO GIFT TEXT */}
-            <p className="text-gray-500 text-[16px] mt-2 relative z-10">
+            {/* PER-VIDEO GIFT TEXT - MT-24 DIYA TAAKI ABSOLUTE TEXT KE NICHE AAYE */}
+            <p className="text-gray-500 text-[16px] mt-24 relative z-10">
               {displayMedal.giftText}
             </p>
 
