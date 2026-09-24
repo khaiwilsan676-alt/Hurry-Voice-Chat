@@ -646,19 +646,19 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden">
       
-      {/* Header - Exactly as per image */}
+      {/* Header - Exactly as per image (Buttons made smaller) */}
       <div className="px-5 pt-6 pb-2 flex items-center justify-between sticky top-0 z-30 bg-white safe-top">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
           {/* Message Tab */}
           <div 
             className="flex flex-col items-center cursor-pointer"
             onClick={() => setActiveTab('messages')}
           >
-            <h1 className={`text-4xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
+            <h1 className={`text-2xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
               Message
             </h1>
             {activeTab === 'messages' && (
-              <div className="w-10 h-1.5 bg-yellow-400 rounded-full mt-1"></div>
+              <div className="w-8 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
             )}
           </div>
 
@@ -667,24 +667,24 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             className="flex flex-col items-center cursor-pointer"
             onClick={() => setActiveTab('friends')}
           >
-            <h1 className={`text-4xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
+            <h1 className={`text-2xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
               Friends
             </h1>
             {activeTab === 'friends' && (
-              <div className="w-10 h-1.5 bg-yellow-400 rounded-full mt-1"></div>
+              <div className="w-8 h-1 bg-yellow-400 rounded-full mt-0.5"></div>
             )}
           </div>
         </div>
 
         {/* Search Icon */}
         <div 
-          className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer"
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer"
           onClick={() => setIsSearchOpen(true)}
         >
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-7 w-7 text-yellow-600" 
+              className="h-5 w-5 text-yellow-600" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor" 
