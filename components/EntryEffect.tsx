@@ -1,44 +1,27 @@
-"use client";
-
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 
 interface EntryEffectProps {
   vehicleUrl: string;
   userName: string;
-  onComplete?: () => void;
 }
 
-export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryEffectProps) {
-  const [isVisible, setIsVisible] = useState(true);
+function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehicleModal?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    // Hide effect after 4 seconds
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      if (onComplete) onComplete();
-    }, 4000);
-
-    return () => clearTimeout(timer);
-  }, [onComplete]);
-
-  // If the vehicle URL is an MP4, render WebGL video avatar (like in StorePage)
-  // Else, render an image.
-  useEffect(() => {
-    if (!vehicleUrl.endsWith('.mp4')) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, alpha: true });
+    const gl = canvas.getContext('webgl', { preserveDrawingBuffer: false, alpha: true });
     if (!gl) return;
 
-    const video = document.createElement("video");
-    video.src = vehicleUrl;
-    video.crossOrigin = "anonymous";
+    const video = document.createElement('video');
+    video.src = src;
+    video.crossOrigin = 'anonymous';
     video.loop = true;
-    video.muted = true;
-    video.play().catch(console.error);
+    video.muted = !isVehicleModal;
+    video.playsInline = true;
+    video.play().catch((e) => console.log('Video autoplay prevented:', e));
 
     const vsSource = `
       attribute vec2 a_position;
@@ -54,28 +37,22 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
       precision mediump float;
       varying vec2 v_texCoord;
       uniform sampler2D u_image;
-
       void main() {
-        // Simple green screen removal based on RGB values
         vec4 color = texture2D(u_image, v_texCoord);
-        if (color.g > 0.5 && color.r < 0.3 && color.b < 0.3) {
-           gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        } else {
-           gl_FragColor = color;
-        }
+        float maxRB = max(color.r, color.b);
+        float greenness = color.g - maxRB;
+        float blend = smoothstep(0.04, 0.15, greenness);
+        vec4 despilled = color;
+        despilled.g = min(despilled.g, maxRB + 0.05);
+        gl_FragColor = mix(despilled, vec4(0.0, 0.0, 0.0, 0.0), blend);
       }
     `;
 
-    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
-      const shader = gl.createShader(type);
+    const createShader = (glCtx: WebGLRenderingContext, type: number, source: string) => {
+      const shader = glCtx.createShader(type);
       if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
+      glCtx.shaderSource(shader, source);
+      glCtx.compileShader(shader);
       return shader;
     };
 
@@ -90,35 +67,24 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     gl.linkProgram(program);
     gl.useProgram(program);
 
+    const positionLocation = gl.getAttribLocation(program, 'a_position');
+    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
+
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const positions = new Float32Array([
-      -1.0, -1.0,
-       1.0, -1.0,
-      -1.0,  1.0,
-      -1.0,  1.0,
-       1.0, -1.0,
-       1.0,  1.0,
-    ]);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-    const positionLocation = gl.getAttribLocation(program, "a_position");
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1, 1, -1, -1, 1,
+      -1, 1, 1, -1, 1, 1,
+    ]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     const texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    const texCoords = new Float32Array([
-      0.0, 0.0,
-      1.0, 0.0,
-      0.0, 1.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      1.0, 1.0,
-    ]);
-    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
-
-    const texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      0, 0, 1, 0, 0, 1,
+      0, 1, 1, 0, 1, 1,
+    ]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -128,47 +94,64 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     let animationFrameId: number;
-
     const render = () => {
       if (video.readyState >= video.HAVE_CURRENT_DATA) {
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
-
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       }
       animationFrameId = requestAnimationFrame(render);
     };
-
     render();
 
     return () => {
       cancelAnimationFrame(animationFrameId);
       video.pause();
-      video.removeAttribute("src");
+      video.removeAttribute('src');
       video.load();
+      gl.deleteTexture(texture);
+      gl.deleteBuffer(positionBuffer);
+      gl.deleteBuffer(texCoordBuffer);
+      gl.deleteProgram(program);
     };
+  }, [src, isVehicleModal]);
 
-  }, [vehicleUrl]);
+  return <canvas ref={canvasRef} width={512} height={512} className="w-full h-full object-contain" />;
+}
 
-  if (!isVisible) return null;
+
+export default function EntryEffect({ vehicleUrl, userName }: EntryEffectProps) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
 
   return (
-    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none w-full max-w-[300px] flex flex-col items-center justify-center animate-bounce-in">
-      {vehicleUrl.endsWith('.mp4') ? (
-         <canvas ref={canvasRef} width={512} height={512} className="w-[120px] h-[120px] object-contain drop-shadow-2xl" />
-      ) : (
-         <img src={vehicleUrl} alt="Vehicle Entry" className="w-[120px] h-[120px] object-contain drop-shadow-2xl" />
-      )}
-      <div className="mt-2 bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-500 px-4 py-1.5 rounded-full shadow-lg border border-yellow-200">
-        <span className="text-black font-bold text-sm tracking-wide">
-          {userName} entered the room!
-        </span>
-      </div>
+    <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center">
+       <div className="flex flex-col items-center animate-in slide-in-from-bottom-10 fade-in duration-700">
+          <div className="relative w-[300px] h-[300px] flex items-center justify-center mb-2">
+            {vehicleUrl.endsWith('.mp4') ? (
+               <WebGLVideoAvatar src={vehicleUrl} isVehicleModal={true} />
+            ) : (
+               <Image src={vehicleUrl} alt="Entry" fill className="object-contain" sizes="300px" />
+            )}
+          </div>
+          <div className="bg-black/60 backdrop-blur-sm text-white px-5 py-2 rounded-full text-[14px] font-bold shadow-lg flex items-center gap-2 border border-white/20">
+            <span className="text-yellow-400">{userName}</span> has entered the room!
+          </div>
+       </div>
     </div>
   );
 }

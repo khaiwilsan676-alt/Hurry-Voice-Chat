@@ -654,12 +654,14 @@ export default function StorePage({
     const next = new Set(equippedIds);
     if (next.has(item.id)) {
       next.delete(item.id);
+      localStorage.removeItem(`equipped_${item.tab}`);
     } else {
       // Remove any other equipped item from the same tab
       allStoreItems.forEach((it) => {
         if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
       });
       next.add(item.id);
+      localStorage.setItem(`equipped_${item.tab}`, item.image);
     }
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
