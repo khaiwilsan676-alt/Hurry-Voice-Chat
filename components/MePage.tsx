@@ -1048,21 +1048,26 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                 </p>
               </div>
 
-              {/* === YAHAN NAYA BUTTON ADD KIYA HAI (IMAGE + GET GOLD COINS TEXT) === */}
+              {/* === YAHAN NAYA BUTTON ADD KIYA HAI (IMAGE KI TARAH GOLDEN PILL DESIGN) === */}
               {item.showGoldButton && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation(); // Parent div ke click ko rokne ke liye
                     setShowInviteFriends(true);
                   }}
-                  className="flex-shrink-0 flex items-center gap-1.5 focus:outline-none active:scale-95 transition-transform mr-1"
+                  className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-full focus:outline-none active:scale-95 transition-transform mr-1"
+                  style={{
+                    background: 'linear-gradient(to bottom, #fef3c7 0%, #fde68a 50%, #fcd34d 100%)',
+                    boxShadow: '0 2px 4px rgba(180, 83, 9, 0.3), inset 0 1px 1px rgba(255,255,255,0.8)',
+                    border: '1px solid #d97706'
+                  }}
                 >
                   <img
-                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan apni "Get Gold Coins" wali image ka path daal dena
+                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan "Get Gold Coins" wali treasure chest image ka path daal dena
                     alt="Get Gold Coins"
-                    className="h-8 object-contain"
+                    className="h-5 w-5 object-contain"
                   />
-                  <span className="text-xs font-bold text-amber-600 whitespace-nowrap">
+                  <span className="text-[10px] font-extrabold text-amber-800 whitespace-nowrap">
                     Get Gold Coins
                   </span>
                 </button>
