@@ -374,11 +374,11 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {/* ============================================================
-          MEDAL DETAIL
+          MEDAL DETAIL (Black Sheet)
           ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
-          {/* ✅ TOP BG — no overflow-x-hidden so video can overflow visually */}
+          {/* ✅ TOP BG */}
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -395,34 +395,36 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ VIDEO — BADI SIZE (600px) — Video Style */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            {/* ✅ VIDEO — BADI SIZE & NICHE */}
+            {/* Added max-w-none, scale-[1.2], w-[800px] h-[800px] to make it huge, and top-[65%] to shift down */}
+            <div className="absolute left-1/2 top-[65%] -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
-                className="w-[600px] h-[600px] object-contain"
+                className="w-[800px] h-[800px] max-w-none max-h-none object-contain scale-[1.2]"
               />
             </div>
           </div>
 
-          {/* ✅ CONTENT */}
+          {/* ✅ CONTENT (Text upar kiya, Image same jagah) */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
-            {/* Frame image — moved DOWN (was -mt-32, now -mt-6) */}
+            {/* Frame image — bilkul touch nahi kiya jaisa tha waisa hi hai */}
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
               className="w-72 h-72 object-contain pointer-events-none -mt-10"
             />
 
-            <h3 className="mt-2 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
+            {/* Content ko upar karne ke liye negative margin (-mt-8) lagaya hai */}
+            <h3 className="-mt-8 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
               {selectedMedal.name}
             </h3>
 
-            <p className="text-gray-500 text-[15px] mt-2">
+            <p className="text-gray-500 text-[15px] mt-1 relative z-10">
               0/50000 Coins Of gifts Send
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-10">
+            <div className="flex items-center justify-center gap-3 mt-3 relative z-10">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
@@ -460,4 +462,5 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-          }
+}
+
