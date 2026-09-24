@@ -495,6 +495,7 @@ export default function Medal({ onBack }: MedalProps) {
       <MedalFilters />
       <WebGLBackground />
 
+      {/* 👇 YE WALA BACKGROUND WAPAS ADD KAR DIYA HAI 👇 */}
       <div
         className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
         style={{
@@ -717,6 +718,11 @@ export default function Medal({ onBack }: MedalProps) {
                 ))}
               </div>
             )}
+
+            {/* 👇 OBTAINED BUTTON YAHAN ADD KIYA HAI 👇 */}
+            <button className="w-full max-w-[280px] mt-8 bg-gradient-to-r from-[#facc15] to-[#f59e0b] text-[#4a2c0a] font-bold text-[16px] py-3 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer z-10">
+              obtained
+            </button>
           </div>
 
           <style jsx global>{`
@@ -736,4 +742,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-      }
+}
