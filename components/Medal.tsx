@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, Star, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Plus, HelpCircle } from 'lucide-react'
 
 interface MedalProps {
   onBack?: () => void
@@ -227,10 +227,6 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
-
-  // swipe refs
-  const touchStartX = useRef(0)
-  const touchStartY = useRef(0)
 
   const medals: MedalItem[] = [
     // ================= RICH GROUP (1 / 2 / 3) =================
@@ -486,26 +482,6 @@ export default function Medal({ onBack }: MedalProps) {
     setActiveTier(0)
   }
 
-  // ---- swipe handlers ----
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    touchStartY.current = e.touches[0].clientY
-  }
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!selectedMedal) return
-    const dx = touchStartX.current - e.changedTouches[0].clientX
-    const dy = touchStartY.current - e.changedTouches[0].clientY
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      const group = getTierMedals(selectedMedal)
-      if (dx > 0 && activeTier < group.length - 1) {
-        setActiveTier(activeTier + 1)
-      } else if (dx < 0 && activeTier > 0) {
-        setActiveTier(activeTier - 1)
-      }
-    }
-  }
-
   const tierMedals = getTierMedals(selectedMedal)
   const displayMedal = tierMedals[activeTier] ?? selectedMedal
   const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
@@ -515,7 +491,7 @@ export default function Medal({ onBack }: MedalProps) {
   const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
 
   return (
-    <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e]">
+    <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e] touch-pan-y">
       <MedalFilters />
       <WebGLBackground />
 
@@ -609,7 +585,7 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8 relative z-10 w-full max-w-md mx-auto scrollbar-thin scrollbar-thumb-blue-900/40 mt-3">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pb-8 relative z-10 w-full max-w-md mx-auto scrollbar-thin scrollbar-thumb-blue-900/40 mt-3">
         <div className="grid grid-cols-2 gap-4">
           {filteredMedals.map((medal) => (
             <div
@@ -639,18 +615,11 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
+              {/* Card name (stars hata diye, black & white theme) */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
-                {medal.stars > 0 && (
-                  <div className="flex items-center justify-center gap-[2px] mt-2">
-                    {Array.from({ length: medal.stars }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={12}
-                        className="fill-yellow-500 text-yellow-500 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
-                      />
-                    ))}
-                  </div>
-                )}
+                <span className="text-[13px] font-medium text-gray-200 tracking-wide">
+                  {medal.name}
+                </span>
               </div>
             </div>
           ))}
@@ -658,11 +627,7 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {selectedMedal && displayMedal && (
-        <div
-          className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in"
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in">
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -745,9 +710,7 @@ export default function Medal({ onBack }: MedalProps) {
                       onClick={() => setActiveTier(i)}
                       draggable={false}
                       className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
-                        activeTier === i
-                          ? 'rounded-md border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.45)]'
-                          : 'opacity-80'
+                        activeTier === i ? 'opacity-100' : 'opacity-50'
                       }`}
                     />
                   </React.Fragment>
@@ -773,4 +736,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-    }
+      }
