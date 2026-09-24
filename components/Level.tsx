@@ -328,7 +328,7 @@ export default function Level({ onBack }: LevelProps) {
         >
           <button
             onClick={onBack}
-            className="absolute left-3 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            className="absolute left-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
@@ -337,7 +337,7 @@ export default function Level({ onBack }: LevelProps) {
             Level
           </h1>
 
-          <button className="absolute right-3 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer">
+          <button className="absolute right-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer">
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
         </div>
@@ -645,4 +645,4 @@ export default function Level({ onBack }: LevelProps) {
       </div>
     </div>
   )
-      }
+}
