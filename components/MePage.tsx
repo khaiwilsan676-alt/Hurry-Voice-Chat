@@ -139,6 +139,7 @@ interface MenuItem {
 }
 
 interface MePageProps {
+  onNavigate?: (page: "home" | "message" | "me") => void
   onLogout?: () => void
   onPublicProfileChange?: (isOpen: boolean) => void
 }
@@ -384,13 +385,13 @@ const WhiteColorRemovalShader = ({
   )
 }
 
-export default function MePage({ onLogout, onPublicProfileChange }: MePageProps) {
+export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: MePageProps) {
   const [currentView, setCurrentView] = useState<'me' | 'settings' | 'public_profile' | 'customer_service' | 'language'>('me')
   const [appLang, setAppLang] = useState<LanguageCode>('en')
   
   const [showFeedbackPage, setShowFeedbackPage] = useState(false)
   const [showWallet, setShowWallet] = useState(false)
-  const [walletTab, setWalletTab] = useState<'coins' | 'diamond'>('coins')
+  const [walletTab, setWalletTab] = useState<'wallet' | 'diamonds'>('wallet')
   const [showStore, setShowStore] = useState(false)
   const [storeInitialView, setStoreInitialView] = useState<'store' | 'bag'>('store')
   
@@ -668,7 +669,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
 
   // Early returns - FollowList check first
   if (showFollowList) {
-    return <FollowList 
+    return <FollowList activePage="me" onNavigate={onNavigate}
       onBack={() => setShowFollowList(false)} 
       type={followListType} 
     />
@@ -968,7 +969,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
           onClick={() => {
-            setWalletTab('coins');
+            setWalletTab('wallet');
             setShowWallet(true);
           }}
         >
@@ -981,7 +982,7 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
           onClick={() => {
-            setWalletTab('diamond');
+            setWalletTab('diamonds');
             setShowWallet(true);
           }}
         >

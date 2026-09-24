@@ -6,12 +6,14 @@ import React, { useState } from 'react'
 interface FollowListProps {
   onBack: () => void
   type: 'followers' | 'following' | 'visitors' | 'friends'
-  onNavigate?: (page: 'home' | 'message' | 'me') => void
+  onNavigate?: (page: "home" | "message" | "me") => void;
+  activePage?: "home" | "message" | "me";
 }
 
 interface VisitorsProps {
   onBack: () => void
-  onNavigate?: (page: 'home' | 'message' | 'me') => void
+  onNavigate?: (page: "home" | "message" | "me") => void;
+  activePage?: "home" | "message" | "me";
 }
 
 // ============ CONSTANTS ============
@@ -38,7 +40,7 @@ function BottomNavBar({
   onNavigate,
 }: {
   activePage: 'home' | 'message' | 'me'
-  onNavigate?: (page: 'home' | 'message' | 'me') => void
+  onNavigate?: (page: "home" | "message" | "me") => void;
 }) {
   const handleNav = (page: 'home' | 'message' | 'me') => {
     if (onNavigate) onNavigate(page)
@@ -142,7 +144,7 @@ function BottomNavBar({
 }
 
 // ============ FOLLOW LIST ============
-export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
+export function FollowList({ onBack, type, onNavigate, activePage = "me" }: FollowListProps) {
   const initialTab = type === 'visitors' ? 'friends' : type
   const [activeTab, setActiveTab] = useState<string>(initialTab)
 
@@ -211,7 +213,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
       </div>
 
       {/* Bottom Nav Bar */}
-      <BottomNavBar activePage="message" onNavigate={onNavigate} />
+      <BottomNavBar activePage={activePage} onNavigate={onNavigate} />
     </div>
   )
 }
