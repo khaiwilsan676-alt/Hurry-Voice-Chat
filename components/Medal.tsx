@@ -16,9 +16,6 @@ interface MedalItem {
   variant?: 'black' | 'green'
 }
 
-// ==========================================
-// SVG filters
-// ==========================================
 const MedalFilters = () => (
   <svg
     style={{ width: 0, height: 0, position: 'absolute' }}
@@ -50,9 +47,6 @@ const MedalFilters = () => (
   </svg>
 )
 
-// ==========================================
-// Video Medal
-// ==========================================
 function MedalVideo({
   src,
   variant = 'black',
@@ -87,9 +81,6 @@ function MedalVideo({
   )
 }
 
-// ==========================================
-// WebGL Background
-// ==========================================
 function WebGLBackground() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -387,16 +378,15 @@ export default function Medal({ onBack }: MedalProps) {
           ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
-          {/* ✅ TOP SECTION — STRICTLY 30vh, hard cut, NO mixing */}
-          <div className="relative w-full h-[30vh] overflow-hidden bg-black">
-            {/* BG image — block class, hard edge */}
+          {/* ✅ TOP 30VH BG — STRICT */}
+          <div className="relative w-full h-[30vh] overflow-hidden">
             <img
               src="/IMG_20260924_132006.png"
               alt=""
               className="absolute inset-0 w-full h-full object-cover object-top block pointer-events-none select-none"
             />
 
-            {/* Back arrow — above bg */}
+            {/* Back arrow */}
             <button
               onClick={() => setSelectedMedal(null)}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
@@ -405,26 +395,26 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* Video + frame — centered within 30vh area */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 flex items-center justify-center z-20 pointer-events-none">
-              <img
-                src="/IMG_20260924_132112.png"
-                alt="frame"
-                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10"
+            {/* ✅ VIDEO — EXACT center of 30vh, BADI, ON TOP of bg image */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+              <MedalVideo
+                src={selectedMedal.video}
+                variant={selectedMedal.variant ?? 'black'}
+                className="w-96 h-96 object-contain"
               />
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <MedalVideo
-                  src={selectedMedal.video}
-                  variant={selectedMedal.variant ?? 'black'}
-                  className="w-48 h-48 object-contain"
-                />
-              </div>
             </div>
           </div>
 
-          {/* ✅ Content — 30vh ke bilkul NEECHE, normal flow */}
-          <div className="relative z-10 flex flex-col items-center w-full max-w-md mx-auto px-6 pt-4 pb-16">
-            <h3 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
+          {/* ✅ CONTENT — frame image on top of content */}
+          <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
+            {/* Frame image — on content, overlapping up */}
+            <img
+              src="/IMG_20260924_132112.png"
+              alt="frame"
+              className="w-72 h-72 object-contain pointer-events-none -mt-24"
+            />
+
+            <h3 className="mt-2 text-[22px] font-bold text-white tracking-wide drop-shadow-md">
               {selectedMedal.name}
             </h3>
 
@@ -472,4 +462,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-      }
+            }
