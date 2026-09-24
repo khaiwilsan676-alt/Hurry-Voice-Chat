@@ -26,6 +26,10 @@ interface MedalItem {
 
   /** per-video gift text (shown under the name in the sheet) */
   giftText: string
+  
+  // 👇 NAYE FIELDS IMAGE KE TEXT KE LIYE 👇
+  badgeTitle: string
+  unlockText: string
 }
 
 const MedalFilters = () => (
@@ -228,6 +232,7 @@ export default function Medal({ onBack }: MedalProps) {
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
 
+  // 👇 YAHAN HAR MEDAL KE LIYE TEXT ADD KIYA HAI (IMAGE KE HISAB SE) 👇
   const medals: MedalItem[] = [
     // ================= RICH GROUP (1 / 2 / 3) =================
     {
@@ -243,6 +248,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'rich',
       giftText: '0/5000000000000 Coins Of gifts Send',
+      badgeTitle: 'Rich Level Badge',
+      unlockText: 'Reach Level 1 to obtain',
     },
     {
       id: '2',
@@ -257,6 +264,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'rich',
       giftText: '0/400000000000 Coins Of gifts Send',
+      badgeTitle: 'Rich Level Badge',
+      unlockText: 'Reach Level 2 to obtain',
     },
     {
       id: '3',
@@ -271,6 +280,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'rich',
       giftText: '0/30000000000  Coins Of gifts Send',
+      badgeTitle: 'Rich Level Badge',
+      unlockText: 'Reach Level 3 to obtain',
     },
     // ================= SUPER GAMER (no tier tabs) =================
     {
@@ -284,8 +295,9 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
-      // no tierGroup → tabs hidden
       giftText: '0/1000000000000 Coins You won from game',
+      badgeTitle: 'CP Level Badge', // 👈 Image jaisa text
+      unlockText: 'Reach Level 1 to obtain', // 👈 Image jaisa text
     },
     // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
     {
@@ -301,6 +313,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '140%',
       tierGroup: 'millionaire',
       giftText: '0/1000000 Online Recharge',
+      badgeTitle: 'Millionaire Badge',
+      unlockText: 'Reach Level 1 to obtain',
     },
     {
       id: 'new-3',
@@ -315,6 +329,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '137%',
       tierGroup: 'millionaire',
       giftText: '0/50000000 Online Recharge',
+      badgeTitle: 'Millionaire Badge',
+      unlockText: 'Reach Level 2 to obtain',
     },
     {
       id: 'new-4',
@@ -329,6 +345,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '137%',
       tierGroup: 'millionaire',
       giftText: '0/100000000 Online Recharge',
+      badgeTitle: 'Millionaire Badge',
+      unlockText: 'Reach Level 3 to obtain',
     },
     // ================= ROOM TOP GROUP (8 / 9 / 10) =================
     {
@@ -344,6 +362,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'roomtop',
       giftText: 'Event Based',
+      badgeTitle: 'Room Top Badge',
+      unlockText: 'Reach Level 1 to obtain',
     },
     {
       id: 'new-6',
@@ -358,6 +378,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'roomtop',
       giftText: 'Event Based',
+      badgeTitle: 'Room Top Badge',
+      unlockText: 'Reach Level 2 to obtain',
     },
     {
       id: 'new-7',
@@ -372,6 +394,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'roomtop',
       giftText: 'Event Based',
+      badgeTitle: 'Room Top Badge',
+      unlockText: 'Reach Level 3 to obtain',
     },
     // ================= MEDAL 11 / 12 / 13 GROUP =================
     {
@@ -387,6 +411,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '150%',
       tierGroup: 'medal111213',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'Medal Badge',
+      unlockText: 'Reach Level 1 to obtain',
     },
     {
       id: 'new-9',
@@ -401,6 +427,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '150%',
       tierGroup: 'medal111213',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'Medal Badge',
+      unlockText: 'Reach Level 2 to obtain',
     },
     {
       id: 'new-10',
@@ -415,6 +443,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '150%',
       tierGroup: 'medal111213',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'Medal Badge',
+      unlockText: 'Reach Level 3 to obtain',
     },
     // ================= VIP GROUP (VIP2 / VIP1 / Pure Love) =================
     {
@@ -430,6 +460,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'vip',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'VIP Badge',
+      unlockText: 'Reach Level 1 to obtain',
     },
     {
       id: '5',
@@ -444,6 +476,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'vip',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'VIP Badge',
+      unlockText: 'Reach Level 2 to obtain',
     },
     {
       id: '6',
@@ -458,6 +492,8 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       tierGroup: 'vip',
       giftText: '0/50000 Coins Of gifts Send',
+      badgeTitle: 'VIP Badge',
+      unlockText: 'Reach Level 3 to obtain',
     },
   ]
 
@@ -495,7 +531,6 @@ export default function Medal({ onBack }: MedalProps) {
       <MedalFilters />
       <WebGLBackground />
 
-      {/* 👇 YE WALA BACKGROUND WAPAS ADD KAR DIYA HAI 👇 */}
       <div
         className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
         style={{
@@ -523,7 +558,6 @@ export default function Medal({ onBack }: MedalProps) {
           <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white tracking-wide drop-shadow-md">
             Medal
           </h1>
-          {/* 👇 RIGHT SIDE HELP BUTTON (?) 👇 */}
           <button className="p-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10">
             <HelpCircle size={22} className="opacity-80" />
           </button>
@@ -617,7 +651,6 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
-              {/* Card name (stars hata diye, black & white theme) */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
                 <span className="text-[13px] font-medium text-gray-200 tracking-wide">
                   {medal.name}
@@ -645,7 +678,6 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* --- SLIDING VIDEO TRACK --- */}
             <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none overflow-hidden"
               style={{
@@ -690,32 +722,46 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
-              {displayMedal.name}
-            </h3>
+            {/* 👇 YAHAN STARS, BADGE TITLE, AUR UNLOCK TEXT ADD KIYA HAI 👇 */}
+            <div className="flex flex-col items-center -mt-15 relative z-10">
+              {/* Stars */}
+              <div className="flex gap-1 mb-1">
+                {Array.from({ length: displayMedal.stars }).map((_, i) => (
+                  <span key={i} className="text-[#facc15] text-[18px]">★</span>
+                ))}
+              </div>
 
-            {/* PER-VIDEO GIFT TEXT — displayMedal ke saath change hota hai */}
-            <p className="text-gray-500 text-[16px] mt-1 relative z-10">
+              {/* Badge Title */}
+              <h3 className="text-[20px] font-bold text-white tracking-wide drop-shadow-md">
+                {displayMedal.badgeTitle}
+              </h3>
+
+              {/* Unlock Text */}
+              <p className="text-[#facc15] text-[14px] mt-0.5 font-medium">
+                {displayMedal.unlockText}
+              </p>
+            </div>
+            {/* 👆 STARS, BADGE TITLE, AUR UNLOCK TEXT END 👆 */}
+
+            {/* PER-VIDEO GIFT TEXT */}
+            <p className="text-gray-500 text-[16px] mt-2 relative z-10">
               {displayMedal.giftText}
             </p>
 
-            {/* 👇 PROGRESS LINE 👇 */}
+            {/* PROGRESS LINE */}
             <div className="w-full max-w-[280px] mt-5 relative z-10 flex flex-col items-center">
-              {/* Purple Progress Bar */}
               <div className="w-full h-[6px] bg-[#3b2b5c] rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-[#8b5cf6] rounded-full" 
-                  style={{ width: '100%' }} // 1/1 matlab 100% progress
+                  style={{ width: '100%' }}
                 ></div>
               </div>
               
-              {/* Text 1/1 */}
               <span className="text-white text-[14px] font-medium mt-1.5">
                 1/1
               </span>
             </div>
 
-            {/* 👇 YAHAN BOTTOM MEDALS LIST ADD KI HAI (IMAGE JAISA) 👇 */}
             {showTabs && (
               <div className="flex items-center justify-center gap-4 mt-6 relative z-10">
                 {tierMedals.map((m, i) => (
@@ -726,7 +772,6 @@ export default function Medal({ onBack }: MedalProps) {
                       activeTier === i ? 'opacity-100 scale-110' : 'opacity-50 scale-100'
                     }`}
                   >
-                    {/* Small Medal Icon */}
                     <div className="w-14 h-14 rounded-full border border-[#5a4b8a] bg-[#1a1230] flex items-center justify-center overflow-hidden relative">
                        <MedalVideo
                           src={m.video}
@@ -737,7 +782,6 @@ export default function Medal({ onBack }: MedalProps) {
                           style={{ transform: 'scale(0.8)' }}
                         />
                     </div>
-                    {/* Lv Text */}
                     <span className="text-[12px] text-gray-300 mt-1 font-medium">
                       Lv.{i + 1}
                     </span>
@@ -745,9 +789,7 @@ export default function Medal({ onBack }: MedalProps) {
                 ))}
               </div>
             )}
-            {/* 👆 BOTTOM MEDALS LIST END 👆 */}
 
-            {/* 👇 OBTAINED BUTTON 👇 */}
             <button className="w-full max-w-[280px] mt-8 bg-gradient-to-r from-[#facc15] to-[#f59e0b] text-[#4a2c0a] font-bold text-[16px] py-3 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer z-10">
               obtained
             </button>
@@ -755,12 +797,8 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from {
-                opacity: 0;
-              }
-              to {
-                opacity: 1;
-              }
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
