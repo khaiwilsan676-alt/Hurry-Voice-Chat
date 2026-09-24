@@ -7,7 +7,6 @@ interface MedalProps {
   onBack?: () => void
 }
 
-// Yaha maine naye options add kiye hain size aur position ke liye
 interface MedalItem {
   id: string
   name: string
@@ -15,9 +14,13 @@ interface MedalItem {
   stars: number
   category: 'achievement' | 'gift' | 'activity'
   variant?: 'black' | 'green'
-  detailTop?: string
-  detailSize?: string
-  detailScale?: number
+  // HAR SINGLE VIDEO KA APNA SEPARATE SIZE AUR TOP (UP/DOWN)
+  listWidth: string
+  listHeight: string
+  listTop: string
+  modalWidth: string
+  modalHeight: string
+  modalTop: string
 }
 
 const MedalFilters = () => (
@@ -192,8 +195,8 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
-  // Yaha har video ka apna alag size aur position set kar diya hai
-  // Inko apne hisaab se adjust kar lena
+  // 👇 YAHAN DEKH BHAI: Har ek Medal ka apna ekdum ALAG Size aur ALAG Top hai.
+  // Ek video ki value change karne se kisi aur video par asar nahi padega.
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -202,9 +205,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'green',
-      detailTop: '65%',       // Ouper/Niche karne ke liye
-      detailSize: '800px',    // Box size
-      detailScale: 1.2,       // Zoom in/out karne ke liye
+      listWidth: '150px',
+      listHeight: '150px',
+      listTop: '50%',
+      modalWidth: '700px',    // Iska apna Sheet me size
+      modalHeight: '700px',
+      modalTop: '30%',        // Iska apna Sheet me Up/Down
     },
     {
       id: '2',
@@ -213,9 +219,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'black',
-      detailTop: '60%',
-      detailSize: '700px',
-      detailScale: 1.1,
+      listWidth: '130px',
+      listHeight: '130px',
+      listTop: '50%',
+      modalWidth: '700px',    // Iska apna alag Sheet size
+      modalHeight: '700px',
+      modalTop: '30%',        // Iska apna alag Up/Down
     },
     {
       id: '3',
@@ -224,9 +233,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      detailTop: '65%',
-      detailSize: '800px',
-      detailScale: 1.2,
+      listWidth: '140px',
+      listHeight: '140px',
+      listTop: '50%',
+      modalWidth: '700px',
+      modalHeight: '700px',
+      modalTop: '30%',
     },
     {
       id: '4',
@@ -235,9 +247,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      detailTop: '55%',
-      detailSize: '650px',
-      detailScale: 1.0,
+      listWidth: '120px',
+      listHeight: '120px',
+      listTop: '45%',
+      modalWidth: '700px',
+      modalHeight: '700px',
+      modalTop: '30%',
     },
     {
       id: '5',
@@ -246,9 +261,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      detailTop: '65%',
-      detailSize: '800px',
-      detailScale: 1.2,
+      listWidth: '160px',
+      listHeight: '160px',
+      listTop: '50%',
+      modalWidth: '700px',
+      modalHeight: '700px',
+      modalTop: '30%',
     },
     {
       id: '6',
@@ -257,9 +275,12 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'gift',
       variant: 'black',
-      detailTop: '70%',
-      detailSize: '900px',
-      detailScale: 1.3,
+      listWidth: '180px',
+      listHeight: '180px',
+      listTop: '55%',
+      modalWidth: '700px',
+      modalHeight: '700px',
+      modalTop: '30%',
     },
   ]
 
@@ -371,15 +392,26 @@ export default function Medal({ onBack }: MedalProps) {
               onClick={() => setSelectedMedal(medal)}
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
-              <div className="w-32 h-32 flex items-center justify-center relative shrink-0">
-                <MedalVideo
-                  src={medal.video}
-                  variant={medal.variant ?? 'black'}
-                  className="w-32 h-32 object-cover"
-                />
+              
+              {/* CHOTE DABBE (GRID) me custom listWidth/listHeight yaha apply ho rahi hai */}
+              <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
+                <div 
+                  className="absolute left-1/2 -translate-x-1/2"
+                  style={{ top: medal.listTop, transform: 'translateY(-50%)' }}
+                >
+                  <MedalVideo
+                    src={medal.video}
+                    variant={medal.variant ?? 'black'}
+                    className="max-w-none max-h-none object-contain"
+                    style={{
+                      width: medal.listWidth,
+                      height: medal.listHeight,
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className="mt-auto w-full flex flex-col items-center pb-1">
+              <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
                 {medal.stars > 0 && (
                   <div className="flex items-center justify-center gap-[2px] mt-2">
                     {Array.from({ length: medal.stars }).map((_, i) => (
@@ -398,7 +430,7 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {/* ============================================================
-          MEDAL DETAIL (Black Sheet)
+          MEDAL DETAIL (Sheet View)
           ============================================================ */}
       {selectedMedal && (
         <div className="fixed inset-0 z-50 bg-black overflow-y-auto animate-fade-in">
@@ -410,7 +442,6 @@ export default function Medal({ onBack }: MedalProps) {
               className="absolute inset-0 w-full h-full object-contain object-top block pointer-events-none select-none"
             />
 
-            {/* Back arrow */}
             <button
               onClick={() => setSelectedMedal(null)}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
@@ -419,43 +450,40 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ VIDEO — Yaha individual position aur size apply hoga */}
+            {/* ✅ SHEET WALI VIDEO KA STRICT CONTROL (modalWidth, modalHeight, modalTop) */}
             <div 
-              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
-              style={{ top: selectedMedal.detailTop || '50%' }}
+              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+              style={{ top: selectedMedal.modalTop, transform: 'translateY(-50%)' }}
             >
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
                 className="max-w-none max-h-none object-contain"
                 style={{ 
-                  width: selectedMedal.detailSize || '800px',
-                  height: selectedMedal.detailSize || '800px',
-                  transform: `scale(${selectedMedal.detailScale || 1.2})` 
+                  width: selectedMedal.modalWidth, 
+                  height: selectedMedal.modalHeight 
                 }}
               />
             </div>
           </div>
 
-          {/* ✅ CONTENT (Text upar kiya, Image same jagah) */}
+          {/* ✅ CONTENT */}
           <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
-            {/* Frame image — bilkul touch nahi kiya jaisa tha waisa hi hai */}
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
               className="w-72 h-72 object-contain pointer-events-none mt-10"
             />
 
-            {/* Content ko upar karne ke liye negative margin (-mt-8) */}
             <h3 className="-mt-8 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
               {selectedMedal.name}
             </h3>
 
-            <p className="text-gray-500 text-[15px] mt-1 relative z-10">
+            <p className="text-gray-500 text-[15px] -mt-2 relative z-10">
               0/50000 Coins Of gifts Send
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-2 relative z-10">
+            <div className="flex items-center justify-center gap-3 mt-5 relative z-10">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
@@ -478,12 +506,8 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from {
-                opacity: 0;
-              }
-              to {
-                opacity: 1;
-              }
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
