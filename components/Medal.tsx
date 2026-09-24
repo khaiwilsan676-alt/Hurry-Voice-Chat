@@ -7,6 +7,7 @@ interface MedalProps {
   onBack?: () => void
 }
 
+// Yaha maine naye options add kiye hain size aur position ke liye
 interface MedalItem {
   id: string
   name: string
@@ -14,6 +15,9 @@ interface MedalItem {
   stars: number
   category: 'achievement' | 'gift' | 'activity'
   variant?: 'black' | 'green'
+  detailTop?: string
+  detailSize?: string
+  detailScale?: number
 }
 
 const MedalFilters = () => (
@@ -188,6 +192,8 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
 
+  // Yaha har video ka apna alag size aur position set kar diya hai
+  // Inko apne hisaab se adjust kar lena
   const medals: MedalItem[] = [
     {
       id: '1',
@@ -196,6 +202,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'green',
+      detailTop: '65%',       // Ouper/Niche karne ke liye
+      detailSize: '800px',    // Box size
+      detailScale: 1.2,       // Zoom in/out karne ke liye
     },
     {
       id: '2',
@@ -204,6 +213,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'black',
+      detailTop: '60%',
+      detailSize: '700px',
+      detailScale: 1.1,
     },
     {
       id: '3',
@@ -212,6 +224,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
+      detailTop: '65%',
+      detailSize: '800px',
+      detailScale: 1.2,
     },
     {
       id: '4',
@@ -220,6 +235,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
+      detailTop: '55%',
+      detailSize: '650px',
+      detailScale: 1.0,
     },
     {
       id: '5',
@@ -228,6 +246,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
+      detailTop: '65%',
+      detailSize: '800px',
+      detailScale: 1.2,
     },
     {
       id: '6',
@@ -236,6 +257,9 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'gift',
       variant: 'black',
+      detailTop: '70%',
+      detailSize: '900px',
+      detailScale: 1.3,
     },
   ]
 
@@ -395,13 +419,20 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* ✅ VIDEO — BADI SIZE & NICHE */}
-            {/* Added max-w-none, scale-[1.2], w-[800px] h-[800px] to make it huge, and top-[65%] to shift down */}
-            <div className="absolute left-1/2 top-[65%] -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
+            {/* ✅ VIDEO — Yaha individual position aur size apply hoga */}
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none"
+              style={{ top: selectedMedal.detailTop || '50%' }}
+            >
               <MedalVideo
                 src={selectedMedal.video}
                 variant={selectedMedal.variant ?? 'black'}
-                className="w-[800px] h-[800px] max-w-none max-h-none object-contain scale-[1.2]"
+                className="max-w-none max-h-none object-contain"
+                style={{ 
+                  width: selectedMedal.detailSize || '800px',
+                  height: selectedMedal.detailSize || '800px',
+                  transform: `scale(${selectedMedal.detailScale || 1.2})` 
+                }}
               />
             </div>
           </div>
@@ -412,10 +443,10 @@ export default function Medal({ onBack }: MedalProps) {
             <img
               src="/IMG_20260924_132112.png"
               alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none -mt-10"
+              className="w-72 h-72 object-contain pointer-events-none mt-10"
             />
 
-            {/* Content ko upar karne ke liye negative margin (-mt-8) lagaya hai */}
+            {/* Content ko upar karne ke liye negative margin (-mt-8) */}
             <h3 className="-mt-8 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
               {selectedMedal.name}
             </h3>
@@ -424,7 +455,7 @@ export default function Medal({ onBack }: MedalProps) {
               0/50000 Coins Of gifts Send
             </p>
 
-            <div className="flex items-center justify-center gap-3 mt-3 relative z-10">
+            <div className="flex items-center justify-center gap-3 mt-2 relative z-10">
               <img
                 src="/IMG_20260924_132022.png"
                 alt="1"
