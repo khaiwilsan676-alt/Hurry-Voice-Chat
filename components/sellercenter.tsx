@@ -16,7 +16,7 @@ const DEFAULT_BALANCE = 0;
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
     if (typeof window === 'undefined') return reject('No window');
-    const request = indexedDB.open(SHARED_DB, 2);
+    const request = indexedDB.open(SHARED_DB, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
