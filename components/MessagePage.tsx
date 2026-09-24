@@ -148,6 +148,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
   
   // Tab state: 'messages' or 'friends'
   const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
+  
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
 
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
@@ -630,58 +633,32 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
+  // ---------- Filtered Chats for Search ----------
+  const filteredFixedChats = fixedChats.filter(chat => 
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredDynamicChats = dynamicChats.filter(chat => 
+    chat.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Header - Updated as per image */}
-      <div
-        className="px-4 pb-2 flex items-center justify-between sticky top-0 z-10 safe-top"
-        style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-          paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)'
-        }}
-      >
-        <div className="flex items-center gap-6">
-          {/* Message Tab */}
-          <div 
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => setActiveTab('messages')}
-          >
-            <h1 className={`text-3xl font-bold ${activeTab === 'messages' ? 'text-yellow-500' : 'text-green-800'}`}>
-              Message
-            </h1>
-            {activeTab === 'messages' && (
-              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
-            )}
-          </div>
-
-          {/* Friends Tab */}
-          <div 
-            className="flex flex-col items-center cursor-pointer"
-            onClick={() => setActiveTab('friends')}
-          >
-            <h1 className={`text-3xl font-bold ${activeTab === 'friends' ? 'text-yellow-500' : 'text-green-800'}`}>
-              Friends
-            </h1>
-            {activeTab === 'friends' && (
-              <div className="w-8 h-1.5 bg-yellow-400 rounded-full mt-0.5"></div>
-            )}
-          </div>
-        </div>
-
-        {/* Search Icon */}
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 cursor-pointer">
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-yellow-600" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor" 
-              strokeWidth={3}
-            >
+      {/* Search Bar - Exactly as per image */}
+      <div className="px-4 pt-4 pb-2 sticky top-0 z-20 bg-white">
+        <div className="relative flex items-center bg-white rounded-full shadow-sm border border-gray-100">
+          <div className="absolute left-4 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
+          <input
+            type="text"
+            placeholder="Please enter your friend's nickname"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 rounded-full text-gray-600 placeholder-gray-400 text-base outline-none bg-white"
+          />
         </div>
       </div>
 
@@ -690,7 +667,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
         {activeTab === 'messages' ? (
           <>
             {/* Fixed chats */}
-            {fixedChats.map((chat) => {
+            {filteredFixedChats.map((chat) => {
               const preview = officialPreviews[chat.uid];
               return (
                 <div
@@ -728,7 +705,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             })}
 
             {/* Dynamic chats from IndexedDB */}
-            {dynamicChats.map((chat) => (
+            {filteredDynamicChats.map((chat) => (
               <div
                 key={chat.chatId}
                 onClick={() => handleOpenDynamicChat(chat)}
@@ -759,16 +736,41 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData }: 
             ))}
 
             {/* Empty state */}
-            {!isLoading && dynamicChats.length === 0 && (
+            {!isLoading && dynamicChats.length === 0 && filteredFixedChats.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-400 text-sm"></p>
               </div>
             )}
           </>
         ) : (
-          /* Friends Tab Content - Empty for now as per instruction */
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-gray-400 text-lg">Friends list will appear here</p>
+          /* Friends Tab Content - Showing Friend IDs */
+          <div className="flex flex-col gap-1">
+            {filteredDynamicChats.length > 0 ? (
+              filteredDynamicChats.map((chat) => (
+                <div
+                  key={chat.chatId}
+                  className="flex items-center gap-3 px-4 py-3 bg-white"
+                >
+                  <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                    <Image
+                      src={chat.otherUser.photo || '/default-avatar.png'}
+                      alt={chat.otherUser.name}
+                      width={48}
+                      height={48}
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-800 text-base">{chat.otherUser.name}</h3>
+                    <p className="text-sm text-gray-500">ID: {chat.otherUser.uid}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-gray-400 text-lg">No friends found</p>
+              </div>
+            )}
           </div>
         )}
       </div>
