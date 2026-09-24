@@ -29,6 +29,11 @@ let db = null;
 
 const onlineUsers = new Map();
 
+const memoryRoundWinners = {
+  fruitparty: { round: -1, winners: [] },
+  wildparty: { round: -1, winners: [] }
+};
+
 /*
  * roomId -> Map(userId -> socket count)
  */
@@ -731,12 +736,29 @@ io.on("connection", (socket) => {
   });
 
 
+  const handleGameWinner = async (gameName, payload) => {
+    const { name, win, avatar, round } = payload;
+    if (!round) return;
+
+    const currentData = memoryRoundWinners[gameName];
+    if (currentData.round !== round) {
+      currentData.round = round;
+      currentData.winners = [];
+    }
+
+    currentData.winners.push({ name, win, avatar });
+    currentData.winners.sort((a, b) => b.win - a.win);
+    currentData.winners = currentData.winners.slice(0, 3);
+
+    io.emit(`${gameName}_top_winners`, currentData.winners);
+  };
+
   socket.on("fruitparty_winner_update", (payload) => {
-    io.emit("fruitparty_winner", payload);
+    handleGameWinner("fruitparty", payload);
   });
 
   socket.on("wildparty_winner_update", (payload) => {
-    io.emit("wildparty_winner", payload);
+    handleGameWinner("wildparty", payload);
   });
 
   socket.on("presence_online", (userId) => {

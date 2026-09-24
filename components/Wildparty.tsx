@@ -407,19 +407,22 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
   // Real-time sync — betting phase me har 1.5s
   useEffect(() => {
-    const handleWildWinner = (data: {name: string, win: number, avatar: string}) => {
-      setRealWinners(prev => {
-        const newWinners = [data, ...prev];
-        return newWinners.slice(0, 3); // keep top 3
-      });
+    const handleWildWinner = (data: {name: string, win: number, avatar: string}[]) => {
+      setRealWinners(data);
     };
 
-    socket.on('wildparty_winner', handleWildWinner);
+    socket.on('wildparty_top_winners', handleWildWinner);
 
     return () => {
-      socket.off('wildparty_winner', handleWildWinner);
+      socket.off('wildparty_top_winners', handleWildWinner);
     };
   }, []);
+
+  useEffect(() => {
+    if (gamePhase === 'betting') {
+      setRealWinners([]);
+    }
+  }, [gamePhase]);
 
   useEffect(() => {
     if (loading || gamePhase !== 'betting') return;
@@ -719,7 +722,8 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           socket.emit('wildparty_winner_update', {
               name: currentUserName,
               win: totalWinnings,
-              avatar: currentUserAvatar
+              avatar: currentUserAvatar,
+              round: currentRoundNo
           });
         }
         setWinnerCountdown(5);
