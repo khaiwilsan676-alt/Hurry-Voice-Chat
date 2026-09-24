@@ -1048,20 +1048,23 @@ export default function MePage({ onLogout, onPublicProfileChange }: MePageProps)
                 </p>
               </div>
 
-              {/* === YAHAN NAYA BUTTON ADD KIYA HAI === */}
+              {/* === YAHAN NAYA BUTTON ADD KIYA HAI (IMAGE + GET GOLD COINS TEXT) === */}
               {item.showGoldButton && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation(); // Parent div ke click ko rokne ke liye
                     setShowInviteFriends(true);
                   }}
-                  className="flex-shrink-0 focus:outline-none active:scale-95 transition-transform"
+                  className="flex-shrink-0 flex items-center gap-1.5 focus:outline-none active:scale-95 transition-transform mr-1"
                 >
                   <img
-                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan aap apni "Get Gold Coins" wali image ka path daal dena
+                    src="/file_00000000f26c81f88083bc494a0f229b.png" // <-- Yahan apni "Get Gold Coins" wali image ka path daal dena
                     alt="Get Gold Coins"
-                    className="h-9 object-contain"
+                    className="h-8 object-contain"
                   />
+                  <span className="text-xs font-bold text-amber-600 whitespace-nowrap">
+                    Get Gold Coins
+                  </span>
                 </button>
               )}
               {/* ===================================== */}
