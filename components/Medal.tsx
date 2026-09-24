@@ -708,9 +708,38 @@ export default function Medal({ onBack }: MedalProps) {
               </p>
             </div>
 
+            {/* ================= NAYA SECTION: 1/1 Progress aur Medal Thumbnail ================= */}
+            <div className="w-full flex flex-col items-center mt-6 relative z-10">
+              
+              {/* 1. Progress Bar Line */}
+              <div className="w-full max-w-[340px] h-[6px] bg-[#3b2b5c] rounded-full mb-3 relative overflow-hidden">
+                <div className="absolute top-0 left-0 h-full w-full bg-[#8b5cf6] rounded-full"></div>
+              </div>
+
+              {/* 2. Progress Text (1/1) */}
+              <span className="text-white text-[15px] font-bold mb-6">
+                1/1
+              </span>
+
+              {/* 3. Niche wala Medal Box */}
+              <div className="flex items-center justify-center gap-4">
+                {/* Selected/Active Medal Box */}
+                <div className="w-[86px] h-[86px] rounded-xl border border-[#8b5cf6] bg-[#1a1230]/80 flex items-center justify-center p-1 relative shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+                  <MedalVideo
+                    src={displayMedal.video}
+                    variant={displayMedal.variant ?? 'black'}
+                    autoPlay={false}
+                    isColorless={true}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+              </div>
+            </div>
+            {/* ================= NAYA SECTION END ================= */}
+
             {/* --- Tier Tabs (1/2/3) --- */}
             {showTabs && (
-              <div className="flex items-center justify-center gap-3 mt-6 relative z-10">
+              <div className="flex items-center justify-center gap-3 mt-8 relative z-10">
                 {tierMedals.map((_, i) => (
                   <React.Fragment key={i}>
                     {i > 0 && (
