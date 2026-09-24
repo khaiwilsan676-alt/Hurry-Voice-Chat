@@ -14,26 +14,18 @@ interface MedalItem {
   stars: number
   category: 'achievement' | 'gift' | 'activity'
   variant?: 'black' | 'green'
-
   cardVideoSize: string
   cardVideoTop: string
-
   sheetVideoSize: string
   sheetVideoTop: string
-
   tierGroup?: string
-
   giftText: string
-  
   badgeTitle: string
   unlockText: string
 }
 
 const MedalFilters = () => (
-  <svg
-    style={{ width: 0, height: 0, position: 'absolute' }}
-    aria-hidden="true"
-  >
+  <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
     <filter id="remove-black" colorInterpolationFilters="sRGB">
       <feColorMatrix
         type="matrix"
@@ -45,7 +37,6 @@ const MedalFilters = () => (
         "
       />
     </filter>
-
     <filter id="remove-green" colorInterpolationFilters="sRGB">
       <feColorMatrix
         type="matrix"
@@ -140,23 +131,16 @@ function WebGLBackground() {
         vec2 uv = gl_FragCoord.xy / u_resolution.xy;
         vec2 p = uv * 2.0 - 1.0;
         p.x *= u_resolution.x / u_resolution.y;
-
         float len = length(p);
-        
         vec3 baseDark = vec3(0.005, 0.008, 0.02);
         vec3 faintGlow = vec3(0.01, 0.02, 0.06) * (0.4 / (len + 0.5));
         vec3 softStars = vec3(0.02, 0.04, 0.1) * sin(uv.y * 3.0 + u_time * 0.2);
-
         vec3 finalColor = baseDark + faintGlow + softStars * 0.1;
         gl_FragColor = vec4(finalColor, 1.0);
       }
     `
 
-    const createShader = (
-      gl: WebGLRenderingContext,
-      type: number,
-      source: string
-    ) => {
+    const createShader = (gl: WebGLRenderingContext, type: number, source: string) => {
       const shader = gl.createShader(type)
       if (!shader) return null
       gl.shaderSource(shader, source)
@@ -175,9 +159,7 @@ function WebGLBackground() {
     gl.linkProgram(program)
     gl.useProgram(program)
 
-    const vertices = new Float32Array([
-      -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
-    ])
+    const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1])
     const buffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
@@ -202,35 +184,19 @@ function WebGLBackground() {
     }
 
     animationFrameId = requestAnimationFrame(render)
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-    }
+    return () => cancelAnimationFrame(animationFrameId)
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-0"
-    />
-  )
+  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />
 }
 
-const TIER_TAB_IMAGES = [
-  '/IMG_20260924_132022.png',
-  '/IMG_20260924_132038.png',
-  '/IMG_20260924_132051.png',
-]
-
 export default function Medal({ onBack }: MedalProps) {
-  const [activeTab, setActiveTab] = useState<
-    'achievement' | 'activity' | 'gift'
-  >('achievement')
+  const [activeTab, setActiveTab] = useState<'achievement' | 'activity' | 'gift'>('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
 
+  // ================= DUMMY DATA (Aap apna pura data yahan paste karein) =================
   const medals: MedalItem[] = [
-    // ================= RICH GROUP (1 / 2 / 3) =================
     {
       id: '1',
       name: 'Rich',
@@ -279,7 +245,6 @@ export default function Medal({ onBack }: MedalProps) {
       badgeTitle: 'Rich Level Badge',
       unlockText: 'Reach Level 3 to obtain',
     },
-    // ================= SUPER GAMER (no tier tabs) =================
     {
       id: 'new-1',
       name: 'Super Gamer',
@@ -295,7 +260,6 @@ export default function Medal({ onBack }: MedalProps) {
       badgeTitle: 'CP Level Badge', 
       unlockText: 'Reach Level 1 to obtain', 
     },
-    // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
     {
       id: 'new-2',
       name: 'Millionaire',
@@ -344,7 +308,6 @@ export default function Medal({ onBack }: MedalProps) {
       badgeTitle: 'Millionaire Badge',
       unlockText: 'Reach Level 3 to obtain',
     },
-    // ================= ROOM TOP GROUP (8 / 9 / 10) =================
     {
       id: 'new-5',
       name: 'Room Top 1',
@@ -393,7 +356,6 @@ export default function Medal({ onBack }: MedalProps) {
       badgeTitle: 'Room Top Badge',
       unlockText: 'Reach Level 3 to obtain',
     },
-    // ================= MEDAL 11 / 12 / 13 GROUP =================
     {
       id: 'new-8',
       name: 'Medal 13',
@@ -442,7 +404,6 @@ export default function Medal({ onBack }: MedalProps) {
       badgeTitle: 'Medal Badge',
       unlockText: 'Reach Level 3 to obtain',
     },
-    // ================= VIP GROUP (VIP2 / VIP1 / Pure Love) =================
     {
       id: '4',
       name: 'VIP2',
@@ -517,41 +478,21 @@ export default function Medal({ onBack }: MedalProps) {
   const displayMedal = tierMedals[activeTier] ?? selectedMedal
   const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
 
-  const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
-  const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
-
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e] touch-pan-y">
       <MedalFilters />
       <WebGLBackground />
 
-      <div
-        className="fixed top-0 left-0 right-0 h-[48vh] pointer-events-none z-[1] bg-top bg-cover bg-no-repeat"
-        style={{
-          backgroundImage: `url('/file_00000000f1dc821196bf96f688c3b2f6.png')`,
-          maskImage:
-            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
-          WebkitMaskImage:
-            'linear-gradient(to bottom, black 0%, black 95%, transparent 100%)',
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#02050e]/30 to-[#02050e]" />
-      </div>
-
+      {/* Top Header & Grid (Same as before) */}
       <div
         className="relative z-10 flex-none w-full max-w-md mx-auto px-3 pb-2"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)' }}
       >
         <div className="relative flex items-center justify-between pb-4">
-          <button
-            onClick={onBack}
-            className="p-1 pl-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10"
-          >
+          <button onClick={onBack} className="p-1 pl-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10">
             <ArrowLeft size={28} />
           </button>
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white tracking-wide drop-shadow-md">
-            Medal
-          </h1>
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white tracking-wide drop-shadow-md">Medal</h1>
           <button className="p-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10">
             <HelpCircle size={22} className="opacity-80" />
           </button>
@@ -562,9 +503,7 @@ export default function Medal({ onBack }: MedalProps) {
             <div className="w-10 h-[1px] bg-[#a89bbf] relative opacity-60">
               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 bg-[#d4cce6]"></div>
             </div>
-            <span className="text-[15px] text-gray-100 tracking-wide font-medium mx-1">
-              The Medal I Wear
-            </span>
+            <span className="text-[15px] text-gray-100 tracking-wide font-medium mx-1">The Medal I Wear</span>
             <div className="w-10 h-[1px] bg-[#a89bbf] relative opacity-60">
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rotate-45 bg-[#d4cce6]"></div>
             </div>
@@ -572,10 +511,7 @@ export default function Medal({ onBack }: MedalProps) {
 
           <div className="grid grid-cols-5 gap-[6px] px-1">
             {Array.from({ length: 10 }).map((_, index) => (
-              <div
-                key={index}
-                className="aspect-square rounded-md border border-white bg-[#281b54]/60 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-inner"
-              >
+              <div key={index} className="aspect-square rounded-md border border-white bg-[#281b54]/60 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-inner">
                 <Plus size={22} className="text-[#e2d5ff]" strokeWidth={2.5} />
               </div>
             ))}
@@ -584,9 +520,7 @@ export default function Medal({ onBack }: MedalProps) {
           <div className="relative mt-6 flex flex-col items-center">
             <div className="flex items-center justify-center text-[15px] font-medium text-gray-200 mb-2 z-10">
               Obtained Medal(s): <span className="text-[#facc15] ml-1">3</span>
-              <button className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors">
-                Check&gt;
-              </button>
+              <button className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors">Check&gt;</button>
             </div>
           </div>
         </div>
@@ -601,15 +535,11 @@ export default function Medal({ onBack }: MedalProps) {
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
               className={`relative font-semibold transition-colors flex flex-col items-center cursor-pointer w-1/3 text-center ${
-                activeTab === tab.key
-                  ? 'text-white text-[15px]'
-                  : 'text-[#8b79b5] hover:text-gray-300 text-[15px]'
+                activeTab === tab.key ? 'text-white text-[15px]' : 'text-[#8b79b5] hover:text-gray-300 text-[15px]'
               }`}
             >
               {tab.label}
-              {activeTab === tab.key && (
-                <span className="w-2 h-[2px] bg-[#facc15] rounded-full mt-2 absolute -bottom-1" />
-              )}
+              {activeTab === tab.key && <span className="w-2 h-[2px] bg-[#facc15] rounded-full mt-2 absolute -bottom-1" />}
             </button>
           ))}
         </div>
@@ -624,170 +554,116 @@ export default function Medal({ onBack }: MedalProps) {
               className="relative bg-gradient-to-b from-[#1a1230] to-[#0d0820] rounded-md p-3 flex flex-col items-center justify-center text-center hover:opacity-90 active:scale-95 transition-all duration-200 cursor-pointer h-[190px] overflow-hidden"
             >
               <div className="relative w-full flex-1 flex items-center justify-center pointer-events-none">
-                <div
-                  className="absolute left-1/2 -translate-x-1/2"
-                  style={{
-                    top: medal.cardVideoTop,
-                    transform: 'translateY(-50%)',
-                  }}
-                >
-                  <MedalVideo
-                    src={medal.video}
-                    variant={medal.variant ?? 'black'}
-                    autoPlay={false}
-                    isColorless={true}
-                    className="max-w-none max-h-none object-contain"
-                    style={{
-                      width: medal.cardVideoSize,
-                      height: medal.cardVideoSize,
-                    }}
-                  />
+                <div className="absolute left-1/2 -translate-x-1/2" style={{ top: medal.cardVideoTop, transform: 'translateY(-50%)' }}>
+                  <MedalVideo src={medal.video} variant={medal.variant ?? 'black'} autoPlay={false} isColorless={true} className="max-w-none max-h-none object-contain" style={{ width: medal.cardVideoSize, height: medal.cardVideoSize }} />
                 </div>
               </div>
-
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
-                <span className="text-[13px] font-medium text-gray-200 tracking-wide">
-                  {medal.name}
-                </span>
+                <span className="text-[13px] font-medium text-gray-200 tracking-wide">{medal.name}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* ================= MEDAL DETAIL SHEET (IMAGE KE HISAB SE) ================= */}
       {selectedMedal && displayMedal && (
-        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in">
-          <div className="relative w-full h-[30vh]">
-            <img
-              src="/IMG_20260924_132006.png"
-              alt=""
-              className="absolute inset-0 w-full h-full object-contain object-top block pointer-events-none select-none"
-            />
-
-            <button
-              onClick={closeSheet}
-              className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
-              style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
-            >
+        <div className="fixed inset-0 z-50 bg-[#0a0616] overflow-y-auto overflow-x-hidden animate-fade-in flex flex-col items-center">
+          
+          {/* Top Background Image */}
+          <div className="relative w-full h-[30vh] flex justify-center">
+            <img src="/IMG_20260924_132006.png" alt="" className="absolute top-0 w-full h-full object-contain object-top pointer-events-none select-none" />
+            <button onClick={closeSheet} className="absolute left-2 z-50 p-1 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95" style={{ top: 'max(env(safe-area-inset-top), 16px)' }}>
               <ArrowLeft size={28} />
             </button>
-
-            <div
-              className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none overflow-hidden"
-              style={{
-                top: groupTop,
-                transform: 'translateY(-50%)',
-                width: groupSize,
-                height: groupSize,
-              }}
-            >
-              <div
-                className="flex h-full transition-transform duration-500 ease-out will-change-transform"
-                style={{
-                  width: `${tierMedals.length * 100}%`,
-                  transform: `translateX(-${
-                    (activeTier * 100) / tierMedals.length
-                  }%)`,
-                }}
-              >
-                {tierMedals.map((m) => (
-                  <div
-                    key={m.id}
-                    className="h-full flex items-center justify-center shrink-0"
-                    style={{ width: `${100 / tierMedals.length}%` }}
-                  >
-                    <MedalVideo
-                      src={m.video}
-                      variant={m.variant ?? 'black'}
-                      autoPlay={true}
-                      isColorless={false}
-                      className="w-full h-full max-w-none max-h-none object-contain"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* PARENT CONTAINER KO RELATIVE KIYA */}
-          <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-6 pb-16">
-            {/* FRAME IMAGE - MT-14 HATA DIYA */}
-            <img
-              src="/IMG_20260924_132112.png"
-              alt="frame"
-              className="w-72 h-72 object-contain pointer-events-none mt-0"
-            />
+          {/* MAIN CONTENT AREA */}
+          <div className="relative z-20 flex flex-col items-center w-full max-w-md mx-auto px-4 pb-10">
+            
+            {/* 1. FRAME + VIDEO (Heart Medal) */}
+            {/* Negative margin diya hai taaki frame background image ke upar overlap kare */}
+            <div className="relative w-[320px] h-[320px] flex items-center justify-center mt-[-60px]">
+              {/* Background Frame Image */}
+              <img src="/IMG_20260924_132112.png" alt="frame" className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" />
+              
+              {/* Video Slider (Heart) */}
+              <div className="absolute inset-0 flex items-center justify-center z-0 overflow-hidden rounded-full" style={{ transform: 'scale(0.7)' }}>
+                <div 
+                  className="flex h-full transition-transform duration-500 ease-out will-change-transform"
+                  style={{
+                    width: `${tierMedals.length * 100}%`,
+                    transform: `translateX(-${(activeTier * 100) / tierMedals.length}%)`,
+                  }}
+                >
+                  {tierMedals.map((m) => (
+                    <div key={m.id} className="h-full flex items-center justify-center shrink-0" style={{ width: `${100 / tierMedals.length}%` }}>
+                      <MedalVideo src={m.video} variant={m.variant ?? 'black'} autoPlay={true} isColorless={false} className="w-full h-full max-w-none max-h-none object-contain" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
 
-            {/* STARS, BADGE TITLE, AUR UNLOCK TEXT - ABSOLUTE POSITIONING */}
-            <div className="absolute top-[190px] flex flex-col items-center z-30 w-full">
-              {/* Stars - Image mein 4 stars hain */}
+            {/* 2. STARS, TITLE, UNLOCK TEXT (Frame ke andar) */}
+            {/* Yahan negative margin diya taaki text frame ke andar aa jaye */}
+            <div className="flex flex-col items-center z-30 w-full mt-[-80px] relative">
+              {/* Stars */}
               <div className="flex gap-1 mb-1">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <span key={i} className="text-[#facc15] text-[20px]">★</span>
+                {Array.from({ length: displayMedal.stars }).map((_, i) => (
+                  <span key={i} className="text-[#facc15] text-[20px] drop-shadow-md">★</span>
                 ))}
               </div>
 
-              {/* Badge Title - Image jaisa */}
-              <h3 className="text-[20px] font-bold text-white tracking-wide drop-shadow-md">
+              {/* Badge Title */}
+              <h3 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
                 {displayMedal.badgeTitle}
               </h3>
 
-              {/* Unlock Text - Image jaisa */}
-              <p className="text-[#facc15] text-[14px] mt-0.5 font-medium">
+              {/* Unlock Text */}
+              <p className="text-[#facc15] text-[15px] mt-0.5 font-medium drop-shadow-md">
                 {displayMedal.unlockText}
               </p>
             </div>
 
-            {/* PER-VIDEO GIFT TEXT - MT-24 DIYA TAAKI ABSOLUTE TEXT KE NICHE AAYE */}
-            <p className="text-gray-500 text-[16px] mt-24 relative z-10">
+            {/* 3. GIFT TEXT */}
+            <p className="text-gray-400 text-[15px] mt-10 relative z-10 text-center">
               {displayMedal.giftText}
             </p>
 
-            {/* PROGRESS LINE */}
-            <div className="w-full max-w-[280px] mt-5 relative z-10 flex flex-col items-center">
+            {/* 4. PROGRESS LINE (1/1) */}
+            <div className="w-full max-w-[280px] mt-3 relative z-10 flex flex-col items-center">
               <div className="w-full h-[6px] bg-[#3b2b5c] rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-[#8b5cf6] rounded-full" 
-                  style={{ width: '100%' }}
-                ></div>
+                <div className="h-full bg-[#8b5cf6] rounded-full" style={{ width: '100%' }}></div>
               </div>
-              
-              <span className="text-white text-[14px] font-medium mt-1.5">
-                1/1
-              </span>
+              <span className="text-white text-[14px] font-medium mt-1.5">1/1</span>
             </div>
 
+            {/* 5. TIER TABS (Lv.1, Lv.2 etc) */}
             {showTabs && (
-              <div className="flex items-center justify-center gap-4 mt-6 relative z-10">
+              <div className="flex items-center justify-center gap-6 mt-5 relative z-10">
                 {tierMedals.map((m, i) => (
                   <div 
                     key={i} 
                     onClick={() => setActiveTier(i)}
                     className={`flex flex-col items-center cursor-pointer transition-all duration-200 ${
-                      activeTier === i ? 'opacity-100 scale-110' : 'opacity-50 scale-100'
+                      activeTier === i ? 'opacity-100 scale-110' : 'opacity-40 scale-100'
                     }`}
                   >
-                    <div className="w-14 h-14 rounded-full border border-[#5a4b8a] bg-[#1a1230] flex items-center justify-center overflow-hidden relative">
-                       <MedalVideo
-                          src={m.video}
-                          variant={m.variant ?? 'black'}
-                          autoPlay={true}
-                          isColorless={true}
-                          className="w-[200%] h-[200%] max-w-none max-h-none object-contain"
-                          style={{ transform: 'scale(0.8)' }}
-                        />
+                    <div className={`w-12 h-12 rounded-full border ${activeTier === i ? 'border-[#a78bfa]' : 'border-[#5a4b8a]'} bg-[#1a1230] flex items-center justify-center overflow-hidden relative`}>
+                       <MedalVideo src={m.video} variant={m.variant ?? 'black'} autoPlay={true} isColorless={true} className="w-[200%] h-[200%] max-w-none max-h-none object-contain" style={{ transform: 'scale(0.8)' }} />
                     </div>
-                    <span className="text-[12px] text-gray-300 mt-1 font-medium">
-                      Lv.{i + 1}
-                    </span>
+                    <span className={`text-[12px] mt-1 font-medium ${activeTier === i ? 'text-white' : 'text-gray-400'}`}>Lv.{i + 1}</span>
                   </div>
                 ))}
               </div>
             )}
 
-            <button className="w-full max-w-[280px] mt-8 bg-gradient-to-r from-[#facc15] to-[#f59e0b] text-[#4a2c0a] font-bold text-[16px] py-3 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer z-10">
+            {/* 6. OBTAINED BUTTON */}
+            <button className="w-full max-w-[280px] mt-8 bg-gradient-to-r from-[#facc15] to-[#f59e0b] text-[#4a2c0a] font-bold text-[16px] py-3.5 rounded-full shadow-lg hover:brightness-110 active:scale-95 transition-all cursor-pointer z-10">
               obtained
             </button>
+
           </div>
 
           <style jsx global>{`
