@@ -158,7 +158,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
     <div
       className="min-h-screen flex flex-col select-none"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 35%, #ffffff 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -166,22 +166,24 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
         paddingBottom: '80px',
       }}
     >
-      {/* Header — Heading on the left (no back icon) */}
-      <div className="relative flex items-center w-full h-[52px] shrink-0 px-5">
-        <h1 className="text-[19px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
+      {/* Header — Heading on the left */}
+      <div className="relative flex items-center w-full h-[58px] shrink-0 px-5">
+        <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
       </div>
 
-      {/* Tabs Bar */}
+      {/* Tabs Bar — Blue full cover */}
       <div className="px-3 mb-3">
-        <div className="bg-white/40 rounded-md p-1 flex items-center">
-          {FOLLOW_TABS.map((tab) => (
+        <div className="rounded-md flex items-center overflow-hidden shadow-sm">
+          {FOLLOW_TABS.map((tab, i) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 text-[12px] font-semibold rounded-md transition-all flex items-center justify-center ${
+              className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white h-[38px]'
-                  : 'bg-transparent text-gray-600 h-[38px]'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white text-gray-600'
+              } ${i === 0 ? 'rounded-l-md' : ''} ${
+                i === FOLLOW_TABS.length - 1 ? 'rounded-r-md' : ''
               }`}
             >
               {tab.label}
@@ -222,7 +224,7 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
     <div
       className="min-h-screen flex flex-col select-none"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 35%, #ffffff 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -230,22 +232,24 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
         paddingBottom: '80px',
       }}
     >
-      {/* Header — Heading on the left (no back icon) */}
-      <div className="relative flex items-center w-full h-[52px] shrink-0 px-5">
-        <h1 className="text-[19px] font-bold text-[#1E1E1E]">Visitors</h1>
+      {/* Header — Heading on the left */}
+      <div className="relative flex items-center w-full h-[58px] shrink-0 px-5">
+        <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
       </div>
 
-      {/* Tabs Bar */}
+      {/* Tabs Bar — Blue full cover */}
       <div className="px-3 mb-3">
-        <div className="bg-white/40 rounded-md p-1 flex items-center">
-          {VISITOR_TABS.map((tab) => (
+        <div className="rounded-md flex items-center overflow-hidden shadow-sm">
+          {VISITOR_TABS.map((tab, i) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
-              className={`flex-1 text-[12px] font-semibold rounded-md transition-all flex items-center justify-center ${
+              className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
                 activeTab === tab.id
-                  ? 'bg-blue-500 text-white h-[40px]'
-                  : 'bg-transparent text-gray-600 h-[40px]'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white text-gray-600'
+              } ${i === 0 ? 'rounded-l-md' : ''} ${
+                i === VISITOR_TABS.length - 1 ? 'rounded-r-md' : ''
               }`}
             >
               {tab.label}
