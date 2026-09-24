@@ -158,7 +158,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 34%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -171,9 +171,9 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
       </div>
 
-      {/* Tabs Bar — FIXED */}
-      <div className="px-3 mb-3 shrink-0">
-        <div className="rounded-md flex items-center overflow-hidden shadow-sm">
+      {/* Tabs Bar — FIXED, no card look */}
+      <div className="px-3 mb-3 shrink-0 bg-transparent">
+        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
           {FOLLOW_TABS.map((tab, i) => (
             <button
               key={tab.id}
@@ -181,7 +181,7 @@ export function FollowList({ onBack, type, onNavigate }: FollowListProps) {
               className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
                 activeTab === tab.id
                   ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-600'
+                  : 'bg-transparent text-gray-600'
               } ${i === 0 ? 'rounded-l-md' : ''} ${
                 i === FOLLOW_TABS.length - 1 ? 'rounded-r-md' : ''
               }`}
@@ -224,7 +224,7 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 22%, #ffffff 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 34%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -247,9 +247,9 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
       </div>
 
-      {/* Tabs Bar — FIXED */}
-      <div className="px-3 mb-3 shrink-0">
-        <div className="rounded-md flex items-center overflow-hidden shadow-sm">
+      {/* Tabs Bar — FIXED, no card look */}
+      <div className="px-3 mb-3 shrink-0 bg-transparent">
+        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
           {VISITOR_TABS.map((tab, i) => (
             <button
               key={tab.id}
@@ -257,7 +257,7 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
               className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
                 activeTab === tab.id
                   ? 'bg-blue-500 text-white'
-                  : 'bg-white text-gray-600'
+                  : 'bg-transparent text-gray-600'
               } ${i === 0 ? 'rounded-l-md' : ''} ${
                 i === VISITOR_TABS.length - 1 ? 'rounded-r-md' : ''
               }`}
@@ -268,7 +268,7 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
         </div>
       </div>
 
-      {/* Content — SIRF YAHI SCROLL HOGA (abhi empty) */}
+      {/* Content — SIRF YAHI SCROLL HOGA (empty) */}
       <div className="flex-1 overflow-y-auto px-3 pb-4" />
     </div>
   )
