@@ -206,10 +206,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'green',
-      cardVideoSize: '200px',   // Card mein Video Choti 
+      cardVideoSize: '500px',   // Card mein Video Choti 
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  // Sheet mein Video Badi
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
     {
       id: '2',
@@ -218,10 +218,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 5,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '200px',   
+      cardVideoSize: '500px',   
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
     {
       id: '3',
@@ -230,10 +230,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'achievement',
       variant: 'black',
-      cardVideoSize: '200px',   
+      cardVideoSize: '500px',   
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
     {
       id: '4',
@@ -242,10 +242,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      cardVideoSize: '200px',   
+      cardVideoSize: '500px',   
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
     {
       id: '5',
@@ -254,10 +254,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'activity',
       variant: 'black',
-      cardVideoSize: '200px',   
+      cardVideoSize: '500px',   
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
     {
       id: '6',
@@ -266,10 +266,10 @@ export default function Medal({ onBack }: MedalProps) {
       stars: 4,
       category: 'gift',
       variant: 'black',
-      cardVideoSize: '200px',   
+      cardVideoSize: '500px',   
       cardVideoTop: '50%',
       sheetVideoSize: '700px',  
-      sheetVideoTop: '80%',
+      sheetVideoTop: '120%',
     },
   ]
 
@@ -462,11 +462,11 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-10"
             />
 
-            <h3 className="-mt-12 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
+            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
               {selectedMedal.name}
             </h3>
 
-            <p className="text-gray-500 text-[15px] mt-1 relative z-10">
+            <p className="text-gray-500 text-[16px] mt-1 relative z-10">
               0/50000 Coins Of gifts Send
             </p>
 
