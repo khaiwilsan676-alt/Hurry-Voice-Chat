@@ -607,14 +607,66 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
-  // ============ Friends view (swipe right se wapas messages) ============
+  // ============ TOP SHEET — Blue band + Tabs (SHARED) ============
+  const renderTopSheet = () => (
+    <div
+      className="w-full sticky top-0 z-30"
+      style={{
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+    >
+      {/* Tabs row — safe area ke turant niche */}
+      <div className="px-4 pt-4 pb-3 flex items-center gap-3">
+        {/* Inbox Tab */}
+        <div
+          className="flex flex-col items-center cursor-pointer select-none outline-none"
+          onClick={() => setActiveTab('messages')}
+          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
+        >
+          <h1
+            className={`text-2xl transition-colors outline-none ${
+              activeTab === 'messages'
+                ? 'text-black font-extrabold'
+                : 'text-gray-400 font-medium'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            Inbox
+          </h1>
+        </div>
+
+        {/* Friends Tab */}
+        <div
+          className="flex flex-col items-center cursor-pointer select-none outline-none"
+          onClick={() => setActiveTab('friends')}
+          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
+        >
+          <h1
+            className={`text-2xl transition-colors outline-none ${
+              activeTab === 'friends'
+                ? 'text-black font-extrabold'
+                : 'text-gray-400 font-medium'
+            }`}
+            style={{ textDecoration: 'none' }}
+          >
+            Friends
+          </h1>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ============ Friends view (with top sheet) ============
   if (activeTab === 'friends') {
     return (
       <div
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className="w-full min-h-screen"
+        className="w-full min-h-screen bg-white"
       >
+        {renderTopSheet()}
         <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />
       </div>
     );
@@ -626,55 +678,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-
-      {/* ============ TOP SHEET — Blue band + Tabs (EK HI SHEET) ============ */}
-      <div
-        className="w-full sticky top-0 z-30"
-        style={{
-          background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          WebkitTapHighlightColor: 'transparent',
-        }}
-      >
-        {/* Tabs row — safe area ke turant niche */}
-        <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-          {/* Inbox Tab */}
-          <div
-            className="flex flex-col items-center cursor-pointer select-none outline-none"
-            onClick={() => setActiveTab('messages')}
-            style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-          >
-            <h1
-              className={`text-2xl transition-colors outline-none ${
-                activeTab === 'messages'
-                  ? 'text-black font-extrabold'
-                  : 'text-gray-400 font-medium'
-              }`}
-              style={{ textDecoration: 'none' }}
-            >
-              Inbox
-            </h1>
-          </div>
-
-          {/* Friends Tab */}
-          <div
-            className="flex flex-col items-center cursor-pointer select-none outline-none"
-            onClick={() => setActiveTab('friends')}
-            style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-          >
-            <h1
-              className={`text-2xl transition-colors outline-none ${
-                activeTab === 'friends'
-                  ? 'text-black font-extrabold'
-                  : 'text-gray-400 font-medium'
-              }`}
-              style={{ textDecoration: 'none' }}
-            >
-              Friends
-            </h1>
-          </div>
-        </div>
-      </div>
+      {renderTopSheet()}
 
       {/* ============ MAIN CONTENT (Inbox only) ============ */}
       <div className="pt-1 pb-24 flex flex-col gap-0.6">
