@@ -592,7 +592,7 @@ export default function Medal({ onBack }: MedalProps) {
                   <MedalVideo
                     src={medal.video}
                     variant={medal.variant ?? 'black'}
-                    autoPlay={false}
+                    autoPlay={true}
                     isColorless={true}
                     className="max-w-none max-h-none object-contain"
                     style={{
