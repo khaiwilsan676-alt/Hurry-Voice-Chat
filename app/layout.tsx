@@ -16,19 +16,19 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: 'https://jb-hm.vercel.app/logo.png',
-    apple: 'https://jb-hm.vercel.app/logo.png',
+    icon: 'https://hurry-voice-chat.vercel.app/logo.png',
+    apple: 'https://hurry-voice-chat.vercel.app/logo.png',
   },
 
   openGraph: {
     title: 'Hurry',
     description:
       'Join Hurry, connect with friends, and discover new people.',
-    url: 'https://jb-hm.vercel.app/HurryOfficial',
+    url: 'https://hurry-voice-chat.vercel.app/HurryOfficial',
     siteName: 'Hurry',
     images: [
       {
-        url: 'https://jb-hm.vercel.app/logo.png',
+        url: 'https://hurry-voice-chat.vercel.app/logo.png',
         width: 550,
         height: 550,
         alt: 'Hurry',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     title: 'Hurry',
     description:
       'Join Hurry, connect with friends, and discover new people.',
-    images: ['https://jb-hm.vercel.app/logo.png'],
+    images: ['https://hurry-voice-chat.vercel.app/logo.png'],
   },
 }
 
@@ -83,7 +83,7 @@ export default function RootLayout({
 
         <link
           rel="apple-touch-icon"
-          href="https://jb-hm.vercel.app/logo.png"
+          href="https://hurry-voice-chat.vercel.app/logo.png"
         />
 
         <meta
