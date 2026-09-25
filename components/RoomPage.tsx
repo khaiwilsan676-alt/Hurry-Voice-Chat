@@ -2473,6 +2473,7 @@ function RoomContent({
           seats={seats}
           roomId={roomId}
           currentUserAccountId={userAccountId}
+          roomUsers={roomUsers}
           onSend={(count: number) => setCupCount((prev) => prev + count)}
         />
       )}
