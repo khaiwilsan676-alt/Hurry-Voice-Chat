@@ -607,7 +607,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
-  // ============ TOP SHEET — Blue band + Tabs (SHARED) ============
+  // ============ TOP SHEET — Blue band + Inbox title only (SHARED) ============
   const renderTopSheet = () => (
     <div
       className="w-full sticky top-0 z-30"
@@ -617,41 +617,17 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
         WebkitTapHighlightColor: 'transparent',
       }}
     >
-      {/* Tabs row — safe area ke turant niche */}
+      {/* Inbox title row — safe area ke turant niche */}
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-        {/* Inbox Tab */}
         <div
           className="flex flex-col items-center cursor-pointer select-none outline-none"
-          onClick={() => setActiveTab('messages')}
           style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
         >
           <h1
-            className={`text-2xl transition-colors outline-none ${
-              activeTab === 'messages'
-                ? 'text-black font-extrabold'
-                : 'text-gray-400 font-medium'
-            }`}
+            className="text-2xl text-black font-extrabold outline-none"
             style={{ textDecoration: 'none' }}
           >
             Inbox
-          </h1>
-        </div>
-
-        {/* Friends Tab */}
-        <div
-          className="flex flex-col items-center cursor-pointer select-none outline-none"
-          onClick={() => setActiveTab('friends')}
-          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-        >
-          <h1
-            className={`text-2xl transition-colors outline-none ${
-              activeTab === 'friends'
-                ? 'text-black font-extrabold'
-                : 'text-gray-400 font-medium'
-            }`}
-            style={{ textDecoration: 'none' }}
-          >
-            Friends
           </h1>
         </div>
       </div>
