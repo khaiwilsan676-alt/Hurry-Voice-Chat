@@ -329,7 +329,7 @@ export default function Level({ onBack }: LevelProps) {
           {/* Back Button - Ekdam Strict Corner Left */}
           <button
             onClick={onBack}
-            className="absolute left-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            className="absolute left-[10px] p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
@@ -341,7 +341,7 @@ export default function Level({ onBack }: LevelProps) {
 
           {/* Help Button - Ekdam Strict Corner Right */}
           <button
-            className="absolute right-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            className="absolute right-[10px] p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
