@@ -62,6 +62,65 @@ async function loadBalanceFromDB(): Promise<number> {
   }
 }
 
+export async function addDiamondsToDB(amountToAdd: number): Promise<void> {
+  if (!Number.isFinite(amountToAdd) || amountToAdd <= 0) return;
+  try {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result || {};
+        const current = Number(data.diamonds) || 0;
+        const putReq = store.put({ ...data, diamonds: Math.max(0, current + amountToAdd) }, 'user_data');
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error('Failed to update diamonds in DB', e);
+  }
+}
+
+async function subtractDiamondsFromDB(amount: number): Promise<boolean> {
+  if (!Number.isFinite(amount) || amount <= 0) return false;
+  try {
+    const db = await initDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get('user_data');
+      req.onsuccess = () => {
+        const data = req.result || {};
+        const current = Number(data.diamonds) || 0;
+        if (current < amount) return resolve(false);
+        const putReq = store.put({ ...data, diamonds: current - amount }, 'user_data');
+        putReq.onsuccess = () => resolve(true);
+        putReq.onerror = () => resolve(false);
+      };
+      req.onerror = () => resolve(false);
+    });
+  } catch {
+    return false;
+  }
+}
+
+async function loadDiamondBalanceFromDB(): Promise<number> {
+  try {
+    const db = await initDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get('user_data');
+      req.onsuccess = () => resolve(Math.max(0, Number(req.result?.diamonds) || 0));
+      req.onerror = () => resolve(0);
+    });
+  } catch {
+    return 0;
+  }
+}
+
 async function addCoinsToDB(amountToAdd: number): Promise<void> {
   try {
     const db = await initDB();
@@ -395,6 +454,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   // Balance — null = not loaded yet (avoids 0 flash)
   const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const [diamondBalance, setDiamondBalance] = useState<number | null>(null)
 
   // Real-time balance sync from IndexedDB
   useEffect(() => {
@@ -402,7 +462,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
     const fetchBalance = async () => {
       const bal = await loadBalanceFromDB()
-      if (isMounted) setWalletBalance(bal)
+      const diamondBal = await loadDiamondBalanceFromDB()
+      if (isMounted) {
+        setWalletBalance(bal)
+        setDiamondBalance(diamondBal)
+      }
     }
 
     fetchBalance()
@@ -446,12 +510,20 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     const coinNum = parseFloat(coins) || 0
     if (diamondNum <= 0 || coinNum <= 0) return
 
+    const availableDiamonds = await loadDiamondBalanceFromDB()
+    if (diamondNum > availableDiamonds) return
+
+    const removed = await subtractDiamondsFromDB(diamondNum)
+    if (!removed) return
+
     await recordTransaction('Diamond Exchange', -diamondNum, 'diamond')
     await addCoinsToDB(coinNum)
 
     setDiamonds('')
+
     setCoins('')
     setWalletBalance(await loadBalanceFromDB())
+    setDiamondBalance(await loadDiamondBalanceFromDB())
   }
 
   // If Details page is open, show it instead of Wallet
@@ -518,258 +590,3 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-        </button>
-      </div>
-
-      {/* TABS */}
-      <div className="flex justify-center gap-12 py-1 flex-shrink-0 z-20">
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setActiveTab('wallet')}
-            className={`text-sm font-semibold transition-all ${
-              activeTab === 'wallet' ? 'text-gray-950 font-bold' : 'text-gray-600'
-            }`}
-          >
-            Coins
-          </button>
-          {activeTab === 'wallet' && (
-            <div className="w-3 h-0.5 bg-gray-950 rounded-full mt-1" />
-          )}
-        </div>
-
-        <div className="flex flex-col items-center">
-          <button
-            onClick={() => setActiveTab('diamonds')}
-            className={`text-sm font-semibold transition-all ${
-              activeTab === 'diamonds' ? 'text-gray-950 font-bold' : 'text-gray-600'
-            }`}
-          >
-            Diamonds
-          </button>
-          {activeTab === 'diamonds' && (
-            <div className="w-3 h-0.5 bg-gray-950 rounded-full mt-1" />
-          )}
-        </div>
-      </div>
-
-      {/* SCROLLABLE BODY */}
-      <div className="flex-1 overflow-y-auto px-4 pt-3 pb-6 relative">
-        {activeTab === 'wallet' ? (
-          /* ================= COINS TAB ================= */
-          <div className="flex flex-col space-y-4">
-            {/* Current Balance Banner */}
-            <div
-              className="rounded-xl p-5 relative mt-8 flex flex-col justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #FFD166 0%, #E09F3E 100%)',
-                boxShadow: '0 6px 20px rgba(224, 159, 62, 0.35)',
-                minHeight: '115px',
-              }}
-            >
-              {/* Larger Half Overflow Coin Image — plain img (no white removal) */}
-              <div className="absolute -top-9 right-3 w-28 h-28 pointer-events-none z-20 drop-shadow-xl">
-                <img
-                  src="/file_00000000e56882119c217d508b6733dc.png"
-                  className="w-full h-full object-contain"
-                  alt=""
-                  draggable={false}
-                />
-              </div>
-              <span className="text-xs font-extrabold text-amber-950 uppercase tracking-wider mb-1">
-                current balance
-              </span>
-              <p className="text-3xl font-black text-amber-950 tracking-tight">
-                {walletBalance === null ? '—' : walletBalance.toLocaleString()}
-              </p>
-            </div>
-
-            {/* Product Card Container */}
-            <div className="pt-1">
-              <div
-                className="rounded-xl p-3 relative flex flex-col items-center"
-                style={{
-                  background: '#FFFDF9',
-                  border: '1px solid #FDF0D5',
-                  width: '145px',
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.02)',
-                }}
-              >
-                {/* Bonus tag */}
-                <div className="absolute -top-2 left-2 z-10 px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-extrabold rounded shadow-xs flex items-center gap-1">
-                  +20,000
-                  <div className="w-2.5 h-2.5">
-                    <img
-                      src="/file_00000000e56882119c217d508b6733dc.png"
-                      className="w-full h-full object-contain"
-                      alt=""
-                      draggable={false}
-                    />
-                  </div>
-                </div>
-
-                {/* Center Coin Image — plain img */}
-                <div className="w-12 h-12 my-2 flex items-center justify-center">
-                  <img
-                    src="/file_00000000e56882119c217d508b6733dc.png"
-                    className="w-full h-full object-contain"
-                    alt=""
-                    draggable={false}
-                  />
-                </div>
-
-                {/* First Recharge Tag */}
-                <span className="px-2 py-0.5 bg-red-400 text-white text-[9px] font-bold rounded-full mb-2">
-                  First Recharge
-                </span>
-
-                {/* Coin Value */}
-                <span className="text-gray-900 font-extrabold text-sm mb-3">
-                  1,000,000
-                </span>
-
-                {/* USD Button */}
-                <button
-                  onClick={() => handleBuyCoins(1000000)}
-                  className="w-full py-2 bg-amber-300 hover:bg-amber-400 font-bold text-amber-950 text-xs rounded-lg shadow-xs active:scale-95 transition-transform"
-                >
-                  USD 1
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* ================= DIAMONDS TAB ================= */
-          <div className="flex flex-col justify-between min-h-[calc(100vh-140px)]">
-            <div className="space-y-4">
-              {/* Current Diamonds Banner */}
-              <div
-                className="rounded-xl p-5 relative mt-8 flex flex-col justify-center"
-                style={{
-                  background: 'linear-gradient(135deg, #FF70A6 0%, #D90429 100%)',
-                  boxShadow: '0 6px 20px rgba(217, 4, 41, 0.35)',
-                  minHeight: '115px',
-                }}
-              >
-                {/* Larger Half Overflow Diamond Image */}
-                <div className="absolute -top-10 right-2 w-28 h-28 pointer-events-none z-20 drop-shadow-xl">
-                  <WhiteColorRemovalShader
-                    imageSrc="/1787321690452.png"
-                    className="w-full h-full object-contain"
-                    threshold={0.88}
-                  />
-                </div>
-                <span className="text-xs font-extrabold text-white/90 uppercase tracking-wider mb-1">
-                  current diamonds
-                </span>
-                <p className="text-3xl font-black text-white tracking-tight">
-                  0
-                </p>
-              </div>
-
-              {/* Exchange Section Box */}
-              <div
-                className="rounded-xl p-4"
-                style={{
-                  background: 'linear-gradient(180deg, #FFF0F3 0%, #FFFFFF 100%)',
-                  border: '1px solid #FFE4E8',
-                  boxShadow: '0 2px 10px rgba(255, 182, 193, 0.15)',
-                }}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xs font-bold text-gray-800">Exchange</h3>
-                  <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-                    <span>100 =</span>
-                    <div className="w-3.5 h-3.5 inline-block align-middle">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                    <span>33</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {/* Left Diamond Input Box */}
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-pink-100 shadow-inner">
-                    <div className="w-4 h-4 flex-shrink-0">
-                      <WhiteColorRemovalShader
-                        imageSrc="/1787321690452.png"
-                        className="w-full h-full object-contain"
-                        threshold={0.88}
-                      />
-                    </div>
-                    <input
-                      type="number"
-                      value={diamonds}
-                      onChange={(e) => handleDiamondChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs placeholder:text-gray-400"
-                      placeholder="Input multiple"
-                    />
-                    <span className="text-[11px] font-bold text-gray-400">x100</span>
-                  </div>
-
-                  <span className="text-gray-300 font-bold">=</span>
-
-                  {/* Right Coin Output Box — plain coin img */}
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
-                    <input
-                      type="number"
-                      value={coins}
-                      onChange={(e) => handleCoinChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs text-right placeholder:text-gray-400"
-                      placeholder="Coins"
-                    />
-                    <div className="w-4 h-4 flex-shrink-0 ml-1.5">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Exchange Rate Percentages */}
-              <div className="space-y-2 pt-1">
-                <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
-                    <button
-                      key={pct}
-                      onClick={() => handlePercentageSelect(pct)}
-                      className={`py-2 rounded-xl text-xs font-bold transition-all border ${
-                        selectedPercentage === pct
-                          ? 'bg-cyan-400 text-white border-cyan-400 shadow-xs'
-                          : 'bg-white text-cyan-500 border-cyan-200'
-                      }`}
-                    >
-                      {pct}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Exchange Button */}
-            <div className="pt-6 pb-2">
-              <button
-                onClick={handleExchange}
-                className="w-full py-3 rounded-xl font-bold text-white bg-pink-300 text-sm shadow-xs active:scale-95 transition-transform"
-              >
-                Exchange
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
