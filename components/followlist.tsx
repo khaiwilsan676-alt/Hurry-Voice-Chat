@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 
 // ============ TYPES ============
 interface FollowListProps {
@@ -21,7 +21,6 @@ const LABELS: { [key: string]: string } = {
   friends: 'Friends',
   followers: 'Followers',
   following: 'Following',
-  visitors: 'Visitors',
 }
 
 const SINGULAR: { [key: string]: string } = {
@@ -29,6 +28,11 @@ const SINGULAR: { [key: string]: string } = {
   followers: 'Follower',
   following: 'Following',
 }
+
+const VISITOR_TABS = [
+  { id: 'visitors', label: 'Visitors' },
+  { id: 'visited', label: 'Who I Have Visited' },
+]
 
 // ============ SHARED BACK ARROW ============
 function BackArrow({ onBack }: { onBack: () => void }) {
@@ -58,7 +62,7 @@ function BackArrow({ onBack }: { onBack: () => void }) {
   )
 }
 
-// ============ FOLLOW LIST ============
+// ============ FOLLOW LIST (no tabs) ============
 export function FollowList({ onBack, type }: FollowListProps) {
   const heading = LABELS[type] || 'Friends'
   const singularLabel = SINGULAR[type] || 'User'
@@ -71,7 +75,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background:
-          'linear-gradient(to bottom, #bfdbfe 0%, #e0f2fe 12%, #f3f4f6 22%, #f3f4f6 100%)',
+          'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 15%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
@@ -79,7 +83,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Header — Back arrow left, Heading middle (FIXED) */}
+      {/* Header — Back arrow left, Heading middle */}
       <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 pl-2 pr-3">
         <BackArrow onBack={onBack} />
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">{heading}</h1>
@@ -106,14 +110,16 @@ export function FollowList({ onBack, type }: FollowListProps) {
   )
 }
 
-// ============ VISITORS ============
+// ============ VISITORS (with tabs) ============
 export function VisitorsPage({ onBack }: VisitorsProps) {
+  const [activeTab, setActiveTab] = useState<'visitors' | 'visited'>('visitors')
+
   return (
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background:
-          'linear-gradient(to bottom, #bfdbfe 0%, #e0f2fe 12%, #f3f4f6 22%, #f3f4f6 100%)',
+          'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 15%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
@@ -121,10 +127,36 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Header — Back arrow left, Heading middle (FIXED) */}
+      {/* Header — Back arrow left, Heading middle */}
       <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 pl-2 pr-3">
         <BackArrow onBack={onBack} />
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
+      </div>
+
+      {/* Tabs Bar — only on Visitors page */}
+      <div className="px-3 mb-3 shrink-0 bg-transparent">
+        <div className="flex items-center bg-transparent">
+          {VISITOR_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
+              className="flex-1 flex flex-col items-center justify-center h-[42px] bg-transparent"
+            >
+              <span
+                className={`text-[12px] font-semibold transition-all ${
+                  activeTab === tab.id ? 'text-black' : 'text-gray-600'
+                }`}
+              >
+                {tab.label}
+              </span>
+              <span
+                className={`mt-1 h-[2px] rounded-full transition-all ${
+                  activeTab === tab.id ? 'w-6 bg-black' : 'w-0 bg-transparent'
+                }`}
+              />
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content — SIRF YAHI SCROLL HOGA (empty) */}
