@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 
 // ============ TYPES ============
 interface FollowListProps {
@@ -17,16 +17,12 @@ interface VisitorsProps {
 }
 
 // ============ CONSTANTS ============
-const FOLLOW_TABS = [
-  { id: 'friends', label: 'Friends' },
-  { id: 'followers', label: 'Followers' },
-  { id: 'following', label: 'Following' },
-]
-
-const VISITOR_TABS = [
-  { id: 'visitors', label: 'Visitors' },
-  { id: 'visited', label: 'Who I Have Visited' },
-]
+const LABELS: { [key: string]: string } = {
+  friends: 'Friends',
+  followers: 'Followers',
+  following: 'Following',
+  visitors: 'Visitors',
+}
 
 const SINGULAR: { [key: string]: string } = {
   friends: 'Friend',
@@ -64,15 +60,10 @@ function BackArrow({ onBack }: { onBack: () => void }) {
 
 // ============ FOLLOW LIST ============
 export function FollowList({ onBack, type }: FollowListProps) {
-  const initialTab = type === 'visitors' ? 'friends' : type
-  const [activeTab, setActiveTab] = useState<string>(initialTab)
+  const heading = LABELS[type] || 'Friends'
+  const singularLabel = SINGULAR[type] || 'User'
 
-  const currentLabel = FOLLOW_TABS.find((t) => t.id === activeTab)?.label || 'Friends'
-  const singularLabel = SINGULAR[activeTab] || 'User'
-
-  const count =
-    activeTab === 'followers' ? 10 : activeTab === 'following' ? 7 : 12
-
+  const count = type === 'followers' ? 10 : type === 'following' ? 7 : 12
   const users = Array.from({ length: count }, (_, i) => i + 1)
 
   return (
@@ -80,7 +71,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background:
-          'linear-gradient(to bottom, #93c5fd 0%, #dbeafe 14%, #f3f4f6 26%, #f3f4f6 100%)',
+          'linear-gradient(to bottom, #bfdbfe 0%, #e0f2fe 12%, #f3f4f6 22%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
@@ -91,28 +82,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
       {/* Header — Back arrow left, Heading middle (FIXED) */}
       <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 pl-2 pr-3">
         <BackArrow onBack={onBack} />
-        <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
-      </div>
-
-      {/* Tabs Bar — FIXED, no card look */}
-      <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="rounded-md flex items-center overflow-hidden bg-white/30">
-          {FOLLOW_TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
-                activeTab === tab.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-600'
-              } ${i === 0 ? 'rounded-l-md' : ''} ${
-                i === FOLLOW_TABS.length - 1 ? 'rounded-r-md' : ''
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <h1 className="text-[24px] font-bold text-[#1E1E1E]">{heading}</h1>
       </div>
 
       {/* User List — SIRF YAHI SCROLL HOGA */}
@@ -125,7 +95,7 @@ export function FollowList({ onBack, type }: FollowListProps) {
                 {singularLabel} {item}
               </div>
               <div className="text-xs text-gray-500 truncate">
-                @{activeTab}
+                @{type}
                 {item}
               </div>
             </div>
@@ -138,14 +108,12 @@ export function FollowList({ onBack, type }: FollowListProps) {
 
 // ============ VISITORS ============
 export function VisitorsPage({ onBack }: VisitorsProps) {
-  const [activeTab, setActiveTab] = useState<'visitors' | 'visited'>('visitors')
-
   return (
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
         background:
-          'linear-gradient(to bottom, #93c5fd 0%, #dbeafe 14%, #f3f4f6 26%, #f3f4f6 100%)',
+          'linear-gradient(to bottom, #bfdbfe 0%, #e0f2fe 12%, #f3f4f6 22%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
@@ -157,32 +125,6 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
       <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 pl-2 pr-3">
         <BackArrow onBack={onBack} />
         <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
-      </div>
-
-      {/* Tabs Bar — FIXED, no card look, black underline on active */}
-      <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="flex items-center bg-transparent">
-          {VISITOR_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
-              className="flex-1 flex flex-col items-center justify-center h-[42px] bg-transparent"
-            >
-              <span
-                className={`text-[12px] font-semibold transition-all ${
-                  activeTab === tab.id ? 'text-black' : 'text-gray-600'
-                }`}
-              >
-                {tab.label}
-              </span>
-              <span
-                className={`mt-1 h-[2px] rounded-full transition-all ${
-                  activeTab === tab.id ? 'w-6 bg-black' : 'w-0 bg-transparent'
-                }`}
-              />
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Content — SIRF YAHI SCROLL HOGA (empty) */}
