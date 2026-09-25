@@ -449,6 +449,7 @@ export default function Family({ onBack }: FamilyProps) {
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
+                  muted
                   loop 
                   playsInline 
                   controls={false}
@@ -466,6 +467,7 @@ export default function Family({ onBack }: FamilyProps) {
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
+                  muted
                   loop 
                   playsInline 
                   controls={false}
