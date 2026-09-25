@@ -977,6 +977,43 @@ io.on("connection", (socket) => {
     }
   );
 
+  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName } = {}) => {
+    const room = String(roomId || "");
+    const sender = String(senderId || "");
+    const value = Number(amount);
+    const recipients = Array.isArray(recipientIds)
+      ? [...new Set(recipientIds.map((id) => String(id)).filter(Boolean))]
+      : [];
+
+    if (!room || !sender || !Number.isFinite(value) || value <= 0 || value > 1000000000) {
+      return;
+    }
+
+    // Sender must actually be inside this room and own the sending identity.
+    if (
+      String(socket.roomId || "") !== room ||
+      String(socket.roomAccountId || socket.accountId || socket.roomUserId || socket.userId || "") !== sender
+    ) {
+      return;
+    }
+
+    const roomMap = roomUsers.get(room);
+    if (!roomMap || recipients.length === 0) return;
+
+    // Only users currently present in this room can receive the diamonds.
+    const validRecipients = recipients.filter((id) => id !== sender && roomMap.has(id));
+    if (validRecipients.length === 0) return;
+
+    io.to(`room:${room}`).emit("coin_transfer_received", {
+      roomId: room,
+      senderId: sender,
+      recipientIds: validRecipients,
+      amount: value,
+      giftName: String(giftName || "Gift"),
+      timestamp: Date.now(),
+    });
+  });
+
   socket.on(
     "room_leave",
     ({ roomId, userId, accountId } = {}) => {
