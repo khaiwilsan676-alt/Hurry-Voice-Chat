@@ -1928,4 +1928,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-  }
+}
