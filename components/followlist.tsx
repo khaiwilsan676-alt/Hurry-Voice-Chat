@@ -160,7 +160,7 @@ export function FollowList({ onBack, type, onNavigate, activePage = "me" }: Foll
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 34%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -168,34 +168,42 @@ export function FollowList({ onBack, type, onNavigate, activePage = "me" }: Foll
         paddingBottom: '80px',
       }}
     >
-      {/* Header — FIXED */}
-      <div className="relative flex items-center w-full h-[58px] shrink-0 px-4 bg-transparent">
-        <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
-      </div>
+      {/* Top Bar Card Background (header + tabs wrapped) */}
+      <div className="mx-3 rounded-2xl bg-white/30 backdrop-blur-sm shrink-0 overflow-hidden">
+        {/* Header */}
+        <div className="relative flex items-center w-full h-[58px] px-4">
+          <h1 className="text-[24px] font-bold text-[#1E1E1E]">{currentLabel}</h1>
+        </div>
 
-      {/* Tabs Bar — FIXED, no card look */}
-      <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
-          {FOLLOW_TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
-                activeTab === tab.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-600'
-              } ${i === 0 ? 'rounded-l-md' : ''} ${
-                i === FOLLOW_TABS.length - 1 ? 'rounded-r-md' : ''
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Tabs Bar — underline only */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center">
+            {FOLLOW_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="relative flex-1 flex flex-col items-center justify-center h-[42px] transition-all"
+              >
+                <span
+                  className={`text-[12px] font-semibold transition-colors ${
+                    activeTab === tab.id ? 'text-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  {tab.label}
+                </span>
+                <span
+                  className={`absolute bottom-0 h-[2px] rounded-full transition-all duration-200 ${
+                    activeTab === tab.id ? 'w-8 bg-blue-500' : 'w-0 bg-transparent'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* User List — SIRF YAHI SCROLL HOGA */}
-      <div className="flex-1 overflow-y-auto px-3 pb-4">
+      <div className="flex-1 overflow-y-auto px-3 pb-4 mt-3">
         {users.map((item) => (
           <div key={item} className="flex items-center gap-2 py-2">
             <div className="w-10 h-10 rounded-full bg-gray-300 flex-shrink-0" />
@@ -226,52 +234,60 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 34%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
       }}
     >
-      {/* Header — Back arrow left, Heading middle (FIXED) */}
-      <div className="relative flex items-center justify-center w-full h-[58px] shrink-0 px-3">
-        <button
-          onClick={onBack}
-          className="absolute left-3 top-0 h-full flex items-center justify-center active:opacity-70 transition-opacity cursor-pointer"
-          aria-label="Back"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M19 12H5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M12 19L5 12L12 5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
+      {/* Top Bar Card Background */}
+      <div className="mx-3 rounded-2xl bg-white/30 backdrop-blur-sm shrink-0 overflow-hidden">
+        {/* Header — Back arrow left, Heading middle */}
+        <div className="relative flex items-center justify-center w-full h-[58px] px-3">
+          <button
+            onClick={onBack}
+            className="absolute left-3 top-0 h-full flex items-center justify-center active:opacity-70 transition-opacity cursor-pointer"
+            aria-label="Back"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M19 12H5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M12 19L5 12L12 5" stroke="#1E1E1E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
 
-        <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
-      </div>
+          <h1 className="text-[24px] font-bold text-[#1E1E1E]">Visitors</h1>
+        </div>
 
-      {/* Tabs Bar — FIXED, no card look */}
-      <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
-          {VISITOR_TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
-              className={`flex-1 text-[12px] font-semibold transition-all flex items-center justify-center h-[42px] ${
-                activeTab === tab.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-transparent text-gray-600'
-              } ${i === 0 ? 'rounded-l-md' : ''} ${
-                i === VISITOR_TABS.length - 1 ? 'rounded-r-md' : ''
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Tabs Bar — underline only */}
+        <div className="px-3 pb-2">
+          <div className="flex items-center">
+            {VISITOR_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as 'visitors' | 'visited')}
+                className="relative flex-1 flex flex-col items-center justify-center h-[42px] transition-all"
+              >
+                <span
+                  className={`text-[12px] font-semibold transition-colors ${
+                    activeTab === tab.id ? 'text-blue-600' : 'text-gray-600'
+                  }`}
+                >
+                  {tab.label}
+                </span>
+                <span
+                  className={`absolute bottom-0 h-[2px] rounded-full transition-all duration-200 ${
+                    activeTab === tab.id ? 'w-8 bg-blue-500' : 'w-0 bg-transparent'
+                  }`}
+                />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Content — SIRF YAHI SCROLL HOGA (empty) */}
-      <div className="flex-1 overflow-y-auto px-3 pb-4" />
+      <div className="flex-1 overflow-y-auto px-3 pb-4 mt-3" />
     </div>
   )
 }
