@@ -572,6 +572,10 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
+  if (activeTab === 'friends') {
+    return <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />;
+  }
+
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden">
 
@@ -704,16 +708,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
           </div>
         )}
       </div>
-
-      {/* ============ FRIENDS FULL PAGE OVERLAY ============ */}
-      {activeTab === 'friends' && (
-        <div
-          className="fixed inset-0 z-[100] bg-white"
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-        >
-          <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />
-        </div>
-      )}
 
       {/* Chat Screen Overlay */}
       {activeChat && (

@@ -356,6 +356,7 @@ export default function GiftPicker({
           <video
             src={playingVideo.src}
             autoPlay
+            muted
             playsInline
             controls={false}
             disablePictureInPicture
