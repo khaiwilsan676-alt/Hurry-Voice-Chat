@@ -36,7 +36,7 @@ jobs:
           java-version: 21
 
       - name: Install Dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Build Next.js
         run: npm run build
@@ -114,10 +114,12 @@ jobs:
           GRADLEEOF
 
       - name: Build Debug APK
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.parallel=true
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew --no-daemon --stacktrace --max-workers=2 assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
