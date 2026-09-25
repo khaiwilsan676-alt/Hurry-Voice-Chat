@@ -1001,7 +1001,7 @@ io.on("connection", (socket) => {
     if (!roomMap || recipients.length === 0) return;
 
     // Only users currently present in this room can receive the diamonds.
-    const validRecipients = recipients.filter((id) => id !== sender && roomMap.has(id));
+    const validRecipients = recipients.filter((id) => roomMap.has(id));
     if (validRecipients.length === 0) return;
 
     io.to(`room:${room}`).emit("coin_transfer_received", {
