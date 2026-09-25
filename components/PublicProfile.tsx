@@ -1450,8 +1450,8 @@ export default function PublicProfile({
           )}
         </div>
 
-        {/* Avatar with WebGL Shader Overlay */}
-        <div className="absolute bottom-12 left-6 flex items-center z-30">
+        {/* Avatar with WebGL Shader Overlay — moved up slightly */}
+        <div className="absolute bottom-16 left-6 flex items-center z-30">
           <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
