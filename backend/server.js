@@ -10,15 +10,57 @@ const { setOnlineStatus, removeOnlineStatus } = require("./redis");
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors({ origin: "*" }));
-app.use(express.json({ limit: "50mb" }));
+app.disable("x-powered-by");
+app.set("trust proxy", 1);
+
+const allowedOrigins = String(process.env.HURRY_ALLOWED_ORIGINS || "*")
+  .split(",")
+  .map((v) => v.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("CORS origin denied"));
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  credentials: true,
+}));
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  next();
+});
+
+app.use(express.json({ limit: "2mb" }));
+app.use(express.urlencoded({ extended: false, limit: "2mb" }));
+
+const requestRate = new Map();
+app.use((req, res, next) => {
+  const now = Date.now();
+  const ip = String(req.ip || req.socket.remoteAddress || "unknown");
+  const current = requestRate.get(ip);
+  if (!current || now - current.started >= 60000) {
+    requestRate.set(ip, { started: now, count: 1 });
+    return next();
+  }
+  current.count += 1;
+  if (current.count > 240) {
+    return res.status(429).json({ error: "Too many requests" });
+  }
+  next();
+});
 
 const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"],
   },
-  maxHttpBufferSize: 50 * 1024 * 1024,
+  maxHttpBufferSize: 1024 * 1024,
 });
 
 const mongoClient = process.env.MONGODB_URI
@@ -220,6 +262,26 @@ function emitGlobalRoomPresence() {
   io.emit("global_room_presence", {
     rooms,
   });
+}
+
+function socketOwnsIdentity(socket, id) {
+  const value = String(id || "");
+  return Boolean(
+    value &&
+    (String(socket.userId || "") === value ||
+     String(socket.accountId || "") === value ||
+     String(socket.roomUserId || "") === value ||
+     String(socket.roomAccountId || "") === value)
+  );
+}
+
+function socketIsInRoom(socket, roomId) {
+  const room = String(roomId || "");
+  return Boolean(
+    room &&
+    String(socket.roomId || "") === room &&
+    socket.rooms.has(`room:${room}`)
+  );
 }
 
 function markUserOnline(userId, socket, accountId = null) {
@@ -993,8 +1055,7 @@ io.on("connection", (socket) => {
       String(socket.roomAccountId || "") === userId ||
       String(socket.accountId || "") === userId ||
       String(socket.roomUserId || "") === userId ||
-      String(socket.userId || "") === userId ||
-      Boolean(socket.roomId && String(socket.roomId) === roomId);
+      String(socket.userId || "") === userId;
 
     if (String(socket.roomId || "") !== roomId || !isRoomUser) {
       return;
@@ -1132,27 +1193,23 @@ io.on("connection", (socket) => {
   socket.on("room_settings_update", (data = {}) => {
     if (!data || !data.roomId) return;
     const roomId = String(data.roomId);
+    if (!socketIsInRoom(socket, roomId)) return;
+    if (data.userId && !socketOwnsIdentity(socket, data.userId)) return;
     io.to(`room:${roomId}`).emit("room_settings_updated", data);
   });
 
   socket.on("room_message", (message) => {
-    if (
-      !message?.roomId ||
-      !message?.senderId
-    ) {
-      return;
-    }
-
-    io.to(`room:${message.roomId}`).emit(
-      "room_message",
-      message
-    );
+    if (!message?.roomId || !message?.senderId) return;
+    const roomId = String(message.roomId);
+    if (!socketIsInRoom(socket, roomId)) return;
+    if (!socketOwnsIdentity(socket, message.senderId)) return;
+    io.to(`room:${roomId}`).emit("room_message", message);
   });
 
   socket.on("room_clear_chat", (data = {}) => {
     const roomId = data?.roomId ? String(data.roomId) : "";
-    if (!roomId) return;
-
+    if (!roomId || !socketIsInRoom(socket, roomId)) return;
+    if (data.userId && !socketOwnsIdentity(socket, data.userId)) return;
     io.to(`room:${roomId}`).emit("room_chat_cleared", {
       roomId,
       timestamp: Date.now(),
@@ -1160,13 +1217,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("private_message", async (message) => {
-    if (
-      !message?.senderId ||
-      !message?.receiverId
-    ) {
-      return;
-    }
-
+    if (!message?.senderId || !message?.receiverId) return;
+    if (!socketOwnsIdentity(socket, message.senderId)) return;
 
     const receiverId = String(message.receiverId);
 
@@ -1230,7 +1282,7 @@ io.on("connection", (socket) => {
     const userId = String(data.userId || "");
     const otherUserId = String(data.otherUserId || "");
 
-    if (!userId || !otherUserId) {
+    if (!userId || !otherUserId || !socketOwnsIdentity(socket, userId)) {
       socket.emit("private_message_history", {
         chatId: data.chatId || "",
         messages: [],
@@ -1278,6 +1330,7 @@ io.on("connection", (socket) => {
     const otherUserId = String(data.otherUserId || "");
 
     if (!userId || !otherUserId || !db) return;
+    if (!socketOwnsIdentity(socket, userId)) return;
 
     try {
       await db.collection("privateMessages").deleteMany({
@@ -1305,6 +1358,7 @@ io.on("connection", (socket) => {
     const messageId = String(data.messageId || "");
 
     if (!userId || !otherUserId || !messageId || !db) return;
+    if (!socketOwnsIdentity(socket, userId)) return;
 
     try {
       await db.collection("privateMessages").deleteOne({
@@ -1337,6 +1391,7 @@ io.on("connection", (socket) => {
       : [];
 
     if (!userId || !otherUserId || !messageIds.length || !db) return;
+    if (!socketOwnsIdentity(socket, userId)) return;
 
     try {
       await db.collection("privateMessages").deleteMany({
