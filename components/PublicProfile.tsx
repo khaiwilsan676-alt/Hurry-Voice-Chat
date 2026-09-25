@@ -1629,7 +1629,7 @@ export default function PublicProfile({
                 className="hidden"
               />
 
-              {/* ✅ Avatar Row (Image jaisa) */}
+              {/* ✅ Avatar Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1681,43 +1681,6 @@ export default function PublicProfile({
                 )}
               </div>
 
-              {/* ✅ Albums Row (Image jaisa - Bada + wala box) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/4)
-                  </span>
-                </div>
-
-                {albumImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {albumImages.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative w-full h-16 rounded-xl overflow-hidden border border-gray-200 group"
-                      >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => handleRemoveAlbumImage(idx)}
-                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {albumImages.length < 4 && (
-                  <button
-                    onClick={() => albumInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                  >
-                    <span className="text-4xl font-thin leading-none">+</span>
-                  </button>
-                )}
-              </div>
-
               {/* Name Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
@@ -1744,7 +1707,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* ✅ Bio Row (Image jaisa - text + chevron, click par input) */}
+              {/* ✅ Bio Row (Bio is now ABOVE Album) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
                 {showBioInput ? (
@@ -1829,6 +1792,43 @@ export default function PublicProfile({
                     ♀ Female
                   </button>
                 </div>
+              </div>
+
+              {/* ✅ Albums Row (NOW AT BOTTOM - With + icon) */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    Album Photos ({albumImages.length}/4)
+                  </span>
+                </div>
+
+                {albumImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2">
+                    {albumImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative w-full h-16 rounded-xl overflow-hidden border border-gray-200 group"
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => handleRemoveAlbumImage(idx)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {albumImages.length < 4 && (
+                  <button
+                    onClick={() => albumInputRef.current?.click()}
+                    className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                  >
+                    <span className="text-4xl font-thin leading-none">+</span>
+                  </button>
+                )}
               </div>
             </div>
 
