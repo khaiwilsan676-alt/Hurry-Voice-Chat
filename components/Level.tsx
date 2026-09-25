@@ -334,10 +334,11 @@ export default function Level({ onBack }: LevelProps) {
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
+          
+<h1 className="flex-1 text-center text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
+  Level
+</h1>
 
-           <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
-            Level
-          </h1>
 
           {/* Help Button - Ekdam Strict Corner Right */}
           <button
