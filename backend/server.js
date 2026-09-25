@@ -401,7 +401,7 @@ app.get("/api/rooms", async (req, res) => {
 
     const rooms = await db.collection("rooms")
       .find({})
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(100)
       .toArray();
 
@@ -453,7 +453,9 @@ app.put("/api/rooms", async (req, res) => {
       {
         $or: [
           { accountId },
-          { id: accountId }
+          { id: accountId },
+          { roomId: accountId },
+          { "Room Admin": accountId }
         ]
       },
       {
