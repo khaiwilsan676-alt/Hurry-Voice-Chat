@@ -1617,40 +1617,49 @@ export default function PublicProfile({
             
             {/* 1. Current Cover Photo Box (Change Button wala) */}
             <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-sm">
+              
+              {/* ✅ Cover Photo (agar hai to) */}
               {user.coverPhoto ? (
                 <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+              ) : user.photo ? (
+                <img src={user.photo} alt="Cover" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                   <span className="text-gray-400">No Cover Photo</span>
                 </div>
               )}
-              
-              {/* ✅ Avatar Overlay (Profile page wala design - BADA SIZE) */}
-              <div className="absolute bottom-3 left-4 z-30">
-                <div className="relative w-20 h-20 rounded-full shadow-lg bg-gray-700">
-                  <div className="w-full h-full rounded-full overflow-hidden">
+
+              {/* ✅ FULL COVER AVATAR (WhiteColorRemovalShader ke saath) */}
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                <div className="relative w-full h-full">
+                  {/* Avatar Image (Full Cover) */}
+                  <div className="w-full h-full overflow-hidden">
                     {user.photo ? (
-                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                      <img 
+                        src={user.photo} 
+                        alt="Avatar" 
+                        className="w-full h-full object-cover" 
+                      />
                     ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-3xl text-white font-bold">
+                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-6xl text-white font-bold">
                         {avatarLetter}
                       </div>
                     )}
                   </div>
 
-                  {/* WebGL Overlay (same as profile) */}
-                  <div className="absolute inset-0 pointer-events-none">
+                  {/* ✅ Shader Tab (WhiteColorRemovalShader) - Full Cover */}
+                  <div className="absolute inset-0">
                     <WhiteColorRemovalShader
                       imageSrc="/1786867564769.png"
                       threshold={0.85}
                       className="w-full h-full"
                       style={{
                         position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%) scale(1.5)',
+                        top: 0,
+                        left: 0,
                         width: '100%',
                         height: '100%',
+                        objectFit: 'cover',
                       }}
                     />
                   </div>
@@ -1658,7 +1667,7 @@ export default function PublicProfile({
               </div>
 
               {/* Change Button */}
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20">
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-30">
                 <button
                   onClick={() => coverInputRef.current?.click()}
                   className="bg-[#00D09C] text-white px-8 py-2 rounded-full font-semibold text-sm shadow-lg active:scale-95 transition-transform"
