@@ -10,12 +10,24 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
   transports: ["websocket"],
+  maxHttpBufferSize: 1024 * 1024,
 });
 
 const rooms = new Map();
 
 function getUsers(roomId) {
   return Array.from(rooms.get(roomId)?.values() || []);
+}
+
+function socketOwnsUser(socket, userId) {
+  const id = String(userId || "");
+  if (!id || !socket.authenticated) return false;
+  return id === String(socket.userId || "") || id === String(socket.accountId || "");
+}
+
+function socketInRoom(socket, roomId) {
+  const id = String(roomId || "");
+  return Boolean(id && socket.roomId === id && socket.rooms.has(`room:${id}`));
 }
 
 function emitPresence(roomId) {
@@ -75,6 +87,7 @@ io.on("connection", (socket) => {
 
     socket.userId = userId;
     socket.accountId = accountId;
+    socket.authenticated = true;
 
     socket.join(`user:${userId}`);
 
@@ -94,6 +107,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("global_room_presence_request", () => {
+    if (!socket.authenticated) return;
+
     socket.emit("global_room_presence", {
       rooms: Array.from(rooms.entries()).map(
         ([roomId, room]) => ({
@@ -106,7 +121,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room_presence_request", ({ roomId } = {}) => {
-    if (!roomId) return;
+    if (!socket.authenticated || !roomId) return;
 
     const id = String(roomId);
     const users = getUsers(id);
@@ -120,9 +135,12 @@ io.on("connection", (socket) => {
 
   socket.on("room_join", (data = {}) => {
     const roomId = String(data.roomId || "");
-    const userId = String(data.userId || "");
+    const requestedUserId = String(data.userId || "");
 
-    if (!roomId || !userId) return;
+    if (!socket.authenticated || !roomId || !requestedUserId) return;
+    if (!socketOwnsUser(socket, requestedUserId)) return;
+
+    const userId = String(socket.accountId || socket.userId);
 
     if (
       socket.roomId &&
@@ -143,7 +161,7 @@ io.on("connection", (socket) => {
 
     const user = {
       accountId: userId,
-      userId,
+      userId: String(socket.userId),
       name: data.name || "User",
       image:
         data.dp ||
@@ -186,11 +204,15 @@ io.on("connection", (socket) => {
   });
 
   socket.on("room_message", (message = {}) => {
-    if (!message.roomId || !message.senderId) {
+    if (!socket.authenticated || !message.roomId || !message.senderId) {
       return;
     }
 
-    io.to(`room:${String(message.roomId)}`).emit(
+    const roomId = String(message.roomId);
+    if (!socketInRoom(socket, roomId)) return;
+    if (!socketOwnsUser(socket, message.senderId)) return;
+
+    io.to(`room:${roomId}`).emit(
       "room_message",
       message
     );
@@ -198,11 +220,14 @@ io.on("connection", (socket) => {
 
   socket.on("private_message", (message = {}) => {
     if (
+      !socket.authenticated ||
       !message.receiverId ||
       !message.senderId
     ) {
       return;
     }
+
+    if (!socketOwnsUser(socket, message.senderId)) return;
 
     io.to(
       `user:${String(message.receiverId)}`
@@ -215,7 +240,7 @@ io.on("connection", (socket) => {
   socket.on("check_presence", (targetUserId) => {
     const id = String(targetUserId || "");
 
-    if (!id) return;
+    if (!socket.authenticated || !id) return;
 
     socket.emit("presence_status", {
       userId: id,
