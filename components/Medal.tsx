@@ -284,7 +284,6 @@ export default function Medal({ onBack }: MedalProps) {
       cardVideoTop: '50%',
       sheetVideoSize: '660px',
       sheetVideoTop: '120%',
-      // no tierGroup → tabs hidden
       giftText: '0/1000000000000 Coins You won from game',
     },
     // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
@@ -463,7 +462,6 @@ export default function Medal({ onBack }: MedalProps) {
 
   const filteredMedals = medals.filter((m) => m.category === activeTab)
 
-  // ---- tier helpers ----
   const getTierMedals = (medal: MedalItem | null): MedalItem[] => {
     if (!medal) return []
     if (!medal.tierGroup) return [medal]
@@ -486,7 +484,6 @@ export default function Medal({ onBack }: MedalProps) {
   const displayMedal = tierMedals[activeTier] ?? selectedMedal
   const showTabs = !!selectedMedal?.tierGroup && tierMedals.length > 0
 
-  // group ki common top position (pehla medal ka top anchor)
   const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
   const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
 
@@ -615,17 +612,8 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
-              {/* Card name with stars before it (black & white theme) */}
+              {/* Card — sirf naam (star hataya) */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
-                <div className="flex items-center justify-center gap-[3px] mb-1">
-                  {Array.from({ length: medal.stars }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={11}
-                      className="text-gray-300 fill-gray-300"
-                    />
-                  ))}
-                </div>
                 <span className="text-[13px] font-medium text-gray-200 tracking-wide">
                   {medal.name}
                 </span>
@@ -697,11 +685,27 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
-              {displayMedal.name}
-            </h3>
+            {/* Name wrapper — same -mt-15, stars + Not Obtained absolute above (position untouched) */}
+            <div className="relative -mt-15 z-10">
+              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap z-20 pointer-events-none">
+                <div className="flex items-center gap-[2px]">
+                  {Array.from({ length: displayMedal.stars }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={11}
+                      className="text-gray-300 fill-gray-300"
+                    />
+                  ))}
+                </div>
+                <span className="text-white bg-gray-600/70 rounded-md px-2 py-[2px] text-[10px] font-medium">
+                  Not Obtained
+                </span>
+              </div>
+              <h3 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
+                {displayMedal.name}
+              </h3>
+            </div>
 
-            {/* PER-VIDEO GIFT TEXT — displayMedal ke saath change hota hai */}
             <p className="text-gray-500 text-[16px] mt-1 relative z-10">
               {displayMedal.giftText}
             </p>
@@ -713,22 +717,17 @@ export default function Medal({ onBack }: MedalProps) {
                     {i > 0 && (
                       <span className="text-white text-lg font-bold">&gt;</span>
                     )}
-                    <div className="flex flex-col items-center">
-                      <img
-                        src={TIER_TAB_IMAGES[i]}
-                        alt={`${i + 1}`}
-                        onClick={() => setActiveTier(i)}
-                        draggable={false}
-                        className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
-                          activeTier === i
-                            ? 'rounded-md border-2 border-[#facc15] shadow-[0_0_8px_rgba(250,204,21,0.35)]'
-                            : 'opacity-70'
-                        }`}
-                      />
-                      <span className="mt-1 text-[10px] text-gray-400 bg-black/30 rounded-md px-2 py-[2px]">
-                        Not Obtained
-                      </span>
-                    </div>
+                    <img
+                      src={TIER_TAB_IMAGES[i]}
+                      alt={`${i + 1}`}
+                      onClick={() => setActiveTier(i)}
+                      draggable={false}
+                      className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
+                        activeTier === i
+                          ? 'rounded-md border-2 border-[#facc15] shadow-[0_0_8px_rgba(250,204,21,0.35)]'
+                          : 'opacity-70'
+                      }`}
+                    />
                   </React.Fragment>
                 ))}
               </div>
@@ -752,4 +751,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-      }
+        }
