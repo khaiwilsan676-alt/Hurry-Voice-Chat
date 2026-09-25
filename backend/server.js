@@ -1191,6 +1191,8 @@ io.on("connection", (socket) => {
       receiverAccountId,
       senderName: message.senderName || message.otherUserName || "User",
       senderPhoto: message.senderPhoto || message.otherUserPhoto || "/default-avatar.png",
+      receiverName: message.receiverName || "User",
+      receiverPhoto: message.receiverPhoto || "/default-avatar.png",
       text: String(message.text || ""),
       type: message.type || "message",
       imageUrl: message.imageUrl || undefined,
