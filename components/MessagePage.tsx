@@ -5,7 +5,6 @@ import { socket } from '../src/lib/socket';
 import Image from 'next/image';
 
 import ChatScreen from './ChatScreen';
-import FollowList from './followlist';
 
 // ============ Simple IndexedDB Functions ============
 const STORE_NAME = 'conversations';
@@ -116,7 +115,7 @@ interface MessagePageProps {
   onJoinRoom?: (roomId: string) => void;
   sharedRoomData?: {
     roomId: string;
-    roomName: string;
+    roomName:    string;
     roomDp: string;
   } | null;
 }
@@ -134,12 +133,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
   const [isLoading, setIsLoading] = useState(true);
   const [officialPreviews, setOfficialPreviews] = useState<Record<string, { lastMessage: string; lastTimestamp: number; unreadCount: number }>>({});
 
-  const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
-
-  // Swipe gesture refs
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
     const name = typeof window !== 'undefined' ? localStorage.getItem('userName') || 'Me' : 'Me';
@@ -148,34 +141,6 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
   };
 
   const currentUserUid = getCurrentUserData().uid;
-
-  // ============ Swipe Gesture (Left side slide → Friends) ============
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-
-    // Sirf horizontal swipe detect karo (vertical scroll ignore)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
-      // Left swipe (deltaX negative) → Friends
-      if (deltaX < 0 && activeTab === 'messages') {
-        setActiveTab('friends');
-      }
-      // Right swipe (deltaX positive) → Messages
-      else if (deltaX > 0 && activeTab === 'friends') {
-        setActiveTab('messages');
-      }
-    }
-
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
 
   useEffect(() => {
     let isMounted = true;
@@ -607,54 +572,31 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
-  // ============ TOP SHEET — Blue band + Inbox title only (SHARED) ============
-  const renderTopSheet = () => (
-    <div
-      className="w-full sticky top-0 z-30"
-      style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        WebkitTapHighlightColor: 'transparent',
-      }}
-    >
-      {/* Inbox title row — safe area ke turant niche */}
-      <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-        <div
-          className="flex flex-col items-center cursor-pointer select-none outline-none"
-          style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
-        >
-          <h1
-            className="text-2xl text-black font-extrabold outline-none"
-            style={{ textDecoration: 'none' }}
+  return (
+    <div className="w-full min-h-screen bg-white relative overflow-hidden">
+      {/* ============ TOP SHEET — Blue band + Inbox title ============ */}
+      <div
+        className="w-full sticky top-0 z-30"
+        style={{
+          background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <div className="px-4 pt-4 pb-3 flex items-center gap-3">
+          <div
+            className="flex flex-col items-center cursor-pointer select-none outline-none"
+            style={{ WebkitTapHighlightColor: 'transparent', textDecoration: 'none' }}
           >
-            Inbox
-          </h1>
+            <h1
+              className="text-2xl text-black font-extrabold outline-none"
+              style={{ textDecoration: 'none' }}
+            >
+              Inbox
+            </h1>
+          </div>
         </div>
       </div>
-    </div>
-  );
-
-  // ============ Friends view (with top sheet) ============
-  if (activeTab === 'friends') {
-    return (
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className="w-full min-h-screen bg-white"
-      >
-        {renderTopSheet()}
-        <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="w-full min-h-screen bg-white relative overflow-hidden"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
-      {renderTopSheet()}
 
       {/* ============ MAIN CONTENT (Inbox only) ============ */}
       <div className="pt-1 pb-24 flex flex-col gap-0.6">
