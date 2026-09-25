@@ -16,24 +16,20 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
-  Plus,
 } from 'lucide-react'
 
-// Import the WebRTC ChatScreen component
-import ChatScreen from './ChatScreen' // adjust path if necessary
-import UserReport from './userreport' // ✅ Import kiya userreport.tsx
+import ChatScreen from './ChatScreen'
+import UserReport from './userreport'
 
-// ============ IndexedDB Functions for Profile Data ============
+// ============ IndexedDB Functions ============
 const PROFILE_DB_NAME = 'ProfileDataDB';
 const PROFILE_STORE = 'profileData';
 
 const openProfileDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(PROFILE_DB_NAME, 1);
-
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-
     request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains(PROFILE_STORE)) {
@@ -43,44 +39,37 @@ const openProfileDB = (): Promise<IDBDatabase> => {
   });
 };
 
-// Save complete profile data to IndexedDB
 const saveProfileToDB = async (profileData: any) => {
   try {
     const db = await openProfileDB();
     const transaction = db.transaction([PROFILE_STORE], 'readwrite');
     const store = transaction.objectStore(PROFILE_STORE);
-
     const completeData = {
       ...profileData,
       cachedAt: Date.now(),
       lastUpdated: new Date().toISOString(),
     };
-
     await new Promise<void>((resolve, reject) => {
       const request = store.put(completeData);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
-
     db.close();
   } catch (error) {
     console.error('❌ Profile save error:', error);
   }
 };
 
-// Load profile data from IndexedDB
 const loadProfileFromDB = async (uid: string): Promise<any> => {
   try {
     const db = await openProfileDB();
     const transaction = db.transaction([PROFILE_STORE], 'readonly');
     const store = transaction.objectStore(PROFILE_STORE);
-
     const profileData = await new Promise<any>((resolve, reject) => {
       const request = store.get(uid);
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-
     db.close();
     return profileData || null;
   } catch (error) {
@@ -175,19 +164,10 @@ const getDefaultAvatar = (gender: string): string => {
 
 const getOrCreateAccountNumber = (uid: string) => {
   if (!uid || uid === 'N/A') return '100379620'
-
-  if (OFFICIAL_IDS.includes(uid) || ADMIN_IDS.includes(uid)) {
-    return uid
-  }
-
-  if (SPECIAL_ACCOUNTS[uid]) {
-    return SPECIAL_ACCOUNTS[uid]
-  }
-
+  if (OFFICIAL_IDS.includes(uid) || ADMIN_IDS.includes(uid)) return uid
+  if (SPECIAL_ACCOUNTS[uid]) return SPECIAL_ACCOUNTS[uid]
   const storageKey = `user_account_number_${uid}`
-  let savedAccountNumber =
-    typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null
-
+  let savedAccountNumber = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null
   if (!savedAccountNumber) {
     let hash = 0
     for (let i = 0; i < uid.length; i++) {
@@ -200,16 +180,10 @@ const getOrCreateAccountNumber = (uid: string) => {
       localStorage.setItem(storageKey, savedAccountNumber)
     }
   }
-
   return savedAccountNumber
 }
 
-const compressImage = (
-  file: File,
-  maxWidth: number,
-  maxHeight: number,
-  quality: number
-): Promise<string> => {
+const compressImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.readAsDataURL(file)
@@ -220,7 +194,6 @@ const compressImage = (
         const canvas = document.createElement('canvas')
         let width = img.width
         let height = img.height
-
         if (width > height) {
           if (width > maxWidth) {
             height = Math.round((height * maxWidth) / width)
@@ -232,10 +205,8 @@ const compressImage = (
             height = maxHeight
           }
         }
-
         canvas.width = width
         canvas.height = height
-
         const ctx = canvas.getContext('2d')
         ctx?.drawImage(img, 0, 0, width, height)
         resolve(canvas.toDataURL('image/jpeg', quality))
@@ -246,7 +217,6 @@ const compressImage = (
   })
 }
 
-// Green Color Removal Shader Component - For Official/Admin tags
 const GreenColorRemovalShader = ({
   imageSrc,
   className = "",
@@ -262,7 +232,6 @@ const GreenColorRemovalShader = ({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
     const gl = canvas.getContext('webgl', { premultipliedAlpha: true })
     if (!gl) return
 
@@ -275,7 +244,6 @@ const GreenColorRemovalShader = ({
         v_texCoord = a_texCoord;
       }
     `
-
     const fragmentShaderSource = `
       precision mediump float;
       varying vec2 v_texCoord;
@@ -289,7 +257,6 @@ const GreenColorRemovalShader = ({
         }
       }
     `
-
     const compileShader = (type: number, source: string) => {
       const shader = gl.createShader(type)
       if (!shader) return null
@@ -301,36 +268,28 @@ const GreenColorRemovalShader = ({
       }
       return shader
     }
-
     const vertexShader = compileShader(gl.VERTEX_SHADER, vertexShaderSource)
     const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource)
     if (!vertexShader || !fragmentShader) return
-
     const program = gl.createProgram()
     if (!program) return
     gl.attachShader(program, vertexShader)
     gl.attachShader(program, fragmentShader)
     gl.linkProgram(program)
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return
-
     gl.useProgram(program)
-
     const positionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
-
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     gl.enableVertexAttribArray(positionLocation)
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
-
     const texCoordBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]), gl.STATIC_DRAW)
-
     const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
     gl.enableVertexAttribArray(texCoordLocation)
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-
     const texture = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_2D, texture)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -339,7 +298,6 @@ const GreenColorRemovalShader = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
     const image = new Image()
     image.crossOrigin = 'anonymous'
     image.onload = () => {
@@ -354,7 +312,6 @@ const GreenColorRemovalShader = ({
       setIsLoaded(true)
     }
     image.src = imageSrc
-
     return () => {
       gl.deleteProgram(program)
       gl.deleteShader(vertexShader)
@@ -369,16 +326,11 @@ const GreenColorRemovalShader = ({
     <canvas
       ref={canvasRef}
       className={className}
-      style={{
-        ...style,
-        opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 0.3s ease-in-out'
-      }}
+      style={{ ...style, opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
     />
   )
 }
 
-// WebGL Shader Component for removing white color (for avatar overlay)
 const WhiteColorRemovalShader = ({
   imageSrc,
   threshold = 0.9,
@@ -396,7 +348,6 @@ const WhiteColorRemovalShader = ({
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
     const gl = canvas.getContext('webgl', { premultipliedAlpha: true })
     if (!gl) return
 
@@ -409,7 +360,6 @@ const WhiteColorRemovalShader = ({
         v_texCoord = a_texCoord;
       }
     `
-
     const fragmentShaderSource = `
       precision mediump float;
       varying vec2 v_texCoord;
@@ -428,7 +378,6 @@ const WhiteColorRemovalShader = ({
         }
       }
     `
-
     const compileShader = (type: number, source: string) => {
       const shader = gl.createShader(type)
       if (!shader) return null
@@ -440,36 +389,28 @@ const WhiteColorRemovalShader = ({
       }
       return shader
     }
-
     const vertexShader = compileShader(gl.VERTEX_SHADER, vertexShaderSource)
     const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource)
     if (!vertexShader || !fragmentShader) return
-
     const program = gl.createProgram()
     if (!program) return
     gl.attachShader(program, vertexShader)
     gl.attachShader(program, fragmentShader)
     gl.linkProgram(program)
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return
-
     gl.useProgram(program)
-
     const positionBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW)
-
     const positionLocation = gl.getAttribLocation(program, 'a_position')
     gl.enableVertexAttribArray(positionLocation)
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0)
-
     const texCoordBuffer = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer)
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]), gl.STATIC_DRAW)
-
     const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord')
     gl.enableVertexAttribArray(texCoordLocation)
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0)
-
     const texture = gl.createTexture()
     gl.bindTexture(gl.TEXTURE_2D, texture)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
@@ -478,7 +419,6 @@ const WhiteColorRemovalShader = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
     const image = new Image()
     image.crossOrigin = 'anonymous'
     image.onload = () => {
@@ -495,7 +435,6 @@ const WhiteColorRemovalShader = ({
       setIsLoaded(true)
     }
     image.src = imageSrc
-
     return () => {
       gl.deleteProgram(program)
       gl.deleteShader(vertexShader)
@@ -510,11 +449,7 @@ const WhiteColorRemovalShader = ({
     <canvas
       ref={canvasRef}
       className={className}
-      style={{
-        ...style,
-        opacity: isLoaded ? 1 : 0,
-        transition: 'opacity 0.3s ease-in-out'
-      }}
+      style={{ ...style, opacity: isLoaded ? 1 : 0, transition: 'opacity 0.3s ease-in-out' }}
     />
   )
 }
@@ -529,7 +464,6 @@ export default function PublicProfile({
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
-  // Instant Synchronous Lock state load to prevent Guest/blank flashing
   const [user, setUser] = useState(() => {
     if (isOtherUser && targetUser) {
       const targetUid = targetUser.uid || targetUser.id || 'N/A'
@@ -616,7 +550,6 @@ export default function PublicProfile({
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
 
-  // ✅ Multiple Background Cover Photos (max 4)
   const [coverPhotos, setCoverPhotos] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     const stored = localStorage.getItem('userCoverPhotos')
@@ -651,19 +584,14 @@ export default function PublicProfile({
 
   const [isFollowing, setIsFollowing] = useState(false)
 
-  // Action Sheet aur Toast State
   const [showActionSheet, setShowActionSheet] = useState(false)
   const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
 
-  // ✅ NEW: Background page ko full screen open karne ka state
-  const [showBackgroundPage, setShowBackgroundPage] = useState(false)
-
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
-  // ✅ Auto-scroll cover photos (Right to left, every 5 seconds)
   useEffect(() => {
     if (coverPhotos.length <= 1) {
       setCurrentCoverIndex(0)
@@ -675,7 +603,6 @@ export default function PublicProfile({
     return () => clearInterval(interval)
   }, [coverPhotos.length])
 
-  // ✅ Sync single coverPhoto from DB into coverPhotos if array empty
   useEffect(() => {
     if (user.coverPhoto && coverPhotos.length === 0) {
       setCoverPhotos([user.coverPhoto])
@@ -683,31 +610,19 @@ export default function PublicProfile({
   }, [user.coverPhoto])
 
   const saveToMongoDB = async (updateData: Record<string, any>) => {
-    const currentUid =
-      user.uid ||
-      localStorage.getItem('userUID') ||
-      localStorage.getItem('userPhone')
-
+    const currentUid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone')
     if (!currentUid || currentUid === 'N/A') return
 
     try {
       const response = await fetch(apiUrl('/api/users'), {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uid: currentUid,
-          ...updateData,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: currentUid, ...updateData }),
       })
 
-      if (!response.ok) {
-        throw new Error(`MongoDB user update failed: ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`MongoDB user update failed: ${response.status}`)
 
       const roomUpdateData = { ...updateData }
-
       delete roomUpdateData.name
       delete roomUpdateData.displayName
       delete roomUpdateData.userName
@@ -720,25 +635,16 @@ export default function PublicProfile({
       if (Object.keys(roomUpdateData).length > 0) {
         const roomResponse = await fetch(apiUrl('/api/rooms'), {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            roomId: currentUid,
-            ...roomUpdateData,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ roomId: currentUid, ...roomUpdateData }),
         })
-
-        if (!roomResponse.ok) {
-          throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
-        }
+        if (!roomResponse.ok) throw new Error(`MongoDB room update failed: ${roomResponse.status}`)
       }
     } catch (err) {
       console.error('Error saving data to MongoDB:', err)
     }
   }
 
-  // Save current user data to IndexedDB
   const saveCurrentUserToDB = async () => {
     if (isOtherUser) return;
     const uid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone');
@@ -776,18 +682,13 @@ export default function PublicProfile({
         const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
         let displayAccNum = searchKey !== 'N/A' ? generateStableId(searchKey) : ''
         let initialName = isValidName(targetUser.name) ? targetUser.name! : (displayAccNum || 'User')
-
         let photo = targetUser.photo || targetUser.image || '/default-avatar.png'
         let coverPhoto = targetUser.coverPhoto || ''
         let bio = targetUser.bio || ''
         let country = targetUser.country || targetUser.location || 'India'
         let countryCode = targetUser.countryCode || 'IN'
         let gender = targetUser.gender || '♀'
-        let age = targetUser.age
-          ? typeof targetUser.age === 'number'
-            ? targetUser.age
-            : parseInt(String(targetUser.age))
-          : 22
+        let age = targetUser.age ? (typeof targetUser.age === 'number' ? targetUser.age : parseInt(String(targetUser.age))) : 22
         let followers = targetUser.followers || 0
         let album: string[] = []
         let officialTag = Boolean(targetUser.officialTag)
@@ -795,34 +696,19 @@ export default function PublicProfile({
         let vipTag = Boolean(targetUser.vipTag)
         let premiumTag = Boolean(targetUser.premiumTag)
 
-        const initialTargetUser = {
-          uid: targetUid,
-          name: initialName,
-          displayAccountNumber: displayAccNum,
-          photo,
-          coverPhoto,
+        setUser({
+          uid: targetUid, name: initialName, displayAccountNumber: displayAccNum,
+          photo, coverPhoto,
           gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
-          age,
-          followers,
-          bio,
-          location: country,
-          flag: '🇮🇳',
-          countryCode,
-          albumImages: album,
-          officialTag,
-          adminTag,
-          vipTag,
-          premiumTag,
-        }
-
-        setUser(initialTargetUser)
+          age, followers, bio, location: country, flag: '🇮🇳', countryCode,
+          officialTag, adminTag, vipTag, premiumTag,
+        })
 
         if (targetUid && targetUid !== 'N/A') {
           const cachedProfile = await loadProfileFromDB(targetUid);
           if (cachedProfile && isValidName(cachedProfile.name)) {
             setUser({
-              name: cachedProfile.name,
-              uid: targetUid,
+              name: cachedProfile.name, uid: targetUid,
               displayAccountNumber: cachedProfile.displayAccountNumber || displayAccNum,
               photo: cachedProfile.photo || photo,
               coverPhoto: cachedProfile.coverPhoto || coverPhoto,
@@ -851,17 +737,13 @@ export default function PublicProfile({
             const mongoResponse = await fetch(
               apiUrl(`/api/users?search=${encodeURIComponent(searchKey)}&accountId=${encodeURIComponent(searchKey)}&uid=${encodeURIComponent(targetUid)}`)
             );
-
             if (mongoResponse.ok) {
               const res = await mongoResponse.json();
               const data = res && (res.user || (Array.isArray(res.users) ? res.users[0] : null) || res.data);
-
               if (data && (data.id || data.uid || data.accountId || data.name)) {
                 displayAccNum = data.accountId || data.accountNumber || data['Account Number'] || displayAccNum;
-
                 const docName = data.name || data.Name || data.displayName || data.userName || data.fullName;
                 const finalName = isValidName(docName) ? docName : initialName;
-
                 photo = data.photo || data.photoURL || data.image || data.avatar || photo;
                 coverPhoto = data.coverPhoto || data.coverImage || data.backCover || coverPhoto;
                 bio = data.bio || data.Bio || data.about || bio;
@@ -881,38 +763,25 @@ export default function PublicProfile({
                 } else if (coverPhoto) {
                   coverArr = [coverPhoto];
                 }
-
-                if (data.albumImages && Array.isArray(data.albumImages)) {
-                  album = data.albumImages;
-                } else if (data.album && Array.isArray(data.album)) {
-                  album = data.album;
-                }
+                if (data.albumImages && Array.isArray(data.albumImages)) album = data.albumImages;
+                else if (data.album && Array.isArray(data.album)) album = data.album;
 
                 const matchedCountry = COUNTRIES.find(
                   (c) => c.code === countryCode || c.name === country || c.flag === country
                 ) || { name: 'India', flag: '🇮🇳', code: 'IN' };
 
                 const profileData = {
-                  uid: targetUid,
-                  name: finalName,
+                  uid: targetUid, name: finalName,
                   displayAccountNumber: String(displayAccNum),
-                  photo,
-                  coverPhoto,
+                  photo, coverPhoto,
                   gender: (gender === 'female' || gender === '♀' ? '♀' : '♂') as '♂' | '♀',
-                  age,
-                  followers,
-                  bio,
+                  age, followers, bio,
                   location: matchedCountry.name,
                   flag: matchedCountry.flag,
                   countryCode: matchedCountry.code,
-                  albumImages: album,
-                  coverPhotos: coverArr,
-                  officialTag,
-                  adminTag,
-                  vipTag,
-                  premiumTag,
+                  albumImages: album, coverPhotos: coverArr,
+                  officialTag, adminTag, vipTag, premiumTag,
                 };
-
                 setUser(profileData);
                 setAlbumImages(album);
                 if (coverArr.length > 0) setCoverPhotos(coverArr);
@@ -926,16 +795,13 @@ export default function PublicProfile({
         return
       }
 
-      // For current user
-      const uid =
-        localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || 'N/A'
+      const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || 'N/A'
 
       if (uid !== 'N/A') {
         const cachedProfile = await loadProfileFromDB(uid);
         if (cachedProfile && isValidName(cachedProfile.name)) {
           setUser({
-            name: cachedProfile.name,
-            uid: uid,
+            name: cachedProfile.name, uid: uid,
             displayAccountNumber: cachedProfile.displayAccountNumber || '',
             photo: cachedProfile.photo || '',
             coverPhoto: cachedProfile.coverPhoto || '',
@@ -968,38 +834,24 @@ export default function PublicProfile({
 
       let storedName = localStorage.getItem('userName') || ''
       if (!isValidName(storedName)) storedName = ''
-
       let photo = localStorage.getItem('userPhoto') || ''
       let coverPhoto = localStorage.getItem('userCoverPhoto') || ''
       let storedBio = localStorage.getItem('userBio') || ''
       let storedCountry = localStorage.getItem('userCountry') || 'India'
       let storedCountryCode = localStorage.getItem('userCountryCode') || 'IN'
       let storedAge = localStorage.getItem('userAge') || '24'
-      let storedGender =
-        localStorage.getItem('userGender') ||
-        localStorage.getItem('userGenderLocked') ||
-        ''
-      let isCountryLockedInStorage =
-        localStorage.getItem('userCountryLocked') === 'true' ||
-        localStorage.getItem('setupComplete') === 'true'
+      let storedGender = localStorage.getItem('userGender') || localStorage.getItem('userGenderLocked') || ''
+      let isCountryLockedInStorage = localStorage.getItem('userCountryLocked') === 'true' || localStorage.getItem('setupComplete') === 'true'
 
       const storedAlbum = localStorage.getItem('userAlbumImages')
-      if (storedAlbum) {
-        setAlbumImages(JSON.parse(storedAlbum))
-      }
+      if (storedAlbum) setAlbumImages(JSON.parse(storedAlbum))
 
       let displayAccNum = localStorage.getItem('accountNumber') || ''
 
       if (uid && uid !== 'N/A') {
         try {
-          const mongoResponse = await fetch(
-            apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`)
-          )
-
-          if (!mongoResponse.ok) {
-            throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
-          }
-
+          const mongoResponse = await fetch(apiUrl(`/api/users?uid=${encodeURIComponent(uid)}`))
+          if (!mongoResponse.ok) throw new Error(`MongoDB user fetch failed: ${mongoResponse.status}`)
           const result = await mongoResponse.json()
           const data = result?.user
 
@@ -1008,23 +860,19 @@ export default function PublicProfile({
               displayAccNum = String(data.accountId)
               localStorage.setItem('accountNumber', displayAccNum)
             }
-
             const docName = data.name || data.displayName || data.userName
             if (isValidName(docName)) {
               storedName = docName
               localStorage.setItem('userName', storedName)
             }
-
             if (data.photo || data.photoURL || data.image) {
               photo = data.photo || data.photoURL || data.image || photo
               localStorage.setItem('userPhoto', photo)
             }
-
             if (data.coverPhoto || data.coverImage) {
               coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
               localStorage.setItem('userCoverPhoto', coverPhoto)
             }
-
             if (Array.isArray(data.coverPhotos) && data.coverPhotos.length > 0) {
               setCoverPhotos(data.coverPhotos)
               localStorage.setItem('userCoverPhotos', JSON.stringify(data.coverPhotos))
@@ -1032,79 +880,50 @@ export default function PublicProfile({
               setCoverPhotos([coverPhoto])
               localStorage.setItem('userCoverPhotos', JSON.stringify([coverPhoto]))
             }
-
             if (data.bio) {
               storedBio = data.bio
               localStorage.setItem('userBio', storedBio)
             }
-
             if (data.country || data.location) {
               storedCountry = data.country || data.location
               localStorage.setItem('userCountry', storedCountry)
             }
-
             if (data.countryCode) {
               storedCountryCode = data.countryCode
               localStorage.setItem('userCountryCode', storedCountryCode)
             }
-
             if (data.countryLocked !== undefined) {
               isCountryLockedInStorage = data.countryLocked
-              if (data.countryLocked) {
-                localStorage.setItem('userCountryLocked', 'true')
-              }
+              if (data.countryLocked) localStorage.setItem('userCountryLocked', 'true')
             }
-
             if (data.setupComplete) {
               isCountryLockedInStorage = true
               localStorage.setItem('userCountryLocked', 'true')
             }
-
             if (data.gender) {
               storedGender = data.gender
               localStorage.setItem('userGender', storedGender)
             }
-
             if (data.age) {
               storedAge = String(data.age)
               localStorage.setItem('userAge', storedAge)
             }
-
             if (data.albumImages && Array.isArray(data.albumImages)) {
               setAlbumImages(data.albumImages)
-              localStorage.setItem(
-                'userAlbumImages',
-                JSON.stringify(data.albumImages)
-              )
+              localStorage.setItem('userAlbumImages', JSON.stringify(data.albumImages))
             }
-
-            if (!displayAccNum) {
-              displayAccNum = getOrCreateAccountNumber(uid)
-            }
-
-            if (!isValidName(storedName)) {
-              storedName = displayAccNum
-            }
+            if (!displayAccNum) displayAccNum = getOrCreateAccountNumber(uid)
+            if (!isValidName(storedName)) storedName = displayAccNum
 
             const matchedCountry = COUNTRIES.find(
-              (c) =>
-                c.code === storedCountryCode ||
-                c.flag === storedCountry ||
-                c.name === storedCountry
+              (c) => c.code === storedCountryCode || c.flag === storedCountry || c.name === storedCountry
             ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
 
             const profileData = {
-              uid: uid,
-              name: storedName,
-              displayAccountNumber: displayAccNum,
-              photo,
-              coverPhoto,
-              bio: storedBio,
-              location: matchedCountry.name,
-              flag: matchedCountry.flag,
-              countryCode: matchedCountry.code,
-              gender:
-                storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
+              uid: uid, name: storedName, displayAccountNumber: displayAccNum,
+              photo, coverPhoto, bio: storedBio,
+              location: matchedCountry.name, flag: matchedCountry.flag, countryCode: matchedCountry.code,
+              gender: storedGender === 'female' || storedGender === '♀' ? '♀' : '♂',
               age: storedAge ? parseInt(storedAge) : 24,
               followers: data.followers || 0,
               albumImages: data.albumImages || [],
@@ -1114,7 +933,6 @@ export default function PublicProfile({
               vipTag: data.vipTag || false,
               premiumTag: data.premiumTag || false,
             }
-
             setUser(profileData)
             await saveProfileToDB(profileData)
             setEditName(storedName)
@@ -1123,13 +941,8 @@ export default function PublicProfile({
             setEditCountry(matchedCountry.name)
             setEditCountryCode(matchedCountry.code)
             setCountryLocked(isCountryLockedInStorage)
-
             if (storedGender) {
-              setEditGender(
-                storedGender === 'female' || storedGender === '♀'
-                  ? 'female'
-                  : 'male'
-              )
+              setEditGender(storedGender === 'female' || storedGender === '♀' ? 'female' : 'male')
               setGenderLocked(true)
             }
           }
@@ -1140,16 +953,11 @@ export default function PublicProfile({
     }
 
     loadProfileData()
-
-    return () => {
-      if (unsubscribe) unsubscribe()
-    }
+    return () => { if (unsubscribe) unsubscribe() }
   }, [isOtherUser, targetUser])
-  // Save to IndexedDB whenever user data changes
+
   useEffect(() => {
-    if (user.uid && user.uid !== 'N/A') {
-      saveCurrentUserToDB();
-    }
+    if (user.uid && user.uid !== 'N/A') saveCurrentUserToDB();
   }, [user, albumImages, coverPhotos]);
 
   const handleCopyID = () => {
@@ -1182,7 +990,6 @@ export default function PublicProfile({
     localStorage.setItem('userGender', gender)
     localStorage.setItem('userGenderLocked', gender)
     setUser((prev) => ({ ...prev, gender: formattedGender }))
-
     await saveToMongoDB({ gender: formattedGender })
   }
 
@@ -1191,9 +998,7 @@ export default function PublicProfile({
     const selectedCountryName = e.target.value
     const matchedCountry = COUNTRIES.find((c) => c.name === selectedCountryName)
     setEditCountry(selectedCountryName)
-    if (matchedCountry) {
-      setEditCountryCode(matchedCountry.code)
-    }
+    if (matchedCountry) setEditCountryCode(matchedCountry.code)
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1203,19 +1008,13 @@ export default function PublicProfile({
         const compressedBase64 = await compressImage(file, 300, 300, 0.7)
         localStorage.setItem('userPhoto', compressedBase64)
         setUser((prev) => ({ ...prev, photo: compressedBase64 }))
-
-        await saveToMongoDB({
-          photo: compressedBase64,
-          image: compressedBase64,
-          photoURL: compressedBase64,
-        })
+        await saveToMongoDB({ photo: compressedBase64, image: compressedBase64, photoURL: compressedBase64 })
       } catch (err) {
         console.error('Avatar compression error:', err)
       }
     }
   }
 
-  // ✅ Multiple cover photos upload (max 4)
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -1231,12 +1030,7 @@ export default function PublicProfile({
       localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
       localStorage.setItem('userCoverPhoto', updated[0])
       setUser((prev) => ({ ...prev, coverPhoto: updated[0] }))
-
-      await saveToMongoDB({
-        coverPhoto: updated[0],
-        coverImage: updated[0],
-        coverPhotos: updated,
-      })
+      await saveToMongoDB({ coverPhoto: updated[0], coverImage: updated[0], coverPhotos: updated })
     } catch (err) {
       console.error('Cover compression error:', err)
     } finally {
@@ -1251,62 +1045,8 @@ export default function PublicProfile({
     const primary = updated[0] || ''
     localStorage.setItem('userCoverPhoto', primary)
     setUser((prev) => ({ ...prev, coverPhoto: primary }))
-    if (currentCoverIndex >= updated.length) {
-      setCurrentCoverIndex(0)
-    }
-    await saveToMongoDB({
-      coverPhoto: primary,
-      coverImage: primary,
-      coverPhotos: updated,
-    })
-  }
-
-  // ✅ Specific slot me image upload karne ke liye (background page ke liye)
-  const handleSlotCoverUpload = async (slotIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    try {
-      const compressedBase64 = await compressImage(file, 800, 400, 0.7)
-      let updated = [...coverPhotos]
-      if (slotIndex < updated.length) {
-        updated[slotIndex] = compressedBase64
-      } else {
-        // Fill any missing slots with empty strings if needed
-        while (updated.length < slotIndex) updated.push('')
-        updated[slotIndex] = compressedBase64
-      }
-      setCoverPhotos(updated)
-      localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
-      localStorage.setItem('userCoverPhoto', updated[0] || '')
-      setUser((prev) => ({ ...prev, coverPhoto: updated[0] || '' }))
-
-      await saveToMongoDB({
-        coverPhoto: updated[0] || '',
-        coverImage: updated[0] || '',
-        coverPhotos: updated,
-      })
-    } catch (err) {
-      console.error('Slot cover compression error:', err)
-    } finally {
-      e.target.value = ''
-    }
-  }
-
-  const handleRemoveSlotCover = async (slotIndex: number) => {
-    const updated = coverPhotos.filter((_, i) => i !== slotIndex)
-    setCoverPhotos(updated)
-    localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
-    const primary = updated[0] || ''
-    localStorage.setItem('userCoverPhoto', primary)
-    setUser((prev) => ({ ...prev, coverPhoto: primary }))
-    if (currentCoverIndex >= updated.length) {
-      setCurrentCoverIndex(0)
-    }
-    await saveToMongoDB({
-      coverPhoto: primary,
-      coverImage: primary,
-      coverPhotos: updated,
-    })
+    if (currentCoverIndex >= updated.length) setCurrentCoverIndex(0)
+    await saveToMongoDB({ coverPhoto: primary, coverImage: primary, coverPhotos: updated })
   }
 
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1321,7 +1061,6 @@ export default function PublicProfile({
         const updatedAlbum = [...albumImages, compressedBase64]
         setAlbumImages(updatedAlbum)
         localStorage.setItem('userAlbumImages', JSON.stringify(updatedAlbum))
-
         await saveToMongoDB({ albumImages: updatedAlbum, album: updatedAlbum })
       } catch (err) {
         console.error('Album image compression error:', err)
@@ -1341,14 +1080,12 @@ export default function PublicProfile({
     localStorage.setItem('userName', finalNewName)
     if (editAge) localStorage.setItem('userAge', editAge)
     if (editBio) localStorage.setItem('userBio', editBio)
-
     if (editCountry && editCountryCode) {
       localStorage.setItem('userCountry', editCountry)
       localStorage.setItem('userCountryCode', editCountryCode)
       localStorage.setItem('userCountryLocked', 'true')
       setCountryLocked(true)
     }
-
     const matchedCountry = COUNTRIES.find(
       (c) => c.name === editCountry || c.code === editCountryCode
     ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
@@ -1362,28 +1099,17 @@ export default function PublicProfile({
       flag: matchedCountry.flag,
       countryCode: matchedCountry.code,
     };
-
     setUser(updatedUser);
 
     await saveToMongoDB({
-      name: finalNewName,
-      displayName: finalNewName,
-      userName: finalNewName,
+      name: finalNewName, displayName: finalNewName, userName: finalNewName,
       age: parseInt(editAge) || user.age,
-      bio: editBio,
-      about: editBio,
-      country: matchedCountry.flag,
-      countryCode: matchedCountry.code,
-      location: matchedCountry.name,
-      countryLocked: true,
+      bio: editBio, about: editBio,
+      country: matchedCountry.flag, countryCode: matchedCountry.code,
+      location: matchedCountry.name, countryLocked: true,
     })
 
-    await saveProfileToDB({
-      ...updatedUser,
-      albumImages: albumImages,
-      coverPhotos: coverPhotos,
-    });
-
+    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
     setShowEditSheet(false)
     setShowBioInput(false)
   }
@@ -1394,17 +1120,10 @@ export default function PublicProfile({
     setUser(updatedUser);
     setShowBioInput(false);
     await saveToMongoDB({ bio: editBio, about: editBio });
-
-    await saveProfileToDB({
-      ...updatedUser,
-      albumImages: albumImages,
-      coverPhotos: coverPhotos,
-    });
+    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
   }
 
-  const getDisplayID = () => {
-    return user.displayAccountNumber
-  }
+  const getDisplayID = () => user.displayAccountNumber
 
   const handleToggleFollow = () => {
     setIsFollowing((prev) => {
@@ -1418,70 +1137,45 @@ export default function PublicProfile({
   }
 
   const getCurrentUserData = () => {
-    const uid =
-      typeof window !== 'undefined'
-        ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || 'N/A'
-        : 'N/A'
-    const name =
-      typeof window !== 'undefined' ? localStorage.getItem('userName') || user.displayAccountNumber : user.displayAccountNumber
-    const photo =
-      typeof window !== 'undefined' ? localStorage.getItem('userPhoto') || '' : ''
+    const uid = typeof window !== 'undefined'
+      ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || 'N/A'
+      : 'N/A'
+    const name = typeof window !== 'undefined'
+      ? localStorage.getItem('userName') || user.displayAccountNumber
+      : user.displayAccountNumber
+    const photo = typeof window !== 'undefined' ? localStorage.getItem('userPhoto') || '' : ''
     return { uid, name, photo }
   }
 
-  // Strict Name Resolution: No Guest allowed anywhere
   const finalDisplayName = isValidName(user.name)
     ? user.name
     : (user.displayAccountNumber ? user.displayAccountNumber : 'User');
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
-  // ✅ Cover image area pe click karne se background page khulega
-  const handleCoverAreaClick = () => {
-    if (isOtherUser) return
-    setShowBackgroundPage(true)
-  }
-
   return (
-    <div
-      className={`w-full bg-white min-h-screen text-gray-900 relative ${
-        isOtherUser ? 'pb-24' : 'pb-10'
-      }`}
-    >
-      {/* Cover Image & Header Section with Auto-Scroll Carousel */}
+    <div className={`w-full bg-white min-h-screen text-gray-900 relative ${isOtherUser ? 'pb-24' : 'pb-10'}`}>
+      {/* Cover Image & Header Section */}
       <div className="relative w-full h-[350px] bg-gray-800 overflow-hidden">
-        {/* ✅ Cover image area pe click karne se background page khulega (transparent overlay) */}
-        <div
-          className="absolute inset-0 z-10"
-          onClick={handleCoverAreaClick}
-          style={{ cursor: isOtherUser ? 'default' : 'pointer' }}
-        ></div>
-
         {coverPhotos.length > 0 ? (
           <div
-            className="flex h-full transition-transform duration-700 ease-in-out pointer-events-none"
+            className="flex h-full transition-transform duration-700 ease-in-out"
             style={{ transform: `translateX(-${currentCoverIndex * 100}%)` }}
           >
             {coverPhotos.map((photo, idx) => (
-              <img
-                key={idx}
-                src={photo}
-                alt=""
-                className="w-full h-full object-cover shrink-0"
-              />
+              <img key={idx} src={photo} alt="" className="w-full h-full object-cover shrink-0" />
             ))}
           </div>
         ) : user.photo ? (
-          <img src={user.photo} alt="" className="w-full h-full object-cover pointer-events-none" />
+          <img src={user.photo} alt="" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold pointer-events-none">
+          <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold">
             {avatarLetter}
           </div>
         )}
 
-        {/* Slider Dots */}
         {coverPhotos.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20 pointer-events-none">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20">
             {coverPhotos.map((_, idx) => (
               <div
                 key={idx}
@@ -1493,19 +1187,13 @@ export default function PublicProfile({
           </div>
         )}
 
-        {/* --- Top Icons Header Wrapper --- */}
-        <div 
-          className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-30"
-        >
+        <div className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
           <button onClick={onBack} className="text-white">
             <ArrowLeft size={28} />
           </button>
 
           {isOtherUser ? (
-            <button
-              onClick={() => setShowActionSheet(true)}
-              className="text-white"
-            >
+            <button onClick={() => setShowActionSheet(true)} className="text-white">
               <AlertTriangle size={24} />
             </button>
           ) : (
@@ -1515,9 +1203,8 @@ export default function PublicProfile({
           )}
         </div>
 
-        {/* ✅ Avatar with WebGL Shader Overlay - DP pe click se kuch nahi hoga */}
-        <div className="absolute bottom-12 left-6 flex items-center z-30">
-          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700 pointer-events-none">
+        <div className="absolute bottom-12 left-6 flex items-center z-30 pointer-events-none">
+          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt="" className="w-full h-full object-cover" />
@@ -1528,7 +1215,6 @@ export default function PublicProfile({
               )}
             </div>
 
-            {/* WebGL Overlay */}
             <div className="absolute inset-0 pointer-events-none">
               <WhiteColorRemovalShader
                 imageSrc="/1786867564769.png"
@@ -1550,7 +1236,6 @@ export default function PublicProfile({
 
       {/* Profile Info Details Section */}
       <div className="relative bg-white rounded-xl -mt-6 px-3 pt-6 z-20">
-
         <div className="flex flex-wrap items-center gap-0.5">
           <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
           <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-0.5 whitespace-nowrap">
@@ -1558,26 +1243,13 @@ export default function PublicProfile({
           </span>
 
           {user.adminTag && (
-            <GreenColorRemovalShader
-              imageSrc="/1788021461820~2.jpg"
-              className="h-9 w-auto object-contain"
-            />
+            <GreenColorRemovalShader imageSrc="/1788021461820~2.jpg" className="h-9 w-auto object-contain" />
           )}
-
           {user.officialTag && (
-            <GreenColorRemovalShader
-              imageSrc="/1788021468845~2.jpg"
-              className="h-9 w-auto object-contain"
-            />
+            <GreenColorRemovalShader imageSrc="/1788021468845~2.jpg" className="h-9 w-auto object-contain" />
           )}
-
-          {user.vipTag && (
-            <img src="/1785469775751.png" alt="VIP" className="h-7 w-auto object-contain" />
-          )}
-
-          {user.premiumTag && (
-            <img src="/1785469365805.png" alt="Premium" className="h-7 w-auto object-contain" />
-          )}
+          {user.vipTag && <img src="/1785469775751.png" alt="VIP" className="h-7 w-auto object-contain" />}
+          {user.premiumTag && <img src="/1785469365805.png" alt="Premium" className="h-7 w-auto object-contain" />}
         </div>
 
         <div className="flex items-center gap-1 text-xs mt-0.5 font-medium">
@@ -1588,13 +1260,9 @@ export default function PublicProfile({
                   className="relative font-bold rounded text-white -ml-2.5"
                   style={{
                     backgroundImage: 'url(/1785137282040.png)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    minWidth: '90px',
-                    paddingLeft: '0px',
-                    paddingRight: '5px',
-                    paddingTop: '2px',
-                    paddingBottom: '2px',
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                    minWidth: '90px', paddingLeft: '0px', paddingRight: '5px',
+                    paddingTop: '2px', paddingBottom: '2px',
                   }}
                 >
                   <span className="relative text-xs" style={{ paddingLeft: '32px' }}>
@@ -1637,7 +1305,6 @@ export default function PublicProfile({
           <span className="text-gray-500">{user.location || 'India'}</span>
         </div>
 
-        {/* Bio Section */}
         <div className="flex items-start gap-2 mt-2">
           <button
             onClick={!isOtherUser ? handleOpenEditSheet : undefined}
@@ -1690,11 +1357,7 @@ export default function PublicProfile({
             </div>
           ) : (
             <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-100">
-              <img
-                src="/IMG_20260726_225835.jpg"
-                alt=""
-                className="w-full h-full object-cover"
-              />
+              <img src="/IMG_20260726_225835.jpg" alt="" className="w-full h-full object-cover" />
             </div>
           )}
         </div>
@@ -1749,73 +1412,6 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ============ ✅ BACKGROUND PAGE (Personal page background) ============ */}
-      {!isOtherUser && showBackgroundPage && (
-        <div className="fixed inset-0 z-[80] bg-white flex flex-col">
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-white border-b border-gray-100">
-            <button
-              onClick={() => setShowBackgroundPage(false)}
-              className="text-gray-800"
-            >
-              <ArrowLeft size={26} />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-900">
-              Personal page background
-            </h1>
-          </div>
-
-          {/* Content - 3 Upload Slots */}
-          <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
-            {[0, 1, 2].map((slotIndex) => {
-              const img = coverPhotos[slotIndex]
-              return (
-                <div key={slotIndex} className="relative">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    id={`bg-slot-${slotIndex}`}
-                    className="hidden"
-                    onChange={(e) => handleSlotCoverUpload(slotIndex, e)}
-                  />
-
-                  {img ? (
-                    <div className="relative w-full h-[160px] rounded-2xl overflow-hidden bg-[#fce4a6]">
-                      <img
-                        src={img}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                      {/* Remove button */}
-                      <button
-                        onClick={() => handleRemoveSlotCover(slotIndex)}
-                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow"
-                      >
-                        ×
-                      </button>
-                      {/* Change button */}
-                      <label
-                        htmlFor={`bg-slot-${slotIndex}`}
-                        className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full cursor-pointer hover:bg-black/80 transition-colors"
-                      >
-                        Change
-                      </label>
-                    </div>
-                  ) : (
-                    <label
-                      htmlFor={`bg-slot-${slotIndex}`}
-                      className="w-full h-[160px] rounded-2xl bg-[#fce4a6] flex items-center justify-center cursor-pointer hover:bg-[#fbd98a] transition-colors"
-                    >
-                      <Plus size={40} className="text-emerald-500" strokeWidth={2.5} />
-                    </label>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Full Image View Modal */}
       {fullImageView && (
         <div
@@ -1837,12 +1433,13 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Edit Profile Bottom Sheet */}
+      {/* ✅ Edit Profile Bottom Sheet — 50vh, scrollable content */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[50vh]">
+            {/* Fixed Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -1851,30 +1448,13 @@ export default function PublicProfile({
               <div className="w-6"></div>
             </div>
 
-            <div className="overflow-y-auto px-5 py-4 space-y-5 flex-1 pb-24">
-              <input
-                type="file"
-                ref={avatarInputRef}
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
-              <input
-                type="file"
-                ref={albumInputRef}
-                accept="image/*"
-                onChange={handleAlbumUpload}
-                className="hidden"
-              />
-              <input
-                type="file"
-                ref={coverInputRef}
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="hidden"
-              />
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto px-5 py-4 space-y-5 flex-1">
+              <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+              <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
+              <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* ✅ Avatar Row */}
+              {/* Avatar */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1893,7 +1473,7 @@ export default function PublicProfile({
                 </div>
               </div>
 
-              {/* Name Row */}
+              {/* Nickname */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
                 <input
@@ -1905,7 +1485,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* Age Row */}
+              {/* Age */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Age</span>
                 <input
@@ -1919,7 +1499,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* ✅ Bio Row */}
+              {/* Bio */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
                 {showBioInput ? (
@@ -1932,10 +1512,7 @@ export default function PublicProfile({
                       placeholder="Add bio"
                       autoFocus
                     />
-                    <button
-                      onClick={handleBioSave}
-                      className="text-xs text-blue-500 font-medium"
-                    >
+                    <button onClick={handleBioSave} className="text-xs text-blue-500 font-medium">
                       Save
                     </button>
                   </div>
@@ -1944,27 +1521,24 @@ export default function PublicProfile({
                     onClick={() => setShowBioInput(true)}
                     className="flex items-center gap-1 text-sm text-gray-500"
                   >
-                    <span className="max-w-[180px] truncate">
-                      {editBio || ''}
-                    </span>
+                    <span className="max-w-[180px] truncate">{editBio || ''}</span>
                     <ChevronRight size={16} className="text-gray-400" />
                   </button>
                 )}
               </div>
 
-              {/* ✅ Albums Row */}
+              {/* ALBUM — max 7 */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Album Photos ({albumImages.length}/7)
                   </span>
                 </div>
-
                 <div className="flex flex-wrap gap-2">
                   {albumImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 group"
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
                     >
                       <img src={img} alt="" className="w-full h-full object-cover" />
                       <button
@@ -1985,12 +1559,46 @@ export default function PublicProfile({
                   )}
                 </div>
               </div>
+
+              {/* BACKGROUND — max 4, Album ke niche */}
+              <div className="space-y-3 pt-2 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    Background ({coverPhotos.length}/4)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {coverPhotos.map((photo, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200"
+                    >
+                      <img src={photo} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => handleRemoveCoverPhoto(idx)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {coverPhotos.length < 4 && (
+                    <button
+                      onClick={() => coverInputRef.current?.click()}
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                    >
+                      <span className="text-3xl font-thin leading-none">+</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-white border-t border-gray-100 shrink-0">
+            {/* Fixed Footer */}
+            <div className="px-5 py-4 bg-white border-t border-gray-100 shrink-0">
               <button
                 onClick={handleSaveEdit}
-                className="w-full bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition-colors"
+                className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition-colors"
               >
                 Save Changes
               </button>
@@ -1999,7 +1607,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== ACTION SHEET (REPORT & BLOCK) ===== */}
+      {/* Action Sheet */}
       {showActionSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
           <div
@@ -2042,14 +1650,12 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== REPORT SUCCESSFUL TOAST ===== */}
       {showReportToast && (
         <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
           Report Successful
         </div>
       )}
 
-      {/* ChatScreen Overlay */}
       {isOtherUser && showChat && targetUser && (
         <div className="fixed inset-0 z-[100]">
           <ChatScreen
@@ -2066,7 +1672,6 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ UserReport Overlay */}
       {isOtherUser && showUserReport && targetUser && (
         <div className="fixed inset-0 z-[100]">
           <UserReport
@@ -2079,12 +1684,8 @@ export default function PublicProfile({
 
       <style jsx>{`
         @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
@@ -2092,4 +1693,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-}
+  }
