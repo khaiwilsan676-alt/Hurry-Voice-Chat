@@ -797,7 +797,6 @@ io.on("connection", (socket) => {
     });
   });
 
-
   const handleGameWinner = async (gameName, payload) => {
     const { name, win, avatar, round } = payload;
     if (!round) return;
@@ -1195,9 +1194,11 @@ io.on("connection", (socket) => {
     const roomId = String(data.roomId);
     if (!socketIsInRoom(socket, roomId)) return;
     if (data.userId && !socketOwnsIdentity(socket, data.userId)) return;
-    io.to(`room:${roomId}`).emit("room_settings_updated", data);
-  });
 
+    // Room name/DP are public metadata. Broadcast the saved update so
+    // Popular/Following cards refresh immediately without changing the UI.
+    io.emit("room_settings_updated", data);
+  });
   socket.on("room_message", (message) => {
     if (!message?.roomId || !message?.senderId) return;
     const roomId = String(message.roomId);
