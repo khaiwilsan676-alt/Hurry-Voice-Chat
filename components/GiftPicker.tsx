@@ -145,12 +145,14 @@ export default function GiftPicker({
   onSend,
   roomId,
   currentUserAccountId,
+  roomUsers = [],
 }: {
   onClose: () => void;
   seats?: Seat[];
   onSend?: (value: number) => void;
   roomId?: string;
   currentUserAccountId?: string;
+  roomUsers?: Array<{ accountId: string; name: string; image: string }>;
 }) {
   const [activeTab, setActiveTab] = useState("Hot");
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
@@ -267,9 +269,11 @@ export default function GiftPicker({
     : 0;
   const recipientIds = selectedTargets.length
     ? selectedTargets
-    : seats
-        .filter((s) => s.isOccupied && s.user && s.user.accountId !== currentUserAccountId)
-        .map((s) => s.user!.accountId);
+: roomUsers.length > 0
+      ? roomUsers.filter((u) => u.accountId !== currentUserAccountId).map((u) => u.accountId)
+      : seats
+          .filter((s) => s.isOccupied && s.user && s.user.accountId !== currentUserAccountId)
+          .map((s) => s.user!.accountId);
   const recipientCount = recipientIds.length;
   const totalSendCost = totalCost * Math.max(1, recipientCount);
   const canAfford = totalCost > 0 && recipientCount > 0 && totalSendCost <= walletBalance;
