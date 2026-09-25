@@ -666,15 +666,61 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
   const isSpecialUID = user.uid === 'HUSxSvQnabgU029dWYt1TUV04hd2' || user.uid === 'ADqW31RGBMaosOzy0HiqexKSD7h1'
 
-  // Early returns - FollowList check first
+  // ============================================================
+  // ✅ FOLLOW LIST with STICKY BACK BUTTON (TOP LEFT)
+  // ============================================================
   if (showFollowList) {
     if (followListType === 'visitors') {
-      return <VisitorsPage onBack={() => setShowFollowList(false)} onNavigate={onNavigate} />
+      return (
+        <div className="relative">
+          <div
+            className="sticky top-0 z-50 flex items-center px-4 py-3 bg-white border-b border-gray-100"
+            style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 16px) + 8px)' }}
+          >
+            <button
+              onClick={() => setShowFollowList(false)}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              aria-label="Back"
+            >
+              <ArrowLeft size={24} className="text-gray-700" />
+            </button>
+            <h1 className="text-lg font-semibold text-gray-900 ml-3">
+              {t.visitors || 'Visitors'}
+            </h1>
+          </div>
+          <VisitorsPage onBack={() => setShowFollowList(false)} onNavigate={onNavigate} />
+        </div>
+      )
     }
-    return <FollowList activePage="me" onNavigate={onNavigate}
-      onBack={() => setShowFollowList(false)} 
-      type={followListType} 
-    />
+    return (
+      <div className="relative">
+        <div
+          className="sticky top-0 z-50 flex items-center px-4 py-3 bg-white border-b border-gray-100"
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 16px) + 8px)' }}
+        >
+          <button
+            onClick={() => setShowFollowList(false)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            aria-label="Back"
+          >
+            <ArrowLeft size={24} className="text-gray-700" />
+          </button>
+          <h1 className="text-lg font-semibold text-gray-900 ml-3">
+            {followListType === 'friends'
+              ? (t.friends || 'Friends')
+              : followListType === 'followers'
+                ? (t.followers || 'Followers')
+                : (t.following || 'Following')}
+          </h1>
+        </div>
+        <FollowList
+          activePage="me"
+          onNavigate={onNavigate}
+          onBack={() => setShowFollowList(false)}
+          type={followListType}
+        />
+      </div>
+    )
   }
 
   if (showSvip) return <Svip onBack={() => setShowSvip(false)} />
@@ -916,7 +962,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
           </button>
         </div>
 
-        {/* Stats Row - Friends | Followers | Following | Visitors - ab px-3 hai yahan */}
+        {/* Stats Row - Friends | Followers | Following | Visitors */}
         <div className="flex items-center justify-between mt-2 px-0.5">
           <div
             className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
@@ -970,9 +1016,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         </div>
       </div>
 
-      {/* --- IN IMAGES KO KISI BHI CARD KE ANDAR NAHI RAKHA HAI, DIRECT RENDER KIYA HAI --- */}
-      
-      {/* Coins Images Direct Body Par (Ab Upar) */}
+      {/* Coins Images Direct Body Par */}
       <div className="px-3 flex gap-1.5 mt-0 mb-3">
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
@@ -1002,7 +1046,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         </div>
       </div>
 
-      {/* SVIP Image Direct Body Par (Ab Niche) */}
+      {/* SVIP Image Direct Body Par */}
       <div 
         className="px-3 -mt-10 mb-6 cursor-pointer active:scale-95 transition-transform"
         onClick={() => setShowSvip(true)}
@@ -1013,8 +1057,6 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
           className="w-full h-auto object-cover rounded-lg"
         />
       </div>
-
-      {/* --- CARDS KA BACKGROUND WAPAS WHITE HAI (Menu Items) --- */}
 
       {/* Top Menu Cards */}
       <div className="px-4 -mt-8">
@@ -1111,4 +1153,4 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
     </div>
   )
-                                            }
+}
