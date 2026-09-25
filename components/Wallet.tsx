@@ -494,6 +494,13 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   const handlePercentageSelect = (pct: string) => {
     setSelectedPercentage(pct)
+    const percentage = parseFloat(pct) || 0
+    const availableDiamonds = diamondBalance ?? 0
+    const selectedDiamonds = Math.floor((availableDiamonds * percentage) / 100)
+    const selectedCoins = Math.floor((selectedDiamonds * 33) / 100)
+
+    setDiamonds(selectedDiamonds > 0 ? String(selectedDiamonds) : '')
+    setCoins(selectedCoins > 0 ? String(selectedCoins) : '')
   }
 
   // Buy coins — optimistic UI + DB persist + read-back
@@ -833,7 +840,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             <div className="pt-6 pb-2">
               <button
                 onClick={handleExchange}
-                className="w-full py-3 rounded-xl font-bold text-white bg-pink-300 text-sm shadow-xs active:scale-95 transition-transform"
+                className="w-full py-3 rounded-xl font-bold text-white bg-pink-400 hover:bg-pink-500 text-sm shadow-xs active:scale-95 transition-transform"
               >
                 Exchange
               </button>
