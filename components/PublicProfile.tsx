@@ -1597,7 +1597,6 @@ export default function PublicProfile({
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          {/* ✅ rounded-t-md kar diya */}
           <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
@@ -1630,22 +1629,27 @@ export default function PublicProfile({
                 className="hidden"
               />
 
+              {/* ✅ Avatar Row with Arrow (image jaisa) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
-                <div
-                  onClick={() => avatarInputRef.current?.click()}
-                  className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
-                >
-                  {user.photo ? (
-                    <img src={user.photo} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
-                      {avatarLetter}
-                    </div>
-                  )}
+                <div className="flex items-center gap-2">
+                  <div
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
+                  >
+                    {user.photo ? (
+                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
+                        {avatarLetter}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronRight size={16} className="text-gray-400" />
                 </div>
               </div>
 
+              {/* Background Cover Row */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">Background Cover</span>
@@ -1658,7 +1662,6 @@ export default function PublicProfile({
                         Remove
                       </button>
                     )}
-                    {/* ✅ Sirf Camera icon, text hataya */}
                     <button
                       onClick={() => coverInputRef.current?.click()}
                       className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
@@ -1678,18 +1681,18 @@ export default function PublicProfile({
                 )}
               </div>
 
+              {/* ✅ Albums Row (image jaisa) - + icon ke saath */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Album Photos ({albumImages.length}/4)
                   </span>
                   {albumImages.length < 4 && (
-                    // ✅ Sirf Camera icon, text hataya
                     <button
                       onClick={() => albumInputRef.current?.click()}
-                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
+                      className="w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
                     >
-                      <Camera size={16} />
+                      <span className="text-2xl font-light leading-none">+</span>
                     </button>
                   )}
                 </div>
@@ -1714,8 +1717,9 @@ export default function PublicProfile({
                 )}
               </div>
 
+              {/* Name Row */}
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Name</span>
+                <span className="text-sm font-medium text-gray-700">Nickname</span>
                 <input
                   type="text"
                   value={editName}
@@ -1725,6 +1729,7 @@ export default function PublicProfile({
                 />
               </div>
 
+              {/* Age Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Age</span>
                 <input
@@ -1738,6 +1743,7 @@ export default function PublicProfile({
                 />
               </div>
 
+              {/* ✅ Bio Row (image jaisa - chevron ke saath, click karne pe input) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
                 {showBioInput ? (
@@ -1770,6 +1776,7 @@ export default function PublicProfile({
                 )}
               </div>
 
+              {/* Country Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Country</span>
                 <select
@@ -1790,6 +1797,7 @@ export default function PublicProfile({
                 </select>
               </div>
 
+              {/* Gender Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Gender</span>
                 <div className="flex gap-2">
@@ -1848,7 +1856,7 @@ export default function PublicProfile({
               <button
                 onClick={() => {
                   setShowActionSheet(false)
-                  setShowUserReport(true) // ✅ Report click pe user report open
+                  setShowUserReport(true)
                 }}
                 className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
               >
