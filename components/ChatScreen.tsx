@@ -682,6 +682,18 @@ export default function ChatScreen({
           </div>
         </div>
 
+        {/* ----- BACKGROUND IMAGE FOR FIXED CHAT (Fixed at bottom) ----- */}
+        {/* Yahan image absolute me z-0 par rakhi gayi hai taaki messages iske upar (overlay) scroll karein */}
+        {isFixedChat && (
+          <div className="absolute bottom-0 left-0 w-full pointer-events-none z-0 mix-blend-multiply flex items-end">
+            <img 
+              src="/file_00000000777481f588df50d28908ce63.png" 
+              alt="Official Bottom Banner" 
+              className="w-full h-auto" 
+            />
+          </div>
+        )}
+
         {/* ----- Bottom Sheet Options Menu ----- */}
         {showOptions && !isFixedChat && (
           <>
@@ -734,8 +746,8 @@ export default function ChatScreen({
           </div>
         )}
 
-        {/* ----- Messages area ----- */}
-        <div className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 space-y-3 bg-transparent" onClick={() => setShowEmojiPicker(false)}>
+        {/* ----- Messages area (Relative & Z-10 taaki image ke uper se scroll kare) ----- */}
+        <div className="flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 space-y-3 bg-transparent relative z-10" onClick={() => setShowEmojiPicker(false)}>
           {isLoadingMessages && messages.length === 0 && (
             <div className="text-center py-8">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -770,7 +782,7 @@ export default function ChatScreen({
                   
                   {showDateHeader && (
                     <div className="flex justify-center my-4">
-                      <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
+                      <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg shadow-sm">
                         {formatDateHeader(msg.timestamp)}
                       </span>
                     </div>
@@ -828,7 +840,7 @@ export default function ChatScreen({
                       <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
                         
                         {!isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1 shadow-sm">
                             <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
                           </div>
                         )}
@@ -836,7 +848,7 @@ export default function ChatScreen({
                         <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                           
                           {msg.type === 'image' && msg.imageUrl ? (
-                            <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+                            <div className={`rounded-2xl overflow-hidden relative shadow-sm ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
                               <img
                                 src={msg.imageUrl}
                                 alt="Shared"
@@ -845,7 +857,7 @@ export default function ChatScreen({
                               />
                             </div>
                           ) : (
-                            <div className={`px-3 py-2 rounded-2xl break-words relative ${
+                            <div className={`px-3 py-2 rounded-2xl break-words relative shadow-sm ${
                                 isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
                               }`}
                             >
@@ -862,7 +874,7 @@ export default function ChatScreen({
                         </div>
 
                         {isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1 shadow-sm">
                             <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
                           </div>
                         )}
@@ -885,21 +897,13 @@ export default function ChatScreen({
             <button className="absolute top-4 right-4 text-white p-2 bg-black/50 rounded-full hover:bg-black/70">
               <X size={24} />
             </button>
-            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-none" />
+            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg" />
           </div>
         )}
 
-        {/* ----- Input Area & Emoji Picker ----- */}
-        {isFixedChat ? (
-          <div className="w-full flex-shrink-0 bg-transparent">
-            <img 
-              src="/file_00000000777481f588df50d28908ce63.png" 
-              alt="Official Banner" 
-              className="w-full h-auto mix-blend-multiply pointer-events-none" 
-            />
-          </div>
-        ) : !deleteMode && (
-          <div className="bg-white flex flex-col">
+        {/* ----- Input Area & Emoji Picker (Fixed Chat hone par ye hide rahega) ----- */}
+        {!isFixedChat && !deleteMode && (
+          <div className="bg-white flex flex-col relative z-20 shadow-lg rounded-t-2xl">
             
             {/* Reply Preview Box (Taaki user ko pata chale wo kisko reply kar raha hai bss) */}
             {replyTo && (
