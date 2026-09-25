@@ -160,7 +160,7 @@ export function FollowList({ onBack, type, onNavigate, activePage = "me" }: Foll
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 29%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 15%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
@@ -175,7 +175,7 @@ export function FollowList({ onBack, type, onNavigate, activePage = "me" }: Foll
 
       {/* Tabs Bar — FIXED, no card look */}
       <div className="px-3 mb-3 shrink-0 bg-transparent">
-        <div className="rounded-md flex items-center overflow-hidden bg-transparent">
+        <div className="rounded-md flex items-center overflow-hidden bg-white/30">
           {FOLLOW_TABS.map((tab, i) => (
             <button
               key={tab.id}
@@ -226,7 +226,7 @@ export function VisitorsPage({ onBack, onNavigate }: VisitorsProps) {
     <div
       className="h-screen flex flex-col select-none overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 18%, #f3f4f6 29%, #f3f4f6 100%)',
+        background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 15%, #f3f4f6 29%, #f3f4f6 100%)',
         paddingTop:
           'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         touchAction: 'manipulation',
