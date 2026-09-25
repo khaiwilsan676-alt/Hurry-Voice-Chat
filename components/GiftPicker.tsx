@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp } from "lucide-react";
 import Image from "next/image";
+import socket from "../src/lib/socket";
 
 const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
@@ -142,10 +143,14 @@ export default function GiftPicker({
   onClose,
   seats = [],
   onSend,
+  roomId,
+  currentUserAccountId,
 }: {
   onClose: () => void;
   seats?: Seat[];
   onSend?: (value: number) => void;
+  roomId?: string;
+  currentUserAccountId?: string;
 }) {
   const [activeTab, setActiveTab] = useState("Hot");
   const [selectedMultiplier, setSelectedMultiplier] = useState("1×");
@@ -260,7 +265,14 @@ export default function GiftPicker({
   const totalCost = selectedGiftObj
     ? selectedGiftObj.coins * parseMultiplier(selectedMultiplier)
     : 0;
-  const canAfford = totalCost <= walletBalance;
+  const recipientIds = selectedTargets.length
+    ? selectedTargets
+    : seats
+        .filter((s) => s.isOccupied && s.user && s.user.accountId !== currentUserAccountId)
+        .map((s) => s.user!.accountId);
+  const recipientCount = recipientIds.length;
+  const totalSendCost = totalCost * Math.max(1, recipientCount);
+  const canAfford = totalCost > 0 && recipientCount > 0 && totalSendCost <= walletBalance;
 
   const finishVideo = () => {
     if (videoTimeoutRef.current) {
@@ -276,9 +288,19 @@ export default function GiftPicker({
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
     setSending(true);
-    setWalletBalance((p) => Math.max(0, p - totalCost));
-    await updateWalletBalance(-totalCost);
-    await recordGiftTransaction(selectedGiftObj.name, -totalCost);
+    setWalletBalance((p) => Math.max(0, p - totalSendCost));
+    await updateWalletBalance(-totalSendCost);
+    await recordGiftTransaction(selectedGiftObj.name, -totalSendCost);
+
+    if (roomId && currentUserAccountId && recipientIds.length > 0) {
+      socket.emit("coin_transfer", {
+        roomId: String(roomId),
+        senderId: String(currentUserAccountId),
+        recipientIds: recipientIds.map(String),
+        amount: totalCost,
+        giftName: selectedGiftObj.name,
+      });
+    }
 
     if (onSend) {
       onSend(totalCost);
