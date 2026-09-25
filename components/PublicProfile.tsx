@@ -527,7 +527,6 @@ export default function PublicProfile({
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
-  const backgroundInputRef = useRef<HTMLInputElement>(null) // ✅ Naya ref background ke liye
 
   // Instant Synchronous Lock state load to prevent Guest/blank flashing
   const [user, setUser] = useState(() => {
@@ -616,6 +615,22 @@ export default function PublicProfile({
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
 
+  // ✅ Multiple Background Cover Photos (max 4)
+  const [coverPhotos, setCoverPhotos] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return []
+    const stored = localStorage.getItem('userCoverPhotos')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) return parsed
+      } catch {}
+    }
+    const single = localStorage.getItem('userCoverPhoto')
+    return single ? [single] : []
+  })
+
+  const [currentCoverIndex, setCurrentCoverIndex] = useState(0)
+
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [editName, setEditName] = useState(user.name)
   const [editAge, setEditAge] = useState(user.age.toString())
@@ -641,11 +656,27 @@ export default function PublicProfile({
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
-  
-  // ✅ Naya State Background Page ke liye
-  const [showBackgroundPage, setShowBackgroundPage] = useState(false)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
+
+  // ✅ Auto-scroll cover photos (Right to left, every 5 seconds)
+  useEffect(() => {
+    if (coverPhotos.length <= 1) {
+      setCurrentCoverIndex(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setCurrentCoverIndex((prev) => (prev + 1) % coverPhotos.length)
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [coverPhotos.length])
+
+  // ✅ Sync single coverPhoto from DB into coverPhotos if array empty
+  useEffect(() => {
+    if (user.coverPhoto && coverPhotos.length === 0) {
+      setCoverPhotos([user.coverPhoto])
+    }
+  }, [user.coverPhoto])
 
   const saveToMongoDB = async (updateData: Record<string, any>) => {
     const currentUid =
@@ -722,6 +753,7 @@ export default function PublicProfile({
         flag: user.flag,
         countryCode: user.countryCode,
         albumImages: albumImages,
+        coverPhotos: coverPhotos,
         officialTag: user.officialTag,
         adminTag: user.adminTag,
         vipTag: user.vipTag,
@@ -803,6 +835,11 @@ export default function PublicProfile({
               premiumTag: cachedProfile.premiumTag || premiumTag,
             });
             setAlbumImages(cachedProfile.albumImages || []);
+            if (Array.isArray(cachedProfile.coverPhotos) && cachedProfile.coverPhotos.length > 0) {
+              setCoverPhotos(cachedProfile.coverPhotos);
+            } else if (cachedProfile.coverPhoto) {
+              setCoverPhotos([cachedProfile.coverPhoto]);
+            }
             return;
           }
 
@@ -834,6 +871,13 @@ export default function PublicProfile({
                 vipTag = Boolean(data.vipTag ?? vipTag);
                 premiumTag = Boolean(data.premiumTag ?? premiumTag);
 
+                let coverArr: string[] = [];
+                if (Array.isArray(data.coverPhotos) && data.coverPhotos.length > 0) {
+                  coverArr = data.coverPhotos;
+                } else if (coverPhoto) {
+                  coverArr = [coverPhoto];
+                }
+
                 if (data.albumImages && Array.isArray(data.albumImages)) {
                   album = data.albumImages;
                 } else if (data.album && Array.isArray(data.album)) {
@@ -858,6 +902,7 @@ export default function PublicProfile({
                   flag: matchedCountry.flag,
                   countryCode: matchedCountry.code,
                   albumImages: album,
+                  coverPhotos: coverArr,
                   officialTag,
                   adminTag,
                   vipTag,
@@ -866,6 +911,7 @@ export default function PublicProfile({
 
                 setUser(profileData);
                 setAlbumImages(album);
+                if (coverArr.length > 0) setCoverPhotos(coverArr);
                 await saveProfileToDB(profileData);
               }
             }
@@ -902,6 +948,11 @@ export default function PublicProfile({
             premiumTag: cachedProfile.premiumTag || false,
           });
           setAlbumImages(cachedProfile.albumImages || []);
+          if (Array.isArray(cachedProfile.coverPhotos) && cachedProfile.coverPhotos.length > 0) {
+            setCoverPhotos(cachedProfile.coverPhotos);
+          } else if (cachedProfile.coverPhoto) {
+            setCoverPhotos([cachedProfile.coverPhoto]);
+          }
           setEditName(cachedProfile.name);
           setEditAge(String(cachedProfile.age || '24'));
           setEditBio(cachedProfile.bio || '');
@@ -968,6 +1019,14 @@ export default function PublicProfile({
             if (data.coverPhoto || data.coverImage) {
               coverPhoto = data.coverPhoto || data.coverImage || coverPhoto
               localStorage.setItem('userCoverPhoto', coverPhoto)
+            }
+
+            if (Array.isArray(data.coverPhotos) && data.coverPhotos.length > 0) {
+              setCoverPhotos(data.coverPhotos)
+              localStorage.setItem('userCoverPhotos', JSON.stringify(data.coverPhotos))
+            } else if (coverPhoto) {
+              setCoverPhotos([coverPhoto])
+              localStorage.setItem('userCoverPhotos', JSON.stringify([coverPhoto]))
             }
 
             if (data.bio) {
@@ -1045,6 +1104,7 @@ export default function PublicProfile({
               age: storedAge ? parseInt(storedAge) : 24,
               followers: data.followers || 0,
               albumImages: data.albumImages || [],
+              coverPhotos: Array.isArray(data.coverPhotos) ? data.coverPhotos : (coverPhoto ? [coverPhoto] : []),
               officialTag: data.officialTag || false,
               adminTag: data.adminTag || false,
               vipTag: data.vipTag || false,
@@ -1086,7 +1146,7 @@ export default function PublicProfile({
     if (user.uid && user.uid !== 'N/A') {
       saveCurrentUserToDB();
     }
-  }, [user, albumImages]);
+  }, [user, albumImages, coverPhotos]);
 
   const handleCopyID = () => {
     if (user.displayAccountNumber && user.displayAccountNumber !== 'N/A') {
@@ -1151,28 +1211,50 @@ export default function PublicProfile({
     }
   }
 
+  // ✅ Multiple cover photos upload (max 4)
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      try {
-        const compressedBase64 = await compressImage(file, 800, 400, 0.7)
-        localStorage.setItem('userCoverPhoto', compressedBase64)
-        setUser((prev) => ({ ...prev, coverPhoto: compressedBase64 }))
+    if (!file) return
+    if (coverPhotos.length >= 4) {
+      alert('You can only upload up to 4 background images.')
+      e.target.value = ''
+      return
+    }
+    try {
+      const compressedBase64 = await compressImage(file, 800, 400, 0.7)
+      const updated = [...coverPhotos, compressedBase64]
+      setCoverPhotos(updated)
+      localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
+      localStorage.setItem('userCoverPhoto', updated[0])
+      setUser((prev) => ({ ...prev, coverPhoto: updated[0] }))
 
-        await saveToMongoDB({
-          coverPhoto: compressedBase64,
-          coverImage: compressedBase64,
-        })
-      } catch (err) {
-        console.error('Cover compression error:', err)
-      }
+      await saveToMongoDB({
+        coverPhoto: updated[0],
+        coverImage: updated[0],
+        coverPhotos: updated,
+      })
+    } catch (err) {
+      console.error('Cover compression error:', err)
+    } finally {
+      e.target.value = ''
     }
   }
 
-  const handleRemoveCoverPhoto = async () => {
-    localStorage.removeItem('userCoverPhoto')
-    setUser((prev) => ({ ...prev, coverPhoto: '' }))
-    await saveToMongoDB({ coverPhoto: '', coverImage: '' })
+  const handleRemoveCoverPhoto = async (indexToRemove: number) => {
+    const updated = coverPhotos.filter((_, i) => i !== indexToRemove)
+    setCoverPhotos(updated)
+    localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
+    const primary = updated[0] || ''
+    localStorage.setItem('userCoverPhoto', primary)
+    setUser((prev) => ({ ...prev, coverPhoto: primary }))
+    if (currentCoverIndex >= updated.length) {
+      setCurrentCoverIndex(0)
+    }
+    await saveToMongoDB({
+      coverPhoto: primary,
+      coverImage: primary,
+      coverPhotos: updated,
+    })
   }
 
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1247,6 +1329,7 @@ export default function PublicProfile({
     await saveProfileToDB({
       ...updatedUser,
       albumImages: albumImages,
+      coverPhotos: coverPhotos,
     });
 
     setShowEditSheet(false)
@@ -1263,6 +1346,7 @@ export default function PublicProfile({
     await saveProfileToDB({
       ...updatedUser,
       albumImages: albumImages,
+      coverPhotos: coverPhotos,
     });
   }
 
@@ -1306,15 +1390,41 @@ export default function PublicProfile({
         isOtherUser ? 'pb-24' : 'pb-10'
       }`}
     >
-      {/* Cover Image & Header Section */}
-      <div className="relative w-full h-[350px] bg-gray-800">
-        {user.coverPhoto ? (
-          <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />
+      {/* Cover Image & Header Section with Auto-Scroll Carousel */}
+      <div className="relative w-full h-[350px] bg-gray-800 overflow-hidden">
+        {coverPhotos.length > 0 ? (
+          <div
+            className="flex h-full transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateX(-${currentCoverIndex * 100}%)` }}
+          >
+            {coverPhotos.map((photo, idx) => (
+              <img
+                key={idx}
+                src={photo}
+                alt=""
+                className="w-full h-full object-cover shrink-0"
+              />
+            ))}
+          </div>
         ) : user.photo ? (
           <img src={user.photo} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold">
             {avatarLetter}
+          </div>
+        )}
+
+        {/* Slider Dots */}
+        {coverPhotos.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20">
+            {coverPhotos.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all ${
+                  idx === currentCoverIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
+                }`}
+              />
+            ))}
           </div>
         )}
 
@@ -1342,11 +1452,7 @@ export default function PublicProfile({
 
         {/* Avatar with WebGL Shader Overlay */}
         <div className="absolute bottom-12 left-6 flex items-center z-30">
-          {/* ✅ Avatar Clickable banaya */}
-          <div 
-            className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700 cursor-pointer"
-            onClick={() => !isOtherUser && setShowBackgroundPage(true)}
-          >
+          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt="" className="w-full h-full object-cover" />
@@ -1599,108 +1705,6 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== BACKGROUND SETTINGS PAGE (Naya Page) ===== */}
-      {!isOtherUser && showBackgroundPage && (
-        <div className="fixed inset-0 z-[60] bg-white flex flex-col animate-slide-up">
-          {/* Header */}
-          <div className="flex items-center px-4 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
-            <button onClick={() => setShowBackgroundPage(false)} className="p-1">
-              <ArrowLeft size={24} className="text-gray-800" />
-            </button>
-            <h2 className="flex-1 text-center text-lg font-bold text-gray-900 mr-6">
-              Personal page background
-            </h2>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            
-            {/* 1. Current Cover Photo Box (Change Button wala) */}
-            <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-sm">
-              
-              {/* ✅ Cover Photo (agar hai to) */}
-              {user.coverPhoto ? (
-                <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
-              ) : user.photo ? (
-                <img src={user.photo} alt="Cover" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-400">No Cover Photo</span>
-                </div>
-              )}
-
-              {/* ✅ FULL COVER AVATAR (WhiteColorRemovalShader ke saath) */}
-              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-                <div className="relative w-full h-full">
-                  {/* Avatar Image (Full Cover) */}
-                  <div className="w-full h-full overflow-hidden">
-                    {user.photo ? (
-                      <img 
-                        src={user.photo} 
-                        alt="Avatar" 
-                        className="w-full h-full object-cover" 
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-6xl text-white font-bold">
-                        {avatarLetter}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* ✅ Shader Tab (WhiteColorRemovalShader) - Full Cover */}
-                  <div className="absolute inset-0">
-                    <WhiteColorRemovalShader
-                      imageSrc="/1786867564769.png"
-                      threshold={0.85}
-                      className="w-full h-full"
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Change Button */}
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-30">
-                <button
-                  onClick={() => coverInputRef.current?.click()}
-                  className="bg-[#00D09C] text-white px-8 py-2 rounded-full font-semibold text-sm shadow-lg active:scale-95 transition-transform"
-                >
-                  Change
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Empty Background Options (Add Buttons wale) */}
-            {[1, 2].map((item) => (
-              <div 
-                key={item} 
-                className="relative w-full h-40 rounded-2xl overflow-hidden shadow-sm"
-                style={{
-                  background: 'linear-gradient(135deg, #fceabb 0%, #f8b500 100%)' // Image jaisa yellowish gradient
-                }}
-              >
-                {/* Add Button */}
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <button
-                    onClick={() => backgroundInputRef.current?.click()}
-                    className="border-2 border-[#00D09C] text-[#00D09C] px-8 py-1.5 rounded-full font-semibold text-sm bg-white/50 backdrop-blur-sm active:scale-95 transition-transform"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -1737,16 +1741,8 @@ export default function PublicProfile({
                 onChange={handleCoverUpload}
                 className="hidden"
               />
-              {/* ✅ Background Input Ref file */}
-              <input
-                type="file"
-                ref={backgroundInputRef}
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="hidden"
-              />
 
-              {/* ✅ Avatar Row */}
+              {/* ✅ Avatar Row (arrow icon removed) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1762,40 +1758,40 @@ export default function PublicProfile({
                       </div>
                     )}
                   </div>
-                  <ChevronRight size={16} className="text-gray-400" />
                 </div>
               </div>
 
-              {/* Background Cover Row */}
-              <div className="space-y-2">
+              {/* ✅ Background Cover Row (Multiple - Max 4) */}
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Background Cover</span>
-                  <div className="flex items-center gap-2">
-                    {user.coverPhoto && (
+                  <span className="text-sm font-medium text-gray-700">
+                    Background Cover ({coverPhotos.length}/4)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {coverPhotos.map((photo, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200"
+                    >
+                      <img src={photo} alt="" className="w-full h-full object-cover" />
                       <button
-                        onClick={handleRemoveCoverPhoto}
-                        className="px-2 py-1 rounded-lg bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition-colors"
+                        onClick={() => handleRemoveCoverPhoto(idx)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
                       >
-                        Remove
+                        ×
                       </button>
-                    )}
+                    </div>
+                  ))}
+                  {coverPhotos.length < 4 && (
                     <button
                       onClick={() => coverInputRef.current?.click()}
-                      className="p-2 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors"
+                      className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
                     >
-                      <Camera size={16} />
+                      <span className="text-4xl font-thin leading-none">+</span>
                     </button>
-                  </div>
+                  )}
                 </div>
-                {user.coverPhoto && (
-                  <div className="w-full h-20 rounded-xl overflow-hidden border border-gray-200">
-                    <img
-                      src={user.coverPhoto}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
               </div>
 
               {/* Name Row */}
@@ -1824,7 +1820,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* ✅ Bio Row (Bio is now ABOVE Album) */}
+              {/* ✅ Bio Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
                 {showBioInput ? (
@@ -1857,61 +1853,9 @@ export default function PublicProfile({
                 )}
               </div>
 
-              {/* Country Row */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Country</span>
-                <select
-                  value={editCountry}
-                  onChange={handleCountrySelect}
-                  disabled={countryLocked}
-                  className={`text-sm text-right outline-none px-2 py-1 bg-transparent border-b w-48 ${
-                    countryLocked
-                      ? 'text-gray-400 border-transparent cursor-not-allowed'
-                      : 'text-gray-900 border-gray-200 focus:border-blue-500'
-                  }`}
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.name}>
-                      {c.flag} {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* ✅ Country & Gender rows removed */}
 
-              {/* Gender Row */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Gender</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleGenderSelect('male')}
-                    disabled={genderLocked && editGender !== 'male'}
-                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      editGender === 'male'
-                        ? 'bg-blue-500 text-white'
-                        : genderLocked
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    ♂ Male
-                  </button>
-                  <button
-                    onClick={() => handleGenderSelect('female')}
-                    disabled={genderLocked && editGender !== 'female'}
-                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                      editGender === 'female'
-                        ? 'bg-pink-500 text-white'
-                        : genderLocked
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    ♀ Female
-                  </button>
-                </div>
-              </div>
-
-              {/* ✅ Albums Row (NOW AT BOTTOM - With + icon) */}
+              {/* ✅ Albums Row (with + on same row) */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1919,33 +1863,30 @@ export default function PublicProfile({
                   </span>
                 </div>
 
-                {albumImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2">
-                    {albumImages.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="relative w-full h-16 rounded-xl overflow-hidden border border-gray-200 group"
+                <div className="flex flex-wrap gap-2">
+                  {albumImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 group"
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => handleRemoveAlbumImage(idx)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
                       >
-                        <img src={img} alt="" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => handleRemoveAlbumImage(idx)}
-                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {albumImages.length < 4 && (
-                  <button
-                    onClick={() => albumInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                  >
-                    <span className="text-4xl font-thin leading-none">+</span>
-                  </button>
-                )}
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {albumImages.length < 4 && (
+                    <button
+                      onClick={() => albumInputRef.current?.click()}
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                    >
+                      <span className="text-3xl font-thin leading-none">+</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -2054,4 +1995,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-}
+   }
