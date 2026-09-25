@@ -234,7 +234,6 @@ export default function Family({ onBack }: FamilyProps) {
     return (
       <div className="min-h-screen bg-[#2A1610] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white pb-6">
         
-        {/* CSS FORCING NO MEDIA CONTROLS ON ANDROID CHROME/WEBVIEW */}
         <style dangerouslySetInnerHTML={{__html: `
           video::-webkit-media-controls { display: none !important; }
           video::-webkit-media-controls-enclosure { display: none !important; }
@@ -395,11 +394,8 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
-              {/* No Blend applied to maintain pure blue color for Medal */}
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" blendScreen={false} onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black-noblend'})} />
               <RewardItem title="Top3 Tag *7 days" />
-              
-              {/* NEW: Added Mixed Image Reward for Top 3 */}
               <MixedImageRewardItem 
                 title="Vehicle *7 days" 
                 imageSrc="/IMG_20260919_222412.jpg" 
@@ -407,7 +403,6 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* No Blend applied to maintain pure blue color for Frame, and scale reduced to 100 */}
               <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
@@ -427,8 +422,6 @@ export default function Family({ onBack }: FamilyProps) {
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
               <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
-              
-              {/* NEW: Added Mixed Image Reward for Top 4-10 */}
               <MixedImageRewardItem 
                 title="Vehicle *3 days" 
                 imageSrc="/IMG_20260919_222041.jpg" 
@@ -573,10 +566,10 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* EXCHANGED: Brown background card hata diya, sirf image rakhi hai */}
-        <div className="fixed bottom-0 left-0 w-full flex items-center justify-center z-50">
-          <button onClick={() => setCurrentView('main')} className="w-full cursor-pointer active:scale-95 transition-transform flex items-center justify-center">
-            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-auto object-contain" style={{ filter: 'url(#remove-green)' }} />
+        {/* MODIFIED: Hata diya brown background bas transparent background par image button rakhi hai */}
+        <div className="fixed bottom-0 left-0 w-full h-[10vh] flex items-center justify-center z-50 bg-transparent pointer-events-none">
+          <button onClick={() => setCurrentView('main')} className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
+            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
           </button>
         </div>
 
@@ -709,33 +702,31 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* ==========================================
-          BOTTOM EDGE-TO-EDGE IMAGE + SMALLER CREATE FAMILY BUTTON
-          ========================================== */}
-      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none leading-none">
-        {/* Bottom edge image - ekdam bottom se chipki hui, full width, no gap */}
-        <img 
-          src="/file_000000009d1081f59878648feb821b5e.png" 
-          alt="Bottom Edge" 
-          className="w-full h-auto block select-none align-bottom"
-          draggable={false}
-        />
-
-        {/* Create Family image - center pe overlap, chota size, click pe Create sheet open */}
-        <button
-          type="button"
-          onClick={() => setCurrentView('create')}
-          className="absolute left-1/2 -translate-x-1/2 bottom-[6px] pointer-events-auto cursor-pointer active:scale-[0.97] transition-transform flex items-center justify-center"
-          aria-label="Create Family"
-        >
+      {/* NEW: Edge to edge bottom bar with overlap create button */}
+      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none">
+        <div className="relative w-full">
+          {/* Edge to edge background image */}
           <img 
-            src="/file_0000000056508230808da89fb794a97f.png" 
-            alt="Create Family" 
-            className="w-[55vw] max-w-[230px] h-auto object-contain drop-shadow-2xl select-none"
-            draggable={false}
+            src="/file_000000009d1081f59878648feb821b5e.png" 
+            alt="Bottom Background" 
+            className="w-full h-auto block pointer-events-auto" 
           />
-        </button>
+          {/* Centered overlap image button */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <button 
+              onClick={() => setCurrentView('create')}
+              className="cursor-pointer active:scale-95 transition-transform w-[50%] max-w-[200px] pointer-events-auto"
+            >
+              <img 
+                src="/file_0000000056508230808da89fb794a97f.png" 
+                alt="Create Family" 
+                className="w-full h-auto object-contain drop-shadow-xl" 
+              />
+            </button>
+          </div>
+        </div>
       </div>
+
     </div>
   )
-                                                                                                                                                                                       }
+}
