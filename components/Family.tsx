@@ -573,10 +573,10 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* EXCHANGED: Now showing the "IMG_20260901_161001.png" button from Main page */}
-        <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
-          <button onClick={() => setCurrentView('main')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
-            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
+        {/* EXCHANGED: Brown background card hata diya, sirf image rakhi hai */}
+        <div className="fixed bottom-0 left-0 w-full flex items-center justify-center z-50">
+          <button onClick={() => setCurrentView('main')} className="w-full cursor-pointer active:scale-95 transition-transform flex items-center justify-center">
+            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-auto object-contain" style={{ filter: 'url(#remove-green)' }} />
           </button>
         </div>
 
@@ -709,60 +709,33 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* EXCHANGED: Now showing the blue metallic + red pill button from Create page */}
-      <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
-        <button 
+      {/* ==========================================
+          BOTTOM EDGE-TO-EDGE IMAGE + OVERLAPPED CREATE FAMILY IMAGE
+          ========================================== */}
+      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none">
+        {/* Bottom edge image - ekdam bottom se chipki hui, full width */}
+        <img 
+          src="/file_000000009d1081f59878648feb821b5e.png" 
+          alt="Bottom Edge" 
+          className="w-full h-auto block select-none"
+          draggable={false}
+        />
+
+        {/* Create Family image - center pe overlap, click pe Create sheet open */}
+        <button
+          type="button"
           onClick={() => setCurrentView('create')}
-          className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
-          style={{
-            backgroundColor: '#007BFF',
-            backgroundImage: 'linear-gradient(to bottom, #4DA3FF 0%, #007BFF 50%, #0056b3 100%)',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)',
-            border: '1px solid #66B2FF',
-            borderRadius: '8px',
-            height: '56px',
-            padding: '0 12px'
-          }}
+          className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto cursor-pointer active:scale-[0.97] transition-transform flex items-center justify-center"
+          aria-label="Create Family"
         >
-          {/* Main Inner Dark Red Pill */}
-          <div 
-            className="w-full h-[80%] flex items-center justify-center relative"
-            style={{
-              background: 'linear-gradient(to bottom, #8B0000 0%, #5C0000 50%, #8B0000 100%)',
-              borderRadius: '50px',
-              border: '2px solid #d4af37',
-              boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(212,175,55,0.4)'
-            }}
-          >
-            {/* Left Decorative Flare - GOLD */}
-            <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10">
-              <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
-                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
-              </svg>
-            </div>
-            
-            {/* Right Decorative Flare - GOLD */}
-            <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10 rotate-180">
-              <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
-                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
-              </svg>
-            </div>
-
-            {/* Left Gem */}
-            <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
-
-            {/* Right Gem */}
-            <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
-
-            {/* Text - GOLD */}
-            <span className="text-[#FFD700] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
-              Create Family
-            </span>
-          </div>
+          <img 
+            src="/file_0000000056508230808da89fb794a97f.png" 
+            alt="Create Family" 
+            className="w-[70vw] max-w-[320px] h-auto object-contain drop-shadow-2xl select-none"
+            draggable={false}
+          />
         </button>
       </div>
     </div>
   )
-}
+        }
