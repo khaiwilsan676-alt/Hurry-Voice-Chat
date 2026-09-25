@@ -1615,7 +1615,7 @@ export default function PublicProfile({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
             
-            {/* 1. Current Cover Photo Box (Change Button wala) - ✅ Isme Avatar add kiya */}
+            {/* 1. Current Cover Photo Box (Change Button wala) */}
             <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-sm">
               {user.coverPhoto ? (
                 <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
@@ -1625,14 +1625,14 @@ export default function PublicProfile({
                 </div>
               )}
               
-              {/* ✅ Avatar Overlay (Profile page wala design) */}
+              {/* ✅ Avatar Overlay (Profile page wala design - BADA SIZE) */}
               <div className="absolute bottom-3 left-4 z-30">
-                <div className="relative w-16 h-16 rounded-full shadow-lg bg-gray-700">
+                <div className="relative w-20 h-20 rounded-full shadow-lg bg-gray-700">
                   <div className="w-full h-full rounded-full overflow-hidden">
                     {user.photo ? (
                       <img src={user.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-2xl text-white font-bold">
+                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-3xl text-white font-bold">
                         {avatarLetter}
                       </div>
                     )}
