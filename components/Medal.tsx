@@ -612,7 +612,7 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
-              {/* Card — sirf naam (star hataya) */}
+              {/* Card — sirf naam */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
                 <span className="text-[13px] font-medium text-gray-200 tracking-wide">
                   {medal.name}
@@ -685,21 +685,16 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* Name wrapper — same -mt-15, stars + Not Obtained absolute above (position untouched) */}
+            {/* Name wrapper — only golden stars above name */}
             <div className="relative -mt-15 z-10">
-              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 flex items-center gap-2 whitespace-nowrap z-20 pointer-events-none">
-                <div className="flex items-center gap-[2px]">
-                  {Array.from({ length: displayMedal.stars }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={11}
-                      className="text-gray-300 fill-gray-300"
-                    />
-                  ))}
-                </div>
-                <span className="text-white bg-gray-600/70 rounded-md px-2 py-[2px] text-[10px] font-medium">
-                  Not Obtained
-                </span>
+              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 flex items-center gap-[2px] whitespace-nowrap z-20 pointer-events-none">
+                {Array.from({ length: displayMedal.stars }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={11}
+                    className="text-yellow-500 fill-yellow-500"
+                  />
+                ))}
               </div>
               <h3 className="text-[22px] font-bold text-white tracking-wide drop-shadow-md">
                 {displayMedal.name}
@@ -717,17 +712,22 @@ export default function Medal({ onBack }: MedalProps) {
                     {i > 0 && (
                       <span className="text-white text-lg font-bold">&gt;</span>
                     )}
-                    <img
-                      src={TIER_TAB_IMAGES[i]}
-                      alt={`${i + 1}`}
-                      onClick={() => setActiveTier(i)}
-                      draggable={false}
-                      className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
-                        activeTier === i
-                          ? 'rounded-md border-2 border-[#facc15] shadow-[0_0_8px_rgba(250,204,21,0.35)]'
-                          : 'opacity-70'
-                      }`}
-                    />
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={TIER_TAB_IMAGES[i]}
+                        alt={`${i + 1}`}
+                        onClick={() => setActiveTier(i)}
+                        draggable={false}
+                        className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
+                          activeTier === i
+                            ? 'rounded-md border-2 border-[#facc15] shadow-[0_0_8px_rgba(250,204,21,0.35)]'
+                            : 'opacity-70'
+                        }`}
+                      />
+                      <span className="mt-1 text-white bg-gray-600/70 rounded-md px-2 py-[2px] text-[10px] font-medium">
+                        Not Obtained
+                      </span>
+                    </div>
                   </React.Fragment>
                 ))}
               </div>
@@ -751,4 +751,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-        }
+                                             }
