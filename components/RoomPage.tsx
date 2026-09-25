@@ -1490,7 +1490,7 @@ function RoomContent({
     return (
       <RoomSettingPage
         onBack={closeSettings}
-        roomOwnerId={roomId}
+        roomOwnerId={roomOwnerId}
         roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
         onSave={handleSaveSettings}
       />

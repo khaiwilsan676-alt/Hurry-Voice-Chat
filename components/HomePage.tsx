@@ -1030,7 +1030,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           return {
             ...room,
             name: data.roomName || data['Room Name'] || room.name,
-            image: data.roomDp || data['Room dp'] || room.image,
+            image: data.dp || data.image || data.roomDp || data['Room dp'] || room.image,
             isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : room.isLocked,
             roomPassword: data.roomPassword !== undefined ? data.roomPassword : room.roomPassword,
           };
@@ -2464,7 +2464,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           className="px-3"
           style={{
             transform: `translateY(${categoryOffset - 4}px)`,
-            marginBottom: `${categoryOffset}px`,
+            marginBottom: '0px',
             position: 'relative',
             zIndex: 10,
             willChange: 'transform'
@@ -2573,7 +2573,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         </div>
 
         {allRooms.length > 0 ? (
-          <div className="px-3" style={{ marginTop: isAndroid ? '4px' : '12px' }}>
+          <div className="px-3" style={{ marginTop: '1vh' }}>
             <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
               {allRooms.map((room, index) => (
                 <div
@@ -2857,12 +2857,12 @@ export default function HomePage({ onLogout }: HomePageProps) {
               ref={bannerContainerRef}
               className="w-full px-3 safe-top pt-2"
               style={{
-                height: activeTab === 'mine' ? 'auto' : 'calc(34vh + max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)))',
-                minHeight: activeTab === 'mine' ? 'auto' : 'calc(34vh + max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)))',
+                height: 'auto',
+                minHeight: 'auto',
                 background: activeTab === 'mine'
                   ? 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 60%, #ffffff 100%)'
                   : 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-                paddingBottom: '12px'
+                paddingBottom: '0.7vh'
               }}
             >
               <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
@@ -2940,7 +2940,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                       ref={bannerRef}
                       className="rounded-md relative overflow-hidden cursor-pointer select-none"
                       style={{
-                        height: '100px',
+                        height: '12vh',
                         width: '100%',
                         display: 'flex',
                         alignItems: 'center',
