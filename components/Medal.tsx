@@ -21,10 +21,7 @@ interface MedalItem {
   sheetVideoSize: string
   sheetVideoTop: string
 
-  /** group key — same group shares the 1/2/3 tier tabs */
   tierGroup?: string
-
-  /** per-video gift text (shown under the name in the sheet) */
   giftText: string
 }
 
@@ -229,7 +226,6 @@ export default function Medal({ onBack }: MedalProps) {
   const [activeTier, setActiveTier] = useState(0)
 
   const medals: MedalItem[] = [
-    // ================= RICH GROUP (1 / 2 / 3) =================
     {
       id: '1',
       name: 'Rich',
@@ -272,7 +268,6 @@ export default function Medal({ onBack }: MedalProps) {
       tierGroup: 'rich',
       giftText: '0/30000000000  Coins Of gifts Send',
     },
-    // ================= SUPER GAMER (no tier tabs) =================
     {
       id: 'new-1',
       name: 'Super Gamer',
@@ -286,7 +281,6 @@ export default function Medal({ onBack }: MedalProps) {
       sheetVideoTop: '120%',
       giftText: '0/1000000000000 Coins You won from game',
     },
-    // ================= MILLIONAIRE GROUP (5 / 6 / 7) =================
     {
       id: 'new-2',
       name: 'Millionaire',
@@ -329,7 +323,6 @@ export default function Medal({ onBack }: MedalProps) {
       tierGroup: 'millionaire',
       giftText: '0/100000000 Online Recharge',
     },
-    // ================= ROOM TOP GROUP (8 / 9 / 10) =================
     {
       id: 'new-5',
       name: 'Room Top 1',
@@ -372,7 +365,6 @@ export default function Medal({ onBack }: MedalProps) {
       tierGroup: 'roomtop',
       giftText: 'Event Based',
     },
-    // ================= MEDAL 11 / 12 / 13 GROUP =================
     {
       id: 'new-8',
       name: 'Medal 13',
@@ -415,7 +407,6 @@ export default function Medal({ onBack }: MedalProps) {
       tierGroup: 'medal111213',
       giftText: '0/50000 Coins Of gifts Send',
     },
-    // ================= VIP GROUP (VIP2 / VIP1 / Pure Love) =================
     {
       id: '4',
       name: 'VIP2',
@@ -612,7 +603,6 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
-              {/* Card — sirf naam */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
                 <span className="text-[13px] font-medium text-gray-200 tracking-wide">
                   {medal.name}
@@ -640,7 +630,6 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* --- SLIDING VIDEO TRACK --- */}
             <div
               className="absolute left-1/2 -translate-x-1/2 z-30 pointer-events-none overflow-hidden"
               style={{
@@ -685,7 +674,6 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* Name wrapper — only golden stars above name */}
             <div className="relative -mt-15 z-10">
               <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 flex items-center gap-[2px] whitespace-nowrap z-20 pointer-events-none">
                 {Array.from({ length: displayMedal.stars }).map((_, i) => (
@@ -706,13 +694,14 @@ export default function Medal({ onBack }: MedalProps) {
             </p>
 
             {showTabs && (
-              <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
-                {tierMedals.map((_, i) => (
-                  <React.Fragment key={i}>
-                    {i > 0 && (
-                      <span className="text-white text-lg font-bold">&gt;</span>
-                    )}
-                    <div className="flex flex-col items-center">
+              <div className="flex flex-col items-center mt-4 relative z-10">
+                {/* 1 / 2 / 3 tabs — gap hataya (gap-0) */}
+                <div className="flex items-center justify-center gap-2">
+                  {tierMedals.map((_, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && (
+                        <span className="text-white text-lg font-bold">&gt;</span>
+                      )}
                       <img
                         src={TIER_TAB_IMAGES[i]}
                         alt={`${i + 1}`}
@@ -724,12 +713,12 @@ export default function Medal({ onBack }: MedalProps) {
                             : 'opacity-70'
                         }`}
                       />
-                      <span className="mt-1 text-white bg-gray-600/70 rounded-md px-2 py-[2px] text-[10px] font-medium">
-                        Not Obtained
-                      </span>
-                    </div>
-                  </React.Fragment>
-                ))}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <span className="mt-2 text-white bg-gray-600/70 rounded-md px-3 py-[2px] text-[10px] font-medium">
+                  Not Obtained
+                </span>
               </div>
             )}
           </div>
@@ -751,4 +740,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-                                             }
+              }
