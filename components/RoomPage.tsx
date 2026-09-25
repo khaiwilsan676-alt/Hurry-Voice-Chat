@@ -448,7 +448,7 @@ function RoomContent({
       }
 
       try {
-        const response = await fetch(apiUrl(`/api/rooms?roomId=${roomId}`));
+        const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomOwner.accountId || roomOwner.id || roomId))}`));
         if (response.ok) {
           const result = await response.json();
           const dbRoom = result?.room;
@@ -1490,7 +1490,7 @@ function RoomContent({
     return (
       <RoomSettingPage
         onBack={closeSettings}
-        roomOwnerId={roomId}
+        roomOwnerId={roomOwnerId}
         roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
         onSave={handleSaveSettings}
       />
