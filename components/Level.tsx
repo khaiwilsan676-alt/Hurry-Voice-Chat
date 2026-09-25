@@ -335,13 +335,13 @@ export default function Level({ onBack }: LevelProps) {
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
 
-          <h1 className="text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
+           <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
             Level
           </h1>
 
           {/* Help Button - Ekdam Strict Corner Right */}
           <button
-            className="absolute -right-5 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            className="absolute -right-6 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
@@ -349,7 +349,7 @@ export default function Level({ onBack }: LevelProps) {
         </div>
 
         {/* Top Image Card Frame */}
-        <div className="relative -mt-10 -mx-4">
+        <div className="relative -mt-10 -mx-5">
           <img
             src="/file_000000007044820ea729df406d1dc320.png"
             alt="Top Card Frame"
