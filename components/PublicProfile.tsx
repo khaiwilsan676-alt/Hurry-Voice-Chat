@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
+  Plus,
 } from 'lucide-react'
 
 // Import the WebRTC ChatScreen component
@@ -657,6 +658,9 @@ export default function PublicProfile({
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
 
+  // ✅ NEW: Background page ko full screen open karne ka state
+  const [showBackgroundPage, setShowBackgroundPage] = useState(false)
+
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
   // ✅ Auto-scroll cover photos (Right to left, every 5 seconds)
@@ -1257,11 +1261,59 @@ export default function PublicProfile({
     })
   }
 
+  // ✅ Specific slot me image upload karne ke liye (background page ke liye)
+  const handleSlotCoverUpload = async (slotIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const compressedBase64 = await compressImage(file, 800, 400, 0.7)
+      let updated = [...coverPhotos]
+      if (slotIndex < updated.length) {
+        updated[slotIndex] = compressedBase64
+      } else {
+        // Fill any missing slots with empty strings if needed
+        while (updated.length < slotIndex) updated.push('')
+        updated[slotIndex] = compressedBase64
+      }
+      setCoverPhotos(updated)
+      localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
+      localStorage.setItem('userCoverPhoto', updated[0] || '')
+      setUser((prev) => ({ ...prev, coverPhoto: updated[0] || '' }))
+
+      await saveToMongoDB({
+        coverPhoto: updated[0] || '',
+        coverImage: updated[0] || '',
+        coverPhotos: updated,
+      })
+    } catch (err) {
+      console.error('Slot cover compression error:', err)
+    } finally {
+      e.target.value = ''
+    }
+  }
+
+  const handleRemoveSlotCover = async (slotIndex: number) => {
+    const updated = coverPhotos.filter((_, i) => i !== slotIndex)
+    setCoverPhotos(updated)
+    localStorage.setItem('userCoverPhotos', JSON.stringify(updated))
+    const primary = updated[0] || ''
+    localStorage.setItem('userCoverPhoto', primary)
+    setUser((prev) => ({ ...prev, coverPhoto: primary }))
+    if (currentCoverIndex >= updated.length) {
+      setCurrentCoverIndex(0)
+    }
+    await saveToMongoDB({
+      coverPhoto: primary,
+      coverImage: primary,
+      coverPhotos: updated,
+    })
+  }
+
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (albumImages.length >= 4) {
-        alert('You can only upload up to 4 images in the album.')
+      if (albumImages.length >= 7) {
+        alert('You can only upload up to 7 images in the album.')
         return
       }
       try {
@@ -1384,6 +1436,12 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
+  // ✅ Cover image area pe click karne se background page khulega
+  const handleCoverAreaClick = () => {
+    if (isOtherUser) return
+    setShowBackgroundPage(true)
+  }
+
   return (
     <div
       className={`w-full bg-white min-h-screen text-gray-900 relative ${
@@ -1392,9 +1450,16 @@ export default function PublicProfile({
     >
       {/* Cover Image & Header Section with Auto-Scroll Carousel */}
       <div className="relative w-full h-[350px] bg-gray-800 overflow-hidden">
+        {/* ✅ Cover image area pe click karne se background page khulega (transparent overlay) */}
+        <div
+          className="absolute inset-0 z-10"
+          onClick={handleCoverAreaClick}
+          style={{ cursor: isOtherUser ? 'default' : 'pointer' }}
+        ></div>
+
         {coverPhotos.length > 0 ? (
           <div
-            className="flex h-full transition-transform duration-700 ease-in-out"
+            className="flex h-full transition-transform duration-700 ease-in-out pointer-events-none"
             style={{ transform: `translateX(-${currentCoverIndex * 100}%)` }}
           >
             {coverPhotos.map((photo, idx) => (
@@ -1407,16 +1472,16 @@ export default function PublicProfile({
             ))}
           </div>
         ) : user.photo ? (
-          <img src={user.photo} alt="" className="w-full h-full object-cover" />
+          <img src={user.photo} alt="" className="w-full h-full object-cover pointer-events-none" />
         ) : (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold">
+          <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold pointer-events-none">
             {avatarLetter}
           </div>
         )}
 
         {/* Slider Dots */}
         {coverPhotos.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20 pointer-events-none">
             {coverPhotos.map((_, idx) => (
               <div
                 key={idx}
@@ -1430,7 +1495,7 @@ export default function PublicProfile({
 
         {/* --- Top Icons Header Wrapper --- */}
         <div 
-          className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10"
+          className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-30"
         >
           <button onClick={onBack} className="text-white">
             <ArrowLeft size={28} />
@@ -1450,9 +1515,9 @@ export default function PublicProfile({
           )}
         </div>
 
-        {/* Avatar with WebGL Shader Overlay — moved up slightly */}
-        <div className="absolute bottom-16 left-6 flex items-center z-30">
-          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
+        {/* ✅ Avatar with WebGL Shader Overlay - DP pe click se kuch nahi hoga */}
+        <div className="absolute bottom-12 left-6 flex items-center z-30">
+          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700 pointer-events-none">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt="" className="w-full h-full object-cover" />
@@ -1609,7 +1674,7 @@ export default function PublicProfile({
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
             Albums
-            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/4</span>
+            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/7</span>
           </h3>
           {albumImages.length > 0 ? (
             <div className="flex gap-2 overflow-x-auto">
@@ -1684,6 +1749,73 @@ export default function PublicProfile({
         </div>
       )}
 
+      {/* ============ ✅ BACKGROUND PAGE (Personal page background) ============ */}
+      {!isOtherUser && showBackgroundPage && (
+        <div className="fixed inset-0 z-[80] bg-white flex flex-col">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-white border-b border-gray-100">
+            <button
+              onClick={() => setShowBackgroundPage(false)}
+              className="text-gray-800"
+            >
+              <ArrowLeft size={26} />
+            </button>
+            <h1 className="text-lg font-semibold text-gray-900">
+              Personal page background
+            </h1>
+          </div>
+
+          {/* Content - 3 Upload Slots */}
+          <div className="flex-1 overflow-y-auto px-4 py-5 space-y-5">
+            {[0, 1, 2].map((slotIndex) => {
+              const img = coverPhotos[slotIndex]
+              return (
+                <div key={slotIndex} className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id={`bg-slot-${slotIndex}`}
+                    className="hidden"
+                    onChange={(e) => handleSlotCoverUpload(slotIndex, e)}
+                  />
+
+                  {img ? (
+                    <div className="relative w-full h-[160px] rounded-2xl overflow-hidden bg-[#fce4a6]">
+                      <img
+                        src={img}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Remove button */}
+                      <button
+                        onClick={() => handleRemoveSlotCover(slotIndex)}
+                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:bg-red-600 transition-colors shadow"
+                      >
+                        ×
+                      </button>
+                      {/* Change button */}
+                      <label
+                        htmlFor={`bg-slot-${slotIndex}`}
+                        className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full cursor-pointer hover:bg-black/80 transition-colors"
+                      >
+                        Change
+                      </label>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor={`bg-slot-${slotIndex}`}
+                      className="w-full h-[160px] rounded-2xl bg-[#fce4a6] flex items-center justify-center cursor-pointer hover:bg-[#fbd98a] transition-colors"
+                    >
+                      <Plus size={40} className="text-emerald-500" strokeWidth={2.5} />
+                    </label>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Full Image View Modal */}
       {fullImageView && (
         <div
@@ -1742,7 +1874,7 @@ export default function PublicProfile({
                 className="hidden"
               />
 
-              {/* ✅ Avatar Row (arrow icon removed) */}
+              {/* ✅ Avatar Row */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1758,39 +1890,6 @@ export default function PublicProfile({
                       </div>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {/* ✅ Background Cover Row (Multiple - Max 4) */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Background Cover ({coverPhotos.length}/4)
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {coverPhotos.map((photo, idx) => (
-                    <div
-                      key={idx}
-                      className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200"
-                    >
-                      <img src={photo} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => handleRemoveCoverPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {coverPhotos.length < 4 && (
-                    <button
-                      onClick={() => coverInputRef.current?.click()}
-                      className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                    >
-                      <span className="text-4xl font-thin leading-none">+</span>
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -1853,13 +1952,11 @@ export default function PublicProfile({
                 )}
               </div>
 
-              {/* ✅ Country & Gender rows removed */}
-
-              {/* ✅ Albums Row (with + on same row) */}
+              {/* ✅ Albums Row */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/4)
+                    Album Photos ({albumImages.length}/7)
                   </span>
                 </div>
 
@@ -1878,7 +1975,7 @@ export default function PublicProfile({
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 4 && (
+                  {albumImages.length < 7 && (
                     <button
                       onClick={() => albumInputRef.current?.click()}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
@@ -1995,4 +2092,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-   }
+}
