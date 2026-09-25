@@ -9,9 +9,14 @@ const DB_NAME = 'FruitPartyDB';
 const STORE_NAME = 'GameState';
 const DEFAULT_BALANCE = 0;
 
+// Single cached connection — avoids leaking an IndexedDB connection on every poll
+let dbPromise: Promise<IDBDatabase> | null = null;
+
 async function initDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') return reject("No window");
+  if (typeof window === 'undefined') return Promise.reject(new Error('No window'));
+  if (dbPromise) return dbPromise;
+
+  dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
@@ -22,9 +27,19 @@ async function initDB(): Promise<IDBDatabase> {
         db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => { db.close(); dbPromise = null; };
+      db.onclose = () => { dbPromise = null; };
+      resolve(db);
+    };
+    request.onerror = () => {
+      dbPromise = null;
+      reject(request.error);
+    };
   });
+
+  return dbPromise;
 }
 
 async function loadBalanceFromDB(): Promise<number> {
@@ -66,11 +81,16 @@ async function addCoinsToDB(amountToAdd: number): Promise<void> {
       req.onerror = () => reject(req.error);
     });
   } catch (e) {
-    console.error("Failed to update coins in DB", e);
+    console.error('Failed to update coins in DB', e);
   }
 }
 
-export async function recordTransaction(title: string, amount: number): Promise<void> {
+// type: 'coin' → Coins details sheet, 'diamond' → Diamonds details sheet
+export async function recordTransaction(
+  title: string,
+  amount: number,
+  type: 'coin' | 'diamond' = 'coin'
+): Promise<void> {
   try {
     const db = await initDB();
     return new Promise((resolve, reject) => {
@@ -80,14 +100,14 @@ export async function recordTransaction(title: string, amount: number): Promise<
       const now = new Date();
       const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-      const record = { title, amount, date: dateStr, timestamp: now.getTime() };
+      const record = { title, amount, date: dateStr, timestamp: now.getTime(), type };
 
       const putReq = store.add(record);
       putReq.onsuccess = () => resolve();
       putReq.onerror = () => reject(putReq.error);
     });
   } catch (e) {
-    console.error("Failed to record transaction in DB", e);
+    console.error('Failed to record transaction in DB', e);
   }
 }
 
@@ -257,9 +277,16 @@ function WhiteColorRemovalShader({
 }
 
 // ==========================================
-// Details Page Component (UPDATED AS PER IMAGE)
+// Details Page — split by type (Coins / Diamonds)
+// Coins value → golden, Diamonds value → blue
 // ==========================================
-function DetailsPage({ onBack }: { onBack: () => void }) {
+function DetailsPage({
+  onBack,
+  type,
+}: {
+  onBack: () => void;
+  type: 'coin' | 'diamond';
+}) {
   const [transactions, setTransactions] = useState<any[]>([]);
 
   useEffect(() => {
@@ -272,18 +299,22 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
         const req = store.getAll();
         req.onsuccess = () => {
           if (isMounted) {
-            const data = req.result || [];
-            data.sort((a, b) => b.timestamp - a.timestamp);
+            const data = (req.result || [])
+              .filter((t: any) => (t.type ?? 'coin') === type)
+              .sort((a: any, b: any) => b.timestamp - a.timestamp);
             setTransactions(data);
           }
         };
       } catch (e) {
-        console.error("Failed to load transactions", e);
+        console.error('Failed to load transactions', e);
       }
     };
     fetchTransactions();
     return () => { isMounted = false; };
-  }, []);
+  }, [type]);
+
+  // Coin → golden, Diamond → blue
+  const valueColor = type === 'diamond' ? 'text-blue-500' : 'text-amber-500';
 
   return (
     <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col bg-white pt-[env(safe-area-inset-top,12px)] pb-[env(safe-area-inset-bottom,12px)]">
@@ -334,8 +365,10 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
                   {tx.date}
                 </span>
               </div>
-              <span className="text-[15px] font-bold text-cyan-500">
-                {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()}
+              <span className={`text-[15px] font-bold ${valueColor}`}>
+                {tx.amount > 0
+                  ? `+${tx.amount.toLocaleString()}`
+                  : tx.amount.toLocaleString()}
               </span>
             </div>
           ))}
@@ -346,7 +379,7 @@ function DetailsPage({ onBack }: { onBack: () => void }) {
 }
 
 // ==========================================
-// Main Wallet Component (NO CHANGES)
+// Main Wallet Component
 // ==========================================
 interface WalletProps {
   onBack: () => void
@@ -358,7 +391,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [diamonds, setDiamonds] = useState('')
   const [coins, setCoins] = useState('')
   const [selectedPercentage, setSelectedPercentage] = useState('100%')
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState<'coin' | 'diamond' | null>(null)
 
   // Balance — null = not loaded yet (avoids 0 flash)
   const [walletBalance, setWalletBalance] = useState<number | null>(null)
@@ -403,13 +436,27 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const handleBuyCoins = async (amount: number) => {
     setWalletBalance((prev) => (prev ?? 0) + amount)
     await addCoinsToDB(amount)
-    await recordTransaction('Buy Coins', amount)
+    await recordTransaction('Buy Coins', amount, 'coin')
+    setWalletBalance(await loadBalanceFromDB())
+  }
+
+  // Diamond → Coin exchange — records a diamond transaction, adds coins
+  const handleExchange = async () => {
+    const diamondNum = parseFloat(diamonds) || 0
+    const coinNum = parseFloat(coins) || 0
+    if (diamondNum <= 0 || coinNum <= 0) return
+
+    await recordTransaction('Diamond Exchange', -diamondNum, 'diamond')
+    await addCoinsToDB(coinNum)
+
+    setDiamonds('')
+    setCoins('')
     setWalletBalance(await loadBalanceFromDB())
   }
 
   // If Details page is open, show it instead of Wallet
   if (showDetails) {
-    return <DetailsPage onBack={() => setShowDetails(false)} />
+    return <DetailsPage type={showDetails} onBack={() => setShowDetails(null)} />
   }
 
   return (
@@ -461,9 +508,9 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           Wallet
         </h1>
 
-        {/* History Button — opens Details Page */}
+        {/* History Button — opens Details matching the active tab */}
         <button
-          onClick={() => setShowDetails(true)}
+          onClick={() => setShowDetails(activeTab === 'wallet' ? 'coin' : 'diamond')}
           className="w-8 h-8 flex items-center justify-center active:scale-90 transition-all text-gray-900"
           aria-label="History"
         >
@@ -714,6 +761,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             {/* Bottom Exchange Button */}
             <div className="pt-6 pb-2">
               <button
+                onClick={handleExchange}
                 className="w-full py-3 rounded-xl font-bold text-white bg-pink-300 text-sm shadow-xs active:scale-95 transition-transform"
               >
                 Exchange
