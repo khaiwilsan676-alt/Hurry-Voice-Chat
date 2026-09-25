@@ -8,19 +8,38 @@ const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
 const DEFAULT_BALANCE = 82927;
 
-const initWalletDB = (): Promise<IDBDatabase> =>
-  new Promise((resolve, reject) => {
-    if (typeof window === "undefined") return reject("No window");
+// Single cached connection — avoids leaking an IndexedDB connection on every poll
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+const initWalletDB = (): Promise<IDBDatabase> => {
+  if (typeof window === "undefined") return Promise.reject(new Error("No window"));
+  if (dbPromise) return dbPromise;
+
+  dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(SHARED_DB, 3);
     request.onupgradeneeded = (e: any) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(SHARED_STORE)) {
         db.createObjectStore(SHARED_STORE);
       }
+      if (!db.objectStoreNames.contains("transactions")) {
+        db.createObjectStore("transactions", { keyPath: "id", autoIncrement: true });
+      }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => { db.close(); dbPromise = null; };
+      db.onclose = () => { dbPromise = null; };
+      resolve(db);
+    };
+    request.onerror = () => {
+      dbPromise = null;
+      reject(request.error);
+    };
   });
+
+  return dbPromise;
+};
 
 const loadWalletBalance = async (): Promise<number> => {
   try {
@@ -59,6 +78,34 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
     });
   } catch (e) {
     console.error("Wallet update failed", e);
+  }
+};
+
+// Records a gift send into the shared transactions store (type: 'coin')
+const recordGiftTransaction = async (title: string, amount: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("transactions", "readwrite");
+      const store = tx.objectStore("transactions");
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+      const record = {
+        title,
+        amount,
+        date: dateStr,
+        timestamp: now.getTime(),
+        type: "coin",
+      };
+
+      const req = store.add(record);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error("Failed to record gift transaction", e);
   }
 };
 
@@ -231,7 +278,7 @@ export default function GiftPicker({
     setSending(true);
     setWalletBalance((p) => Math.max(0, p - totalCost));
     await updateWalletBalance(-totalCost);
-    recordTransaction(`Sent gift ${selectedGiftObj.name}`, -totalCost);
+    await recordGiftTransaction(selectedGiftObj.name, -totalCost);
 
     if (onSend) {
       onSend(totalCost);
@@ -608,4 +655,4 @@ export default function GiftPicker({
       </div>
     </div>
   );
-}
+                                                                                                                                                                                                                    }
