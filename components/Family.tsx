@@ -710,32 +710,32 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
 
       {/* ==========================================
-          BOTTOM EDGE-TO-EDGE IMAGE + OVERLAPPED CREATE FAMILY IMAGE
+          BOTTOM EDGE-TO-EDGE IMAGE + SMALLER CREATE FAMILY BUTTON
           ========================================== */}
-      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none">
-        {/* Bottom edge image - ekdam bottom se chipki hui, full width */}
+      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none leading-none">
+        {/* Bottom edge image - ekdam bottom se chipki hui, full width, no gap */}
         <img 
           src="/file_000000009d1081f59878648feb821b5e.png" 
           alt="Bottom Edge" 
-          className="w-full h-auto block select-none"
+          className="w-full h-auto block select-none align-bottom"
           draggable={false}
         />
 
-        {/* Create Family image - center pe overlap, click pe Create sheet open */}
+        {/* Create Family image - center pe overlap, chota size, click pe Create sheet open */}
         <button
           type="button"
           onClick={() => setCurrentView('create')}
-          className="absolute left-1/2 -translate-x-1/2 bottom-0 pointer-events-auto cursor-pointer active:scale-[0.97] transition-transform flex items-center justify-center"
+          className="absolute left-1/2 -translate-x-1/2 bottom-[6px] pointer-events-auto cursor-pointer active:scale-[0.97] transition-transform flex items-center justify-center"
           aria-label="Create Family"
         >
           <img 
             src="/file_0000000056508230808da89fb794a97f.png" 
             alt="Create Family" 
-            className="w-[70vw] max-w-[320px] h-auto object-contain drop-shadow-2xl select-none"
+            className="w-[55vw] max-w-[230px] h-auto object-contain drop-shadow-2xl select-none"
             draggable={false}
           />
         </button>
       </div>
     </div>
   )
-        }
+                                                                                                                                                                                       }
