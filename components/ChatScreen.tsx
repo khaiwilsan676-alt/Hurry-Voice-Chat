@@ -688,7 +688,7 @@ export default function ChatScreen({
             <img 
               src="/file_00000000777481f588df50d28908ce63.png" 
               alt="Official Bottom Banner" 
-              className="w-full h-auto grayscale opacity-15 mix-blend-multiply" 
+              className="w-full h-auto grayscale opacity-5 mix-blend-multiply" 
             />
           </div>
         )}
@@ -782,7 +782,7 @@ export default function ChatScreen({
                   
                   {showDateHeader && (
                     <div className="flex justify-center my-4">
-                      <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg shadow-sm">
+                      <span className="bg-gray-300/50 text-gray-600 font-medium text-[11px] px-3 py-1 rounded-lg">
                         {formatDateHeader(msg.timestamp)}
                       </span>
                     </div>
@@ -840,7 +840,7 @@ export default function ChatScreen({
                       <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
                         
                         {!isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1 shadow-sm">
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
                             <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
                           </div>
                         )}
@@ -848,7 +848,7 @@ export default function ChatScreen({
                         <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                           
                           {msg.type === 'image' && msg.imageUrl ? (
-                            <div className={`rounded-2xl overflow-hidden relative shadow-sm ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
+                            <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
                               <img
                                 src={msg.imageUrl}
                                 alt="Shared"
@@ -857,7 +857,7 @@ export default function ChatScreen({
                               />
                             </div>
                           ) : (
-                            <div className={`px-3 py-2 rounded-2xl break-words relative shadow-sm ${
+                            <div className={`px-3 py-2 rounded-2xl break-words relative ${
                                 isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
                               }`}
                             >
@@ -874,7 +874,7 @@ export default function ChatScreen({
                         </div>
 
                         {isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1 shadow-sm">
+                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
                             <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
                           </div>
                         )}
