@@ -682,17 +682,17 @@ export default function ChatScreen({
           </div>
         </div>
 
-        {/* ----- BACKGROUND IMAGE FOR FIXED CHAT (Fixed at bottom) ----- */}
-        {/* Yahan image absolute me z-0 par rakhi gayi hai taaki messages iske upar (overlay) scroll karein */}
+                        {/* ----- BACKGROUND IMAGE FOR FIXED CHAT (Fixed at bottom) ----- */}
         {isFixedChat && (
-          <div className="absolute bottom-0 left-0 w-full pointer-events-none z-0 mix-blend-multiply flex items-end">
+          <div className="absolute bottom-0 left-0 w-full pointer-events-none z-0 flex items-end">
             <img 
               src="/file_00000000777481f588df50d28908ce63.png" 
               alt="Official Bottom Banner" 
-              className="w-full h-auto" 
+              className="w-full h-auto grayscale opacity-15 mix-blend-multiply" 
             />
           </div>
         )}
+
 
         {/* ----- Bottom Sheet Options Menu ----- */}
         {showOptions && !isFixedChat && (
