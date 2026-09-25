@@ -703,7 +703,7 @@ export default function Family({ onBack }: FamilyProps) {
       </div>
 
       {/* NEW: Edge to edge bottom bar with overlap create button */}
-      <div className="fixed bottom-0 left-0 w-full z-40 pointer-events-none">
+      <div className="fixed -bottom-4 left-0 w-full z-40 pointer-events-none">
         <div className="relative w-full">
           {/* Edge to edge background image */}
           <img 
