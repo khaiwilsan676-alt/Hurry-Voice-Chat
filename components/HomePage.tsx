@@ -1026,13 +1026,24 @@ export default function HomePage({ onLogout }: HomePageProps) {
       const roomId = String(data.roomId);
 
       setGlobalRooms(prev => prev.map(room => {
-        if (String(room.id) === roomId || String(room.accountId) === roomId) {
+        const roomKeys = [
+          room.id,
+          room.accountId,
+          room.roomId,
+          room['Room Admin'],
+        ].filter(Boolean).map(String);
+
+        if (roomKeys.includes(roomId)) {
           return {
             ...room,
-            name: data.roomName || data['Room Name'] || room.name,
+            name: data.roomName || data['Room Name'] || data.name || room.name,
+            roomName: data.roomName || data['Room Name'] || data.name || room.roomName,
             image: data.dp || data.image || data.roomDp || data['Room dp'] || room.image,
+            dp: data.dp || data.image || data.roomDp || data['Room dp'] || room.dp,
+            roomDp: data.roomDp || data['Room dp'] || data.dp || data.image || room.roomDp,
             isLocked: data.isLocked !== undefined ? Boolean(data.isLocked) : room.isLocked,
             roomPassword: data.roomPassword !== undefined ? data.roomPassword : room.roomPassword,
+            updatedAt: data.updatedAt || Date.now(),
           };
         }
         return room;
