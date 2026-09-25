@@ -573,7 +573,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* EXCHANGED: Now showing the IMG_20260901_161001.png button (previously in View 1 bottom bar) */}
+        {/* EXCHANGED: Now showing the "IMG_20260901_161001.png" button from Main page */}
         <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
           <button onClick={() => setCurrentView('main')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
             <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
@@ -709,7 +709,7 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* EXCHANGED: Now showing the "Create Family" button (previously in View 3) */}
+      {/* EXCHANGED: Now showing the blue metallic + red pill button from Create page */}
       <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
         <button 
           onClick={() => setCurrentView('create')}
