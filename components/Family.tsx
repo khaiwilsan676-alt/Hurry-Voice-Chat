@@ -505,7 +505,7 @@ export default function Family({ onBack }: FamilyProps) {
                     filter: 'url(#remove-black)' 
                   } : {
                     backgroundColor: 'transparent',
-                    filter: 'url(#remove-green)'
+                    filter: 'url(#remove-green)' 
                   }} 
                 />
               </div>
@@ -573,7 +573,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* EXCHANGED BACKGROUND: Now using bg-[#3B0C06] (previously from View 1 bottom bar) */}
+        {/* EXCHANGED: Now showing the IMG_20260901_161001.png button (previously in View 1 bottom bar) */}
         <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
           <button onClick={() => setCurrentView('main')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
             <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
@@ -709,8 +709,8 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* EXCHANGED BACKGROUND: Now using bg-white (previously from View 3) */}
-      <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-white flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.2)] border-t border-gray-200">
+      {/* EXCHANGED: Now showing the "Create Family" button (previously in View 3) */}
+      <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
         <button 
           onClick={() => setCurrentView('create')}
           className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
