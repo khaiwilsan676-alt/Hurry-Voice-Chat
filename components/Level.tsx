@@ -335,7 +335,7 @@ export default function Level({ onBack }: LevelProps) {
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
           
-<h1 className="flex-1 text-center text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
+<h1 className="flex-1 text-center translate-x-4 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
   Level
 </h1>
 
