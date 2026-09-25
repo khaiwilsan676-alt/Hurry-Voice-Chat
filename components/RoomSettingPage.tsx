@@ -264,7 +264,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       }
 
       // ✅ 2. Socket broadcast
-      socket.emit('room_settings_updated', {
+      socket.emit('room_settings_update', {
         roomId: roomOwnerId,
         roomName: settingsData.roomName,
         roomDp: settingsData.roomDp,
