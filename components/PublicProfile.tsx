@@ -1629,7 +1629,7 @@ export default function PublicProfile({
                 className="hidden"
               />
 
-              {/* ✅ Avatar Row with Arrow (image jaisa) */}
+              {/* ✅ Avatar Row (Image jaisa) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1681,24 +1681,16 @@ export default function PublicProfile({
                 )}
               </div>
 
-              {/* ✅ Albums Row (image jaisa) - + icon ke saath */}
-              <div className="space-y-2">
+              {/* ✅ Albums Row (Image jaisa - Bada + wala box) */}
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Album Photos ({albumImages.length}/4)
                   </span>
-                  {albumImages.length < 4 && (
-                    <button
-                      onClick={() => albumInputRef.current?.click()}
-                      className="w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
-                    >
-                      <span className="text-2xl font-light leading-none">+</span>
-                    </button>
-                  )}
                 </div>
 
                 {albumImages.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 pt-1">
+                  <div className="grid grid-cols-4 gap-2">
                     {albumImages.map((img, idx) => (
                       <div
                         key={idx}
@@ -1714,6 +1706,15 @@ export default function PublicProfile({
                       </div>
                     ))}
                   </div>
+                )}
+
+                {albumImages.length < 4 && (
+                  <button
+                    onClick={() => albumInputRef.current?.click()}
+                    className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                  >
+                    <span className="text-4xl font-thin leading-none">+</span>
+                  </button>
                 )}
               </div>
 
@@ -1743,7 +1744,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* ✅ Bio Row (image jaisa - chevron ke saath, click karne pe input) */}
+              {/* ✅ Bio Row (Image jaisa - text + chevron, click par input) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
                 {showBioInput ? (
@@ -1766,12 +1767,12 @@ export default function PublicProfile({
                 ) : (
                   <button
                     onClick={() => setShowBioInput(true)}
-                    className="flex items-center gap-1 text-sm text-gray-400"
+                    className="flex items-center gap-1 text-sm text-gray-500"
                   >
                     <span className="max-w-[180px] truncate">
-                      {editBio || 'Add bio'}
+                      {editBio || ''}
                     </span>
-                    <ChevronRight size={16} />
+                    <ChevronRight size={16} className="text-gray-400" />
                   </button>
                 )}
               </div>
@@ -1843,7 +1844,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== ACTION SHEET (REPORT & BLOCK) - CORNERS STRICTLY MD ===== */}
+      {/* ===== ACTION SHEET (REPORT & BLOCK) ===== */}
       {showActionSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
           <div
@@ -1886,7 +1887,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ===== REPORT SUCCESSFUL TOAST (CHOTA CARD) ===== */}
+      {/* ===== REPORT SUCCESSFUL TOAST ===== */}
       {showReportToast && (
         <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
           Report Successful
@@ -1910,7 +1911,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ UserReport Overlay - Report click pe open hoga */}
+      {/* ✅ UserReport Overlay */}
       {isOtherUser && showUserReport && targetUser && (
         <div className="fixed inset-0 z-[100]">
           <UserReport
