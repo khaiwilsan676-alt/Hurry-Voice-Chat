@@ -1615,7 +1615,7 @@ export default function PublicProfile({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
             
-            {/* 1. Current Cover Photo Box (Change Button wala) */}
+            {/* 1. Current Cover Photo Box (Change Button wala) - ✅ Isme Avatar add kiya */}
             <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-sm">
               {user.coverPhoto ? (
                 <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
@@ -1625,8 +1625,40 @@ export default function PublicProfile({
                 </div>
               )}
               
+              {/* ✅ Avatar Overlay (Profile page wala design) */}
+              <div className="absolute bottom-3 left-4 z-30">
+                <div className="relative w-16 h-16 rounded-full shadow-lg bg-gray-700">
+                  <div className="w-full h-full rounded-full overflow-hidden">
+                    {user.photo ? (
+                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-2xl text-white font-bold">
+                        {avatarLetter}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* WebGL Overlay (same as profile) */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <WhiteColorRemovalShader
+                      imageSrc="/1786867564769.png"
+                      threshold={0.85}
+                      className="w-full h-full"
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%) scale(1.5)',
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Change Button */}
-              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2">
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 z-20">
                 <button
                   onClick={() => coverInputRef.current?.click()}
                   className="bg-[#00D09C] text-white px-8 py-2 rounded-full font-semibold text-sm shadow-lg active:scale-95 transition-transform"
@@ -1648,7 +1680,7 @@ export default function PublicProfile({
                 {/* Add Button */}
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                   <button
-                    onClick={() => backgroundInputRef.current?.click()} // ✅ Ab alag ref use kar raha hai
+                    onClick={() => backgroundInputRef.current?.click()}
                     className="border-2 border-[#00D09C] text-[#00D09C] px-8 py-1.5 rounded-full font-semibold text-sm bg-white/50 backdrop-blur-sm active:scale-95 transition-transform"
                   >
                     Add
