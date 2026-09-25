@@ -18,7 +18,6 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 
-
 // Import the WebRTC ChatScreen component
 import ChatScreen from './ChatScreen' // adjust path if necessary
 import UserReport from './userreport' // ✅ Import kiya userreport.tsx
@@ -528,6 +527,7 @@ export default function PublicProfile({
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  const backgroundInputRef = useRef<HTMLInputElement>(null) // ✅ Naya ref background ke liye
 
   // Instant Synchronous Lock state load to prevent Guest/blank flashing
   const [user, setUser] = useState(() => {
@@ -640,7 +640,10 @@ export default function PublicProfile({
   const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
-  const [showUserReport, setShowUserReport] = useState(false) // ✅ naya state user report ke liye
+  const [showUserReport, setShowUserReport] = useState(false) 
+  
+  // ✅ Naya State Background Page ke liye
+  const [showBackgroundPage, setShowBackgroundPage] = useState(false)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -1339,7 +1342,11 @@ export default function PublicProfile({
 
         {/* Avatar with WebGL Shader Overlay */}
         <div className="absolute bottom-12 left-6 flex items-center z-30">
-          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
+          {/* ✅ Avatar Clickable banaya */}
+          <div 
+            className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700 cursor-pointer"
+            onClick={() => !isOtherUser && setShowBackgroundPage(true)}
+          >
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt="" className="w-full h-full object-cover" />
@@ -1592,6 +1599,67 @@ export default function PublicProfile({
         </div>
       )}
 
+      {/* ===== BACKGROUND SETTINGS PAGE (Naya Page) ===== */}
+      {!isOtherUser && showBackgroundPage && (
+        <div className="fixed inset-0 z-[60] bg-white flex flex-col animate-slide-up">
+          {/* Header */}
+          <div className="flex items-center px-4 py-4 border-b border-gray-100 bg-white sticky top-0 z-10">
+            <button onClick={() => setShowBackgroundPage(false)} className="p-1">
+              <ArrowLeft size={24} className="text-gray-800" />
+            </button>
+            <h2 className="flex-1 text-center text-lg font-bold text-gray-900 mr-6">
+              Personal page background
+            </h2>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            
+            {/* 1. Current Cover Photo Box (Change Button wala) */}
+            <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-sm">
+              {user.coverPhoto ? (
+                <img src={user.coverPhoto} alt="Cover" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400">No Cover Photo</span>
+                </div>
+              )}
+              
+              {/* Change Button */}
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2">
+                <button
+                  onClick={() => coverInputRef.current?.click()}
+                  className="bg-[#00D09C] text-white px-8 py-2 rounded-full font-semibold text-sm shadow-lg active:scale-95 transition-transform"
+                >
+                  Change
+                </button>
+              </div>
+            </div>
+
+            {/* 2. Empty Background Options (Add Buttons wale) */}
+            {[1, 2].map((item) => (
+              <div 
+                key={item} 
+                className="relative w-full h-40 rounded-2xl overflow-hidden shadow-sm"
+                style={{
+                  background: 'linear-gradient(135deg, #fceabb 0%, #f8b500 100%)' // Image jaisa yellowish gradient
+                }}
+              >
+                {/* Add Button */}
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <button
+                    onClick={() => backgroundInputRef.current?.click()} // ✅ Ab alag ref use kar raha hai
+                    className="border-2 border-[#00D09C] text-[#00D09C] px-8 py-1.5 rounded-full font-semibold text-sm bg-white/50 backdrop-blur-sm active:scale-95 transition-transform"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
@@ -1624,6 +1692,14 @@ export default function PublicProfile({
               <input
                 type="file"
                 ref={coverInputRef}
+                accept="image/*"
+                onChange={handleCoverUpload}
+                className="hidden"
+              />
+              {/* ✅ Background Input Ref file */}
+              <input
+                type="file"
+                ref={backgroundInputRef}
                 accept="image/*"
                 onChange={handleCoverUpload}
                 className="hidden"
@@ -1937,4 +2013,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-  }
+}
