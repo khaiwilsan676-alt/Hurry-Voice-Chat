@@ -2591,7 +2591,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         </div>
 
         {allRooms.length > 0 ? (
-          <div className="px-3" style={{ marginTop: '0.2vh' }}>
+          <div className="px-3" style={{ marginTop: '0.0vh' }}>
             <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
               {allRooms.map((room, index) => (
                 <div
