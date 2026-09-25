@@ -885,14 +885,18 @@ export default function ChatScreen({
             <button className="absolute top-4 right-4 text-white p-2 bg-black/50 rounded-full hover:bg-black/70">
               <X size={24} />
             </button>
-            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-lg" />
+            <img src={selectedImageModal} alt="Preview" className="max-w-full max-h-full object-contain rounded-none" />
           </div>
         )}
 
         {/* ----- Input Area & Emoji Picker ----- */}
         {isFixedChat ? (
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-center pb-5">
-            <p className="text-xs text-gray-400">This is an official account. You cannot reply here.</p>
+          <div className="w-full flex-shrink-0 bg-transparent">
+            <img 
+              src="/file_00000000777481f588df50d28908ce63.png" 
+              alt="Official Banner" 
+              className="w-full h-auto mix-blend-multiply pointer-events-none" 
+            />
           </div>
         ) : !deleteMode && (
           <div className="bg-white flex flex-col">
@@ -999,4 +1003,3 @@ export default function ChatScreen({
     </>
   );
 }
-
