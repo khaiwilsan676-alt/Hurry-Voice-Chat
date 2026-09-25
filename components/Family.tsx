@@ -531,6 +531,14 @@ export default function Family({ onBack }: FamilyProps) {
               -1 -1 -1 3 0
             " />
           </filter>
+          <filter id="remove-green" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              1.5 -2.5 1.5 1 0
+            " />
+          </filter>
         </svg>
 
         <div className="flex items-center justify-between px-2 py-4 flex-shrink-0" style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}>
@@ -565,68 +573,10 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* BUTTON: Inner Red Pill (SAME AS BEFORE), Outer Gold Frame changed to BLUE as per Image */}
-        <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
-          <button 
-            className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
-            style={{
-              backgroundColor: '#007BFF',
-              backgroundImage: 'linear-gradient(to bottom, #4DA3FF 0%, #007BFF 50%, #0056b3 100%)',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)',
-              border: '1px solid #66B2FF',
-              borderRadius: '8px',
-              height: '56px',
-              padding: '0 12px'
-            }}
-          >
-            {/* Main Inner Dark Red Pill - SAME AS BEFORE */}
-            <div 
-              className="w-full h-[80%] flex items-center justify-center relative"
-              style={{
-                background: 'linear-gradient(to bottom, #8B0000 0%, #5C0000 50%, #8B0000 100%)',
-                borderRadius: '50px',
-                border: '2px solid #d4af37',
-                boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(212,175,55,0.4)'
-              }}
-            >
-              {/* Left Decorative Flare - GOLD */}
-              <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10">
-                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
-                </svg>
-              </div>
-              
-              {/* Right Decorative Flare - GOLD */}
-              <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10 rotate-180">
-                <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
-                  <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
-                </svg>
-              </div>
-
-              {/* Left Gem - SAME */}
-              <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
-
-              {/* Right Gem - SAME */}
-              <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
-
-              {/* Text - SAME GOLD */}
-              <span className="text-[#FFD700] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
-                Create Family
-              </span>
-            </div>
-
-            {/* SVG Gradient Definitions */}
-            <svg style={{ width: 0, height: 0, position: 'absolute' }}>
-              <defs>
-                <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ffdf00" />
-                  <stop offset="50%" stopColor="#d4af37" />
-                  <stop offset="100%" stopColor="#b8860b" />
-                </linearGradient>
-              </defs>
-            </svg>
+        {/* EXCHANGED: Now showing the IMG_20260901_161001.png button (previously in View 1 bottom bar) */}
+        <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
+          <button onClick={() => setCurrentView('main')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
+            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
           </button>
         </div>
 
@@ -674,6 +624,13 @@ export default function Family({ onBack }: FamilyProps) {
             1.5 1.5 1.5 0 -0.2
           " />
         </filter>
+        <defs>
+          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#ffdf00" />
+            <stop offset="50%" stopColor="#d4af37" />
+            <stop offset="100%" stopColor="#b8860b" />
+          </linearGradient>
+        </defs>
       </svg>
 
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
@@ -752,9 +709,58 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      <div className="fixed bottom-0 left-0 w-full h-[10vh] bg-[#3B0C06] flex items-center justify-center z-50 shadow-[0_-4px_25px_rgba(0,0,0,0.5)] border-t border-[#5C1A06]/50">
-        <button onClick={() => setCurrentView('create')} className="hover:scale-105 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
-          <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
+      {/* EXCHANGED: Now showing the "Create Family" button (previously in View 3) */}
+      <div className="fixed bottom-6 left-0 w-full flex justify-center px-6 z-40 pointer-events-none">
+        <button 
+          onClick={() => setCurrentView('create')}
+          className="w-[90%] max-w-md pointer-events-auto cursor-pointer relative flex justify-center items-center transition-transform active:scale-[0.98]"
+          style={{
+            backgroundColor: '#007BFF',
+            backgroundImage: 'linear-gradient(to bottom, #4DA3FF 0%, #007BFF 50%, #0056b3 100%)',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.3)',
+            border: '1px solid #66B2FF',
+            borderRadius: '8px',
+            height: '56px',
+            padding: '0 12px'
+          }}
+        >
+          {/* Main Inner Dark Red Pill */}
+          <div 
+            className="w-full h-[80%] flex items-center justify-center relative"
+            style={{
+              background: 'linear-gradient(to bottom, #8B0000 0%, #5C0000 50%, #8B0000 100%)',
+              borderRadius: '50px',
+              border: '2px solid #d4af37',
+              boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.8), inset 0 -2px 4px rgba(0,0,0,0.4), 0 0 10px rgba(212,175,55,0.4)'
+            }}
+          >
+            {/* Left Decorative Flare - GOLD */}
+            <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10">
+              <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
+                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
+                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
+              </svg>
+            </div>
+            
+            {/* Right Decorative Flare - GOLD */}
+            <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-[20px] h-[32px] flex items-center justify-center pointer-events-none z-10 rotate-180">
+              <svg viewBox="0 0 24 24" fill="none" className="w-full h-full drop-shadow-md">
+                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="#b8860b" />
+                <path d="M0 12 C 5 4, 10 4, 18 4 C 22 4, 24 8, 24 12 C 24 16, 22 20, 18 20 C 10 20, 5 20, 0 12 Z" fill="url(#goldGradient)" />
+              </svg>
+            </div>
+
+            {/* Left Gem */}
+            <div className="absolute left-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
+
+            {/* Right Gem */}
+            <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border border-[#00FFFF] bg-[#00CED1] shadow-[0_0_8px_#00FFFF] z-20"></div>
+
+            {/* Text - GOLD */}
+            <span className="text-[#FFD700] font-bold text-lg tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] relative z-30" style={{ fontFamily: 'serif' }}>
+              Create Family
+            </span>
+          </div>
         </button>
       </div>
     </div>
