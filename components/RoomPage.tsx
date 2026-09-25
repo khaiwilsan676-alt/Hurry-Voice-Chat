@@ -17,6 +17,7 @@ import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
+import { addDiamondsToDB, recordTransaction } from "./Wallet";
 
 import { JitsiMeeting } from "@jitsi/react-sdk";
 
@@ -158,6 +159,23 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const [jitsiApi, setJitsiApi] = useState<any>(null);
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
+
+  useEffect(() => {
+    const handleCoinTransferReceived = async (data: any = {}) => {
+      const recipients = Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : [];
+      const amount = Number(data.amount);
+      if (!recipients.includes(String(userAccountId)) || !Number.isFinite(amount) || amount <= 0) return;
+
+      await addDiamondsToDB(amount);
+      const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
+      await recordTransaction("Coins received" + giftLabel, amount, "diamond");
+    };
+
+    socket.on("coin_transfer_received", handleCoinTransferReceived);
+    return () => {
+      socket.off("coin_transfer_received", handleCoinTransferReceived);
+    };
+  }, [userAccountId]);
 
   return (
     <RoomVoiceJitsi
@@ -2453,6 +2471,8 @@ function RoomContent({
         <GiftPicker
           onClose={() => setShowGiftPicker(false)}
           seats={seats}
+          roomId={roomId}
+          currentUserAccountId={userAccountId}
           onSend={(count: number) => setCupCount((prev) => prev + count)}
         />
       )}
