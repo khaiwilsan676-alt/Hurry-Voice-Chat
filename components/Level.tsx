@@ -341,7 +341,7 @@ export default function Level({ onBack }: LevelProps) {
 
           {/* Help Button - Ekdam Strict Corner Right */}
           <button
-            className="absolute -right-1 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            className="absolute -right-5 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
