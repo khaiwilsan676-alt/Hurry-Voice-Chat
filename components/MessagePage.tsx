@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { socket } from '../src/lib/socket';
 import Image from 'next/image';
 
@@ -136,6 +136,10 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
 
   const [activeTab, setActiveTab] = useState<'messages' | 'friends'>('messages');
 
+  // Swipe gesture refs
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
   const getCurrentUserData = () => {
     const uid = typeof window !== 'undefined' ? localStorage.getItem('userUID') || localStorage.getItem('userPhone') || 'N/A' : 'N/A';
     const name = typeof window !== 'undefined' ? localStorage.getItem('userName') || 'Me' : 'Me';
@@ -144,6 +148,34 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
   };
 
   const currentUserUid = getCurrentUserData().uid;
+
+  // ============ Swipe Gesture (Left side slide → Friends) ============
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Sirf horizontal swipe detect karo (vertical scroll ignore)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+      // Left swipe (deltaX negative) → Friends
+      if (deltaX < 0 && activeTab === 'messages') {
+        setActiveTab('friends');
+      }
+      // Right swipe (deltaX positive) → Messages
+      else if (deltaX > 0 && activeTab === 'friends') {
+        setActiveTab('messages');
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -575,12 +607,25 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
     if (onChatOpen) onChatOpen(!!activeChat);
   }, [activeChat, onChatOpen]);
 
+  // ============ Friends view (swipe right se wapas messages) ============
   if (activeTab === 'friends') {
-    return <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />;
+    return (
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="w-full min-h-screen"
+      >
+        <FollowList onBack={() => setActiveTab('messages')} type='friends' activePage='message' onNavigate={onNavigate} />
+      </div>
+    );
   }
 
   return (
-    <div className="w-full min-h-screen bg-white relative overflow-hidden">
+    <div
+      className="w-full min-h-screen bg-white relative overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
 
       {/* ============ TOP SHEET — Blue band + Tabs (EK HI SHEET) ============ */}
       <div
@@ -724,4 +769,4 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
       )}
     </div>
   );
-                                      }
+}
