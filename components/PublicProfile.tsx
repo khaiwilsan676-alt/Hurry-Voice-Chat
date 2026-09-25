@@ -1438,7 +1438,7 @@ export default function PublicProfile({
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[50vh]">
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             {/* Fixed Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
               <button onClick={handleCloseEditSheet}>
@@ -1595,10 +1595,10 @@ export default function PublicProfile({
             </div>
 
             {/* Fixed Footer */}
-            <div className="px-5 py-4 bg-white border-t border-gray-100 shrink-0">
+            <div className="px-6 py-2 bg-white border-t border-gray-100 shrink-0">
               <button
                 onClick={handleSaveEdit}
-                className="w-full bg-blue-500 text-white py-2 rounded-full font-semibold hover:bg-blue-600 transition-colors"
+                className="w-full bg-blue-500 text-white py-3 rounded-full font-semibold hover:bg-blue-600 transition-colors"
               >
                 Save Changes
               </button>
