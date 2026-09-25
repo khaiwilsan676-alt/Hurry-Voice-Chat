@@ -667,59 +667,24 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
   const isSpecialUID = user.uid === 'HUSxSvQnabgU029dWYt1TUV04hd2' || user.uid === 'ADqW31RGBMaosOzy0HiqexKSD7h1'
 
   // ============================================================
-  // ✅ FOLLOW LIST with STICKY BACK BUTTON (TOP LEFT)
+  // ✅ FOLLOW LIST (back button ab FollowList/VisitorsPage ke andar se hi aayega)
   // ============================================================
   if (showFollowList) {
     if (followListType === 'visitors') {
       return (
-        <div className="relative">
-          <div
-            className="sticky top-0 z-50 flex items-center px-4 py-3 bg-white border-b border-gray-100"
-            style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 16px) + 8px)' }}
-          >
-            <button
-              onClick={() => setShowFollowList(false)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-              aria-label="Back"
-            >
-              <ArrowLeft size={24} className="text-gray-700" />
-            </button>
-            <h1 className="text-lg font-semibold text-gray-900 ml-3">
-              {t.visitors || 'Visitors'}
-            </h1>
-          </div>
-          <VisitorsPage onBack={() => setShowFollowList(false)} onNavigate={onNavigate} />
-        </div>
+        <VisitorsPage
+          onBack={() => setShowFollowList(false)}
+          onNavigate={onNavigate}
+        />
       )
     }
     return (
-      <div className="relative">
-        <div
-          className="sticky top-0 z-50 flex items-center px-4 py-3 bg-white border-b border-gray-100"
-          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 16px) + 8px)' }}
-        >
-          <button
-            onClick={() => setShowFollowList(false)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            aria-label="Back"
-          >
-            <ArrowLeft size={24} className="text-gray-700" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-900 ml-3">
-            {followListType === 'friends'
-              ? (t.friends || 'Friends')
-              : followListType === 'followers'
-                ? (t.followers || 'Followers')
-                : (t.following || 'Following')}
-          </h1>
-        </div>
-        <FollowList
-          activePage="me"
-          onNavigate={onNavigate}
-          onBack={() => setShowFollowList(false)}
-          type={followListType}
-        />
-      </div>
+      <FollowList
+        activePage="me"
+        onNavigate={onNavigate}
+        onBack={() => setShowFollowList(false)}
+        type={followListType}
+      />
     )
   }
 
