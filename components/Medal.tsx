@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Plus, Star, HelpCircle } from 'lucide-react'
 
 interface MedalProps {
   onBack?: () => void
@@ -615,8 +615,17 @@ export default function Medal({ onBack }: MedalProps) {
                 </div>
               </div>
 
-              {/* Card name (stars hata diye, black & white theme) */}
+              {/* Card name with stars before it (black & white theme) */}
               <div className="mt-auto w-full flex flex-col items-center pb-1 z-10">
+                <div className="flex items-center justify-center gap-[3px] mb-1">
+                  {Array.from({ length: medal.stars }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={11}
+                      className="text-gray-300 fill-gray-300"
+                    />
+                  ))}
+                </div>
                 <span className="text-[13px] font-medium text-gray-200 tracking-wide">
                   {medal.name}
                 </span>
@@ -688,81 +697,42 @@ export default function Medal({ onBack }: MedalProps) {
               className="w-72 h-72 object-contain pointer-events-none mt-14"
             />
 
-            {/* --- UPDATED TEXT SECTION (AS PER IMAGE 2) --- */}
-            <div className="flex flex-col items-center justify-center mt-2 relative z-10">
-              {/* Stars */}
-              <div className="flex items-center justify-center gap-1 text-[#facc15] text-[20px] drop-shadow-md">
-                {Array.from({ length: displayMedal.stars }).map((_, i) => (
-                  <span key={i}>★</span>
-                ))}
-              </div>
+            <h3 className="-mt-15 text-[22px] font-bold text-white tracking-wide drop-shadow-md relative z-10">
+              {displayMedal.name}
+            </h3>
 
-              {/* Name */}
-              <h3 className="mt-1 text-[20px] font-bold text-white tracking-wide text-center">
-                {displayMedal.name}
-              </h3>
+            {/* PER-VIDEO GIFT TEXT — displayMedal ke saath change hota hai */}
+            <p className="text-gray-500 text-[16px] mt-1 relative z-10">
+              {displayMedal.giftText}
+            </p>
 
-              {/* Subtitle (Reach Level 1 to obtain) */}
-              <p className="text-[#facc15] text-[15px] font-medium mt-1 text-center">
-                Reach Level 1 to obtain
-              </p>
-            </div>
-
-            {/* ================= NAYA SECTION: 1/1 Progress aur Medal Thumbnail ================= */}
-            <div className="w-full flex flex-col items-center mt-6 relative z-10">
-              
-              {/* 1. Progress Bar Line */}
-              <div className="w-full max-w-[340px] h-[6px] bg-[#3b2b5c] rounded-full mb-3 relative overflow-hidden">
-                <div className="absolute top-0 left-0 h-full w-full bg-[#8b5cf6] rounded-full"></div>
-              </div>
-
-              {/* 2. Progress Text (1/1) */}
-              <span className="text-white text-[15px] font-bold mb-6">
-                1/1
-              </span>
-
-              {/* 3. Niche wala Medal Box */}
-              <div className="flex items-center justify-center gap-4">
-                {/* Selected/Active Medal Box */}
-                <div className="w-[86px] h-[86px] rounded-xl border border-[#8b5cf6] bg-[#1a1230]/80 flex items-center justify-center p-1 relative shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                  <MedalVideo
-                    src={displayMedal.video}
-                    variant={displayMedal.variant ?? 'black'}
-                    autoPlay={false}
-                    isColorless={true}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-            {/* ================= NAYA SECTION END ================= */}
-
-            {/* --- Tier Tabs (1/2/3) --- */}
             {showTabs && (
-              <div className="flex items-center justify-center gap-3 mt-8 relative z-10">
+              <div className="flex items-center justify-center gap-3 mt-4 relative z-10">
                 {tierMedals.map((_, i) => (
                   <React.Fragment key={i}>
                     {i > 0 && (
                       <span className="text-white text-lg font-bold">&gt;</span>
                     )}
-                    <img
-                      src={TIER_TAB_IMAGES[i]}
-                      alt={`${i + 1}`}
-                      onClick={() => setActiveTier(i)}
-                      draggable={false}
-                      className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
-                        activeTier === i ? 'opacity-100' : 'opacity-50'
-                      }`}
-                    />
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={TIER_TAB_IMAGES[i]}
+                        alt={`${i + 1}`}
+                        onClick={() => setActiveTier(i)}
+                        draggable={false}
+                        className={`w-12 h-12 object-contain cursor-pointer transition-all duration-200 ${
+                          activeTier === i
+                            ? 'rounded-md border-2 border-[#facc15] shadow-[0_0_8px_rgba(250,204,21,0.35)]'
+                            : 'opacity-70'
+                        }`}
+                      />
+                      <span className="mt-1 text-[10px] text-gray-400 bg-black/30 rounded-md px-2 py-[2px]">
+                        Not Obtained
+                      </span>
+                    </div>
                   </React.Fragment>
                 ))}
               </div>
             )}
-
-            {/* --- Bottom Obtained Button --- */}
-            <button className="mt-8 w-full max-w-[300px] bg-gradient-to-b from-[#facc15] to-[#f59e0b] text-[#3e2723] font-bold text-[17px] py-3 rounded-full shadow-lg active:scale-95 transition-transform cursor-pointer border-none outline-none">
-              obtained
-            </button>
           </div>
 
           <style jsx global>{`
@@ -782,4 +752,4 @@ export default function Medal({ onBack }: MedalProps) {
       )}
     </div>
   )
-}
+      }
