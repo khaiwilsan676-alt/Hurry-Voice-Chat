@@ -326,10 +326,10 @@ export default function Level({ onBack }: LevelProps) {
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
         >
-          {/* Back Button - Top Left */}
+          {/* Back Button - Top Left (1vh space) */}
           <button
             onClick={onBack}
-            className="absolute left-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            className="absolute left-[1vh] p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
@@ -339,9 +339,9 @@ export default function Level({ onBack }: LevelProps) {
             Level
           </h1>
 
-          {/* ✅ Help Button - Top Right Corner (fixed) */}
+          {/* Help Button - Top Right (1vh space) */}
           <button
-            className="absolute right-2 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            className="absolute right-[1vh] p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
@@ -357,7 +357,7 @@ export default function Level({ onBack }: LevelProps) {
           />
 
           <div className="absolute inset-0 z-10 flex items-center px-8 gap-3.5">
-            {/* ✅ Avatar - border/ring REMOVED */}
+            {/* Avatar */}
             <div className="relative shrink-0">
               {userPhoto ? (
                 <img
@@ -382,7 +382,6 @@ export default function Level({ onBack }: LevelProps) {
             {/* Profile Info Details */}
             <div className="flex-1 flex flex-col justify-center min-w-0 pr-2">
               <div className="flex items-center gap-2 mt-1">
-                {/* ✅ Name - drop-shadow REMOVED */}
                 <span className="text-white font-serif font-black text-[17px] tracking-wide truncate">
                   {displayName}
                 </span>
@@ -555,19 +554,11 @@ export default function Level({ onBack }: LevelProps) {
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0 z-10">
-                    <div className="w-8 h-8 rounded-md bg-[#131f33] flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-blue-300"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <polyline points="21 15 16 10 5 21" />
-                      </svg>
-                    </div>
+                    <img
+                      src="/file_00000000ac708211bca5d461c021b0af.png"
+                      alt="Room Send"
+                      className="w-8 h-8 object-contain drop-shadow-md"
+                    />
                   </div>
                 </div>
 
