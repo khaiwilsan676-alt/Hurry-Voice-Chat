@@ -305,6 +305,9 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
       setDynamicChats((prev) => {
         const existing = prev.find((chat) => chat.chatId === chatId);
 
+        const otherUserNameFallback = isMe ? (data.receiverName || data.targetUserName) : (data.senderName || data.otherUserName);
+        const otherUserPhotoFallback = isMe ? (data.receiverPhoto || data.targetUserPhoto) : (data.senderPhoto || data.otherUserPhoto);
+
         const updatedChat: ChatPreview = existing
           ? {
               ...existing,
@@ -316,8 +319,8 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
               chatId,
               otherUser: {
                 uid: otherUid,
-                name: data.senderName || data.otherUserName || 'User',
-                photo: data.senderPhoto || data.otherUserPhoto || '/default-avatar.png',
+                name: otherUserNameFallback || 'User',
+                photo: otherUserPhotoFallback || '/default-avatar.png',
               },
               lastMessage,
               lastTimestamp: timestamp,

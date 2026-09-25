@@ -16,6 +16,7 @@ export default function UserReportScreen({
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [description, setDescription] = useState('');
   const [proofImage, setProofImage] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,8 +69,10 @@ export default function UserReportScreen({
       });
     }
 
-    alert("Report Submitted Successfully!");
-    if (onClose) onClose();
+    setIsSuccess(true);
+    setTimeout(() => {
+      if (onClose) onClose();
+    }, 2000);
   };
 
   return (
@@ -95,6 +98,16 @@ export default function UserReportScreen({
         </h1>
       </div>
 
+      {isSuccess ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center max-w-md w-full">
+            <div className="text-4xl mb-4">✅</div>
+            <h2 className="text-xl font-bold text-green-700 mb-2">Thank You!</h2>
+            <p className="text-green-600">Your report has been submitted successfully.</p>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* ----- Main Scrollable Content ----- */}
       <div className="flex-1 overflow-y-auto px-4 pb-6">
         
@@ -176,6 +189,8 @@ export default function UserReportScreen({
           Submit
         </button>
       </div>
+        </>
+      )}
 
     </div>
   );
