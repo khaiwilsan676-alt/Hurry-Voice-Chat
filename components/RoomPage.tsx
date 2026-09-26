@@ -1743,7 +1743,7 @@ function RoomContent({
                         <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                            <span className="text-white text-xs font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/40">Owner</span>
+                            <span className="text-white text-xs font-bold px-2 py-0.5 rounded-md bg-black/20 border border-black/20">Owner</span>
                           </div>
                           <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                         </div>
