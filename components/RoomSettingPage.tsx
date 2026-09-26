@@ -4,6 +4,45 @@ import React, { useState, useRef, useEffect } from 'react'
 import { socket } from '../src/lib/socket'
 import { apiUrl } from '../src/lib/api'
 
+const ROOM_SETTINGS_DB_NAME = "HurryRoomSettingsDB";
+const ROOM_SETTINGS_STORE = "roomSettings";
+
+const saveMicModeToIndexedDB = async (roomId: string, micMode: number) => {
+  if (!roomId || typeof indexedDB === "undefined") return;
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open(ROOM_SETTINGS_DB_NAME, 1);
+    request.onerror = () => reject(request.error);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(ROOM_SETTINGS_STORE)) {
+        db.createObjectStore(ROOM_SETTINGS_STORE, { keyPath: "roomId" });
+      }
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction(ROOM_SETTINGS_STORE, "readwrite");
+      const store = tx.objectStore(ROOM_SETTINGS_STORE);
+      const getRequest = store.get(String(roomId));
+      getRequest.onsuccess = () => {
+        store.put({
+          ...(getRequest.result || {}),
+          roomId: String(roomId),
+          micMode: Number(micMode),
+          updatedAt: Date.now(),
+        });
+      };
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      tx.onerror = () => {
+        db.close();
+        reject(tx.error);
+      };
+    };
+  });
+};
+
 export interface RoomSettingsData {
   roomDp: string;
   roomName: string;
@@ -279,6 +318,9 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         }
       }
 
+      // Mic Mode local cache: keep the latest room mode in IndexedDB.
+      await saveMicModeToIndexedDB(String(roomOwnerId || ""), Number(settingsData.micMode || 15));
+
       // ✅ 2. Socket broadcast
       socket.emit('room_settings_update', {
         roomId: roomOwnerId,
@@ -342,7 +384,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       {/* MAIN SETTINGS PAGE */}
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white">
+        <div className="flex items-center px-2 pt-[calc(env(safe-area-inset-top)+0.25rem)] pb-3 flex-shrink-0 bg-white">
           <button
             onClick={onBack}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
