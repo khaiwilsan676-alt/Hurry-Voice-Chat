@@ -483,9 +483,29 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         }
         return prev;
       });
-    }, 500);
+    }, 5000);
 
-    return () => clearInterval(syncLocalInterval);
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      const currentStoredName = localStorage.getItem("userName") || "";
+      const currentStoredPhoto = localStorage.getItem("userPhoto") || "";
+      setUser(prev => {
+        if (prev.name !== currentStoredName || prev.photo !== currentStoredPhoto) {
+          return {
+            ...prev,
+            name: isValidName(currentStoredName) ? currentStoredName : prev.name,
+            photo: currentStoredPhoto || prev.photo
+          };
+        }
+        return prev;
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      clearInterval(syncLocalInterval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
   const switchView = (view: 'me' | 'settings' | 'public_profile' | 'customer_service' | 'language') => {
