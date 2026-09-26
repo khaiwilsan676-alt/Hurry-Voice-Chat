@@ -40,8 +40,13 @@ public class MainActivity extends BridgeActivity {
 
         // Android WebView compatibility for media/storage features.
         if (bridge != null && bridge.getWebView() != null) {
-            bridge.getWebView().getSettings().setDomStorageEnabled(true);
-            bridge.getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+            android.webkit.WebSettings settings = bridge.getWebView().getSettings();
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+            settings.setMediaPlaybackRequiresUserGesture(false);
+            settings.setCacheMode(android.webkit.WebSettings.LOAD_DEFAULT);
+            settings.setBuiltInZoomControls(false);
+            settings.setDisplayZoomControls(false);
 
             View webView = bridge.getWebView();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
