@@ -858,9 +858,30 @@ io.on("connection", (socket) => {
     });
   });
 
-  const handleGameWinner = async (gameName, payload) => {
-    const { name, win, avatar, round } = payload;
+  const handleGameWinner = async (gameName, payload = {}) => {
+    const round = Number(payload.round || 0);
     if (!round) return;
+
+    const win = Number(payload.win || 0);
+    if (!Number.isFinite(win) || win <= 0) return;
+
+    const name = String(
+      payload.name ||
+      payload.userName ||
+      payload.displayName ||
+      payload.username ||
+      "User"
+    ).trim() || "User";
+
+    const avatar = String(
+      payload.avatar ||
+      payload.photo ||
+      payload.image ||
+      payload.photoUrl ||
+      payload.photoURL ||
+      payload.profilePhoto ||
+      "/default-avatar.png"
+    ).trim() || "/default-avatar.png";
 
     const currentData = memoryRoundWinners[gameName];
     if (currentData.round !== round) {
@@ -868,7 +889,15 @@ io.on("connection", (socket) => {
       currentData.winners = [];
     }
 
-    currentData.winners.push({ name, win, avatar });
+    const existing = currentData.winners.find(
+      (winner) => winner.name === name && winner.avatar === avatar
+    );
+    if (existing) {
+      existing.win = Math.max(Number(existing.win) || 0, win);
+    } else {
+      currentData.winners.push({ name, win, avatar });
+    }
+
     currentData.winners.sort((a, b) => b.win - a.win);
     currentData.winners = currentData.winners.slice(0, 3);
 
