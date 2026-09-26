@@ -46,8 +46,6 @@ jobs:
         with:
           packages: platform-tools platforms;android-35 build-tools;35.0.0
 
-
-
       - name: Sync Capacitor
         run: |
           npx cap sync android
@@ -113,7 +111,7 @@ jobs:
           }
           GRADLEEOF
 
-      - name: Build Optimized Release APK
+      - name: Build Release APK
         env:
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.parallel=true
         run: |
@@ -124,5 +122,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: hurry-optimized-release-apk
+          name: hurry-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
