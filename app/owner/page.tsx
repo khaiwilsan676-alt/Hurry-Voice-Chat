@@ -1282,7 +1282,7 @@ export default function StaffPanel() {
                 </div>
 
                 <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-extrabold text-xs tracking-wider animate-pulse border border-emerald-200">
+                  <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-extrabold text-xs tracking-wider  border border-emerald-200">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>PREDICTED WINNER</span>
                   </div>
@@ -1334,7 +1334,7 @@ export default function StaffPanel() {
                 </div>
 
                 <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-extrabold text-xs tracking-wider animate-pulse border border-emerald-200">
+                  <div className="flex items-center gap-1.5 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-extrabold text-xs tracking-wider  border border-emerald-200">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>PREDICTED WINNER</span>
                   </div>

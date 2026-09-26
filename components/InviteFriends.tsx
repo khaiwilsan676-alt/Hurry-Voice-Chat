@@ -340,7 +340,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <span className="text-[11px] font-medium text-gray-800">More</span>
           </button>
         </div>
-        {copied && <div className="text-center text-[11px] text-blue-600 font-medium pb-1 animate-pulse">✓ Link copied!</div>}
+        {copied && <div className="text-center text-[11px] text-blue-600 font-medium pb-1 ">✓ Link copied!</div>}
       </div>
     </div>
   )

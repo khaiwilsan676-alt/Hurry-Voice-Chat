@@ -1061,7 +1061,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
 
                 {gamePhase === 'spinning' && (
                   <>
-                    <span className="text-[#5c2e0b] font-black text-xs leading-tight tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] select-none animate-pulse">
+                    <span className="text-[#5c2e0b] font-black text-xs leading-tight tracking-wide drop-shadow-[0_1px_1px_rgba(255,255,255,0.7)] select-none ">
                       Spinning...
                     </span>
                     <span className="text-[#78350f] font-black text-2xl mt-0.5 tracking-wider drop-shadow-[0_1px_2px_rgba(255,255,255,0.8)]">
