@@ -576,9 +576,9 @@ export default function PublicProfile({
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false)
 
-  // Swipe states for image viewer
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  // ✅ Swipe states for image viewer (Improved)
+  const [touchStartX, setTouchStartX] = useState<number | null>(null)
+  const [touchEndX, setTouchEndX] = useState<number | null>(null)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -1129,7 +1129,7 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
-  // ✅ Full Image Viewer Handlers
+  // ✅ Full Image Viewer Handlers (Improved Swipe)
   const handleImageClick = (index: number) => {
     setFullImageIndex(index);
   };
@@ -1147,25 +1147,29 @@ export default function PublicProfile({
   };
 
   const handleTouchStartSwipe = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
   };
 
   const handleTouchMoveSwipe = (e: React.TouchEvent) => {
-    setTouchEnd(e.target.touches[0].clientX);
+    setTouchEndX(e.targetTouches[0].clientX);
   };
 
   const handleTouchEndSwipe = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
+    if (touchStartX === null || touchEndX === null) return;
+    const distance = touchStartX - touchEndX;
+    const minSwipeDistance = 50;
 
-    if (isLeftSwipe) {
+    if (distance > minSwipeDistance) {
+      // Swiped left -> Next image
       handleNextImage();
-    } else if (isRightSwipe) {
+    } else if (distance < -minSwipeDistance) {
+      // Swiped right -> Previous image
       handlePrevImage();
     }
+    // Reset values
+    setTouchStartX(null);
+    setTouchEndX(null);
   };
 
   return (
@@ -1430,7 +1434,7 @@ export default function PublicProfile({
       {/* ✅ Updated Full Image View Modal with Swipe, Back Button & Counter */}
       {fullImageIndex !== null && (
         <div 
-          className="fixed inset-0 z-[60] bg-black flex flex-col"
+          className="fixed inset-0 z-[60] bg-black flex flex-col touch-pan-y"
           onTouchStart={handleTouchStartSwipe}
           onTouchMove={handleTouchMoveSwipe}
           onTouchEnd={handleTouchEndSwipe}
@@ -1454,8 +1458,7 @@ export default function PublicProfile({
             <img
               src={albumImages[fullImageIndex]}
               alt=""
-              className="max-w-full max-h-[80vh] object-contain rounded-lg select-none"
-              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-[80vh] object-contain rounded-lg select-none pointer-events-none"
               draggable={false}
             />
           </div>
