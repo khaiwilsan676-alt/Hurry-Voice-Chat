@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowInsets;
+import android.webkit.WebView;
 
 import androidx.activity.OnBackPressedCallback;
 
@@ -48,7 +49,7 @@ public class MainActivity extends BridgeActivity {
             settings.setBuiltInZoomControls(false);
             settings.setDisplayZoomControls(false);
 
-            View webView = bridge.getWebView();
+            WebView webView = bridge.getWebView();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 webView.setOnApplyWindowInsetsListener((view, insets) -> {
                     android.graphics.Insets bars = insets.getInsets(
