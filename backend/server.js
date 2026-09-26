@@ -1122,6 +1122,7 @@ io.on("connection", (socket) => {
       senderId: sender,
       recipientIds: validRecipients,
       amount: value,
+      diamondAmount: Number.isFinite(value) && value > 0 ? Math.floor(value * 0.1) : 0,
       giftName: String(giftName || "Gift"),
       timestamp: Date.now(),
     });
