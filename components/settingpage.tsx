@@ -167,12 +167,12 @@ export default function SettingPage({
   return (
     <div className="w-full min-h-screen bg-white">
       <div
-        className="flex items-center justify-between px-4 py-3 bg-white"
+        className="flex items-center justify-between px-3 py-3 bg-white"
         style={{
           paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)'
         }}
       >
-        <button onClick={onBack} className="p-1 hover:bg-slate-100 rounded-full transition-colors">
+        <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
           <ChevronLeft size={24} className="text-slate-900" />
         </button>
         <h1 className="text-lg font-semibold text-slate-900">{t.settings}</h1>
