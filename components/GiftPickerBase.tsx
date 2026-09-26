@@ -364,6 +364,28 @@ export default function GiftPicker({
 
     return (
       <>
+        <style>{`
+          video::-webkit-media-controls,
+          video::-webkit-media-controls-enclosure,
+          video::-webkit-media-controls-panel,
+          video::-webkit-media-controls-overlay-play-button,
+          video::-webkit-media-controls-start-playback-button,
+          video::-webkit-media-controls-play-button,
+          video::-webkit-media-controls-timeline,
+          video::-webkit-media-controls-current-time-display,
+          video::-webkit-media-controls-time-remaining-display,
+          video::-webkit-media-controls-mute-button,
+          video::-webkit-media-controls-volume-slider,
+          video::-webkit-media-controls-fullscreen-button,
+          video::-webkit-media-controls-picture-in-picture-button,
+          video::-webkit-media-controls-toggle-closed-captions-button {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+          }
+          video { -webkit-appearance: none !important; }
+        `}</style>
         {!isFade && (
           <svg style={{ width: 0, height: 0, position: "absolute" }} aria-hidden="true">
             <filter id="remove-black" colorInterpolationFilters="sRGB">
