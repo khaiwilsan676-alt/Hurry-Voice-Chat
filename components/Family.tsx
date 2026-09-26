@@ -54,7 +54,6 @@ const VideoRewardItem = ({
       <video 
         src={videoSrc} 
         preload="auto"
-        muted 
         playsInline 
         controls={false}
         disablePictureInPicture
@@ -84,7 +83,6 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
       <video 
         src={videoSrc} 
         preload="auto"
-        muted 
         playsInline 
         controls={false}
         disablePictureInPicture
@@ -442,7 +440,6 @@ export default function Family({ onBack }: FamilyProps) {
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
-                  muted
                   loop 
                   playsInline 
                   controls={false}
@@ -460,7 +457,6 @@ export default function Family({ onBack }: FamilyProps) {
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
-                  muted
                   loop 
                   playsInline 
                   controls={false}
@@ -481,8 +477,7 @@ export default function Family({ onBack }: FamilyProps) {
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
-                  loop 
-                  muted 
+                  loop
                   playsInline 
                   controls={false}
                   disablePictureInPicture
