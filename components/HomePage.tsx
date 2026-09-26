@@ -1342,8 +1342,17 @@ export default function HomePage({ onLogout }: HomePageProps) {
       }
     };
 
-    loadRooms();
-    const interval = setInterval(loadRooms, 12000);
+    let requestGeneration = 0;
+    const loadRoomsSafe = async () => {
+      const generation = ++requestGeneration;
+      await loadRooms();
+      // loadRooms is guarded by isMounted; generation prevents an older
+      // in-flight refresh from being treated as the latest refresh.
+      return generation;
+    };
+
+    void loadRoomsSafe();
+    const interval = setInterval(() => { void loadRoomsSafe(); }, 12000);
 
     const fetchRoomsWithTimeout = async () => {
       try {
