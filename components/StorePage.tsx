@@ -674,9 +674,14 @@ export default function StorePage({
       if (wasEquipped) {
         localStorage.removeItem("equipped_Vehicle");
       } else {
-        const vehicleAsset = item.tryVideo || item.image;
-        if (vehicleAsset) {
+        const vehicleAsset = String(item.tryVideo || "").trim();
+        // Only an actual MP4 can be equipped as an entry vehicle.
+        if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
           localStorage.setItem("equipped_Vehicle", vehicleAsset);
+        } else {
+          localStorage.removeItem("equipped_Vehicle");
+          console.warn("Vehicle equip skipped: missing playable MP4", item.id);
+          return;
         }
       }
       window.dispatchEvent(new Event("hurry-vehicle-equipped"));
