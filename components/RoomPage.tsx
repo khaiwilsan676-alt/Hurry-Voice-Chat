@@ -1741,7 +1741,10 @@ function RoomContent({
                           <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                         </div>
                         <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
-                          <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                            <span className="text-white text-xs font-bold px-2 py-0.5 rounded-full bg-white/20 border border-white/40">Owner</span>
+                          </div>
                           <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                         </div>
                       </div>
