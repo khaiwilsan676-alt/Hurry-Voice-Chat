@@ -157,6 +157,13 @@ const allStoreItems: StoreItem[] = [
   { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
   { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
 
+  // Daily Check-In rewards (automatically added to Bag when claimed)
+  { id: "daily_d3_frame", name: "Daily Check-In Frame ×2 Days", image: "/file_00000000d808821186c1b7b612eea3fc.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "2D" },
+  { id: "daily_d5_frame", name: "Daily Check-In Frame ×1 Day", image: "/IMG_20260903_141944.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "1D" },
+  { id: "daily_d6_theme", name: "Daily Check-In Theme ×2 Days", image: "/IMG-20260903-WA0076.jpg", tab: "Theme", stars: 5, price: "FREE", duration: "2D" },
+  { id: "daily_d7_frame", name: "Daily Check-In Frame ×3 Days", image: "/file_0000000044388211996656afc9ce9c03.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "3D" },
+  { id: "daily_d7_theme", name: "Daily Check-In Theme ×3 Days", image: "/IMG-20260903-WA0077.jpg", tab: "Theme", stars: 5, price: "FREE", duration: "3D" },
+
   // Theme
   { id: "t1", name: "Seafood", image: "/IMG-20260904-WA0004.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t2", name: "Night Sky", image: "/IMG-20260904-WA0005.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
