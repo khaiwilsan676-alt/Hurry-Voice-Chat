@@ -241,3 +241,4 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
       />
     </div>
   );
+}
