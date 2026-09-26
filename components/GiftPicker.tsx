@@ -153,12 +153,12 @@ export default function GiftPicker(props: any) {
         Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []
       );
 
-      // The existing room-wide seat event carries the real PNG to each occupied target.
+      // Play the fly immediately on this device; the backend separately relays it to other room users.
       for (const seat of Array.isArray(props.seats) ? props.seats : []) {
         const targetId = String(seat?.user?.accountId || "");
         if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId)) continue;
 
-        originalEmit("room_seat_action", {
+        const luckyEvent = {
           roomId: String(data.roomId || ""),
           userId: String(data.senderId || ""),
           action: "lucky_image",
@@ -173,7 +173,9 @@ export default function GiftPicker(props: any) {
             image,
             accountId: targetId,
           },
-        });
+        };
+        originalEmit("room_seat_action", luckyEvent);
+        playLuckyGiftFly(luckyEvent);
       }
 
       return socket;
