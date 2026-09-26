@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 interface EntryEffectProps {
   vehicleUrl: string;
@@ -8,443 +8,269 @@ interface EntryEffectProps {
   onComplete?: () => void;
 }
 
-const VIDEO_CACHE_DB = 'HurryVideoCacheDB';
-const VIDEO_CACHE_STORE = 'videos';
-const VIDEO_CACHE_VERSION = 1;
+const CACHE_DB = "HurryVideoCacheDB";
+const CACHE_STORE = "videos";
+const CACHE_VERSION = 2;
 
-function openVideoCacheDB(): Promise<IDBDatabase> {
+function openCache(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    if (typeof indexedDB === 'undefined') {
-      reject(new Error('IndexedDB unavailable'));
+    if (typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB unavailable"));
       return;
     }
-
-    const request = indexedDB.open(VIDEO_CACHE_DB, VIDEO_CACHE_VERSION);
-
-    request.onerror = () => reject(request.error || new Error('IndexedDB open failed'));
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(VIDEO_CACHE_STORE)) {
-        db.createObjectStore(VIDEO_CACHE_STORE, { keyPath: 'url' });
+    const req = indexedDB.open(CACHE_DB, CACHE_VERSION);
+    req.onerror = () => reject(req.error || new Error("IndexedDB open failed"));
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(CACHE_STORE)) {
+        db.createObjectStore(CACHE_STORE, { keyPath: "url" });
       }
     };
-
-    request.onsuccess = () => resolve(request.result);
+    req.onsuccess = () => resolve(req.result);
   });
 }
 
-async function getCachedVideo(url: string): Promise<Blob | null> {
+async function getCached(url: string): Promise<Blob | null> {
   try {
-    const db = await openVideoCacheDB();
-
-    const result = await new Promise<{ url: string; blob: Blob } | null>((resolve, reject) => {
-      const tx = db.transaction(VIDEO_CACHE_STORE, 'readonly');
-      const request = tx.objectStore(VIDEO_CACHE_STORE).get(url);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
+    const db = await openCache();
+    const value = await new Promise<any>((resolve, reject) => {
+      const tx = db.transaction(CACHE_STORE, "readonly");
+      const req = tx.objectStore(CACHE_STORE).get(url);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
     });
-
     db.close();
-    return result?.blob || null;
+    return value?.blob instanceof Blob ? value.blob : null;
   } catch {
     return null;
   }
 }
 
-async function saveVideoToCache(url: string, blob: Blob): Promise<void> {
+async function putCached(url: string, blob: Blob) {
   try {
-    const db = await openVideoCacheDB();
-
+    const db = await openCache();
     await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(VIDEO_CACHE_STORE, 'readwrite');
-      tx.objectStore(VIDEO_CACHE_STORE).put({
-        url,
-        blob,
-        savedAt: Date.now(),
-      });
+      const tx = db.transaction(CACHE_STORE, "readwrite");
+      tx.objectStore(CACHE_STORE).put({ url, blob, savedAt: Date.now() });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error || new Error('IndexedDB transaction aborted'));
+      tx.onabort = () => reject(tx.error || new Error("Cache transaction aborted"));
     });
-
     db.close();
-  } catch (error) {
-    // Playback must still work if IndexedDB is unavailable/full.
-    console.warn('Hurry video cache save failed:', error);
+  } catch (e) {
+    console.warn("Hurry vehicle cache write failed:", e);
   }
 }
 
-async function getOrDownloadVideo(url: string): Promise<{ src: string; objectUrl: string | null }> {
-  const cached = await getCachedVideo(url);
-
+async function loadVideo(url: string): Promise<{ src: string; objectUrl: string | null }> {
+  const cached = await getCached(url);
   if (cached) {
-    const objectUrl = URL.createObjectURL(cached);
-    return { src: objectUrl, objectUrl };
+    const objectUrl = URL.createObjectURL(cached);\n    return { src: objectUrl, objectUrl };
   }
 
-  const response = await fetch(url, {
-    cache: 'force-cache',
-  });
-
-  if (!response.ok) {
-    throw new Error(`Video download failed: ${response.status}`);
-  }
-
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Vehicle video HTTP ${response.status}`);
   const blob = await response.blob();
+  if (!blob.size) throw new Error("Vehicle video is empty");
 
-  // Save the first successful download permanently in IndexedDB.
-  await saveVideoToCache(url, blob);
-
+  await putCached(url, blob);
   const objectUrl = URL.createObjectURL(blob);
   return { src: objectUrl, objectUrl };
 }
 
+function isMp4(url: string) {
+  return /\.mp4(?:[?#].*)?$/i.test(url);
+}
+
 export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryEffectProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [src, setSrc] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
+  const [useVideoFallback, setUseVideoFallback] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
-  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+  const completedRef = useRef(false);
+
+  const complete = () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setVisible(false);
+    onComplete?.();
+  };
 
   useEffect(() => {
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout> | null = null;
+    completedRef.current = false;
+    setVisible(false);
 
-    const startEffect = async () => {
-      // MP4: download/cache first. Nothing is rendered while it is loading.
-      if (vehicleUrl.toLowerCase().split('?')[0].endsWith('.mp4')) {
-        try {
-          const result = await getOrDownloadVideo(vehicleUrl);
-          if (cancelled) {
-            if (result.objectUrl) URL.revokeObjectURL(result.objectUrl);
-            return;
-          }
+    const run = async () => {
+      if (!vehicleUrl) {
+        complete();
+        return;
+      }
 
-          objectUrlRef.current = result.objectUrl;
-          setVideoSrc(result.src);
-        } catch (error) {
-          console.error('EntryEffect video load failed:', error);
-          if (!cancelled) onComplete?.();
+      if (!isMp4(vehicleUrl)) {
+        if (!cancelled) setSrc(vehicleUrl);
+        if (!cancelled) {
+          setVisible(true);
+          window.setTimeout(() => !cancelled && complete(), 4000);
         }
         return;
       }
 
-      // Image effects do not need video caching.
-      setIsVisible(true);
-      timer = setTimeout(() => {
-        if (!cancelled) {
-          setIsVisible(false);
-          onComplete?.();
+      try {
+        const result = await loadVideo(vehicleUrl);
+        if (cancelled) {
+          if (result.objectUrl) URL.revokeObjectURL(result.objectUrl);
+          return;
         }
-      }, 4000);
+        objectUrlRef.current = result.objectUrl;
+        setSrc(result.src);
+      } catch (e) {
+        console.error("Vehicle entry video load failed:", e);
+        if (!cancelled) complete();
+      }
     };
 
-    startEffect();
+    void run();
 
     return () => {
       cancelled = true;
-      if (timer) clearTimeout(timer);
-
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
     };
-  }, [vehicleUrl, onComplete]);
+  }, [vehicleUrl]);
 
-  // For cached/downloaded MP4, do not show the effect until the video can actually play.
   useEffect(() => {
-    if (!videoSrc) return;
+    if (!src || !isMp4(vehicleUrl)) return;
 
-    const video = document.createElement('video');
-    video.src = videoSrc;
-    video.preload = 'auto';
-    video.loop = true;
-    video.muted = true;
-    video.defaultMuted = true;
-    video.autoplay = true;
-    video.controls = false;
-    video.playsInline = true;
-    video.setAttribute('playsinline', '');
-    video.setAttribute('webkit-playsinline', '');
-    video.setAttribute('autoplay', '');
-    video.setAttribute('muted', '');
-    video.setAttribute('controls', 'false');
-    video.style.position = 'fixed';
-    video.style.width = '1px';
-    video.style.height = '1px';
-    video.style.left = '-2px';
-    video.style.top = '-2px';
-    video.style.opacity = '0';
-    video.style.pointerEvents = 'none';
-    video.style.zIndex = '-1';
-    document.body.appendChild(video);
-    videoElementRef.current = video;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
 
     let cancelled = false;
-    let playbackStarted = false;
-    let completeTimer: ReturnType<typeof setTimeout> | null = null;
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let raf = 0;
+    let started = false;
+    let finishTimer: number | undefined;
 
-    const beginPlayback = async () => {
-      if (cancelled || playbackStarted) return;
-
-      try {
-        video.controls = false;
-        video.muted = true;
-        video.defaultMuted = true;
-        await video.play();
-        if (cancelled) return;
-
-        playbackStarted = true;
-        setIsVisible(true);
-
-        completeTimer = setTimeout(() => {
-          if (!cancelled) {
-            setIsVisible(false);
-            onComplete?.();
-          }
-        }, 4000);
-      } catch (error) {
-        if (cancelled) return;
-        retryTimer = setTimeout(() => {
-          if (!cancelled) void beginPlayback();
-        }, 120);
-      }
-    };
-
-    const handleReady = () => {
-      void beginPlayback();
-    };
-
-    const handlePlaying = () => {
-      if (cancelled || playbackStarted) return;
-      playbackStarted = true;
-      setIsVisible(true);
-      completeTimer = setTimeout(() => {
-        if (!cancelled) {
-          setIsVisible(false);
-          onComplete?.();
-        }
-      }, 4000);
-    };
-
-    const handleUnexpectedPause = () => {
-      if (cancelled || !videoSrc) return;
-      // Never expose the native Android paused-video surface. Resume silently.
-      if (!video.ended) {
-        video.muted = true;
-        void video.play().catch(() => {});
-      }
-    };
-
-    video.addEventListener('canplay', handleReady);
-    video.addEventListener('loadeddata', handleReady);
-    video.addEventListener('playing', handlePlaying);
-    video.addEventListener('pause', handleUnexpectedPause);
-
-    if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
-      void beginPlayback();
-    } else {
-      video.load();
-    }
-
-    return () => {
-      cancelled = true;
-      if (retryTimer) clearTimeout(retryTimer);
-      if (completeTimer) clearTimeout(completeTimer);
-      video.removeEventListener('canplay', handleReady);
-      video.removeEventListener('loadeddata', handleReady);
-      video.removeEventListener('playing', handlePlaying);
-      video.removeEventListener('pause', handleUnexpectedPause);
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-      if (video.parentNode) video.parentNode.removeChild(video);
-      videoElementRef.current = null;
-    };
-  }, [videoSrc, onComplete]);
-
-  // WebGL video renderer with green-screen removal.
-  useEffect(() => {
-    if (!videoSrc) return;
-
-    const canvas = canvasRef.current;
-    const video = videoElementRef.current;
-    if (!canvas || !video) return;
-
-    const gl = canvas.getContext('webgl', {
-      preserveDrawingBuffer: true,
-      alpha: true,
-    });
-
-    if (!gl) return;
-
-    const vsSource = `
-      attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      varying vec2 v_texCoord;
-      void main() {
-        gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
-      }
-    `;
-
-    const fsSource = `
-      precision mediump float;
-      varying vec2 v_texCoord;
-      uniform sampler2D u_image;
-
-      void main() {
-        vec4 color = texture2D(u_image, v_texCoord);
-
-        if (color.g > 0.5 && color.r < 0.3 && color.b < 0.3) {
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-        } else {
-          gl_FragColor = color;
-        }
-      }
-    `;
-
-    const createShader = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-
-      return shader;
-    };
-
-    const vertexShader = createShader(gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = createShader(gl.FRAGMENT_SHADER, fsSource);
-    if (!vertexShader || !fragmentShader) return;
-
-    const program = gl.createProgram();
-    if (!program) return;
-
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error(gl.getProgramInfoLog(program));
+    const ctx = canvas.getContext("2d", { alpha: true });
+    if (!ctx) {
+      setUseVideoFallback(true);
       return;
     }
 
-    gl.useProgram(program);
+    const start = async () => {
+      if (cancelled || started) return;
+      try {
+        video.muted = true;
+        video.defaultMuted = true;
+        video.playsInline = true;
+        await video.play();
+        if (cancelled) return;
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        -1.0, -1.0,
-         1.0, -1.0,
-        -1.0,  1.0,
-        -1.0,  1.0,
-         1.0, -1.0,
-         1.0,  1.0,
-      ]),
-      gl.STATIC_DRAW
-    );
+        started = true;
+        setVisible(true);
 
-    const positionLocation = gl.getAttribLocation(program, 'a_position');
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+        const render = () => {
+          if (cancelled) return;
+          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            const w = video.videoWidth || 512;
+            const h = video.videoHeight || 512;
+            if (canvas.width !== w || canvas.height !== h) {
+              canvas.width = w;
+              canvas.height = h;
+            }
 
-    const texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([
-        0.0, 0.0,
-        1.0, 0.0,
-        0.0, 1.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0,
-      ]),
-      gl.STATIC_DRAW
-    );
+            try {
+              ctx.clearRect(0, 0, w, h);
+              ctx.drawImage(video, 0, 0, w, h);
 
-    const texCoordLocation = gl.getAttribLocation(program, 'a_texCoord');
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+              // Remove only strongly green pixels. Normal vehicle colours are preserved.
+              const frame = ctx.getImageData(0, 0, w, h);
+              const px = frame.data;
+              for (let i = 0; i < px.length; i += 4) {
+                const red = px[i];
+                const green = px[i + 1];
+                const blue = px[i + 2];
+                if (green > 125 && green > red * 1.28 && green > blue * 1.28) {
+                  px[i + 3] = 0;
+                }
+              }
+              ctx.putImageData(frame, 0, 0);
+            } catch {
+              setUseVideoFallback(true);
+            }
+          }
+          raf = requestAnimationFrame(render);
+        };
 
-    const texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-    let animationFrameId = 0;
-
-    const render = () => {
-      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        try {
-          gl.texImage2D(
-            gl.TEXTURE_2D,
-            0,
-            gl.RGBA,
-            gl.RGBA,
-            gl.UNSIGNED_BYTE,
-            video
-          );
-
-          gl.clearColor(0, 0, 0, 0);
-          gl.clear(gl.COLOR_BUFFER_BIT);
-          gl.drawArrays(gl.TRIANGLES, 0, 6);
-        } catch {
-          // Wait for the next frame if Android WebView is still preparing the video.
-        }
+        render();
+        finishTimer = window.setTimeout(() => !cancelled && complete(), 4000);
+      } catch {
+        if (!cancelled) setUseVideoFallback(true);
       }
-
-      animationFrameId = requestAnimationFrame(render);
     };
 
-    render();
+    const onReady = () => void start();
+    const onPlaying = () => void start();
+    const onPause = () => {
+      if (!cancelled && !video.ended && started) {
+        void video.play().catch(() => setUseVideoFallback(true));
+      }
+    };
+
+    video.addEventListener("canplay", onReady);
+    video.addEventListener("loadeddata", onReady);
+    video.addEventListener("playing", onPlaying);
+    video.addEventListener("pause", onPause);
+    video.load();
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) void start();
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
-
-      if (texture) gl.deleteTexture(texture);
-      if (positionBuffer) gl.deleteBuffer(positionBuffer);
-      if (texCoordBuffer) gl.deleteBuffer(texCoordBuffer);
-      gl.deleteProgram(program);
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      if (finishTimer) window.clearTimeout(finishTimer);
+      video.removeEventListener("canplay", onReady);
+      video.removeEventListener("loadeddata", onReady);
+      video.removeEventListener("playing", onPlaying);
+      video.removeEventListener("pause", onPause);
+      video.pause();
     };
-  }, [videoSrc]);
+  }, [src, vehicleUrl]);
 
-  if (!isVisible && !videoSrc) return null;
+  if (!visible && !src) return null;
 
   return (
     <div
       className="absolute top-1/4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none w-full max-w-[300px] flex flex-col items-center justify-center animate-bounce-in"
-      style={{ opacity: isVisible ? 1 : 0, visibility: isVisible ? 'visible' : 'hidden' }}
+      style={{ opacity: visible ? 1 : 0, visibility: visible ? "visible" : "hidden" }}
     >
-      {videoSrc ? (
-        <canvas
-          ref={canvasRef}
-          width={512}
-          height={512}
-          className="w-[120px] h-[120px] object-contain drop-shadow-2xl"
-        />
+      {isMp4(vehicleUrl) ? (
+        <>
+          <video
+            ref={videoRef}
+            src={src || undefined}
+            muted
+            autoPlay
+            playsInline
+            preload="auto"
+            loop
+            className={`w-[120px] h-[120px] object-contain ${useVideoFallback ? "block" : "hidden"}`}
+            aria-hidden="true"
+          />
+          <canvas
+            ref={canvasRef}
+            width={512}
+            height={512}
+            className={`w-[120px] h-[120px] object-contain ${useVideoFallback ? "hidden" : "block"}`}
+          />
+        </>
       ) : (
         <img
-          src={vehicleUrl}
+          src={src || vehicleUrl}
           alt="Vehicle Entry"
-          className="w-[120px] h-[120px] object-contain drop-shadow-2xl"
+          className="w-[120px] h-[120px] object-contain"
+          draggable={false}
         />
       )}
 
