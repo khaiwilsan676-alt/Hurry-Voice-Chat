@@ -54,7 +54,11 @@ public class MainActivity extends BridgeActivity {
                     android.graphics.Insets bars = insets.getInsets(
                         WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()
                     );
-                    view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+                    view.setPadding(bars.left, 0, bars.right, bars.bottom);
+                    view.post(() -> view.evaluateJavascript(
+                        "document.documentElement.style.setProperty('--status-bar-height','" + bars.top + "px')",
+                        null
+                    ));
                     return insets;
                 });
                 webView.requestApplyInsets();
