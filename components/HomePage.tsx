@@ -797,6 +797,12 @@ const LiveRoomStats = () => {
 };
 
 // ============ MAIN COMPONENT ============
+const getDailyDateKey = () => {
+  const now = new Date()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return now.getFullYear() + '-' + month + '-' + day
+}
 export default function HomePage({ onLogout }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('popular')
   const [appLang, setAppLang] = useState<LanguageCode>('en')
@@ -871,7 +877,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
     const dayKey = `signInDay_${userUID}`
     const claimKey = `signInClaimDate_${userUID}`
     const savedDay = Number(localStorage.getItem(dayKey) || '1')
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getDailyDateKey()
     setCurrentSignInDay(savedDay >= 1 && savedDay <= 7 ? savedDay : 1)
     setClaimedToday(localStorage.getItem(claimKey) === today)
   }, [userUID])
@@ -2504,7 +2510,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       })
       db.close()
 
-      const today = new Date().toISOString().slice(0, 10)
+      const today = getDailyDateKey()
       const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
       localStorage.setItem(`signInDay_${userUID}`, String(nextDay))
       localStorage.setItem(`signInClaimDate_${userUID}`, today)
