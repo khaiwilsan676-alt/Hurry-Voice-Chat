@@ -16,6 +16,7 @@ interface StoreItem {
   price: string;
   duration: string;
   isOwned?: boolean;
+  dailyReward?: boolean;
 }
 
 // ==========================================
@@ -153,13 +154,13 @@ const allStoreItems: StoreItem[] = [
   },
 
   // Avatar Frame
-  { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D" },
-  { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
-  { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
+  { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D", dailyReward: true },
+  { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D", dailyReward: true },
+  { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D", dailyReward: true },
 
   // Daily Check-In rewards (automatically added to Bag when claimed)
-  { id: "daily_d3_frame", name: "Daily Check-In Frame ×2 Days", image: "/file_00000000d808821186c1b7b612eea3fc.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "2D" },
-  { id: "daily_d5_frame", name: "Daily Check-In Frame ×1 Day", image: "/IMG_20260903_141944.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "1D" },
+  { id: "daily_d3_frame", name: "Daily Check-In Frame ×2 Days", image: "/file_00000000d808821186c1b7b612eea3fc.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "2D", dailyReward: true },
+  { id: "daily_d5_frame", name: "Daily Check-In Frame ×1 Day", image: "/IMG_20260903_141944.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "1D", dailyReward: true },
   { id: "daily_d6_theme", name: "Daily Check-In Theme ×2 Days", image: "/IMG-20260903-WA0076.jpg", tab: "Theme", stars: 5, price: "FREE", duration: "2D" },
   { id: "daily_d7_frame", name: "Daily Check-In Frame ×3 Days", image: "/file_0000000044388211996656afc9ce9c03.png", tab: "Avatar Frame", stars: 5, price: "FREE", duration: "3D" },
   { id: "daily_d7_theme", name: "Daily Check-In Theme ×3 Days", image: "/IMG-20260903-WA0077.jpg", tab: "Theme", stars: 5, price: "FREE", duration: "3D" },
@@ -722,7 +723,7 @@ export default function StorePage({
     if (currentView === "bag") {
       return isOwned && item.tab === activeTab;
     }
-    return item.tab === activeTab;
+    return !item.dailyReward && item.tab === activeTab;
   });
 
   const renderStars = (count: number) => {
