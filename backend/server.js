@@ -377,6 +377,28 @@ function getGlobalRoomPresence() {
 // ==================== USERS API ====================
 
 
+app.get("/api/rooms/image", async (req, res) => {
+  try {
+    if (!db) return res.status(503).end();
+    const roomId = String(req.query.roomId || '').trim();
+    if (!roomId) return res.status(400).end();
+    const room = await db.collection("rooms").findOne({
+      $or: [{ accountId: roomId }, { id: roomId }, { roomId: roomId }]
+    });
+    if (!room) return res.status(404).end();
+    const value = String(room.dp || room.image || room.roomDp || room["Room dp"] || '').trim();
+    if (!value.startsWith('data:image/')) return res.redirect(value || '/default-avatar.png');
+    const match = value.match(/^data:(image\\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+    if (!match) return res.status(415).end();
+    res.setHeader('Content-Type', match[1]);
+    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    return res.send(Buffer.from(match[2], 'base64'));
+  } catch (error) {
+    console.error("GET /api/rooms/image error:", error);
+    return res.status(500).end();
+  }
+});
+
 app.get("/api/rooms", async (req, res) => {
   try {
     if (!db) {
@@ -396,7 +418,15 @@ app.get("/api/rooms", async (req, res) => {
       if (!room) {
         return res.status(404).json({ error: "Room not found" });
       }
-      return res.json({ room });
+      const safeRoom = { ...room };
+      const roomImage = String(safeRoom.dp || safeRoom.image || safeRoom.roomDp || safeRoom["Room dp"] || '').trim();
+      if (roomImage.startsWith('data:image/')) {
+        const base = `${req.protocol}://${req.get('host')}`;
+        const id = encodeURIComponent(String(safeRoom.accountId || safeRoom.id || roomId));
+        safeRoom.dp = `${base}/api/rooms/image?roomId=${id}`;
+        safeRoom.image = safeRoom.dp;
+      }
+      return res.json({ room: safeRoom });
     }
 
     const rooms = await db.collection("rooms")
@@ -405,7 +435,19 @@ app.get("/api/rooms", async (req, res) => {
       .limit(100)
       .toArray();
 
-    return res.json({ rooms });
+    const base = `${req.protocol}://${req.get('host')}`;
+    const safeRooms = rooms.map((room) => {
+      const safeRoom = { ...room };
+      const roomImage = String(safeRoom.dp || safeRoom.image || safeRoom.roomDp || safeRoom["Room dp"] || '').trim();
+      if (roomImage.startsWith('data:image/')) {
+        const id = encodeURIComponent(String(safeRoom.accountId || safeRoom.id || safeRoom.roomId || ''));
+        safeRoom.dp = `${base}/api/rooms/image?roomId=${id}`;
+        safeRoom.image = safeRoom.dp;
+      }
+      return safeRoom;
+    });
+
+    return res.json({ rooms: safeRooms });
   } catch (error) {
     console.error("GET /api/rooms error:", error);
     return res.status(500).json({ error: "Failed to fetch rooms" });
