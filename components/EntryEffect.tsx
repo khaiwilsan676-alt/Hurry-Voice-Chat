@@ -65,7 +65,8 @@ async function putCached(url: string, blob: Blob) {
 async function loadVideo(url: string): Promise<{ src: string; objectUrl: string | null }> {
   const cached = await getCached(url);
   if (cached) {
-    const objectUrl = URL.createObjectURL(cached);\n    return { src: objectUrl, objectUrl };
+    const objectUrl = URL.createObjectURL(cached);
+return { src: objectUrl, objectUrl };
   }
 
   const response = await fetch(url, { cache: "no-store" });
