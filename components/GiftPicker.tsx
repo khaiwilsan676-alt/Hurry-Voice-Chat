@@ -133,6 +133,24 @@ export default function GiftPicker(props: any) {
   };
 
   useEffect(() => {
+    const handleLuckySeatAction = (data: any = {}) => {
+      if (String(data.roomId || "") !== String(props.roomId || "")) return;
+      if (data.action !== "lucky_image" || !data.src) return;
+
+      startLuckyFly({
+        image: String(data.src),
+        recipientIds: [String(data.user?.accountId || "")],
+        giftName: "Lucky",
+      });
+    };
+
+    socket.on("room_seat_action", handleLuckySeatAction);
+    return () => {
+      socket.off("room_seat_action", handleLuckySeatAction);
+    };
+  }, [props.roomId, props.seats]);
+
+  useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
 
     const patchedEmit = ((event: string, ...args: any[]) => {
@@ -141,7 +159,7 @@ export default function GiftPicker(props: any) {
       }
 
       const data = { ...args[0] };
-      const image = LUCKY_GIFT_IMAGES[String(data.giftName || "")];
+      const image = String(data.image || LUCKY_GIFT_IMAGES[String(data.giftName || "")] || "");
 
       if (!image) return originalEmit(event, ...args);
 
@@ -156,7 +174,7 @@ export default function GiftPicker(props: any) {
         diamondAmount,
       });
 
-      startLuckyFly(data);
+      animatingRef.current = true;
       return socket;
     }) as typeof socket.emit;
 
