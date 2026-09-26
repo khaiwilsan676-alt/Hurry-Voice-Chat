@@ -720,6 +720,7 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           } catch (e) {}
 
           socket.emit('wildparty_winner_update', {
+              eventId: `wild_1790417051968_5519yt3a`,
               name: currentUserName,
               win: totalWinnings,
               avatar: currentUserAvatar,
