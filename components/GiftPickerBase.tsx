@@ -489,7 +489,7 @@ export default function GiftPicker({
 
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
-          style={{ background: "transparent", opacity: videoHasStarted ? 1 : 0, visibility: videoHasStarted ? "visible" : "hidden" }}
+          style={{ background: "transparent", opacity: videoHasStarted ? 1 : 0 }}
         >
           <video
             ref={(el) => {
