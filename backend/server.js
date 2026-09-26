@@ -81,6 +81,9 @@ const memoryRoundWinners = {
  */
 const roomUsers = new Map();
 
+// Deduplicate client replay of money-transfer events for a short window.
+const recentTransferIds = new Map();
+
 /*
  * roomId -> Map(seatNumber -> seat state)
  * Seat state is kept in memory because it only represents the
@@ -967,6 +970,11 @@ io.on("connection", (socket) => {
       const room = String(roomId);
       const accId = accountId ? String(accountId) : String(userId);
 
+      // Do not allow a client to impersonate a different account identity.
+      if (socket.userId || socket.accountId || socket.roomUserId || socket.roomAccountId) {
+        if (!socketOwnsIdentity(socket, accId) && !socketOwnsIdentity(socket, userId)) return;
+      }
+
       cancelPendingSeatDisconnect(room, accId);
       if (userId) cancelPendingSeatDisconnect(room, String(userId));
 
@@ -1070,10 +1078,22 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName } = {}) => {
+  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, transferId } = {}) => {
     const room = String(roomId || "");
     const sender = String(senderId || "");
     const value = Number(amount);
+    const eventId = String(transferId || "").trim();
+    if (eventId) {
+      const seenAt = recentTransferIds.get(eventId);
+      if (seenAt && Date.now() - seenAt < 30000) return;
+      recentTransferIds.set(eventId, Date.now());
+      if (recentTransferIds.size > 5000) {
+        for (const [id, at] of recentTransferIds) {
+          if (Date.now() - at >= 30000) recentTransferIds.delete(id);
+        }
+      }
+    }
+
     const recipients = Array.isArray(recipientIds)
       ? [...new Set(recipientIds.map((id) => String(id)).filter(Boolean))]
       : [];
@@ -1115,6 +1135,10 @@ io.on("connection", (socket) => {
         : socket.roomId;
 
       if (!room) return;
+
+      // A client cannot remove another user's room presence.
+      const requestedId = String(accountId || userId || "").trim();
+      if (requestedId && !socketOwnsIdentity(socket, requestedId)) return;
 
       const id = String(
         accountId ||
