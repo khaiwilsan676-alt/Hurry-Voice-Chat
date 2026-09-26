@@ -609,10 +609,16 @@ export default function PublicProfile({
   useEffect(() => {
     if (showAgeScreen) {
       setTimeout(() => {
-        if (yearRef.current) yearRef.current.scrollTop = years.indexOf(birthYear) * 50;
-        if (monthRef.current) monthRef.current.scrollTop = months.indexOf(birthMonth) * 50;
-        if (dayRef.current) dayRef.current.scrollTop = days.indexOf(birthDay) * 50;
-      }, 100);
+        if (yearRef.current) {
+          yearRef.current.scrollTo({ top: years.indexOf(birthYear) * 50, behavior: 'smooth' });
+        }
+        if (monthRef.current) {
+          monthRef.current.scrollTo({ top: months.indexOf(birthMonth) * 50, behavior: 'smooth' });
+        }
+        if (dayRef.current) {
+          dayRef.current.scrollTo({ top: days.indexOf(birthDay) * 50, behavior: 'smooth' });
+        }
+      }, 200);
     }
   }, [showAgeScreen]);
 
