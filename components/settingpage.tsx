@@ -173,7 +173,7 @@ export default function SettingPage({
         }}
       >
         <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <ChevronLeft size={24} className="text-slate-900" />
+          <ArrowLeft size={24} className="text-slate-900" />
         </button>
         <h1 className="text-lg font-semibold text-slate-900">{t.settings}</h1>
         <div className="w-6" />
