@@ -3,6 +3,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import socket from "../src/lib/socket";
 
+const LUCKY_IMAGES: Record<string, string> = {
+  Kiss: "/IMG_20260906_000443.png",
+  Nut: "/IMG_20260906_000508.png",
+  Mahjong: "/IMG_20260906_000521.png",
+  Clover: "/IMG_20260906_000541.png",
+  Charm: "/IMG_20260906_000624.png",
+  Bouquet: "/IMG_20260906_000643.png",
+  Leaves: "/IMG_20260906_000713.png",
+  Crystal: "/IMG_20260906_000756.png",
+  Candy: "/IMG_20260906_000814.png",
+  Pop: "/IMG_20260906_000832.png",
+  Scarecrow: "/IMG_20260906_000850.png",
+};
+
 type LuckyNotice = {
   id: string;
   senderName: string;
@@ -28,7 +42,7 @@ export default function LuckyGiftNotificationSlider({ roomId }: { roomId: string
         senderName: String(data.senderName || "User"),
         senderImage: String(data.senderImage || "/default-avatar.png"),
         recipientName: String(data.recipientName || "User"),
-        giftImage: String(data.luckyImage || data.giftImage || ""),
+        giftImage: String(data.luckyImage || data.giftImage || LUCKY_IMAGES[String(data.giftName || "")] || ""),
         multiplier: Math.max(1, Number(data.multiplier) || 1),
         returnAmount: Math.max(0, Number(data.luckyReturnAmount) || 0),
         returnPercent: Math.max(0, Number(data.luckyReturnPercent) || 0),
