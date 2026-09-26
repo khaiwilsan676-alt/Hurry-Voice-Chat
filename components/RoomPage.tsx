@@ -164,12 +164,12 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   useEffect(() => {
     const handleCoinTransferReceived = async (data: any = {}) => {
       const recipients = Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : [];
-      const amount = Number(data.amount);
-      if (!recipients.includes(String(userAccountId)) || !Number.isFinite(amount) || amount <= 0) return;
+      const diamondAmount = Number(data.diamondAmount);
+      if (!recipients.includes(String(userAccountId)) || !Number.isFinite(diamondAmount) || diamondAmount <= 0) return;
 
-      await addDiamondsToDB(amount);
+      await addDiamondsToDB(diamondAmount);
       const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
-      await recordTransaction("Coins received" + giftLabel, amount, "diamond");
+      await recordTransaction("Diamonds received" + giftLabel, diamondAmount, "diamond");
     };
 
     socket.on("coin_transfer_received", handleCoinTransferReceived);
