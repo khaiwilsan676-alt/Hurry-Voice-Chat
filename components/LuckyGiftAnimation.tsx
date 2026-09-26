@@ -40,10 +40,16 @@ function findTargetAvatar(data: any): HTMLImageElement | null {
   return null;
 }
 
+const seenLuckyEvents = new Set<string>();
+
 function animateLuckyGift(data: any, roomId: string) {
   if (typeof document === "undefined") return;
   if (String(data?.roomId || "") !== String(roomId)) return;
   if (data?.action !== "lucky_image") return;
+  const eventId = String(data?.eventId || `${data?.roomId || ""}-${data?.seatNumber || ""}-${data?.timestamp || ""}-${data?.src || ""}`);
+  if (seenLuckyEvents.has(eventId)) return;
+  seenLuckyEvents.add(eventId);
+  window.setTimeout(() => seenLuckyEvents.delete(eventId), 5000);
 
   const src = String(data?.src || "");
   if (!src) return;
@@ -151,10 +157,16 @@ export default function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) 
       animateLuckyGift(data, roomIdRef.current);
     };
 
+    const localHandler = (event: Event) => {
+      const data = (event as CustomEvent).detail;
+      animateLuckyGift(data, roomIdRef.current);
+    };
     socket.on("room_seat_action", handler);
+    window.addEventListener("hurry:lucky-image", localHandler);
 
     return () => {
       socket.off("room_seat_action", handler);
+      window.removeEventListener("hurry:lucky-image", localHandler);
     };
   }, []);
 
