@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
+  AlertCircle
 } from 'lucide-react'
 
 import ChatScreen from './ChatScreen'
@@ -454,6 +455,67 @@ const WhiteColorRemovalShader = ({
   )
 }
 
+// ============ ALBUMS SCREEN COMPONENT ============
+const AlbumsScreen = ({ 
+  images, 
+  onBack, 
+  onImageClick 
+}: { 
+  images: string[], 
+  onBack: () => void, 
+  onImageClick: (img: string) => void 
+}) => {
+  return (
+    <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white sticky top-0 z-10">
+        <button onClick={onBack} className="p-1">
+          <ArrowLeft size={24} className="text-gray-700" />
+        </button>
+        <h2 className="text-lg font-bold text-gray-900">Albums</h2>
+        <button className="text-sm font-medium text-blue-500 px-3 py-1 bg-blue-50 rounded-full">
+          Edit
+        </button>
+      </div>
+
+      {/* Warning Banner */}
+      <div className="bg-orange-50 border-l-4 border-orange-400 p-3 mx-4 mt-3 rounded-r-lg flex items-start gap-2">
+        <AlertCircle size={18} className="text-orange-500 shrink-0 mt-0.5" />
+        <p className="text-xs text-orange-700 font-medium leading-tight">
+          Pin the photos. The top 6 photos will be displayed on your profile
+        </p>
+      </div>
+
+      {/* Grid */}
+      <div className="flex-1 overflow-y-auto p-4 pb-24">
+        {images.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2">
+            {images.map((img, idx) => (
+              <div 
+                key={idx} 
+                className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => onImageClick(img)}
+              >
+                <img src={img} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-40 text-gray-400">
+            <Camera size={40} className="mb-2 opacity-50" />
+            <p className="text-sm">No photos in album</p>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Camera Button */}
+      <button className="fixed bottom-6 right-6 w-14 h-14 bg-[#00c853] rounded-full flex items-center justify-center shadow-lg hover:bg-[#00a844] active:scale-95 transition-all z-20">
+        <Camera size={26} className="text-white" />
+      </button>
+    </div>
+  )
+}
+
 export default function PublicProfile({
   onBack,
   onJoinRoom,
@@ -589,6 +651,9 @@ export default function PublicProfile({
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
+  
+  // New state for Albums Screen
+  const [showAlbumsScreen, setShowAlbumsScreen] = useState(false)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -1154,543 +1219,570 @@ export default function PublicProfile({
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
   return (
-    <div className={`w-full bg-white min-h-screen text-gray-900 relative ${isOtherUser ? 'pb-24' : 'pb-10'}`}>
-      {/* Cover Image & Header Section */}
-      <div className="relative w-full h-[350px] bg-gray-800 overflow-hidden">
-        {coverPhotos.length > 0 ? (
-          <div
-            className="flex h-full transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentCoverIndex * 100}%)` }}
-          >
-            {coverPhotos.map((photo, idx) => (
-              <img key={idx} src={photo} alt="" className="w-full h-full object-cover shrink-0" />
-            ))}
-          </div>
-        ) : user.photo ? (
-          <img src={user.photo} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold">
-            {avatarLetter}
-          </div>
-        )}
+    <>
+      {/* Albums Screen Modal */}
+      {showAlbumsScreen && (
+        <AlbumsScreen 
+          images={albumImages} 
+          onBack={() => setShowAlbumsScreen(false)} 
+          onImageClick={(img) => setFullImageView(img)} 
+        />
+      )}
 
-        {coverPhotos.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20">
-            {coverPhotos.map((_, idx) => (
-              <div
-                key={idx}
-                className={`h-1.5 rounded-full transition-all ${
-                  idx === currentCoverIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
-          <button onClick={onBack} className="text-white">
-            <ArrowLeft size={28} />
-          </button>
-
-          {isOtherUser ? (
-            <button onClick={() => setShowActionSheet(true)} className="text-white">
-              <AlertTriangle size={24} />
-            </button>
-          ) : (
-            <button onClick={handleOpenEditSheet} className="text-white">
-              <Edit3 size={22} />
-            </button>
-          )}
-        </div>
-
-        <div className="absolute bottom-12 left-6 flex items-center z-30 pointer-events-none">
-          <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
-            <div className="w-full h-full rounded-full overflow-hidden">
-              {user.photo ? (
-                <img src={user.photo} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gray-600 flex items-center justify-center text-4xl text-white font-bold">
-                  {avatarLetter}
-                </div>
-              )}
-            </div>
-
-            <div className="absolute inset-0 pointer-events-none">
-              <WhiteColorRemovalShader
-                imageSrc="/1786867564769.png"
-                threshold={0.85}
-                className="w-full h-full"
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%) scale(1.5)',
-                  width: '100%',
-                  height: '100%',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Profile Info Details Section */}
-      <div className="relative bg-white rounded-xl -mt-6 px-3 pt-6 z-20">
-        <div className="flex flex-wrap items-center gap-0.5">
-          <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
-          <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-0.5 whitespace-nowrap">
-            {user.gender} {user.age}
-          </span>
-
-          {user.adminTag && (
-            <GreenColorRemovalShader imageSrc="/1788021461820~2.jpg" className="h-9 w-auto object-contain" />
-          )}
-          {user.officialTag && (
-            <GreenColorRemovalShader imageSrc="/1788021468845~2.jpg" className="h-9 w-auto object-contain" />
-          )}
-          {user.vipTag && <img src="/1785469775751.png" alt="VIP" className="h-7 w-auto object-contain" />}
-          {user.premiumTag && <img src="/1785469365805.png" alt="Premium" className="h-7 w-auto object-contain" />}
-        </div>
-
-        <div className="flex items-center gap-1 text-xs mt-0.5 font-medium">
-          <div className="flex items-center gap-1">
-            {isSpecialAccount ? (
-              <>
-                <span
-                  className="relative font-bold rounded text-white -ml-2.5"
-                  style={{
-                    backgroundImage: 'url(/1785137282040.png)',
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                    minWidth: '90px', paddingLeft: '0px', paddingRight: '5px',
-                    paddingTop: '2px', paddingBottom: '2px',
-                  }}
-                >
-                  <span className="relative text-xs" style={{ paddingLeft: '32px' }}>
-                    {user.displayAccountNumber}
-                  </span>
-                </span>
-                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
-                  <Copy size={12} />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="text-gray-500">ID:{getDisplayID()}</span>
-                <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
-                  <Copy size={12} />
-                </button>
-              </>
-            )}
-          </div>
-          <span className="text-gray-300">|</span>
-          <span className="text-gray-500">{user.followers} Fans</span>
-        </div>
-
-        <div className="mt-1 flex items-center gap-1 -ml-2">
-          <div className="relative inline-flex items-center justify-center ml-0.5">
-            <img src="/IMG_20260917_220530.png" alt="" className="h-6 w-auto object-contain" />
-            <span
-              className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-sm"
-              style={{ paddingLeft: '10px' }}
+      <div className={`w-full bg-white min-h-screen text-gray-900 relative ${isOtherUser ? 'pb-24' : 'pb-10'}`}>
+        {/* Cover Image & Header Section */}
+        <div className="relative w-full h-[350px] bg-gray-800 overflow-hidden">
+          {coverPhotos.length > 0 ? (
+            <div
+              className="flex h-full transition-transform duration-700 ease-in-out"
+              style={{ transform: `translateX(-${currentCoverIndex * 100}%)` }}
             >
-              Lv.1
-            </span>
-          </div>
-          <img src="/1785486414756.png" alt="" className="h-6 w-auto object-contain" />
-        </div>
-
-        <div className="flex items-center gap-1.5 text-xs text-gray-600 mt-3">
-          <MapPin size={14} className="text-gray-400" />
-          <span className="text-base">{user.flag}</span>
-          <span className="text-gray-500">{user.location || 'India'}</span>
-        </div>
-
-        <div className="flex items-start gap-2 mt-2">
-          <button
-            onClick={!isOtherUser ? handleOpenEditSheet : undefined}
-            className={`mt-0.5 shrink-0 ${isOtherUser ? 'text-gray-400' : 'text-gray-400 hover:text-gray-600'}`}
-          >
-            <Edit3 size={14} />
-          </button>
-          {user.bio ? (
-            <p className="text-xs text-gray-500 italic">{user.bio}</p>
-          ) : (
-            <p className="text-xs text-gray-400 italic">
-              {isOtherUser ? 'No bio added yet' : 'Add bio...'}
-            </p>
-          )}
-        </div>
-
-        <div className="flex gap-0 mt-4 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-6 py-2 text-sm font-semibold transition-colors relative ${
-              activeTab === 'profile' ? 'text-blue-500' : 'text-gray-500'
-            }`}
-          >
-            Profile
-            {activeTab === 'profile' && (
-              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-blue-500 rounded-full"></div>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Content Tabs Section */}
-      <div className="px-5 mt-6 space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
-            Albums
-            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/7</span>
-          </h3>
-          {albumImages.length > 0 ? (
-            <div className="flex gap-2 overflow-x-auto">
-              {albumImages.map((img, index) => (
-                <div
-                  key={index}
-                  className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setFullImageView(img)}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </div>
+              {coverPhotos.map((photo, idx) => (
+                <img key={idx} src={photo} alt="" className="w-full h-full object-cover shrink-0" />
               ))}
             </div>
+          ) : user.photo ? (
+            <img src={user.photo} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-28 rounded-2xl overflow-hidden bg-gray-100">
-              <img src="/IMG_20260726_225835.jpg" alt="" className="w-full h-full object-cover" />
+            <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white text-4xl font-bold">
+              {avatarLetter}
             </div>
           )}
-        </div>
 
-        <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Vehicle</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091443553.png" alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Medal</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091431545.png" alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Frame</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091457562.png" alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Gift</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091520912.png" alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Action Bar for Other User */}
-      {isOtherUser && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-6 py-3.5 border-t border-gray-100 flex items-center justify-between gap-4 max-w-md mx-auto shadow-lg">
-          <button
-            onClick={handleToggleFollow}
-            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ff5874] to-[#ff6b8b] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-pink-200"
-          >
-            <Heart className="w-6 h-6 fill-white stroke-none" />
-            <span>{isFollowing ? 'Following' : 'Follow'}</span>
-          </button>
-
-          <button
-            onClick={() => setShowChat(true)}
-            className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#1dc4e9] to-[#1de9b6] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-cyan-200"
-          >
-            <MessageCircle className="w-6 h-6 fill-white stroke-none" />
-            <span>Chat</span>
-          </button>
-        </div>
-      )}
-
-      {/* Full Image View Modal */}
-      {fullImageView && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setFullImageView(null)}
-        >
-          <button
-            onClick={() => setFullImageView(null)}
-            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors"
-          >
-            <X size={24} />
-          </button>
-          <img
-            src={fullImageView}
-            alt=""
-            className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
-
-      {/* ✅ Edit Profile Bottom Sheet — 50vh, scrollable content */}
-      {!isOtherUser && showEditSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
-
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
-            {/* Fixed Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
-              <button onClick={handleCloseEditSheet}>
-                <ArrowLeft size={24} className="text-gray-700" />
-              </button>
-              <h2 className="text-lg font-bold text-gray-900">Edit Information</h2>
-              <div className="w-6"></div>
+          {coverPhotos.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-1.5 z-20">
+              {coverPhotos.map((_, idx) => (
+                <div
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === currentCoverIndex ? 'w-4 bg-white' : 'w-1.5 bg-white/50'
+                  }`}
+                />
+              ))}
             </div>
+          )}
 
-            {/* Scrollable Content */}
-            <div className="overflow-y-auto px-5 py-4 space-y-5 flex-1">
-              <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
-              <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
+          <div className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
+            <button onClick={onBack} className="text-white">
+              <ArrowLeft size={28} />
+            </button>
 
-              {/* Avatar */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Avatar</span>
-                <div className="flex items-center gap-2">
-                  <div
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
+            {isOtherUser ? (
+              <button onClick={() => setShowActionSheet(true)} className="text-white">
+                <AlertTriangle size={24} />
+              </button>
+            ) : (
+              <button onClick={handleOpenEditSheet} className="text-white">
+                <Edit3 size={22} />
+              </button>
+            )}
+          </div>
+
+          <div className="absolute bottom-12 left-6 flex items-center z-30 pointer-events-none">
+            <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
+              <div className="w-full h-full rounded-full overflow-hidden">
+                {user.photo ? (
+                  <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gray-600 flex items-center justify-center text-4xl text-white font-bold">
+                    {avatarLetter}
+                  </div>
+                )}
+              </div>
+
+              <div className="absolute inset-0 pointer-events-none">
+                <WhiteColorRemovalShader
+                  imageSrc="/1786867564769.png"
+                  threshold={0.85}
+                  className="w-full h-full"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%) scale(1.5)',
+                    width: '100%',
+                    height: '100%',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Info Details Section */}
+        <div className="relative bg-white rounded-xl -mt-6 px-3 pt-6 z-20">
+          <div className="flex flex-wrap items-center gap-0.5">
+            <h1 className="text-2xl font-bold text-black tracking-wide">{finalDisplayName}</h1>
+            <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full font-bold inline-flex items-center gap-0.5 whitespace-nowrap">
+              {user.gender} {user.age}
+            </span>
+
+            {user.adminTag && (
+              <GreenColorRemovalShader imageSrc="/1788021461820~2.jpg" className="h-9 w-auto object-contain" />
+            )}
+            {user.officialTag && (
+              <GreenColorRemovalShader imageSrc="/1788021468845~2.jpg" className="h-9 w-auto object-contain" />
+            )}
+            {user.vipTag && <img src="/1785469775751.png" alt="VIP" className="h-7 w-auto object-contain" />}
+            {user.premiumTag && <img src="/1785469365805.png" alt="Premium" className="h-7 w-auto object-contain" />}
+          </div>
+
+          <div className="flex items-center gap-1 text-xs mt-0.5 font-medium">
+            <div className="flex items-center gap-1">
+              {isSpecialAccount ? (
+                <>
+                  <span
+                    className="relative font-bold rounded text-white -ml-2.5"
+                    style={{
+                      backgroundImage: 'url(/1785137282040.png)',
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      minWidth: '90px', paddingLeft: '0px', paddingRight: '5px',
+                      paddingTop: '2px', paddingBottom: '2px',
+                    }}
                   >
-                    {user.photo ? (
-                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
-                        {avatarLetter}
+                    <span className="relative text-xs" style={{ paddingLeft: '32px' }}>
+                      {user.displayAccountNumber}
+                    </span>
+                  </span>
+                  <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
+                    <Copy size={12} />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-500">ID:{getDisplayID()}</span>
+                  <button onClick={handleCopyID} className="text-gray-400 hover:text-gray-600">
+                    <Copy size={12} />
+                  </button>
+                </>
+              )}
+            </div>
+            <span className="text-gray-300">|</span>
+            <span className="text-gray-500">{user.followers} Fans</span>
+          </div>
+
+          <div className="mt-1 flex items-center gap-1 -ml-2">
+            <div className="relative inline-flex items-center justify-center ml-0.5">
+              <img src="/IMG_20260917_220530.png" alt="" className="h-6 w-auto object-contain" />
+              <span
+                className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-sm"
+                style={{ paddingLeft: '10px' }}
+              >
+                Lv.1
+              </span>
+            </div>
+            <img src="/1785486414756.png" alt="" className="h-6 w-auto object-contain" />
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-gray-600 mt-3">
+            <MapPin size={14} className="text-gray-400" />
+            <span className="text-base">{user.flag}</span>
+            <span className="text-gray-500">{user.location || 'India'}</span>
+          </div>
+
+          <div className="flex items-start gap-2 mt-2">
+            <button
+              onClick={!isOtherUser ? handleOpenEditSheet : undefined}
+              className={`mt-0.5 shrink-0 ${isOtherUser ? 'text-gray-400' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <Edit3 size={14} />
+            </button>
+            {user.bio ? (
+              <p className="text-xs text-gray-500 italic">{user.bio}</p>
+            ) : (
+              <p className="text-xs text-gray-400 italic">
+                {isOtherUser ? 'No bio added yet' : 'Add bio...'}
+              </p>
+            )}
+          </div>
+
+          <div className="flex gap-0 mt-4 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-6 py-2 text-sm font-semibold transition-colors relative ${
+                activeTab === 'profile' ? 'text-blue-500' : 'text-gray-500'
+              }`}
+            >
+              Profile
+              {activeTab === 'profile' && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-4 h-1 bg-blue-500 rounded-full"></div>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Tabs Section */}
+        <div className="px-5 mt-6 space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
+              Albums
+              <span className="text-xs text-gray-400 font-normal">{albumImages.length}/7</span>
+            </h3>
+            {albumImages.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {albumImages.map((img, index) => (
+                  <div
+                    key={index}
+                    className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setFullImageView(img)}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+                {/* See All Button to open Albums Screen */}
+                <button 
+                  onClick={() => setShowAlbumsScreen(true)}
+                  className="w-20 h-20 rounded-xl bg-gray-50 flex flex-col items-center justify-center text-gray-400 border border-dashed border-gray-300 shrink-0 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-xs font-medium">See All</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            ) : (
+              <div 
+                className="w-full h-28 rounded-2xl overflow-hidden bg-gray-100 cursor-pointer relative"
+                onClick={() => setShowAlbumsScreen(true)}
+              >
+                <img src="/IMG_20260726_225835.jpg" alt="" className="w-full h-full object-cover opacity-50" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-gray-700 bg-white/80 px-4 py-2 rounded-full shadow-sm">
+                    Open Albums
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Vehicle</h3>
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091443553.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Medal</h3>
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091431545.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Frame</h3>
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091457562.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-gray-800 mb-2">Gift</h3>
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091520912.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Action Bar for Other User */}
+        {isOtherUser && (
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md px-6 py-3.5 border-t border-gray-100 flex items-center justify-between gap-4 max-w-md mx-auto shadow-lg">
+            <button
+              onClick={handleToggleFollow}
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#ff5874] to-[#ff6b8b] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-pink-200"
+            >
+              <Heart className="w-6 h-6 fill-white stroke-none" />
+              <span>{isFollowing ? 'Following' : 'Follow'}</span>
+            </button>
+
+            <button
+              onClick={() => setShowChat(true)}
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-[#1dc4e9] to-[#1de9b6] active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 text-white font-medium text-lg shadow-md shadow-cyan-200"
+            >
+              <MessageCircle className="w-6 h-6 fill-white stroke-none" />
+              <span>Chat</span>
+            </button>
+          </div>
+        )}
+
+        {/* Full Image View Modal */}
+        {fullImageView && (
+          <div
+            className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setFullImageView(null)}
+          >
+            <button
+              onClick={() => setFullImageView(null)}
+              className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors"
+            >
+              <X size={24} />
+            </button>
+            <img
+              src={fullImageView}
+              alt=""
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
+
+        {/* ✅ Edit Profile Bottom Sheet — 50vh, scrollable content */}
+        {!isOtherUser && showEditSheet && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
+
+            <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
+              {/* Fixed Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+                <button onClick={handleCloseEditSheet}>
+                  <ArrowLeft size={24} className="text-gray-700" />
+                </button>
+                <h2 className="text-lg font-bold text-gray-900">Edit Information</h2>
+                <div className="w-6"></div>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto px-5 py-4 space-y-5 flex-1">
+                <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
+                <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
+
+                {/* Avatar */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Avatar</span>
+                  <div className="flex items-center gap-2">
+                    <div
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
+                    >
+                      {user.photo ? (
+                        <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
+                          {avatarLetter}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Nickname */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Nickname</span>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
+                    placeholder="Enter name"
+                  />
+                </div>
+
+                {/* Age */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Age</span>
+                  <input
+                    type="number"
+                    value={editAge}
+                    onChange={(e) => setEditAge(e.target.value)}
+                    className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
+                    placeholder="0"
+                    min="0"
+                    max="150"
+                  />
+                </div>
+
+                {/* Bio */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Bio</span>
+                  {showBioInput ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editBio}
+                        onChange={(e) => setEditBio(e.target.value)}
+                        className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-36"
+                        placeholder="Add bio"
+                        autoFocus
+                      />
+                      <button onClick={handleBioSave} className="text-xs text-blue-500 font-medium">
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowBioInput(true)}
+                      className="flex items-center gap-1 text-sm text-gray-500"
+                    >
+                      <span className="max-w-[180px] truncate">{editBio || ''}</span>
+                      <ChevronRight size={16} className="text-gray-400" />
+                    </button>
+                  )}
+                </div>
+
+                {/* ALBUM — max 7 */}
+                <div className="space-y-3 pt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">
+                      Album Photos ({albumImages.length}/7)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {albumImages.map((img, idx) => (
+                      <div
+                        key={idx}
+                        className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => handleRemoveAlbumImage(idx)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                        >
+                          ×
+                        </button>
                       </div>
+                    ))}
+                    {albumImages.length < 7 && (
+                      <button
+                        onClick={() => albumInputRef.current?.click()}
+                        className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                      >
+                        <span className="text-3xl font-thin leading-none">+</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* BACKGROUND — max 4, Album ke niche */}
+                <div className="space-y-3 pt-2 pb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-gray-700">
+                      Background ({coverPhotos.length}/4)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {coverPhotos.map((photo, idx) => (
+                      <div
+                        key={idx}
+                        className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200"
+                      >
+                        <img src={photo} alt="" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => handleRemoveCoverPhoto(idx)}
+                          className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                    {coverPhotos.length < 4 && (
+                      <button
+                        onClick={() => coverInputRef.current?.click()}
+                        className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                      >
+                        <span className="text-3xl font-thin leading-none">+</span>
+                      </button>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Nickname */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Nickname</span>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
-                  placeholder="Enter name"
-                />
+              {/* Fixed Footer */}
+              <div className="px-6 py-2 bg-white border-t border-gray-100 shrink-0">
+                <button
+                  onClick={handleSaveEdit}
+                  className="w-full bg-blue-500 text-white py-3 rounded-full font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  Save Changes
+                </button>
               </div>
-
-              {/* Age */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Age</span>
-                <input
-                  type="number"
-                  value={editAge}
-                  onChange={(e) => setEditAge(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
-                  placeholder="0"
-                  min="0"
-                  max="150"
-                />
-              </div>
-
-              {/* Bio */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Bio</span>
-                {showBioInput ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editBio}
-                      onChange={(e) => setEditBio(e.target.value)}
-                      className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-36"
-                      placeholder="Add bio"
-                      autoFocus
-                    />
-                    <button onClick={handleBioSave} className="text-xs text-blue-500 font-medium">
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowBioInput(true)}
-                    className="flex items-center gap-1 text-sm text-gray-500"
-                  >
-                    <span className="max-w-[180px] truncate">{editBio || ''}</span>
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </button>
-                )}
-              </div>
-
-              {/* ALBUM — max 7 */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/7)
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {albumImages.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => handleRemoveAlbumImage(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {albumImages.length < 7 && (
-                    <button
-                      onClick={() => albumInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* BACKGROUND — max 4, Album ke niche */}
-              <div className="space-y-3 pt-2 pb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Background ({coverPhotos.length}/4)
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {coverPhotos.map((photo, idx) => (
-                    <div
-                      key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200"
-                    >
-                      <img src={photo} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => handleRemoveCoverPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {coverPhotos.length < 4 && (
-                    <button
-                      onClick={() => coverInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Fixed Footer */}
-            <div className="px-6 py-2 bg-white border-t border-gray-100 shrink-0">
-              <button
-                onClick={handleSaveEdit}
-                className="w-full bg-blue-500 text-white py-3 rounded-full font-semibold hover:bg-blue-600 transition-colors"
-              >
-                Save Changes
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Action Sheet */}
-      {showActionSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
-          <div
-            className="absolute inset-0 bg-transparent pointer-events-auto"
-            onClick={() => setShowActionSheet(false)}
-          ></div>
+        {/* Action Sheet */}
+        {showActionSheet && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none">
+            <div
+              className="absolute inset-0 bg-transparent pointer-events-auto"
+              onClick={() => setShowActionSheet(false)}
+            ></div>
 
-          <div className="relative bg-black w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto">
-            <div className="flex flex-col text-white px-4">
-              <button
-                onClick={() => {
-                  setShowActionSheet(false)
-                  setShowUserReport(true)
-                }}
-                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
-              >
-                Report
-              </button>
+            <div className="relative bg-black w-full max-w-md rounded-t-md animate-slide-up flex flex-col pb-6 pt-4 shadow-2xl pointer-events-auto">
+              <div className="flex flex-col text-white px-4">
+                <button
+                  onClick={() => {
+                    setShowActionSheet(false)
+                    setShowUserReport(true)
+                  }}
+                  className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 rounded-md"
+                >
+                  Report
+                </button>
 
-              <button
-                onClick={() => {
-                  setShowActionSheet(false)
-                  alert('Block user')
-                }}
-                className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
-              >
-                Block
-              </button>
-            </div>
+                <button
+                  onClick={() => {
+                    setShowActionSheet(false)
+                    alert('Block user')
+                  }}
+                  className="w-full text-center px-4 py-4 text-lg transition-colors font-medium active:bg-gray-900 mb-2"
+                >
+                  Block
+                </button>
+              </div>
 
-            <div className="px-4 mt-2">
-              <button
-                onClick={() => setShowActionSheet(false)}
-                className="w-full bg-blue-500 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-600 active:scale-[0.98] transition-all"
-              >
-                Cancel
-              </button>
+              <div className="px-4 mt-2">
+                <button
+                  onClick={() => setShowActionSheet(false)}
+                  className="w-full bg-blue-500 text-white py-3.5 rounded-xl font-semibold hover:bg-blue-600 active:scale-[0.98] transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showReportToast && (
-        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
-          Report Successful
-        </div>
-      )}
+        {showReportToast && (
+          <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[110] bg-black/90 text-white text-sm font-medium px-6 py-2.5 rounded-full shadow-lg pointer-events-none animate-slide-up">
+            Report Successful
+          </div>
+        )}
 
-      {isOtherUser && showChat && targetUser && (
-        <div className="fixed inset-0 z-[100]">
-          <ChatScreen
-            currentUser={getCurrentUserData()}
-            targetUser={{
-              uid: targetUser.uid || targetUser.id || '',
-              accountId: targetUser.displayAccountNumber || targetUser.accountId,
-              name: isValidName(targetUser.name) ? targetUser.name! : (targetUser.displayAccountNumber || 'User'),
-              photo: targetUser.photo || targetUser.image || '',
-            } as any}
-            onClose={() => setShowChat(false)}
-            onJoinRoom={onJoinRoom}
-          />
-        </div>
-      )}
+        {isOtherUser && showChat && targetUser && (
+          <div className="fixed inset-0 z-[100]">
+            <ChatScreen
+              currentUser={getCurrentUserData()}
+              targetUser={{
+                uid: targetUser.uid || targetUser.id || '',
+                accountId: targetUser.displayAccountNumber || targetUser.accountId,
+                name: isValidName(targetUser.name) ? targetUser.name! : (targetUser.displayAccountNumber || 'User'),
+                photo: targetUser.photo || targetUser.image || '',
+              } as any}
+              onClose={() => setShowChat(false)}
+              onJoinRoom={onJoinRoom}
+            />
+          </div>
+        )}
 
-      {isOtherUser && showUserReport && targetUser && (
-        <div className="fixed inset-0 z-[100]">
-          <UserReport
-            currentUser={getCurrentUserData()}
-            targetUser={targetUser}
-            onClose={() => setShowUserReport(false)}
-          />
-        </div>
-      )}
+        {isOtherUser && showUserReport && targetUser && (
+          <div className="fixed inset-0 z-[100]">
+            <UserReport
+              currentUser={getCurrentUserData()}
+              targetUser={targetUser}
+              onClose={() => setShowUserReport(false)}
+            />
+          </div>
+        )}
 
-      <style jsx>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); }
-          to { transform: translateY(0); }
-        }
-        .animate-slide-up {
-          animation: slideUp 0.3s ease-out;
-        }
-      `}</style>
-    </div>
+        <style jsx>{`
+          @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+          }
+          .animate-slide-up {
+            animation: slideUp 0.3s ease-out;
+          }
+        `}</style>
+      </div>
+    </>
   )
-  }
+}
