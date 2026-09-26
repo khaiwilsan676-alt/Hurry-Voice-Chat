@@ -19,7 +19,8 @@ const LUCKY_GIFT_IMAGES: Record<string, string> = {
 };
 
 function createLuckyGiftAnimationSrc(image: string) {
-  const safeImage = String(image || "")
+  const absoluteImage = `${window.location.origin}${String(image || "")}`;
+  const safeImage = absoluteImage
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;");
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><image href="${safeImage}" x="5" y="-35" width="90" height="90"><animate attributeName="x" values="5;45" dur="1.1s" fill="freeze"/><animate attributeName="y" values="-35;45" dur="1.1s" fill="freeze"/><animate attributeName="width" values="90;10" dur="1.1s" fill="freeze"/><animate attributeName="height" values="90;10" dur="1.1s" fill="freeze"/><animate attributeName="opacity" values="1;0" dur="1.1s" fill="freeze"/></image></svg>`;
