@@ -660,7 +660,6 @@ export default function PublicProfile({
     let unsubscribe: (() => void) | undefined
 
     const loadProfileData = async () => {
-      // (Data Loading Logic Remains Exact Same as your provided code)
       if (isOtherUser && targetUser) {
         const targetUid = targetUser.uid || targetUser.id || 'N/A'
         const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
@@ -1015,7 +1014,7 @@ export default function PublicProfile({
   const handleTouchStart = (index: number) => {
     longPressTimer.current = setTimeout(() => {
       handlePinAlbumImage(index)
-    }, 600) // 600ms for long press
+    }, 600)
   }
 
   const handleTouchEnd = () => {
@@ -1026,14 +1025,13 @@ export default function PublicProfile({
   }
 
   const handlePinAlbumImage = async (index: number) => {
-    if (index === 0) return // Already at first position
+    if (index === 0) return
     const updated = [...albumImages]
     const [pinnedImage] = updated.splice(index, 1)
-    updated.unshift(pinnedImage) // Bring to front
+    updated.unshift(pinnedImage)
     setAlbumImages(updated)
     localStorage.setItem('userAlbumImages', JSON.stringify(updated))
     await saveToMongoDB({ albumImages: updated, album: updated })
-    // Vibration feedback on supported devices
     if (typeof window !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(50)
     }
@@ -1042,8 +1040,8 @@ export default function PublicProfile({
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (albumImages.length >= 7) {
-        alert('You can only upload up to 7 images in the album.')
+      if (albumImages.length >= 9) {
+        alert('You can only upload up to 9 images in the album.')
         return
       }
       try {
@@ -1065,7 +1063,6 @@ export default function PublicProfile({
     await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
-  // Auto Saves trigger in Sheets when back arrow is clicked
   const handleNameSave = async () => {
     const finalNewName = isValidName(editName) ? editName : user.displayAccountNumber
     localStorage.setItem('userName', finalNewName)
@@ -1313,7 +1310,7 @@ export default function PublicProfile({
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
             Albums
-            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/7</span>
+            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/9</span>
           </h3>
           {albumImages.length > 0 ? (
             <div className="flex gap-2 overflow-x-auto">
@@ -1434,7 +1431,6 @@ export default function PublicProfile({
                     onClick={() => avatarInputRef.current?.click()}
                     className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
                   >
-
                     {user.photo ? (
                       <img src={user.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -1464,15 +1460,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 4. Bio */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Bio</span>
-                <button onClick={() => setShowBioScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
-                  <span className="max-w-[180px] truncate">{editBio || 'Add bio...'}</span>
-                  <ChevronRight size={16} className="text-gray-400" />
-                </button>
-              </div>
-                            {/* 5. BACKGROUND — max 4 */}
+              {/* 4. BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1486,7 +1474,6 @@ export default function PublicProfile({
                       className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
                     >
                       <img src={photo} alt="" className="w-full h-full object-cover" />
-                      {/* Ekdam top-right corner pe Cross Button */}
                       <button
                         onClick={() => handleRemoveCoverPhoto(idx)}
                         className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
@@ -1506,12 +1493,20 @@ export default function PublicProfile({
                 </div>
               </div>
 
+              {/* 5. Bio */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Bio</span>
+                <button onClick={() => setShowBioScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
+                  <span className="max-w-[180px] truncate">{editBio || 'Add bio...'}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
+              </div>
 
-                                          {/* 6. ALBUM Inline — max 7 */}
+              {/* 6. ALBUM Inline — max 9 */}
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/7)
+                    Album Photos ({albumImages.length}/9)
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
@@ -1526,7 +1521,6 @@ export default function PublicProfile({
                       onMouseLeave={handleTouchEnd}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
-                      {/* Ekdam top-right corner pe Cross Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1538,7 +1532,7 @@ export default function PublicProfile({
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 7 && (
+                  {albumImages.length < 9 && (
                     <button
                       onClick={() => albumInputRef.current?.click()}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
@@ -1549,40 +1543,12 @@ export default function PublicProfile({
                 </div>
               </div>
 
-
-            {/* Note: Save Changes button from here has been removed */}
+            </div>
           </div>
-        </div>
         </div>
       )}
 
       {/* Nickname Edit Screen */}
-      {!isOtherUser && showNameScreen && (
-        <div className="fixed inset-0 z-[65] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={handleNameSave}></div>
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[40vh]">
-            <div className="flex items-center justify-between px-5 py-4 shrink-0">
-              <button onClick={handleNameSave}>
-                <ArrowLeft size={24} className="text-gray-700" />
-              </button>
-              <h2 className="text-lg font-bold text-gray-900">Nickname</h2>
-              <div className="w-6"></div>
-            </div>
-
-            <div className="flex-1 px-5 overflow-y-auto">
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder="Enter new name"
-                className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-           {/* Nickname Edit Screen */}
       {!isOtherUser && showNameScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleNameSave}></div>
