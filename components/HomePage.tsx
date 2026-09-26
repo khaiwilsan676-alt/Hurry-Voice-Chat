@@ -29,7 +29,7 @@ const normalizeRoomImage = (value: any, roomId: string): string => {
 };
 
 const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
-  const response = await fetch("/api/rooms");
+  const response = await fetch(apiUrl("/api/rooms"));
   if (!response.ok) {
     throw new Error(`MongoDB rooms fetch failed: ${response.status}`);
   }
@@ -39,7 +39,7 @@ const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
 
 const fetchRoomFromMongoDB = async (roomId: string): Promise<any | null> => {
   if (!roomId) return null;
-  const response = await fetch(`/api/rooms?roomId=${encodeURIComponent(roomId)}`);
+  const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(roomId)}`));
   if (!response.ok) {
     if (response.status === 404) return null;
     throw new Error(`MongoDB room fetch failed: ${response.status}`);
@@ -761,7 +761,7 @@ const LiveRoomStats = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCount((prev) => prev + (Math.floor(Math.random() * 7) - 3));
-    }, Math.random() * 2000 + 1000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -888,12 +888,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const [isSwiping, setIsSwiping] = useState(false)
   const [swipeOffset, setSwipeOffset] = useState(0)
 
-  const jitsiContainerRef = useRef<HTMLDivElement>(null)
-  const jitsiApiRef = useRef<any>(null)
-  const [jitsiLoaded, setJitsiLoaded] = useState(false)
-  const jitsiJoinedRef = useRef(false)
-  const [isJitsiJoined, setIsJitsiJoined] = useState(false)
-
   // ============ UNREAD COUNT & GLOBAL REAL-TIME MESSAGES ============
   useEffect(() => {
     if (!userUID || userUID === 'N/A') return;
@@ -914,10 +908,13 @@ export default function HomePage({ onLogout }: HomePageProps) {
     };
 
     fetchUnread();
-    const interval = setInterval(fetchUnread, 5000);
 
-    const handleUnreadUpdated = () => { fetchUnread(); };
+    const handleUnreadUpdated = () => { void fetchUnread(); };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void fetchUnread();
+    };
     window.addEventListener('unread_count_updated', handleUnreadUpdated);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     const saveIncomingMessageToDB = async (msgData: any) => {
       try {
@@ -1084,12 +1081,12 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
     return () => {
       isMounted = false;
-      if (interval) clearInterval(interval);
+      window.removeEventListener('unread_count_updated', handleUnreadUpdated);
+      document.removeEventListener('visibilitychange', handleVisibility);
       if (notificationTimerRef.current) {
         clearTimeout(notificationTimerRef.current);
         notificationTimerRef.current = null;
       }
-      window.removeEventListener('unread_count_updated', handleUnreadUpdated);
       socket.off('private_message', handleIncomingPrivateMsg);
       socket.off('official_broadcast_message', handleIncomingOfficialBroadcast);
       socket.off('room_settings_updated', handleRoomSettingsUpdated);
@@ -1161,250 +1158,126 @@ export default function HomePage({ onLogout }: HomePageProps) {
     }
   }, [])
 
-  // ============ JITSI LOAD ============
-  useEffect(() => {
-    if (!document.getElementById('jitsi-script')) {
-      const script = document.createElement('script')
-      script.id = 'jitsi-script'
-      script.src = 'https://meet.jit.si/external_api.js'
-      script.async = true
-      script.onload = () => { setJitsiLoaded(true) }
-      document.body.appendChild(script)
-    } else {
-      setJitsiLoaded(true)
-    }
-  }, [])
-
-  const initializeJitsiForListening = useCallback(() => {
-    if (!jitsiLoaded || !jitsiContainerRef.current || jitsiApiRef.current) return
-
-    const domain = 'meet.jit.si'
-    const options = {
-      roomName: 'hurry-global-lobby',
-      width: '100%',
-      height: '100%',
-      parentNode: jitsiContainerRef.current,
-      userInfo: {
-        displayName: userName || 'Guest',
-        email: (userUID || 'guest') + '@hurry.app'
-      },
-      configOverrides: {
-        startWithAudioMuted: true,
-        startWithVideoMuted: true,
-        startAudioOnly: true,
-        disableDeepLinking: true,
-        prejoinPageEnabled: false,
-        toolbarButtons: [],
-        disableInviteFunctions: true,
-        disablePolls: true,
-        hideConferenceSubject: true,
-        hideConferenceTimer: true,
-        doNotStoreRoom: true,
-        resolution: 180,
-        constraints: { video: { height: { ideal: 180, max: 180, min: 180 } } },
-      },
-      interfaceConfigOverrides: {
-        filmStripOnly: false,
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        SHOW_BRAND_WATERMARK: false,
-        SHOW_POWERED_BY: false,
-        SHOW_PROMOTIONAL_CLOSE_PAGE: false,
-        TOOLBAR_ALWAYS_VISIBLE: false,
-        DISABLE_VIDEO_BACKGROUND: true,
-        HIDE_INVITE_MORE_HEADER: true,
-        MOBILE_APP_PROMO: false,
-        APP_NAME: 'Hurry',
-        NATIVE_APP_NAME: 'Hurry',
-        PROVIDER_NAME: 'Hurry'
-      }
-    }
-
-    try {
-      const JitsiMeetExternalAPI = (window as any).JitsiMeetExternalAPI;
-      const api = new JitsiMeetExternalAPI(domain, options)
-      jitsiApiRef.current = api
-      jitsiJoinedRef.current = false
-
-      api.addListener('videoConferenceJoined', () => {
-        jitsiJoinedRef.current = true
-        setIsJitsiJoined(true)
-      })
-
-      api.addListener('participantLeft', () => {})
-    } catch (error) {
-      console.error('Error initializing Jitsi:', error)
-    }
-  }, [jitsiLoaded, userName, userUID])
-
-  useEffect(() => {
-    if (jitsiLoaded && !jitsiApiRef.current && userName !== 'Guest') {
-      initializeJitsiForListening()
-    }
-  }, [jitsiLoaded, userName, initializeJitsiForListening])
-
-  useEffect(() => {
-    return () => {
-      if (jitsiApiRef.current) {
-        jitsiApiRef.current.dispose()
-        jitsiApiRef.current = null
-      }
-      jitsiJoinedRef.current = false
-      setIsJitsiJoined(false)
-    }
-  }, [])
-
   // ============ GLOBAL ROOMS FETCHING ============
   useEffect(() => {
     let isMounted = true;
+    let lastLoadAt = 0;
 
-    loadGlobalRoomsFromDB().then(cachedRooms => {
-      if (!isMounted) return;
-      if (cachedRooms.length > 0) {
-        const validRooms = cachedRooms.filter(room =>
+    const applyRooms = (rawRooms: any[]) => {
+      if (!Array.isArray(rawRooms)) return;
+
+      const rooms: GlobalRoom[] = rawRooms
+        .map((data: any) => {
+          const roomId = String(data.ID || data.id || data.roomId || '');
+          const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
+          return {
+            id: roomId,
+            name: data.name || data.roomName || data['Room Name'] || 'Room',
+            country: data.Country || data.country || '🇮🇳',
+            image: normalizeRoomImage(data.dp || data.roomDp || data['Room dp'] || data.image, roomId),
+            accountId: accId,
+            createdAt: data.createdAt || Date.now(),
+            isLocked: Boolean(data.isLocked),
+            roomPassword: data.roomPassword || null,
+            isExplicitlyCreated: true,
+            activeUserCount: Number(data.activeUserCount || 0),
+          } as GlobalRoom;
+        })
+        .filter((room: GlobalRoom) =>
           room &&
+          room.id &&
           room.name &&
+          room.name !== 'User' &&
+          room.name !== 'Hurry Room' &&
           room.accountId !== 'undefined' &&
           room.accountId !== 'null' &&
-          room.accountId !== '' &&
-          room.accountId !== null &&
-          room.name !== 'User'
+          room.accountId !== ''
         );
-        setGlobalRooms(prev => {
-          const liveCounts = new Map(
-            prev.map(room => [
-              String(room.id || room.accountId || ''),
-              Number(room.activeUserCount || 0)
-            ])
-          );
-          return validRooms.map(room => ({
-            ...room,
-            image: normalizeRoomImage(room.image || room.dp || room.roomDp, String(room.id || room.accountId || '')),
-            activeUserCount:
-              liveCounts.get(String(room.id || room.accountId || '')) ?? 0
-          }));
-        });
-      }
-    });
 
-    const loadRooms = async () => {
+      setGlobalRooms(prev => {
+        const liveCounts = new Map(
+          prev.map(room => [
+            String(room.id || room.accountId || ''),
+            Number(room.activeUserCount || 0)
+          ])
+        );
+        return rooms.map(room => ({
+          ...room,
+          activeUserCount:
+            liveCounts.get(String(room.id || room.accountId || '')) ?? room.activeUserCount ?? 0
+        }));
+      });
+
+      void saveGlobalRoomsToDB(rooms);
+    };
+
+    const loadCached = async () => {
+      const cachedRooms = await loadGlobalRoomsFromDB();
+      if (!isMounted || cachedRooms.length === 0) return;
+
+      const validRooms = cachedRooms.filter(room =>
+        room &&
+        room.name &&
+        room.accountId !== 'undefined' &&
+        room.accountId !== 'null' &&
+        room.accountId !== '' &&
+        room.accountId !== null &&
+        room.name !== 'User'
+      );
+
+      setGlobalRooms(prev => {
+        const liveCounts = new Map(
+          prev.map(room => [
+            String(room.id || room.accountId || ''),
+            Number(room.activeUserCount || 0)
+          ])
+        );
+        return validRooms.map(room => ({
+          ...room,
+          image: normalizeRoomImage(
+            room.image || room.dp || room.roomDp,
+            String(room.id || room.accountId || '')
+          ),
+          activeUserCount:
+            liveCounts.get(String(room.id || room.accountId || '')) ?? 0
+        }));
+      });
+    };
+
+    const loadRooms = async (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastLoadAt < 30000) return;
+      lastLoadAt = now;
+
       try {
         const rawRooms = await fetchAllRoomsFromMongoDB();
         if (!isMounted) return;
-        if (Array.isArray(rawRooms)) {
-          const rooms: GlobalRoom[] = rawRooms.map((data: any) => {
-            const roomId = String(data.ID || data.id || data.roomId || '');
-            const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
-            return {
-              id: roomId,
-              name: data.name || data.roomName || data['Room Name'] || 'Room',
-              country: data.Country || data.country || '🇮🇳',
-              image: normalizeRoomImage(data.dp || data.roomDp || data['Room dp'] || data.image, roomId),
-              accountId: accId,
-              createdAt: data.createdAt || Date.now(),
-              isLocked: Boolean(data.isLocked),
-              roomPassword: data.roomPassword || null,
-              isExplicitlyCreated: true,
-              activeUserCount: Number(data.activeUserCount || 0)
-            };
-          });
-
-          const validRooms = rooms.filter(room =>
-            room.id &&
-            room.accountId !== 'undefined' &&
-            room.accountId !== 'null' &&
-            room.accountId !== '' &&
-            room.accountId !== null &&
-            room.name &&
-            room.name !== 'User'
-          );
-
-          setGlobalRooms(prev => {
-            const liveCounts = new Map(
-              prev.map(room => [
-                String(room.id || room.accountId || ''),
-                Number(room.activeUserCount || 0)
-              ])
-            );
-            return validRooms.map(room => {
-              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
-              return {
-                ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : 0
-              }
-            });
-          });
-
-          saveGlobalRoomsToDB(validRooms);
-        }
+        applyRooms(rawRooms);
       } catch (err) {
         console.warn('Error fetching rooms from API:', err);
       }
     };
 
-    loadRooms();
-    const interval = setInterval(loadRooms, 12000);
+    void loadCached();
+    void loadRooms(true);
 
-    const fetchRoomsWithTimeout = async () => {
-      try {
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout')), 3000)
-        );
-        const res: any = await Promise.race([fetchAllRoomsFromMongoDB(), timeoutPromise]);
-        if (!isMounted) return;
-        const roomsArr: any[] = Array.isArray(res) ? res : (res?.rooms || []);
-        if (roomsArr.length > 0) {
-          const validRooms = roomsArr
-            .map((data: any) => {
-              const roomId = String(data.ID || data.id || data.roomId || '');
-              const accId = String(data['Room Admin'] || data.accountId || generateStableId(roomId));
-              return {
-                id: roomId,
-                name: data.name || data.roomName || data['Room Name'] || 'Room',
-                country: data.Country || data.country || '🇮🇳',
-                image: normalizeRoomImage(data.dp || data.roomDp || data['Room dp'] || data.image, roomId),
-                accountId: accId,
-                createdAt: data.createdAt || Date.now(),
-                isLocked: Boolean(data.isLocked),
-                roomPassword: data.roomPassword || null,
-                isExplicitlyCreated: true,
-                activeUserCount: Number(data.activeUserCount || 0)
-              } as GlobalRoom;
-            })
-            .filter((room: GlobalRoom) =>
-              room &&
-              room.name !== 'User' &&
-              room.name !== 'Hurry Room' &&
-              room.accountId !== 'undefined' &&
-              room.accountId !== 'null' &&
-              room.accountId !== ''
-            );
-          setGlobalRooms(prev => {
-            const liveCounts = new Map(
-              prev.map(room => [
-                String(room.id || room.accountId || ''),
-                Number(room.activeUserCount || 0)
-              ])
-            );
-            return validRooms.map(room => {
-              let updatedCount = liveCounts.get(String(room.id || room.accountId || ''));
-              return {
-                ...room,
-                activeUserCount: updatedCount !== undefined ? updatedCount : 0
-              }
-            });
-          });
-          validRooms.forEach((room: GlobalRoom) => saveRoomToDB(room));
-        }
-      } catch (err) {
-        console.warn('Error/timeout syncing rooms:', err);
-      }
+    const isNative = Capacitor.isNativePlatform();
+    const intervalId = isNative
+      ? null
+      : window.setInterval(() => {
+          if (document.visibilityState === 'visible') void loadRooms();
+        }, 30000);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') void loadRooms(true);
     };
-    if (!Capacitor.isNativePlatform()) fetchRoomsWithTimeout();
+
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (intervalId !== null) window.clearInterval(intervalId);
     };
   }, []);
 
@@ -2711,12 +2584,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
         WebkitTouchCallout: 'none'
       }}
     >
-      <div
-        ref={jitsiContainerRef}
-        className="absolute inset-0 z-0 opacity-0 pointer-events-none"
-        style={{ width: '1px', height: '1px' }}
-      />
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&display=swap');
         * { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; touch-action: manipulation; }
