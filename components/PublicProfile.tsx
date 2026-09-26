@@ -463,6 +463,9 @@ export default function PublicProfile({
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
+  
+  // Timer for Long Press logic
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
 
   const [user, setUser] = useState(() => {
     if (isOtherUser && targetUser) {
@@ -493,22 +496,11 @@ export default function PublicProfile({
 
     if (typeof window === 'undefined') {
       return {
-        name: '',
-        uid: '',
-        displayAccountNumber: '100379620',
-        photo: '',
-        coverPhoto: '',
-        gender: '♂',
-        age: 24,
-        followers: 0,
-        bio: '',
-        location: 'India',
-        flag: '🇮🇳',
-        countryCode: 'IN',
-        officialTag: false,
-        adminTag: false,
-        vipTag: false,
-        premiumTag: false,
+        name: '', uid: '', displayAccountNumber: '100379620',
+        photo: '', coverPhoto: '', gender: '♂', age: 24,
+        followers: 0, bio: '', location: 'India', flag: '🇮🇳',
+        countryCode: 'IN', officialTag: false, adminTag: false,
+        vipTag: false, premiumTag: false,
       }
     }
 
@@ -525,22 +517,10 @@ export default function PublicProfile({
     const displayAccNum = localStorage.getItem('accountNumber') || (uid ? getOrCreateAccountNumber(uid) : '100379620')
 
     return {
-      name: validName,
-      uid: uid,
-      displayAccountNumber: displayAccNum,
-      photo,
-      coverPhoto,
-      gender: gender === 'female' || gender === '♀' ? '♀' : '♂',
-      age,
-      followers: 0,
-      bio,
-      location: country,
-      flag: '🇮🇳',
-      countryCode,
-      officialTag: false,
-      adminTag: false,
-      vipTag: false,
-      premiumTag: false,
+      name: validName, uid: uid, displayAccountNumber: displayAccNum,
+      photo, coverPhoto, gender: gender === 'female' || gender === '♀' ? '♀' : '♂',
+      age, followers: 0, bio, location: country, flag: '🇮🇳',
+      countryCode, officialTag: false, adminTag: false, vipTag: false, premiumTag: false,
     }
   })
 
@@ -565,7 +545,13 @@ export default function PublicProfile({
 
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0)
 
+  // Sheets Control
   const [showEditSheet, setShowEditSheet] = useState(false)
+  const [showNameScreen, setShowNameScreen] = useState(false)
+  const [showAgeScreen, setShowAgeScreen] = useState(false)
+  const [showBioScreen, setShowBioScreen] = useState(false)
+
+  // Edit Values
   const [editName, setEditName] = useState(user.name)
   const [editAge, setEditAge] = useState(user.age.toString())
   const [editBio, setEditBio] = useState(user.bio)
@@ -577,11 +563,8 @@ export default function PublicProfile({
   const [editCountryCode, setEditCountryCode] = useState(user.countryCode)
   const [countryLocked, setCountryLocked] = useState(false)
 
-  const [showBioScreen, setShowBioScreen] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
-
   const [fullImageView, setFullImageView] = useState<string | null>(null)
-
   const [isFollowing, setIsFollowing] = useState(false)
 
   const [showActionSheet, setShowActionSheet] = useState(false)
@@ -589,8 +572,6 @@ export default function PublicProfile({
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false)
-
-  const [showAlbumScreen, setShowAlbumScreen] = useState(false)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -679,6 +660,7 @@ export default function PublicProfile({
     let unsubscribe: (() => void) | undefined
 
     const loadProfileData = async () => {
+      // (Data Loading Logic Remains Exact Same as your provided code)
       if (isOtherUser && targetUser) {
         const targetUid = targetUser.uid || targetUser.id || 'N/A'
         const searchKey = targetUser.accountId || targetUser.displayAccountNumber || targetUid
@@ -974,33 +956,11 @@ export default function PublicProfile({
     setEditName(user.name)
     setEditAge(user.age.toString())
     setEditBio(user.bio)
-    setEditCountry(user.location || 'India')
-    setEditCountryCode(user.countryCode || 'IN')
     setShowEditSheet(true)
   }
 
   const handleCloseEditSheet = () => {
     setShowEditSheet(false)
-    setShowBioScreen(false)
-  }
-
-  const handleGenderSelect = async (gender: string) => {
-    if (genderLocked) return
-    setEditGender(gender)
-    setGenderLocked(true)
-    const formattedGender = gender === 'male' ? '♂' : '♀'
-    localStorage.setItem('userGender', gender)
-    localStorage.setItem('userGenderLocked', gender)
-    setUser((prev) => ({ ...prev, gender: formattedGender }))
-    await saveToMongoDB({ gender: formattedGender })
-  }
-
-  const handleCountrySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (countryLocked) return
-    const selectedCountryName = e.target.value
-    const matchedCountry = COUNTRIES.find((c) => c.name === selectedCountryName)
-    setEditCountry(selectedCountryName)
-    if (matchedCountry) setEditCountryCode(matchedCountry.code)
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1051,6 +1011,34 @@ export default function PublicProfile({
     await saveToMongoDB({ coverPhoto: primary, coverImage: primary, coverPhotos: updated })
   }
 
+  // ==== Long Press Album Logic ====
+  const handleTouchStart = (index: number) => {
+    longPressTimer.current = setTimeout(() => {
+      handlePinAlbumImage(index)
+    }, 600) // 600ms for long press
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }
+
+  const handlePinAlbumImage = async (index: number) => {
+    if (index === 0) return // Already at first position
+    const updated = [...albumImages]
+    const [pinnedImage] = updated.splice(index, 1)
+    updated.unshift(pinnedImage) // Bring to front
+    setAlbumImages(updated)
+    localStorage.setItem('userAlbumImages', JSON.stringify(updated))
+    await saveToMongoDB({ albumImages: updated, album: updated })
+    // Vibration feedback on supported devices
+    if (typeof window !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  }
+
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -1077,43 +1065,25 @@ export default function PublicProfile({
     await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
-  const handleSaveEdit = async () => {
+  // Auto Saves trigger in Sheets when back arrow is clicked
+  const handleNameSave = async () => {
     const finalNewName = isValidName(editName) ? editName : user.displayAccountNumber
     localStorage.setItem('userName', finalNewName)
-    if (editAge) localStorage.setItem('userAge', editAge)
-    if (editBio) localStorage.setItem('userBio', editBio)
-    if (editCountry && editCountryCode) {
-      localStorage.setItem('userCountry', editCountry)
-      localStorage.setItem('userCountryCode', editCountryCode)
-      localStorage.setItem('userCountryLocked', 'true')
-      setCountryLocked(true)
-    }
-    const matchedCountry = COUNTRIES.find(
-      (c) => c.name === editCountry || c.code === editCountryCode
-    ) || { name: 'India', flag: '🇮🇳', code: 'IN' }
+    const updatedUser = { ...user, name: finalNewName }
+    setUser(updatedUser)
+    setShowNameScreen(false)
+    await saveToMongoDB({ name: finalNewName, displayName: finalNewName, userName: finalNewName })
+    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos })
+  }
 
-    const updatedUser = {
-      ...user,
-      name: finalNewName,
-      age: parseInt(editAge) || user.age,
-      bio: editBio,
-      location: matchedCountry.name,
-      flag: matchedCountry.flag,
-      countryCode: matchedCountry.code,
-    };
-    setUser(updatedUser);
-
-    await saveToMongoDB({
-      name: finalNewName, displayName: finalNewName, userName: finalNewName,
-      age: parseInt(editAge) || user.age,
-      bio: editBio, about: editBio,
-      country: matchedCountry.flag, countryCode: matchedCountry.code,
-      location: matchedCountry.name, countryLocked: true,
-    })
-
-    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
-    setShowEditSheet(false)
-    setShowBioScreen(false)
+  const handleAgeSave = async () => {
+    const parsedAge = parseInt(editAge) || user.age
+    localStorage.setItem('userAge', String(parsedAge))
+    const updatedUser = { ...user, age: parsedAge }
+    setUser(updatedUser)
+    setShowAgeScreen(false)
+    await saveToMongoDB({ age: parsedAge })
+    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos })
   }
 
   const handleBioSave = async () => {
@@ -1442,7 +1412,7 @@ export default function PublicProfile({
 
           <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
               </button>
@@ -1451,7 +1421,7 @@ export default function PublicProfile({
             </div>
 
             {/* Scrollable Content */}
-            <div className="overflow-y-auto px-5 py-4 space-y-5 flex-1">
+            <div className="overflow-y-auto px-5 py-4 space-y-6 flex-1">
               <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
@@ -1478,30 +1448,31 @@ export default function PublicProfile({
               {/* 2. Nickname */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
-                  placeholder="Enter name"
-                />
+                <button onClick={() => setShowNameScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
+                  <span className="max-w-[150px] truncate">{editName || 'Enter name'}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
               </div>
 
               {/* 3. Age */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Age</span>
-                <input
-                  type="number"
-                  value={editAge}
-                  onChange={(e) => setEditAge(e.target.value)}
-                  className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-48"
-                  placeholder="0"
-                  min="0"
-                  max="150"
-                />
+                <button onClick={() => setShowAgeScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
+                  <span>{editAge || '0'}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
               </div>
 
-              {/* 4. BACKGROUND — max 4 */}
+              {/* 4. Bio */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Bio</span>
+                <button onClick={() => setShowBioScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
+                  <span className="max-w-[180px] truncate">{editBio || 'Add bio...'}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
+              </div>
+
+              {/* 5. BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1512,7 +1483,7 @@ export default function PublicProfile({
                   {coverPhotos.map((photo, idx) => (
                     <div
                       key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200"
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
                     >
                       <img src={photo} alt="" className="w-full h-full object-cover" />
                       <button
@@ -1534,35 +1505,32 @@ export default function PublicProfile({
                 </div>
               </div>
 
-              {/* 5. Bio - Click to open Bio Screen */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Bio</span>
-                <button
-                  onClick={() => setShowBioScreen(true)}
-                  className="flex items-center gap-1 text-sm text-gray-500"
-                >
-                  <span className="max-w-[180px] truncate">{editBio || ''}</span>
-                  <ChevronRight size={16} className="text-gray-400" />
-                </button>
-              </div>
-
-              {/* 6. ALBUM — max 7 (Last me) */}
-              <div className="space-y-3 pt-2 pb-4">
+              {/* 6. ALBUM Inline — max 7 */}
+              <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Album Photos ({albumImages.length}/7)
                   </span>
+                  <span className="text-[10px] text-gray-400">Long press to pin</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {albumImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group cursor-pointer"
+                      onTouchStart={() => handleTouchStart(idx)}
+                      onTouchEnd={handleTouchEnd}
+                      onMouseDown={() => handleTouchStart(idx)}
+                      onMouseUp={handleTouchEnd}
+                      onMouseLeave={handleTouchEnd}
                     >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
                       <button
-                        onClick={() => handleRemoveAlbumImage(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveAlbumImage(idx);
+                        }}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
                       >
                         ×
                       </button>
@@ -1570,7 +1538,7 @@ export default function PublicProfile({
                   ))}
                   {albumImages.length < 7 && (
                     <button
-                      onClick={() => setShowAlbumScreen(true)}
+                      onClick={() => albumInputRef.current?.click()}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
                     >
                       <span className="text-3xl font-thin leading-none">+</span>
@@ -1579,15 +1547,61 @@ export default function PublicProfile({
                 </div>
               </div>
             </div>
+            
+            {/* Note: Save Changes button from here has been removed */}
+          </div>
+        </div>
+      )}
 
-            {/* Fixed Footer */}
-            <div className="px-6 py-2 bg-white border-t border-gray-100 shrink-0">
-              <button
-                onClick={handleSaveEdit}
-                className="w-full bg-blue-500 text-white py-3 rounded-full font-semibold hover:bg-blue-600 transition-colors"
-              >
-                Save Changes
+      {/* Nickname Edit Screen */}
+      {!isOtherUser && showNameScreen && (
+        <div className="fixed inset-0 z-[65] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={handleNameSave}></div>
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[40vh]">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+              <button onClick={handleNameSave}>
+                <ArrowLeft size={24} className="text-gray-700" />
               </button>
+              <h2 className="text-lg font-bold text-gray-900">Nickname</h2>
+              <div className="w-6"></div>
+            </div>
+
+            <div className="flex-1 px-5 overflow-y-auto">
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Enter new name"
+                className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Age Edit Screen */}
+      {!isOtherUser && showAgeScreen && (
+        <div className="fixed inset-0 z-[65] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={handleAgeSave}></div>
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[40vh]">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+              <button onClick={handleAgeSave}>
+                <ArrowLeft size={24} className="text-gray-700" />
+              </button>
+              <h2 className="text-lg font-bold text-gray-900">Age</h2>
+              <div className="w-6"></div>
+            </div>
+
+            <div className="flex-1 px-5 overflow-y-auto">
+              <input
+                type="number"
+                value={editAge}
+                onChange={(e) => setEditAge(e.target.value)}
+                placeholder="Enter age"
+                min="0"
+                max="150"
+                className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
+              />
             </div>
           </div>
         </div>
@@ -1596,16 +1610,14 @@ export default function PublicProfile({
       {/* Bio Edit Screen */}
       {!isOtherUser && showBioScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowBioScreen(false)}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleBioSave}></div>
           <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[50vh]">
             <div className="flex items-center justify-between px-5 py-4 shrink-0">
-              <button onClick={() => setShowBioScreen(false)}>
+              <button onClick={handleBioSave}>
                 <ArrowLeft size={24} className="text-gray-700" />
               </button>
               <h2 className="text-lg font-bold text-gray-900">Bio</h2>
-              <button onClick={() => setShowBioScreen(false)}>
-                <X size={24} className="text-gray-700" />
-              </button>
+              <div className="w-6"></div>
             </div>
 
             <div className="flex-1 px-5 overflow-y-auto">
@@ -1616,85 +1628,13 @@ export default function PublicProfile({
                     setEditBio(e.target.value)
                   }
                 }}
-                placeholder=""
+                placeholder="Write a bio..."
                 className="w-full h-32 p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none resize-none border border-transparent focus:border-blue-500"
               />
               <div className="text-right text-xs text-gray-400 mt-1">
                 {editBio.length}/50
               </div>
             </div>
-
-            <div className="px-5 pb-6 pt-2 shrink-0">
-              <button
-                onClick={handleBioSave}
-                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Album Screen */}
-      {showAlbumScreen && (
-        <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
-          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0">
-            <button onClick={() => setShowAlbumScreen(false)}>
-              <ArrowLeft size={24} className="text-gray-700" />
-            </button>
-            <h2 className="text-lg font-bold text-gray-900">Albums</h2>
-            <button onClick={() => setShowAlbumScreen(false)} className="text-blue-500 font-medium text-sm">
-              Done
-            </button>
-          </div>
-
-          <div className="bg-orange-50 px-4 py-3 flex items-start gap-2 shrink-0">
-            <AlertTriangle size={18} className="text-orange-400 mt-0.5 shrink-0" />
-            <p className="text-xs text-orange-600 font-medium">
-              Pin the photos. The top 6 photos will be displayed on your profile
-            </p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-4 py-4">
-            <div className="grid grid-cols-3 gap-2">
-              {albumImages.map((img, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
-                  onClick={() => setFullImageView(img)}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveAlbumImage(index);
-                    }}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-
-              {albumImages.length < 7 && (
-                <button
-                  onClick={() => albumInputRef.current?.click()}
-                  className="aspect-square rounded-lg bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-300 transition-colors"
-                >
-                  <span className="text-4xl font-thin leading-none">+</span>
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="px-4 py-4 border-t border-gray-100 flex justify-center shrink-0">
-            <button
-              onClick={() => albumInputRef.current?.click()}
-              className="w-14 h-14 rounded-full bg-[#1dc4e9] flex items-center justify-center text-white shadow-lg shadow-cyan-200 hover:bg-[#1de9b6] transition-colors"
-            >
-              <Camera size={26} />
-            </button>
           </div>
         </div>
       )}
