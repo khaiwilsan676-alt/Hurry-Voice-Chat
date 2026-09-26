@@ -16,6 +16,8 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
+  Trash2,
+  ArrowUp,
 } from 'lucide-react'
 
 import ChatScreen from './ChatScreen'
@@ -577,7 +579,7 @@ export default function PublicProfile({
   const [editCountryCode, setEditCountryCode] = useState(user.countryCode)
   const [countryLocked, setCountryLocked] = useState(false)
 
-  const [showBioScreen, setShowBioScreen] = useState(false) // ✅ New state for Bio Screen
+  const [showBioScreen, setShowBioScreen] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
 
   const [fullImageView, setFullImageView] = useState<string | null>(null)
@@ -590,8 +592,10 @@ export default function PublicProfile({
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
 
-  // ✅ New state for Album Screen
+  // ✅ Album Screen States
   const [showAlbumScreen, setShowAlbumScreen] = useState(false)
+  const [isAlbumEditMode, setIsAlbumEditMode] = useState(false)
+  const [selectedAlbumImages, setSelectedAlbumImages] = useState<string[]>([])
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -982,7 +986,7 @@ export default function PublicProfile({
 
   const handleCloseEditSheet = () => {
     setShowEditSheet(false)
-    setShowBioScreen(false) // Close bio screen if open
+    setShowBioScreen(false)
   }
 
   const handleGenderSelect = async (gender: string) => {
@@ -1078,6 +1082,35 @@ export default function PublicProfile({
     await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
+  // ✅ Handle Album Edit Mode Actions (Delete & Pin)
+  const handleDeleteSelected = async () => {
+    if (selectedAlbumImages.length === 0) return;
+    const updated = albumImages.filter(img => !selectedAlbumImages.includes(img));
+    setAlbumImages(updated);
+    localStorage.setItem('userAlbumImages', JSON.stringify(updated));
+    await saveToMongoDB({ albumImages: updated, album: updated });
+    setSelectedAlbumImages([]);
+  };
+
+  const handlePinSelected = async () => {
+    if (selectedAlbumImages.length === 0) return;
+    // Move selected images to the front
+    const pinned = albumImages.filter(img => selectedAlbumImages.includes(img));
+    const others = albumImages.filter(img => !selectedAlbumImages.includes(img));
+    const updated = [...pinned, ...others];
+    setAlbumImages(updated);
+    localStorage.setItem('userAlbumImages', JSON.stringify(updated));
+    await saveToMongoDB({ albumImages: updated, album: updated });
+    setSelectedAlbumImages([]);
+  };
+
+  const toggleAlbumSelection = (img: string) => {
+    if (!isAlbumEditMode) return;
+    setSelectedAlbumImages(prev => 
+      prev.includes(img) ? prev.filter(i => i !== img) : [...prev, img]
+    );
+  };
+
   const handleSaveEdit = async () => {
     const finalNewName = isValidName(editName) ? editName : user.displayAccountNumber
     localStorage.setItem('userName', finalNewName)
@@ -1117,7 +1150,6 @@ export default function PublicProfile({
     setShowBioScreen(false)
   }
 
-  // ✅ Updated handleBioSave
   const handleBioSave = async () => {
     localStorage.setItem('userBio', editBio)
     const updatedUser = { ...user, bio: editBio };
@@ -1437,7 +1469,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Edit Profile Bottom Sheet — 50vh, scrollable content */}
+      {/* ✅ Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
@@ -1515,7 +1547,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* ALBUM — max 7 */}
+              {/* ALBUM — max 7 (Removed + icon) */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1537,18 +1569,11 @@ export default function PublicProfile({
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 7 && (
-                    <button
-                      onClick={() => setShowAlbumScreen(true)}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
+                  {/* ❌ Removed + button as requested */}
                 </div>
               </div>
 
-              {/* BACKGROUND — max 4, Album ke niche */}
+              {/* BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1595,7 +1620,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ NEW: Bio Edit Screen (Matches Screenshot) */}
+      {/* ✅ Bio Edit Screen */}
       {!isOtherUser && showBioScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowBioScreen(false)}></div>
@@ -1641,18 +1666,37 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ NEW: Album Screen (Matches Screenshot) */}
+      {/* ✅ Albums Screen (Updated with Edit mode, Pin & Delete) */}
       {showAlbumScreen && (
         <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0">
-            <button onClick={() => setShowAlbumScreen(false)}>
+            <button onClick={() => {
+              setShowAlbumScreen(false);
+              setIsAlbumEditMode(false);
+              setSelectedAlbumImages([]);
+            }}>
               <ArrowLeft size={24} className="text-gray-700" />
             </button>
             <h2 className="text-lg font-bold text-gray-900">Albums</h2>
-            <button onClick={() => setShowAlbumScreen(false)} className="text-blue-500 font-medium text-sm">
-              Done
-            </button>
+            {isAlbumEditMode ? (
+              <button 
+                onClick={() => {
+                  setIsAlbumEditMode(false);
+                  setSelectedAlbumImages([]);
+                }} 
+                className="text-blue-500 font-medium text-sm"
+              >
+                Done
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsAlbumEditMode(true)} 
+                className="text-blue-500 font-medium text-sm"
+              >
+                Edit
+              </button>
+            )}
           </div>
 
           {/* Info Banner */}
@@ -1666,24 +1710,44 @@ export default function PublicProfile({
           {/* Photo Grid */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="grid grid-cols-3 gap-2">
-              {albumImages.map((img, index) => (
-                <div
-                  key={index}
-                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
-                  onClick={() => setFullImageView(img)}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveAlbumImage(index);
-                    }}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+              {albumImages.map((img, index) => {
+                const isSelected = selectedAlbumImages.includes(img);
+                return (
+                  <div
+                    key={index}
+                    className={`relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer ${
+                      isAlbumEditMode && isSelected ? 'ring-4 ring-blue-500' : ''
+                    }`}
+                    onClick={() => isAlbumEditMode ? toggleAlbumSelection(img) : setFullImageView(img)}
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    
+                    {/* Remove button (Hidden in Edit Mode) */}
+                    {!isAlbumEditMode && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveAlbumImage(index);
+                        }}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                      >
+                        ×
+                      </button>
+                    )}
+
+                    {/* Selection Checkmark (Visible in Edit Mode) */}
+                    {isAlbumEditMode && (
+                      <div className="absolute top-1 right-1">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isSelected ? 'bg-blue-500 border-blue-500' : 'border-white bg-black/30'
+                        }`}>
+                          {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
 
               {/* Add More Button */}
               {albumImages.length < 7 && (
@@ -1697,15 +1761,48 @@ export default function PublicProfile({
             </div>
           </div>
 
-          {/* Bottom Camera Button */}
-          <div className="px-4 py-4 border-t border-gray-100 flex justify-center shrink-0">
-            <button
-              onClick={() => albumInputRef.current?.click()}
-              className="w-14 h-14 rounded-full bg-[#1dc4e9] flex items-center justify-center text-white shadow-lg shadow-cyan-200 hover:bg-[#1de9b6] transition-colors"
-            >
-              <Camera size={26} />
-            </button>
-          </div>
+          {/* Bottom Camera Button (Hidden in Edit Mode) */}
+          {!isAlbumEditMode && (
+            <div className="px-4 py-4 border-t border-gray-100 flex justify-center shrink-0">
+              <button
+                onClick={() => albumInputRef.current?.click()}
+                className="w-14 h-14 rounded-full bg-[#1dc4e9] flex items-center justify-center text-white shadow-lg shadow-cyan-200 hover:bg-[#1de9b6] transition-colors"
+              >
+                <Camera size={26} />
+              </button>
+            </div>
+          )}
+
+          {/* Bottom Action Bar for Edit Mode (Delete & Pin) */}
+          {isAlbumEditMode && (
+            <div className="px-4 py-4 border-t border-gray-100 flex items-center justify-between bg-white shrink-0">
+              <button 
+                onClick={handleDeleteSelected}
+                disabled={selectedAlbumImages.length === 0}
+                className={`flex items-center gap-2 text-lg font-medium ${
+                  selectedAlbumImages.length > 0 ? 'text-red-500' : 'text-gray-300'
+                }`}
+              >
+                <Trash2 size={22} />
+                delete
+              </button>
+              
+              <span className="text-gray-400 text-sm font-medium">
+                {selectedAlbumImages.length} photos have been selected
+              </span>
+              
+              <button 
+                onClick={handlePinSelected}
+                disabled={selectedAlbumImages.length === 0}
+                className={`flex items-center gap-2 text-lg font-medium ${
+                  selectedAlbumImages.length > 0 ? 'text-black' : 'text-gray-300'
+                }`}
+              >
+                <ArrowUp size={22} />
+                Pin
+              </button>
+            </div>
+          )}
         </div>
       )}
 
