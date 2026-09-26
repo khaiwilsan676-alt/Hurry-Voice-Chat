@@ -162,50 +162,88 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     video.preload = 'auto';
     video.loop = true;
     video.muted = true;
+    video.defaultMuted = true;
+    video.autoplay = true;
+    video.controls = false;
     video.playsInline = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('controls', 'false');
+    video.style.position = 'fixed';
+    video.style.width = '1px';
+    video.style.height = '1px';
+    video.style.left = '-2px';
+    video.style.top = '-2px';
+    video.style.opacity = '0';
+    video.style.pointerEvents = 'none';
+    video.style.zIndex = '-1';
+    document.body.appendChild(video);
     videoElementRef.current = video;
 
     let cancelled = false;
+    let playbackStarted = false;
+    let completeTimer: ReturnType<typeof setTimeout> | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
     const beginPlayback = async () => {
-      if (cancelled) return;
+      if (cancelled || playbackStarted) return;
 
       try {
+        video.controls = false;
+        video.muted = true;
+        video.defaultMuted = true;
         await video.play();
         if (cancelled) return;
 
-        // IMPORTANT: only reveal the effect after play() succeeds.
+        playbackStarted = true;
         setIsVisible(true);
 
-        setTimeout(() => {
+        completeTimer = setTimeout(() => {
           if (!cancelled) {
             setIsVisible(false);
             onComplete?.();
           }
         }, 4000);
       } catch (error) {
-        console.warn('EntryEffect video play waiting:', error);
-
-        // Android WebView can reject the first play() while the media is preparing.
-        // Retry without showing any pause/loading page.
-        if (!cancelled) {
-          setTimeout(() => {
-            if (!cancelled) beginPlayback();
-          }, 150);
-        }
+        if (cancelled) return;
+        retryTimer = setTimeout(() => {
+          if (!cancelled) void beginPlayback();
+        }, 120);
       }
     };
 
-    const handleCanPlay = () => {
+    const handleReady = () => {
       void beginPlayback();
     };
 
-    video.addEventListener('canplay', handleCanPlay, { once: true });
-    video.addEventListener('loadeddata', handleCanPlay, { once: true });
+    const handlePlaying = () => {
+      if (cancelled || playbackStarted) return;
+      playbackStarted = true;
+      setIsVisible(true);
+      completeTimer = setTimeout(() => {
+        if (!cancelled) {
+          setIsVisible(false);
+          onComplete?.();
+        }
+      }, 4000);
+    };
 
-    // Cached Blob URLs normally become playable immediately.
+    const handleUnexpectedPause = () => {
+      if (cancelled || !videoSrc) return;
+      // Never expose the native Android paused-video surface. Resume silently.
+      if (!video.ended) {
+        video.muted = true;
+        void video.play().catch(() => {});
+      }
+    };
+
+    video.addEventListener('canplay', handleReady);
+    video.addEventListener('loadeddata', handleReady);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('pause', handleUnexpectedPause);
+
     if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
       void beginPlayback();
     } else {
@@ -214,9 +252,16 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
 
     return () => {
       cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+      if (completeTimer) clearTimeout(completeTimer);
+      video.removeEventListener('canplay', handleReady);
+      video.removeEventListener('loadeddata', handleReady);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('pause', handleUnexpectedPause);
       video.pause();
       video.removeAttribute('src');
       video.load();
+      if (video.parentNode) video.parentNode.removeChild(video);
       videoElementRef.current = null;
     };
   }, [videoSrc, onComplete]);
@@ -381,10 +426,13 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     };
   }, [videoSrc]);
 
-  if (!isVisible) return null;
+  if (!isVisible && !videoSrc) return null;
 
   return (
-    <div className="absolute top-1/4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none w-full max-w-[300px] flex flex-col items-center justify-center animate-bounce-in">
+    <div
+      className="absolute top-1/4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none w-full max-w-[300px] flex flex-col items-center justify-center animate-bounce-in"
+      style={{ opacity: isVisible ? 1 : 0, visibility: isVisible ? 'visible' : 'hidden' }}
+    >
       {videoSrc ? (
         <canvas
           ref={canvasRef}
