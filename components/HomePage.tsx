@@ -1074,7 +1074,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       if (notificationTimerRef.current) {
         clearTimeout(notificationTimerRef.current);
         notificationTimerRef.current = null;
@@ -1389,7 +1389,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         console.warn('Error/timeout syncing rooms:', err);
       }
     };
-    fetchRoomsWithTimeout();
+    if (!Capacitor.isNativePlatform()) fetchRoomsWithTimeout();
 
     return () => {
       isMounted = false;
