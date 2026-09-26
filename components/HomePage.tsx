@@ -18,6 +18,16 @@ import InviteFriends from './InviteFriends'
 
 // ============ MONGODB / INDEXEDDB DATA HELPERS ============
 
+
+const normalizeRoomImage = (value: any, roomId: string): string => {
+  const image = String(value || '').trim();
+  if (!image || image === 'undefined' || image === 'null') return '/default-avatar.png';
+  if (image.startsWith('data:image/')) {
+    return apiUrl(`/api/rooms/image?roomId=${encodeURIComponent(String(roomId || ''))}`);
+  }
+  return image;
+};
+
 const fetchAllRoomsFromMongoDB = async (): Promise<any[]> => {
   const response = await fetch("/api/rooms");
   if (!response.ok) {
@@ -1269,6 +1279,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           );
           return validRooms.map(room => ({
             ...room,
+            image: normalizeRoomImage(room.image || room.dp || room.roomDp, String(room.id || room.accountId || '')),
             activeUserCount:
               liveCounts.get(String(room.id || room.accountId || '')) ?? 0
           }));
@@ -1288,7 +1299,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
               id: roomId,
               name: data.name || data.roomName || data['Room Name'] || 'Room',
               country: data.Country || data.country || '🇮🇳',
-              image: data.dp || data.roomDp || data['Room dp'] || data.image || '/default-avatar.png',
+              image: normalizeRoomImage(data.dp || data.roomDp || data['Room dp'] || data.image, roomId),
               accountId: accId,
               createdAt: data.createdAt || Date.now(),
               isLocked: Boolean(data.isLocked),
@@ -1351,7 +1362,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                 id: roomId,
                 name: data.name || data.roomName || data['Room Name'] || 'Room',
                 country: data.Country || data.country || '🇮🇳',
-                image: data.dp || data.roomDp || data['Room dp'] || data.image || '/default-avatar.png',
+                image: normalizeRoomImage(data.dp || data.roomDp || data['Room dp'] || data.image, roomId),
                 accountId: accId,
                 createdAt: data.createdAt || Date.now(),
                 isLocked: Boolean(data.isLocked),
