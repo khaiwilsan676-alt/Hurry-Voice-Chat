@@ -407,6 +407,16 @@ export default function GiftPicker({
                 el.controls = false;
                 el.removeAttribute("controls");
                 el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
+                el.style.pointerEvents = "none";
+                el.style.userSelect = "none";
+                const observer = new MutationObserver(() => {
+                  if (el.controls || el.hasAttribute("controls")) {
+                    el.controls = false;
+                    el.removeAttribute("controls");
+                  }
+                });
+                observer.observe(el, { attributes: true, attributeFilter: ["controls"] });
+                (el as any).__hurryControlsObserver = observer;
                 el.setAttribute("disablePictureInPicture", "");
                 el.setAttribute("disableRemotePlayback", "");
                 el.play().catch(() => {});
@@ -426,7 +436,11 @@ export default function GiftPicker({
             onCanPlay={(e) => {
               e.currentTarget.play().catch(() => {});
             }}
-            onPlaying={() => setSending(false)}
+            onPlaying={(e) => {
+              e.currentTarget.controls = false;
+              e.currentTarget.removeAttribute("controls");
+              setSending(false);
+            }}
             onEnded={finishVideo}
             onError={finishVideo}
             className={
