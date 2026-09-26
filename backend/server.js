@@ -1212,7 +1212,7 @@ io.on("connection", (socket) => {
       String(socket.roomUserId || "") === userId ||
       String(socket.userId || "") === userId;
 
-    if (String(socket.roomId || "") !== roomId || !isRoomUser) {
+    if (!isValidRoomActionSocket(socket, roomId, userId) || !isRoomUser) {
       return;
     }
 
