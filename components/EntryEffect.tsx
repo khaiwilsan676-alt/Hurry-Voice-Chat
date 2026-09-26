@@ -144,8 +144,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     const start = async () => {
       if (cancelled || started) return;
       try {
-        video.muted = true;
-        video.defaultMuted = true;
         video.playsInline = true;
         video.currentTime = 0;
         await video.play();
