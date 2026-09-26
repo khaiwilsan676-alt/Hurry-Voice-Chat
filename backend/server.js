@@ -1107,7 +1107,7 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftType, transferId, luckyGift } = {}) => {
+  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftType, transferId, luckyGift, senderName, senderImage, recipientName, recipientImage, multiplier } = {}) => {
     const room = String(roomId || "");
     const sender = String(senderId || "");
     const value = Number(amount);
@@ -1169,12 +1169,48 @@ io.on("connection", (socket) => {
 
     if (validRecipients.length === 0) return;
 
+    const isLucky = luckyGift === true || String(giftType || "") === "Lucky";
     const diamondAmount =
       Number.isFinite(value) && value > 0
-        ? Math.floor(value * ((luckyGift === true || String(giftType || "") === "Lucky") ? 0.1 : 1))
+        ? Math.floor(value * (isLucky ? 0.1 : 1))
         : 0;
 
     if (diamondAmount <= 0) return;
+
+    let senderUser = null;
+    for (const [userId, user] of roomMap.entries()) {
+      if (
+        String(userId) === sender ||
+        String(user?.userId || "") === sender ||
+        String(user?.accountId || "") === sender
+      ) {
+        senderUser = user;
+        break;
+      }
+    }
+
+    let firstRecipient = null;
+    const firstRecipientId = validRecipients[0];
+    for (const [userId, user] of roomMap.entries()) {
+      if (
+        String(userId) === String(firstRecipientId) ||
+        String(user?.userId || "") === String(firstRecipientId) ||
+        String(user?.accountId || "") === String(firstRecipientId)
+      ) {
+        firstRecipient = user;
+        break;
+      }
+    }
+
+    // Lucky return is a transparent random 0–50% return of the sent coin value.
+    // The exact percentage is included in the room event so every client sees
+    // the same result; it is not hidden from the user.
+    const luckyReturnPercent = isLucky
+      ? Math.floor(Math.random() * 51)
+      : 0;
+    const luckyReturnAmount = isLucky
+      ? Math.floor(value * (luckyReturnPercent / 100))
+      : 0;
 
     const transferPayload = {
       roomId: room,
@@ -1184,7 +1220,14 @@ io.on("connection", (socket) => {
       diamondAmount,
       giftName: String(giftName || "Gift"),
       giftType: String(giftType || ""),
-      luckyGift: luckyGift === true,
+      luckyGift: isLucky,
+      senderName: String(senderName || senderUser?.name || "User"),
+      senderImage: String(senderImage || senderUser?.image || "/default-avatar.png"),
+      recipientName: String(recipientName || firstRecipient?.name || "User"),
+      recipientImage: String(recipientImage || firstRecipient?.image || "/default-avatar.png"),
+      multiplier: Math.max(1, Number(multiplier) || 1),
+      luckyReturnPercent,
+      luckyReturnAmount,
       transferId: eventId || undefined,
       timestamp: Date.now(),
     };
