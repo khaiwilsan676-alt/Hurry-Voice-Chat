@@ -32,9 +32,10 @@ export default function GiftPicker(props: any) {
   const [flies, setFlies] = useState<Fly[]>([]);
   const animatingRef = useRef(false);
   const closeRef = useRef<(() => void) | null>(null);
+  const safetyCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startLuckyFly = (data: any) => {
-    const image = LUCKY_GIFT_IMAGES[String(data.giftName || "")];
+    const image = String(data.image || LUCKY_GIFT_IMAGES[String(data.giftName || "")] || "");
     if (!image) return false;
 
     const recipientIds = new Set(
@@ -122,11 +123,13 @@ export default function GiftPicker(props: any) {
       });
     });
 
-    window.setTimeout(() => {
+    if (safetyCloseRef.current) clearTimeout(safetyCloseRef.current);
+    safetyCloseRef.current = window.setTimeout(() => {
       setFlies([]);
       animatingRef.current = false;
       closeRef.current?.();
       closeRef.current = null;
+      safetyCloseRef.current = null;
     }, 1150);
 
     return true;
@@ -175,6 +178,14 @@ export default function GiftPicker(props: any) {
       });
 
       animatingRef.current = true;
+      if (safetyCloseRef.current) clearTimeout(safetyCloseRef.current);
+      safetyCloseRef.current = window.setTimeout(() => {
+        setFlies([]);
+        animatingRef.current = false;
+        props.onClose?.();
+        closeRef.current = null;
+        safetyCloseRef.current = null;
+      }, 1600);
       return socket;
     }) as typeof socket.emit;
 
