@@ -1132,9 +1132,11 @@ io.on("connection", (socket) => {
     }
 
     // Sender must actually be inside this room and own the sending identity.
+    // Accept any identity registered on the socket (accountId/userId/room identities)
+    // so the wallet/room account identifier cannot block a valid gift transfer.
     if (
       String(socket.roomId || "") !== room ||
-      String(socket.roomAccountId || socket.accountId || socket.roomUserId || socket.userId || "") !== sender
+      !socketOwnsIdentity(socket, sender)
     ) {
       return;
     }
@@ -1167,15 +1169,29 @@ io.on("connection", (socket) => {
 
     if (validRecipients.length === 0) return;
 
-    io.to(`room:${room}`).emit("coin_transfer_received", {
+    const diamondAmount =
+      Number.isFinite(value) && value > 0
+        ? Math.floor(value * ((luckyGift === true || String(giftType || "") === "Lucky") ? 0.1 : 1))
+        : 0;
+
+    if (diamondAmount <= 0) return;
+
+    const transferPayload = {
       roomId: room,
       senderId: sender,
       recipientIds: validRecipients,
       amount: value,
-      diamondAmount: Number.isFinite(value) && value > 0 ? Math.floor(value * ((luckyGift === true || String(giftType || "") === "Lucky") ? 0.1 : 1)) : 0,
+      diamondAmount,
       giftName: String(giftName || "Gift"),
+      giftType: String(giftType || ""),
+      luckyGift: luckyGift === true,
+      transferId: eventId || undefined,
       timestamp: Date.now(),
-    });
+    };
+
+    // Deliver the same transfer to the room. Each client credits only when its
+    // own accountId/userId is one of the selected recipientIds.
+    io.to(`room:${room}`).emit("coin_transfer_received", transferPayload);
   });
 
   socket.on(
