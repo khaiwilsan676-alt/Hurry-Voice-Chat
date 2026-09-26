@@ -145,6 +145,8 @@ export default function GiftPicker({
   onSend,
   roomId,
   currentUserAccountId,
+  currentUserName = "User",
+  currentUserImage = "/default-avatar.png",
   roomUsers = [],
 }: {
   onClose: () => void;
@@ -152,6 +154,8 @@ export default function GiftPicker({
   onSend?: (value: number) => void;
   roomId?: string;
   currentUserAccountId?: string;
+  currentUserName?: string;
+  currentUserImage?: string;
   roomUsers?: Array<{ accountId: string; name: string; image: string }>;
 }) {
   const [activeTab, setActiveTab] = useState("Hot");
@@ -275,8 +279,13 @@ export default function GiftPicker({
           .filter((s) => s.isOccupied && s.user)
           .map((s) => s.user!.accountId);
   const recipientCount = recipientIds.length;
+  const recipientUsers = recipientIds
+    .map((id) => roomUsers.find((u) => String(u.accountId) === String(id)) || seats.find((s) => String(s.user?.accountId || "") === String(id))?.user)
+    .filter(Boolean) as Array<{ accountId: string; name: string; image: string }>;
+  const firstRecipient = recipientUsers[0];
   const totalSendCost = totalCost * Math.max(1, recipientCount);
   const canAfford = totalCost > 0 && recipientCount > 0 && totalSendCost <= walletBalance;
+  const isLuckyGiftTab = activeTab === "Lucky";
 
   const finishVideo = () => {
     if (videoTimeoutRef.current) {
@@ -318,6 +327,11 @@ const handleSend = async () => {
         amount: totalCost,
         giftName: selectedGiftObj.name,
         giftType: activeTab,
+        senderName: currentUserName,
+        senderImage: currentUserImage,
+        recipientName: firstRecipient?.name || "User",
+        recipientImage: firstRecipient?.image || "/default-avatar.png",
+        multiplier: parseMultiplier(selectedMultiplier),
       });
 
       if (selectedGiftObj.video) {
@@ -334,6 +348,27 @@ const handleSend = async () => {
 
     if (onSend) {
       onSend(totalCost);
+    }
+
+    if (isLuckyGiftTab) {
+      window.dispatchEvent(new CustomEvent("hurry:lucky-combo", {
+        detail: {
+          roomId: String(roomId || ""),
+          senderId: String(currentUserAccountId || ""),
+          senderName: currentUserName,
+          senderImage: currentUserImage,
+          recipientIds: recipientIds.map(String),
+          recipientName: firstRecipient?.name || "User",
+          recipientImage: firstRecipient?.image || "/default-avatar.png",
+          giftName: selectedGiftObj.name,
+          giftImage: selectedGiftObj.image,
+          giftCoins: selectedGiftObj.coins,
+          multiplier: parseMultiplier(selectedMultiplier),
+        },
+      }));
+      setSending(false);
+      onClose();
+      return;
     }
 
     if (selectedGiftObj.video) {
