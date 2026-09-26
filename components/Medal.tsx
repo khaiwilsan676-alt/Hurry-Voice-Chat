@@ -503,7 +503,7 @@ export default function Medal({ onBack }: MedalProps) {
         <div className="relative flex items-center justify-between pb-4">
           <button
             onClick={onBack}
-            className="p-1 pl-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10"
+            className="absolute left-0 top-0 p-1 pl-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10"
           >
             <ArrowLeft size={28} />
           </button>

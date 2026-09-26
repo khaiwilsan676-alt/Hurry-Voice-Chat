@@ -123,7 +123,7 @@ export default function SettingPage({
         >
           <button 
             onClick={() => setShowAboutView(false)} 
-            className="p-1 hover:bg-slate-100 rounded-full transition-colors z-10"
+            className="absolute left-0 top-0 p-1 hover:bg-slate-100 rounded-full transition-colors z-10"
           >
             <ArrowLeft size={24} className="text-slate-900" />
           </button>
@@ -172,7 +172,7 @@ export default function SettingPage({
           paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)'
         }}
       >
-        <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+        <button onClick={onBack} className="absolute left-0 top-0 p-2 hover:bg-slate-100 rounded-full transition-colors">
           <ArrowLeft size={24} className="text-slate-900" />
         </button>
         <h1 className="text-lg font-semibold text-slate-900">{t.settings}</h1>
