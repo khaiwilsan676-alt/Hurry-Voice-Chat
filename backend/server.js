@@ -1223,6 +1223,12 @@ io.on("connection", (socket) => {
       }
     }
 
+    // Lucky Gift fly is a transient visual event, so relay it to the other room clients.
+    // The sender also plays it locally from GiftPicker.tsx.
+    if (action === "lucky_image") {
+      socket.to(`room:${roomId}`).emit("room_seat_action", data);
+    }
+
     // IMPORTANT:
     // Broadcast the complete seat state to EVERYONE in the room.
     emitRoomSeats(roomId);
