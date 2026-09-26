@@ -663,6 +663,17 @@ export default function StorePage({
       next.add(item.id);
     }
     setEquippedIds(next);
+
+    // Room entry reads the equipped vehicle from localStorage.
+    // Keep the Store and Room state synchronized immediately.
+    if (item.tab === "Vehicle") {
+      if (next.has(item.id)) {
+        localStorage.setItem("equipped_Vehicle", item.tryVideo || item.image);
+      } else {
+        localStorage.removeItem("equipped_Vehicle");
+      }
+    }
+
     await saveEquippedItemsToDB(Array.from(next));
   };
 
