@@ -235,7 +235,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
       if (alive) setBalance(bal);
     };
     sync();
-    const id = setInterval(sync, 1500);
+    const id = setInterval(sync, 3000);
     return () => {
       alive = false;
       clearInterval(id);
