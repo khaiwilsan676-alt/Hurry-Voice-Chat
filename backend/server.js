@@ -901,9 +901,46 @@ io.on("connection", (socket) => {
 
   socket.on(
     "global_room_presence_request",
-    () => {
+    async () => {
+      const baseRooms = getGlobalRoomPresence();
+      let finalRooms = baseRooms;
+
+      if (db && baseRooms.length > 0) {
+        try {
+          const roomIds = baseRooms.map((r) => r.roomId);
+          const roomDataList = await db.collection("rooms").find({
+            $or: [
+              { accountId: { $in: roomIds } },
+              { id: { $in: roomIds } },
+              { roomId: { $in: roomIds } }
+            ]
+          }).toArray();
+
+          const roomMap = new Map();
+          for (const rd of roomDataList) {
+            if (rd.accountId) roomMap.set(String(rd.accountId), rd);
+            if (rd.id) roomMap.set(String(rd.id), rd);
+            if (rd.roomId) roomMap.set(String(rd.roomId), rd);
+          }
+
+          finalRooms = baseRooms.map((r) => {
+            const match = roomMap.get(r.roomId);
+            if (match) {
+              return {
+                ...r,
+                roomName: match.name || match.roomName || match["Room Name"] || "Room",
+                roomDp: match.image || match.dp || match.roomDp || match["Room dp"] || "/default-avatar.png",
+              };
+            }
+            return r;
+          });
+        } catch (err) {
+          console.error("Error fetching room data in bulk for global presence:", err);
+        }
+      }
+
       socket.emit("global_room_presence", {
-        rooms: getGlobalRoomPresence(),
+        rooms: finalRooms,
       });
     }
   );
