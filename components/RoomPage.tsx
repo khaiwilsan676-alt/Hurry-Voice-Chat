@@ -329,11 +329,11 @@ function RoomContent({
   const [messages, setMessages] = useState<Message[]>([]);
   const [fullImageModal, setFullImageModal] = useState<string | null>(null);
 
-  const [roomName, setRoomName] = useState<string>("");
+  const [roomName, setRoomName] = useState<string>(roomOwner.name || "Room");
   const [roomAnnouncement, setRoomAnnouncement] = useState<string>("");
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
-  const [roomDp, setRoomDp] = useState<string>("/default-avatar.png");
+  const [roomDp, setRoomDp] = useState<string>(roomOwner.image || "/default-avatar.png");
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -459,8 +459,8 @@ function RoomContent({
           if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
           if (cached.roomPassword) setRoomPassword(cached.roomPassword);
         } else {
-          setRoomName("Room");
-          setRoomDp("/default-avatar.png");
+          setRoomName(roomOwner.name || "Room");
+          setRoomDp(roomOwner.image || "/default-avatar.png");
         }
       } catch (err) {
         console.error("Room settings IndexedDB load error:", err);
