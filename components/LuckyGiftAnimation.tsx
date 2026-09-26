@@ -46,7 +46,11 @@ function animateLuckyGift(data: any, roomId: string) {
   if (typeof document === "undefined") return;
   if (String(data?.roomId || "") !== String(roomId)) return;
   if (data?.action !== "lucky_image") return;
-  const eventId = String(data?.eventId || `${data?.roomId || ""}-${data?.seatNumber || ""}-${data?.timestamp || ""}-${data?.src || ""}`);
+
+  const eventId = String(
+    data?.eventId ||
+      `${data?.roomId || ""}-${data?.seatNumber || ""}-${data?.timestamp || ""}-${data?.src || ""}`
+  );
   if (seenLuckyEvents.has(eventId)) return;
   seenLuckyEvents.add(eventId);
   window.setTimeout(() => seenLuckyEvents.delete(eventId), 5000);
@@ -113,7 +117,7 @@ function animateLuckyGift(data: any, roomId: string) {
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          // First travel from the bottom to the middle and hold there for 1 second.
+          // Bottom -> middle, then hold for exactly 0.7 seconds.
           flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
           flyer.style.transform =
             `translate3d(${middleX - half}px,${middleY - half}px,0) scale(1)`;
@@ -124,13 +128,13 @@ function animateLuckyGift(data: any, roomId: string) {
               return;
             }
 
-            // Then travel to the target. No opacity/fade and no color/size change.
+            // Middle -> target avatar while continuously shrinking, then disappear.
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
             flyer.style.transform =
-              `translate3d(${endX - half}px,${endY - half}px,0) scale(1)`;
+              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.12)`;
 
             window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
-          }, 1000);
+          }, 700);
         });
       });
     };
@@ -161,6 +165,7 @@ export default function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) 
       const data = (event as CustomEvent).detail;
       animateLuckyGift(data, roomIdRef.current);
     };
+
     socket.on("room_seat_action", handler);
     window.addEventListener("hurry:lucky-image", localHandler);
 
