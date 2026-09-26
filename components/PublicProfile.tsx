@@ -600,6 +600,22 @@ export default function PublicProfile({
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
+  // Refs for auto-scroll
+  const yearRef = useRef<HTMLDivElement>(null)
+  const monthRef = useRef<HTMLDivElement>(null)
+  const dayRef = useRef<HTMLDivElement>(null)
+
+  // Auto scroll to selected value when screen opens
+  useEffect(() => {
+    if (showAgeScreen) {
+      setTimeout(() => {
+        if (yearRef.current) yearRef.current.scrollTop = years.indexOf(birthYear) * 50;
+        if (monthRef.current) monthRef.current.scrollTop = months.indexOf(birthMonth) * 50;
+        if (dayRef.current) dayRef.current.scrollTop = days.indexOf(birthDay) * 50;
+      }, 100);
+    }
+  }, [showAgeScreen]);
+
   useEffect(() => {
     if (coverPhotos.length <= 1) {
       setCurrentCoverIndex(0)
@@ -1825,7 +1841,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ NEW: Birthday Wheel Picker (Age Edit) */}
+      {/* ✅ FIXED: Birthday Wheel Picker (Age Edit) */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgeScreen(false)}></div>
@@ -1849,14 +1865,14 @@ export default function PublicProfile({
               <div className="flex w-full justify-between px-12 z-10 h-full">
                 {/* Year Wheel */}
                 <div 
+                  ref={yearRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     const index = Math.round(el.scrollTop / 50);
-                    setBirthYear(years[index] || years[0]);
+                    if (years[index] !== undefined) setBirthYear(years[index]);
                   }}
-                  ref={(el) => { if(el) el.scrollTop = years.indexOf(birthYear) * 50; }}
                 >
                   <div className="h-[100px]"></div>
                   {years.map((y) => (
@@ -1869,14 +1885,14 @@ export default function PublicProfile({
 
                 {/* Month Wheel */}
                 <div 
+                  ref={monthRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     const index = Math.round(el.scrollTop / 50);
-                    setBirthMonth(months[index] || months[0]);
+                    if (months[index] !== undefined) setBirthMonth(months[index]);
                   }}
-                  ref={(el) => { if(el) el.scrollTop = months.indexOf(birthMonth) * 50; }}
                 >
                   <div className="h-[100px]"></div>
                   {months.map((m) => (
@@ -1889,14 +1905,14 @@ export default function PublicProfile({
 
                 {/* Day Wheel */}
                 <div 
+                  ref={dayRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     const index = Math.round(el.scrollTop / 50);
-                    setBirthDay(days[index] || days[0]);
+                    if (days[index] !== undefined) setBirthDay(days[index]);
                   }}
-                  ref={(el) => { if(el) el.scrollTop = days.indexOf(birthDay) * 50; }}
                 >
                   <div className="h-[100px]"></div>
                   {days.map((d) => (
