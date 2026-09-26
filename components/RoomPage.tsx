@@ -15,6 +15,7 @@ import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
+import LuckyGiftAnimation from './LuckyGiftAnimation';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 import { addDiamondsToDB, recordTransaction } from "./Wallet";
@@ -2467,6 +2468,8 @@ function RoomContent({
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
       `}</style>
+
+      <LuckyGiftAnimation roomId={String(roomId)} />
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
       {showGiftPicker && (
