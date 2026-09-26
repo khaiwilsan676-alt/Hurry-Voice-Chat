@@ -116,7 +116,21 @@ function cancelPendingSeatDisconnect(roomId, userId) {
   }
 }
 
-function clearUserSeat(roomId, userId) {
+function clearUserSeat(roomId, userId, expectedSocketId = null) {
+  // If this is a reconnecting session, never let an old disconnect clear
+  // the newly occupied seat.
+  if (expectedSocketId) {
+    const room = roomSeats.get(String(roomId));
+    if (room) {
+      const id = String(userId);
+      for (const seat of room.values()) {
+        const seatUserId = String(seat?.user?.accountId || seat?.user?.userId || "");
+        if (seatUserId === id && String(seat?.socketId || "") !== String(expectedSocketId)) {
+          return false;
+        }
+      }
+    }
+  }
   const room = roomSeats.get(String(roomId));
   if (!room) return false;
 
@@ -147,7 +161,7 @@ function clearUserSeat(roomId, userId) {
   return changed;
 }
 
-function clearUserSeatGracefully(roomId, userId, delayMs = 5000) {
+function clearUserSeatGracefully(roomId, userId, delayMs = 5000, socketId = null) {
   const room = String(roomId);
   const id = String(userId);
   const key = `${room}:${id}`;
@@ -163,7 +177,7 @@ function clearUserSeatGracefully(roomId, userId, delayMs = 5000) {
 
   const timer = setTimeout(() => {
     pendingSeatDisconnects.delete(key);
-    if (clearUserSeat(room, id)) {
+    if (clearUserSeat(room, id, socketId)) {
       emitRoomSeats(room);
     }
   }, delayMs);
@@ -368,7 +382,7 @@ function getGlobalRoomPresence() {
     ([roomId, users]) => ({
       roomId: String(roomId),
       users: getRoomUsers(roomId),
-      activeUserCount: users.size,
+      activeUserCount: getRoomUsers(roomId).length,
     })
   );
 }
@@ -1773,7 +1787,7 @@ io.on("connection", (socket) => {
       const room = String(socket.roomId);
 
       // Grace period of 5s before clearing seat on disconnect
-      clearUserSeatGracefully(room, String(userId), 5000);
+      clearUserSeatGracefully(room, String(userId), 5000, socket.id);
     }
 
     if (room && userId) {
