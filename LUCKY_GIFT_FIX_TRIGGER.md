@@ -1,1 +1,0 @@
-Temporary workflow trigger; safe to remove after the automated patch commit.
