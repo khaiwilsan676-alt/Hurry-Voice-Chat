@@ -3,7 +3,7 @@
 import { apiUrl } from "../src/lib/api";
 
 import React, { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { getTranslation, LanguageCode } from '../lib/translations'
 
 interface SettingPageProps {
@@ -125,7 +125,7 @@ export default function SettingPage({
             onClick={() => setShowAboutView(false)} 
             className="p-1 hover:bg-slate-100 rounded-full transition-colors z-10"
           >
-            <ChevronLeft size={24} className="text-slate-900" />
+            <ArrowLeft size={24} className="text-slate-900" />
           </button>
           <h1 className="text-lg font-semibold text-slate-900 absolute left-0 right-0 text-center pointer-events-none">
             About Us
