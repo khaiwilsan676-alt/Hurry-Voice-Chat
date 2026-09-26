@@ -18,8 +18,9 @@ android {
     }
     buildTypes {
         release {
-            // Keep Capacitor/Jitsi/Google native integrations intact in release APK.\n            minifyEnabled false
-            shrinkResources true
+            // Keep Capacitor/Jitsi/Google native integrations intact in release APK.
+            minifyEnabled false
+            shrinkResources false
             debuggable false
             signingConfig signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
