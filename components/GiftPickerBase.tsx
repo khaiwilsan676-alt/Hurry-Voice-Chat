@@ -303,6 +303,7 @@ export default function GiftPicker({
         recipientIds: recipientIds.map(String),
         amount: totalCost,
         giftName: selectedGiftObj.name,
+        giftType: activeTab,
       });
     }
 
