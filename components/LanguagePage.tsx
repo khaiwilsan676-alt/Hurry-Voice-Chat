@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { translations, LanguageCode } from '../lib/translations'
 
 interface LanguagePageProps {
@@ -75,7 +75,7 @@ export default function LanguagePage({ onBack }: LanguagePageProps) {
               onClick={handleClose}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <ChevronLeft size={24} className="text-gray-900" />
+              <ArrowLeft size={24} className="text-gray-900" />
             </button>
             <h2 className="text-lg font-bold text-gray-900">{t.languageSetting || 'Language'}</h2>
             <button
