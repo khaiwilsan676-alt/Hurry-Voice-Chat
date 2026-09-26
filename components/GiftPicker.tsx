@@ -83,55 +83,51 @@ function playLuckyGiftFly(data: any) {
     if (rect.width <= 0 || rect.height <= 0) return;
 
     const flyer = document.createElement("img");
-    flyer.src = image;
     flyer.alt = "";
     flyer.setAttribute("aria-hidden", "true");
     flyer.draggable = false;
 
     const startX = window.innerWidth / 2;
-    const startY = window.innerHeight + 45;
+    const startY = window.innerHeight - 12;
     const endX = rect.left + rect.width / 2;
     const endY = rect.top + rect.height / 2;
+    const duration = Number(data.duration) > 0 ? Number(data.duration) : 1100;
 
     Object.assign(flyer.style, {
       position: "fixed",
-      left: `${startX}px`,
-      top: `${startY}px`,
+      left: "0px",
+      top: "0px",
       width: "82px",
       height: "82px",
       objectFit: "contain",
       pointerEvents: "none",
       userSelect: "none",
       zIndex: "2147483647",
-      transform: "translate(-50%, -50%)",
+      opacity: "1",
+      transform: `translate3d(${startX - 41}px, ${startY - 41}px, 0) scale(1)`,
+      transition: `transform ${duration}ms cubic-bezier(0.18,0.72,0.32,1), opacity ${duration}ms ease-out`,
+      willChange: "transform, opacity",
     });
 
-    document.body.appendChild(flyer);
-
-    const startAnimation = () =>
-      flyer.animate(
-        [
-          {
-            transform: "translate(-50%, -50%) scale(1)",
-            opacity: 1,
-          },
-          {
-            transform: `translate(calc(-50% + ${endX - startX}px), calc(-50% + ${endY - startY}px)) scale(0.22)`,
-            opacity: 0,
-          },
-        ],
-        {
-          duration: Number(data.duration) > 0 ? Number(data.duration) : 1100,
-          easing: "cubic-bezier(0.18,0.72,0.32,1)",
-          fill: "forwards",
-        }
-      );
-
     const run = () => {
-      const animation = startAnimation();
-      animation.onfinish = () => flyer.remove();
+      flyer.onload = null;
+      flyer.onerror = null;
+      document.documentElement.appendChild(flyer);
+
+      // CSS transition is deliberately used instead of Web Animations API so the
+      // flight also works reliably in the Android WebView used by the APK.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          flyer.style.transform =
+            `translate3d(${endX - 41}px, ${endY - 41}px, 0) scale(0.22)`;
+          flyer.style.opacity = "0";
+        });
+      });
+
+      window.setTimeout(() => flyer.remove(), duration + 120);
     };
 
+    flyer.src = image;
     if (flyer.complete && flyer.naturalWidth > 0) {
       run();
     } else {
