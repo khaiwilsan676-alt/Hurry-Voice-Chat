@@ -565,8 +565,12 @@ export default function PublicProfile({
 
   const [activeTab, setActiveTab] = useState('profile')
   
-  // ✅ New state for Fullscreen Album Image Viewer
+  // ✅ Fullscreen Album Image Viewer State
   const [fullImageIndex, setFullImageIndex] = useState<number | null>(null)
+
+  // ✅ Refs for swipe (to avoid re-renders)
+  const touchStartXRef = useRef<number>(0)
+  const touchEndXRef = useRef<number>(0)
 
   const [isFollowing, setIsFollowing] = useState(false)
 
@@ -575,10 +579,6 @@ export default function PublicProfile({
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false)
-
-  // ✅ Swipe states for image viewer (Improved)
-  const [touchStartX, setTouchStartX] = useState<number | null>(null)
-  const [touchEndX, setTouchEndX] = useState<number | null>(null)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -1129,7 +1129,7 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
-  // ✅ Full Image Viewer Handlers (Improved Swipe)
+  // ✅ Full Image Viewer Handlers
   const handleImageClick = (index: number) => {
     setFullImageIndex(index);
   };
@@ -1146,18 +1146,22 @@ export default function PublicProfile({
     }
   };
 
+  // ✅ Swipe Handlers (Using Refs & preventDefault for smooth swipe)
   const handleTouchStartSwipe = (e: React.TouchEvent) => {
-    setTouchEndX(null);
-    setTouchStartX(e.targetTouches[0].clientX);
+    touchStartXRef.current = e.targetTouches[0].clientX;
+    touchEndXRef.current = 0;
   };
 
   const handleTouchMoveSwipe = (e: React.TouchEvent) => {
-    setTouchEndX(e.targetTouches[0].clientX);
+    touchEndXRef.current = e.targetTouches[0].clientX;
   };
 
-  const handleTouchEndSwipe = () => {
-    if (touchStartX === null || touchEndX === null) return;
-    const distance = touchStartX - touchEndX;
+  const handleTouchEndSwipe = (e: React.TouchEvent) => {
+    const startX = touchStartXRef.current;
+    const endX = touchEndXRef.current;
+    if (!startX || !endX) return;
+
+    const distance = startX - endX;
     const minSwipeDistance = 50;
 
     if (distance > minSwipeDistance) {
@@ -1167,9 +1171,8 @@ export default function PublicProfile({
       // Swiped right -> Previous image
       handlePrevImage();
     }
-    // Reset values
-    setTouchStartX(null);
-    setTouchEndX(null);
+    touchStartXRef.current = 0;
+    touchEndXRef.current = 0;
   };
 
   return (
@@ -1431,10 +1434,11 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Updated Full Image View Modal with Swipe, Back Button & Counter */}
+      {/* ✅ Full Image View Modal with Swipe, Back Button & Counter */}
       {fullImageIndex !== null && (
         <div 
-          className="fixed inset-0 z-[60] bg-black flex flex-col touch-pan-y"
+          className="fixed inset-0 z-[60] bg-black flex flex-col select-none"
+          style={{ touchAction: 'none' }} // ✅ Important for swipe to work
           onTouchStart={handleTouchStartSwipe}
           onTouchMove={handleTouchMoveSwipe}
           onTouchEnd={handleTouchEndSwipe}
@@ -1454,11 +1458,11 @@ export default function PublicProfile({
           </div>
 
           {/* Main Image Container */}
-          <div className="flex-1 flex items-center justify-center p-4">
+          <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
             <img
               src={albumImages[fullImageIndex]}
               alt=""
-              className="max-w-full max-h-[80vh] object-contain rounded-lg select-none pointer-events-none"
+              className="max-w-full max-h-[80vh] object-contain rounded-lg pointer-events-none select-none"
               draggable={false}
             />
           </div>
