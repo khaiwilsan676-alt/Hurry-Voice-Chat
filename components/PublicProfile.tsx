@@ -592,6 +592,14 @@ export default function PublicProfile({
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
+  // --- Birthday Picker States ---
+  const [birthYear, setBirthYear] = useState(2003)
+  const [birthMonth, setBirthMonth] = useState(4)
+  const [birthDay, setBirthDay] = useState(8)
+  const years = Array.from({ length: 2026 - 1950 + 1 }, (_, i) => 1950 + i)
+  const months = Array.from({ length: 12 }, (_, i) => i + 1)
+  const days = Array.from({ length: 31 }, (_, i) => i + 1)
+
   useEffect(() => {
     if (coverPhotos.length <= 1) {
       setCurrentCoverIndex(0)
@@ -1105,6 +1113,32 @@ export default function PublicProfile({
     await saveToMongoDB({ age: parsedAge })
     await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos })
   }
+
+  // ✅ New Birthday Confirm Handler
+  const handleBirthdayConfirm = async () => {
+    const year = birthYear;
+    const month = birthMonth;
+    const day = birthDay;
+    const birthDate = new Date(year, month - 1, day);
+    const today = new Date();
+    
+    let calculatedAge = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      calculatedAge--;
+    }
+    
+    const finalAge = Math.max(0, calculatedAge);
+    const ageString = String(finalAge);
+
+    setEditAge(ageString);
+    localStorage.setItem('userAge', ageString);
+    const updatedUser = { ...user, age: finalAge };
+    setUser(updatedUser);
+    setShowAgeScreen(false);
+    await saveToMongoDB({ age: finalAge });
+    await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
+  };
 
   const handleBioSave = async () => {
     localStorage.setItem('userBio', editBio)
@@ -1791,38 +1825,88 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Age Edit Screen */}
+      {/* ✅ NEW: Birthday Wheel Picker (Age Edit) */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={handleAgeSave}></div>
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[40vh]">
-            <div className="flex items-center justify-between px-5 py-4 shrink-0">
-              <button onClick={handleAgeSave}>
-                <ArrowLeft size={24} className="text-gray-700" />
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgeScreen(false)}></div>
+          <div className="relative bg-white w-full max-w-md rounded-t-2xl animate-slide-up flex flex-col pt-2 pb-8">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 shrink-0 border-b border-gray-100">
+              <button onClick={() => setShowAgeScreen(false)} className="text-gray-500 text-base font-medium">
+                Cancel
               </button>
-              <h2 className="text-lg font-bold text-gray-900">Age</h2>
-              <div className="w-6"></div>
+              <h2 className="text-lg font-bold text-gray-900">Birthday</h2>
+              <button onClick={handleBirthdayConfirm} className="text-[#1dc4e9] text-base font-bold">
+                Confirm
+              </button>
             </div>
 
-            <div className="flex-1 px-5 overflow-y-auto">
-              <input
-                type="number"
-                value={editAge}
-                onChange={(e) => setEditAge(e.target.value)}
-                placeholder="Enter age"
-                min="0"
-                max="150"
-                className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
-              />
-            </div>
-            
-            <div className="px-5 pb-6 pt-2 shrink-0">
-              <button
-                onClick={handleAgeSave}
-                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
-              >
-                Save
-              </button>
+            {/* Wheel Picker Container */}
+            <div className="relative flex justify-center items-center h-[250px] overflow-hidden">
+              {/* Highlight Bar */}
+              <div className="absolute top-1/2 left-0 right-0 h-[50px] -mt-[25px] border-t border-b border-gray-200 bg-gray-50/50 pointer-events-none z-0"></div>
+              
+              <div className="flex w-full justify-between px-12 z-10 h-full">
+                {/* Year Wheel */}
+                <div 
+                  className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    const index = Math.round(el.scrollTop / 50);
+                    setBirthYear(years[index] || years[0]);
+                  }}
+                  ref={(el) => { if(el) el.scrollTop = years.indexOf(birthYear) * 50; }}
+                >
+                  <div className="h-[100px]"></div>
+                  {years.map((y) => (
+                    <div key={y} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
+                      {y}
+                    </div>
+                  ))}
+                  <div className="h-[100px]"></div>
+                </div>
+
+                {/* Month Wheel */}
+                <div 
+                  className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    const index = Math.round(el.scrollTop / 50);
+                    setBirthMonth(months[index] || months[0]);
+                  }}
+                  ref={(el) => { if(el) el.scrollTop = months.indexOf(birthMonth) * 50; }}
+                >
+                  <div className="h-[100px]"></div>
+                  {months.map((m) => (
+                    <div key={m} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
+                      {String(m).padStart(2, '0')}
+                    </div>
+                  ))}
+                  <div className="h-[100px]"></div>
+                </div>
+
+                {/* Day Wheel */}
+                <div 
+                  className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  onScroll={(e) => {
+                    const el = e.currentTarget;
+                    const index = Math.round(el.scrollTop / 50);
+                    setBirthDay(days[index] || days[0]);
+                  }}
+                  ref={(el) => { if(el) el.scrollTop = days.indexOf(birthDay) * 50; }}
+                >
+                  <div className="h-[100px]"></div>
+                  {days.map((d) => (
+                    <div key={d} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
+                      {String(d).padStart(2, '0')}
+                    </div>
+                  ))}
+                  <div className="h-[100px]"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1951,6 +2035,15 @@ export default function PublicProfile({
         }
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .overflow-y-scroll::-webkit-scrollbar {
+          display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .overflow-y-scroll {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
         }
       `}</style>
     </div>
