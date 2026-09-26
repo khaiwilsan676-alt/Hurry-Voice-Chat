@@ -190,7 +190,23 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     if (file.size > 5 * 1024 * 1024) { alert('Image size should be less than 5MB'); return }
 
     const reader = new FileReader()
-    reader.onload = (event) => setRoomDp(event.target?.result as string)
+    reader.onload = (event) => {
+      const source = String(event.target?.result || '')
+      const img = new Image()
+      img.onload = () => {
+        const maxSide = 640
+        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
+        canvas.height = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { setRoomDp(source); return }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        setRoomDp(canvas.toDataURL('image/jpeg', 0.72))
+      }
+      img.onerror = () => setRoomDp(source)
+      img.src = source
+    }
     reader.readAsDataURL(file)
   }
 
