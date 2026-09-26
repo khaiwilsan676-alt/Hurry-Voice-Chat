@@ -714,8 +714,20 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
               const userData = localStorage.getItem('currentUser');
               if (userData) {
                   const parsed = JSON.parse(userData);
-                  currentUserName = parsed.name || "User";
-                  currentUserAvatar = parsed.photoUrl || parsed.photoURL || "/default-avatar.png";
+                  currentUserName =
+                    parsed.name ||
+                    parsed.userName ||
+                    parsed.displayName ||
+                    parsed.username ||
+                    "User";
+                  currentUserAvatar =
+                    parsed.avatar ||
+                    parsed.photo ||
+                    parsed.image ||
+                    parsed.photoUrl ||
+                    parsed.photoURL ||
+                    parsed.profilePhoto ||
+                    "/default-avatar.png";
               }
           } catch (e) {}
 
