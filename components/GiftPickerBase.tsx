@@ -269,10 +269,10 @@ export default function GiftPicker({
     : 0;
   const recipientIds = selectedTargets.length
     ? selectedTargets
-: roomUsers.length > 0
-      ? roomUsers.filter((u) => u.accountId !== currentUserAccountId).map((u) => u.accountId)
+    : roomUsers.length > 0
+      ? roomUsers.map((u) => u.accountId)
       : seats
-          .filter((s) => s.isOccupied && s.user && s.user.accountId !== currentUserAccountId)
+          .filter((s) => s.isOccupied && s.user)
           .map((s) => s.user!.accountId);
   const recipientCount = recipientIds.length;
   const totalSendCost = totalCost * Math.max(1, recipientCount);
