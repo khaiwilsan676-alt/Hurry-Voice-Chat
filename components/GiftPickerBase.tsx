@@ -227,7 +227,7 @@ export default function GiftPicker({
       if (alive) setWalletBalance(b);
     };
     fetchBal();
-    const id = setInterval(fetchBal, 1000);
+    const id = setInterval(fetchBal, 3000);
     return () => {
       alive = false;
       clearInterval(id);
