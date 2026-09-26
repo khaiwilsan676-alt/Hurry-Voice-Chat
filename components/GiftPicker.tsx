@@ -53,6 +53,7 @@ export default function GiftPicker(props: any) {
           continue;
 
         const luckyEvent = {
+          eventId: `lucky-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           roomId: String(data.roomId || ""),
           userId: String(data.senderId || ""),
           action: "lucky_image",
@@ -69,6 +70,8 @@ export default function GiftPicker(props: any) {
           },
         };
 
+        // Play immediately on the sender too; the server also relays the same event to the room.
+        window.dispatchEvent(new CustomEvent("hurry:lucky-image", { detail: luckyEvent }));
         originalEmit("room_seat_action", luckyEvent);
 }
 
