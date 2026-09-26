@@ -18,7 +18,30 @@ const LUCKY_GIFT_IMAGES: Record<string, string> = {
   Scarecrow: "/IMG_20260906_000850.png",
 };
 
-function findTargetAvatar(accountId: string, name: string): HTMLImageElement | null {
+function findTargetAvatar(
+  seatNumber: number,
+  accountId: string,
+  name: string
+): HTMLImageElement | null {
+  if (Number.isFinite(seatNumber) && seatNumber > 0) {
+    const bySeat = document.querySelector(
+      `img[data-hurry-seat="${seatNumber}"]`
+    ) as HTMLImageElement | null;
+    if (bySeat) return bySeat;
+  }
+
+  if (accountId) {
+    const byAccount = document.querySelector(
+      `img[data-hurry-account="${CSS.escape(accountId)}"]`
+    ) as HTMLImageElement | null;
+    if (byAccount) return byAccount;
+  }
+
+  if (name) {
+    const escaped =
+      typeof CSS !== "undefined" && CSS.escape
+        ? CSS.escape(name)
+        : name.replace(/["\\]/g, "\\function findTargetAvatar(accountId: string, name: string): HTMLImageElement | null {
   if (name) {
     const escaped =
       typeof CSS !== "undefined" && CSS.escape
@@ -35,6 +58,12 @@ function findTargetAvatar(accountId: string, name: string): HTMLImageElement | n
   }
 
   return null;
+}");
+    const byName = document.querySelector(`img[alt="${escaped}"]`) as HTMLImageElement | null;
+    if (byName) return byName;
+  }
+
+  return null;
 }
 
 function playLuckyGiftFly(data: any) {
@@ -44,11 +73,12 @@ function playLuckyGiftFly(data: any) {
   if (!image) return;
 
   const targetAccountId = String(data.user?.accountId || "");
+  const targetSeatNumber = Number(data.seatNumber || 0);
   const targetName = String(data.targetName || data.user?.name || "");
 
   let attempts = 0;
   const findAndAnimate = () => {
-    const target = findTargetAvatar(targetAccountId, targetName);
+    const target = findTargetAvatar(targetSeatNumber, targetAccountId, targetName);
 
     if (!target && attempts++ < 12) {
       window.setTimeout(findAndAnimate, 80);
