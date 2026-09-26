@@ -2586,6 +2586,8 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 <img
                   src={user.image || "/default-avatar.png"}
                   alt={user.name}
+                  data-hurry-seat={seatNumber}
+                  data-hurry-account={user.accountId}
                   className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer"
                   draggable={false}
                   onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }}
