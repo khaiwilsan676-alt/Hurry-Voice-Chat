@@ -2662,12 +2662,12 @@ function RoomContent({
           onClick={handleLuckyComboSend}
           className="fixed right-3 z-[2147482000] w-14 h-14 rounded-full overflow-hidden pointer-events-auto active:scale-95 transition-transform"
           style={{ bottom: "7vh" }}
-          aria-label={`Lucky Gift combo ×${luckyCombo.multiplier + 1}`}
+          aria-label={`Lucky Gift combo ×${luckyCombo.multiplier}`}
         >
           <img src="/file_00000000a9e48211aee262c0df0c36bc.png" alt="" className="absolute inset-0 w-full h-full object-contain" draggable={false} />
           <img src={luckyCombo.giftImage} alt="" className="absolute left-1/2 top-1/2 w-8 h-8 -translate-x-1/2 -translate-y-1/2 object-contain" draggable={false} />
           <span className="absolute inset-0 flex items-center justify-center text-white font-extrabold text-[11px] drop-shadow-md">
-            ×{luckyCombo.multiplier + 1}
+            ×{luckyCombo.multiplier}
           </span>
         </button>
       )}
