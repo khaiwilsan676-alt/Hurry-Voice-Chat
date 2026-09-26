@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect } from "react";
 import GiftPickerBase from "./GiftPickerBase";
 import socket from "../src/lib/socket";
 
@@ -18,141 +18,112 @@ const LUCKY_GIFT_IMAGES: Record<string, string> = {
   Scarecrow: "/IMG_20260906_000850.png",
 };
 
-type Fly = {
-  id: string;
-  image: string;
-  left: number;
-  top: number;
-  dx: number;
-  dy: number;
-  phase: "start" | "end";
-};
+function findTargetAvatar(accountId: string, name: string): HTMLImageElement | null {
+  if (name) {
+    const escaped =
+      typeof CSS !== "undefined" && CSS.escape
+        ? CSS.escape(name)
+        : name.replace(/["\\]/g, "\\$&");
+    const byName = document.querySelector(`img[alt="${escaped}"]`) as HTMLImageElement | null;
+    if (byName) return byName;
+  }
 
-export default function GiftPicker(props: any) {
-  const [flies, setFlies] = useState<Fly[]>([]);
-  const animatingRef = useRef(false);
-  const closeRef = useRef<(() => void) | null>(null);
-  const safetyCloseRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const seats = Array.from(document.querySelectorAll("img[alt]")) as HTMLImageElement[];
+  for (const img of seats) {
+    const parentText = img.parentElement?.parentElement?.textContent || "";
+    if (accountId && parentText.includes(accountId)) return img;
+  }
 
-  const startLuckyFly = (data: any) => {
-    const image = String(data.image || LUCKY_GIFT_IMAGES[String(data.giftName || "")] || "");
-    if (!image) return false;
+  return null;
+}
 
-    const recipientIds = new Set(
-      Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []
-    );
+function playLuckyGiftFly(data: any) {
+  if (typeof window === "undefined" || data?.action !== "lucky_image") return;
 
-    const targets = (Array.isArray(props.seats) ? props.seats : []).filter(
-      (seat: any) =>
-        seat?.isOccupied &&
-        seat?.user?.accountId &&
-        recipientIds.has(String(seat.user.accountId))
-    );
+  const image = String(data.src || "");
+  if (!image) return;
 
-    if (!targets.length) return false;
+  const targetAccountId = String(data.user?.accountId || "");
+  const targetName = String(data.targetName || data.user?.name || "");
 
-    const created: Fly[] = [];
+  let attempts = 0;
+  const findAndAnimate = () => {
+    const target = findTargetAvatar(targetAccountId, targetName);
 
-    targets.forEach((seat: any, index: number) => {
-      const name = String(seat.user.name || "");
-      let target: HTMLImageElement | null = null;
+    if (!target && attempts++ < 12) {
+      window.setTimeout(findAndAnimate, 80);
+      return;
+    }
+    if (!target) return;
 
-      if (name) {
-        const escapedName =
-          typeof CSS !== "undefined" && CSS.escape
-            ? CSS.escape(name)
-            : name.replace(/["\\]/g, "\\$&");
-        target = document.querySelector(
-          `img[alt="${escapedName}"]`
-        ) as HTMLImageElement | null;
-      }
+    const rect = target.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return;
 
-      if (!target && seat.user.image) {
-        const wanted = new URL(
-          String(seat.user.image),
-          window.location.href
-        ).href;
-        target =
-          Array.from(document.images).find((img) => {
-            try {
-              return (
-                new URL(
-                  img.currentSrc || img.src,
-                  window.location.href
-                ).href === wanted
-              );
-            } catch {
-              return false;
-            }
-          }) || null;
-      }
+    const flyer = document.createElement("img");
+    flyer.src = image;
+    flyer.alt = "";
+    flyer.setAttribute("aria-hidden", "true");
+    flyer.draggable = false;
 
-      if (!target) return;
+    const startX = window.innerWidth / 2;
+    const startY = window.innerHeight + 45;
+    const endX = rect.left + rect.width / 2;
+    const endY = rect.top + rect.height / 2;
 
-      const rect = target.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-
-      const startX = window.innerWidth / 2;
-      const startY = window.innerHeight + 55;
-      const endX = rect.left + rect.width / 2;
-      const endY = rect.top + rect.height / 2;
-
-      created.push({
-        id: `${String(seat.user.accountId)}-${Date.now()}-${index}`,
-        image,
-        left: startX,
-        top: startY,
-        dx: endX - startX,
-        dy: endY - startY,
-        phase: "start",
-      });
+    Object.assign(flyer.style, {
+      position: "fixed",
+      left: `${startX}px`,
+      top: `${startY}px`,
+      width: "82px",
+      height: "82px",
+      objectFit: "contain",
+      pointerEvents: "none",
+      userSelect: "none",
+      zIndex: "2147483647",
+      transform: "translate(-50%, -50%)",
     });
 
-    if (!created.length) return false;
+    document.body.appendChild(flyer);
 
-    animatingRef.current = true;
-    setFlies(created);
+    const animation = flyer.animate(
+      [
+        {
+          transform: "translate(-50%, -50%) scale(1)",
+          width: "82px",
+          height: "82px",
+          opacity: 1,
+        },
+        {
+          transform: `translate(calc(-50% + ${endX - startX}px), calc(-50% + ${endY - startY}px)) scale(1)`,
+          width: "18px",
+          height: "18px",
+          opacity: 0,
+        },
+      ],
+      {
+        duration: Number(data.duration) > 0 ? Number(data.duration) : 1100,
+        easing: "cubic-bezier(0.18,0.72,0.32,1)",
+        fill: "forwards",
+      }
+    );
 
-    // First paint puts the real PNG below the screen; second paint
-    // transitions it upward to the actual occupied avatar.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setFlies((current) =>
-          current.map((fly) => ({ ...fly, phase: "end" }))
-        );
-      });
-    });
-
-    if (safetyCloseRef.current) clearTimeout(safetyCloseRef.current);
-    safetyCloseRef.current = window.setTimeout(() => {
-      setFlies([]);
-      animatingRef.current = false;
-      closeRef.current?.();
-      closeRef.current = null;
-      safetyCloseRef.current = null;
-    }, 1150);
-
-    return true;
+    animation.onfinish = () => flyer.remove();
   };
 
-  useEffect(() => {
-    const handleLuckySeatAction = (data: any = {}) => {
-      if (String(data.roomId || "") !== String(props.roomId || "")) return;
-      if (data.action !== "lucky_image" || !data.src) return;
+  requestAnimationFrame(findAndAnimate);
+}
 
-      startLuckyFly({
-        image: String(data.src),
-        recipientIds: [String(data.user?.accountId || "")],
-        giftName: "Lucky",
-      });
-    };
+if (typeof window !== "undefined") {
+  const key = "__hurryLuckyGiftFlyListener";
+  const win = window as typeof window & { [key: string]: boolean };
 
-    socket.on("room_seat_action", handleLuckySeatAction);
-    return () => {
-      socket.off("room_seat_action", handleLuckySeatAction);
-    };
-  }, [props.roomId, props.seats]);
+  if (!win[key]) {
+    win[key] = true;
+    socket.on("room_seat_action", playLuckyGiftFly);
+  }
+}
 
+export default function GiftPicker(props: any) {
   useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
 
@@ -162,7 +133,7 @@ export default function GiftPicker(props: any) {
       }
 
       const data = { ...args[0] };
-      const image = String(data.image || LUCKY_GIFT_IMAGES[String(data.giftName || "")] || "");
+      const image = LUCKY_GIFT_IMAGES[String(data.giftName || "")];
 
       if (!image) return originalEmit(event, ...args);
 
@@ -170,6 +141,7 @@ export default function GiftPicker(props: any) {
       const diamondAmount =
         Number.isFinite(amount) && amount > 0 ? Math.floor(amount * 0.1) : 0;
 
+      // Preserve the original coin value. Lucky receiver reward is 10% Diamonds.
       originalEmit("coin_transfer", {
         ...data,
         luckyGift: true,
@@ -177,15 +149,33 @@ export default function GiftPicker(props: any) {
         diamondAmount,
       });
 
-      animatingRef.current = true;
-      if (safetyCloseRef.current) clearTimeout(safetyCloseRef.current);
-      safetyCloseRef.current = window.setTimeout(() => {
-        setFlies([]);
-        animatingRef.current = false;
-        props.onClose?.();
-        closeRef.current = null;
-        safetyCloseRef.current = null;
-      }, 1600);
+      const recipientIds = new Set(
+        Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []
+      );
+
+      // The existing room-wide seat event carries the real PNG to each occupied target.
+      for (const seat of Array.isArray(props.seats) ? props.seats : []) {
+        const targetId = String(seat?.user?.accountId || "");
+        if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId)) continue;
+
+        originalEmit("room_seat_action", {
+          roomId: String(data.roomId || ""),
+          userId: String(data.senderId || ""),
+          action: "lucky_image",
+          seatNumber: Number(seat.number),
+          src: image,
+          timestamp: Date.now(),
+          duration: 1100,
+          luckyGift: true,
+          targetName: String(seat.user?.name || ""),
+          user: {
+            name: "Lucky Gift",
+            image,
+            accountId: targetId,
+          },
+        });
+      }
+
       return socket;
     }) as typeof socket.emit;
 
@@ -195,44 +185,5 @@ export default function GiftPicker(props: any) {
     };
   }, [props.seats]);
 
-  const handleClose = () => {
-    if (animatingRef.current) {
-      closeRef.current = props.onClose;
-      return;
-    }
-    props.onClose?.();
-  };
-
-  return (
-    <>
-      {!animatingRef.current && (
-        <GiftPickerBase {...props} onClose={handleClose} />
-      )}
-
-      {flies.map((fly) => (
-        <img
-          key={fly.id}
-          src={fly.image}
-          alt="Lucky Gift"
-          aria-hidden="true"
-          draggable={false}
-          className="fixed pointer-events-none z-[10000] select-none"
-          style={{
-            left: fly.left,
-            top: fly.top,
-            width: fly.phase === "start" ? "82px" : "18px",
-            height: fly.phase === "start" ? "82px" : "18px",
-            objectFit: "contain",
-            transform:
-              fly.phase === "start"
-                ? "translate(-50%, -50%) translate(0px, 0px) scale(1)"
-                : `translate(-50%, -50%) translate(${fly.dx}px, ${fly.dy}px) scale(1)`,
-            opacity: fly.phase === "start" ? 1 : 0,
-            transition:
-              "transform 1100ms cubic-bezier(0.18,0.72,0.32,1), width 1100ms ease-out, height 1100ms ease-out, opacity 1100ms ease-out",
-          }}
-        />
-      ))}
-    </>
-  );
+  return <GiftPickerBase {...props} />;
 }
