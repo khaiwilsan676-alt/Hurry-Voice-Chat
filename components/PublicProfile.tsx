@@ -609,14 +609,14 @@ export default function PublicProfile({
   useEffect(() => {
     if (showAgeScreen) {
       setTimeout(() => {
-        if (yearRef.current) {
-          yearRef.current.scrollTo({ top: years.indexOf(birthYear) * 50, behavior: 'smooth' });
+        if (dayRef.current) {
+          dayRef.current.scrollTo({ top: days.indexOf(birthDay) * 50, behavior: 'smooth' });
         }
         if (monthRef.current) {
           monthRef.current.scrollTo({ top: months.indexOf(birthMonth) * 50, behavior: 'smooth' });
         }
-        if (dayRef.current) {
-          dayRef.current.scrollTo({ top: days.indexOf(birthDay) * 50, behavior: 'smooth' });
+        if (yearRef.current) {
+          yearRef.current.scrollTo({ top: years.indexOf(birthYear) * 50, behavior: 'smooth' });
         }
       }, 200);
     }
@@ -1607,18 +1607,18 @@ export default function PublicProfile({
           onTouchMove={handleImageTouchMove}
           onTouchEnd={handleImageTouchEnd}
         >
-          {/* Top Bar with Back and Counter */}
-          <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
+          {/* Top Bar with Back and Counter - CORNER FIXED */}
+          <div className="absolute top-0 left-0 right-0 z-20 flex items-start justify-between px-1 pt-1 pointer-events-none">
             <button
               onClick={() => setFullImageIndex(null)}
-              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors pointer-events-auto"
+              className="text-white p-1 hover:bg-white/10 rounded-full transition-colors pointer-events-auto"
             >
               <ArrowLeft size={28} />
             </button>
-            <span className="text-white font-medium text-lg">
+            
+            <span className="text-white font-medium text-base pt-2 pr-2 pointer-events-auto">
               {fullImageIndex + 1}/{albumImages.length}
             </span>
-            <div className="w-10"></div>
           </div>
 
           {/* Main Image Container */}
@@ -1847,7 +1847,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ FIXED: Birthday Wheel Picker (Age Edit) */}
+      {/* ✅ FIXED: Birthday Wheel Picker (Age Edit) — Day / Month / Year Order */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgeScreen(false)}></div>
@@ -1869,27 +1869,27 @@ export default function PublicProfile({
               <div className="absolute top-1/2 left-0 right-0 h-[50px] -mt-[25px] border-t border-b border-gray-200 bg-gray-50/50 pointer-events-none z-0"></div>
               
               <div className="flex w-full justify-between px-12 z-10 h-full">
-                {/* Year Wheel */}
+                {/* Day Wheel (First) */}
                 <div 
-                  ref={yearRef}
+                  ref={dayRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     const index = Math.round(el.scrollTop / 50);
-                    if (years[index] !== undefined) setBirthYear(years[index]);
+                    if (days[index] !== undefined) setBirthDay(days[index]);
                   }}
                 >
                   <div className="h-[100px]"></div>
-                  {years.map((y) => (
-                    <div key={y} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
-                      {y}
+                  {days.map((d) => (
+                    <div key={d} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
+                      {String(d).padStart(2, '0')}
                     </div>
                   ))}
                   <div className="h-[100px]"></div>
                 </div>
 
-                {/* Month Wheel */}
+                {/* Month Wheel (Second) */}
                 <div 
                   ref={monthRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -1909,21 +1909,21 @@ export default function PublicProfile({
                   <div className="h-[100px]"></div>
                 </div>
 
-                {/* Day Wheel */}
+                {/* Year Wheel (Third) */}
                 <div 
-                  ref={dayRef}
+                  ref={yearRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   onScroll={(e) => {
                     const el = e.currentTarget;
                     const index = Math.round(el.scrollTop / 50);
-                    if (days[index] !== undefined) setBirthDay(days[index]);
+                    if (years[index] !== undefined) setBirthYear(years[index]);
                   }}
                 >
                   <div className="h-[100px]"></div>
-                  {days.map((d) => (
-                    <div key={d} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
-                      {String(d).padStart(2, '0')}
+                  {years.map((y) => (
+                    <div key={y} className="h-[50px] snap-center flex items-center justify-center text-xl font-medium text-gray-800">
+                      {y}
                     </div>
                   ))}
                   <div className="h-[100px]"></div>
