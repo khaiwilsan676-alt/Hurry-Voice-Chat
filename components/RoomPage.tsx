@@ -1732,10 +1732,10 @@ function RoomContent({
                       {msg.equippedVehicle && (
                         <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
                       )}
-                      <div className="flex flex-col gap-0.5 px-2.5 py-1.5 w-fit max-w-fit bg-black/20 rounded-md">
+                      <div className="flex flex-col gap-0.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
                         <div className="flex items-center gap-2 min-w-0">
                           <div
-                            className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer border border-white/30"
+                            className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
                             style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
                             onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                           >
