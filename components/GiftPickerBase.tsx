@@ -380,6 +380,16 @@ export default function GiftPicker({
           style={{ background: "transparent" }}
         >
           <video
+            ref={(el) => {
+              if (el) {
+                el.controls = false;
+                el.setAttribute("controls", "false");
+                el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
+                el.setAttribute("disablePictureInPicture", "");
+                el.setAttribute("disableRemotePlayback", "");
+                el.play().catch(() => {});
+              }
+            }}
             src={playingVideo.src}
             autoPlay
             muted
@@ -387,7 +397,14 @@ export default function GiftPicker({
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            onLoadedData={() => setSending(false)}
+            poster={playingVideo.src.includes("17e19680") ? "/image_d9df9625~2.jpg" : "/IMG_20260922_142150.jpg"}
+            onLoadedData={(e) => {
+              setSending(false);
+              e.currentTarget.play().catch(() => {});
+            }}
+            onCanPlay={(e) => {
+              e.currentTarget.play().catch(() => {});
+            }}
             onPlaying={() => setSending(false)}
             onEnded={finishVideo}
             onError={finishVideo}
