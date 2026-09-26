@@ -1143,7 +1143,28 @@ io.on("connection", (socket) => {
     if (!roomMap || recipients.length === 0) return;
 
     // Only users currently present in this room can receive the diamonds.
-    const validRecipients = recipients.filter((id) => roomMap.has(id));
+    // GiftPicker sends accountId, while roomUsers is keyed by userId.
+    // Accept either identity and always emit the canonical accountId so the
+    // selected user (including the sender/self) receives the diamonds.
+    const validRecipients = recipients
+      .map((id) => {
+        const direct = roomMap.get(id);
+        if (direct) return String(direct.accountId || direct.userId || id);
+
+        for (const [userId, user] of roomMap.entries()) {
+          if (
+            String(userId) === id ||
+            String(user?.userId || "") === id ||
+            String(user?.accountId || "") === id
+          ) {
+            return String(user?.accountId || user?.userId || userId);
+          }
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .filter((id, index, arr) => arr.indexOf(id) === index);
+
     if (validRecipients.length === 0) return;
 
     io.to(`room:${room}`).emit("coin_transfer_received", {
