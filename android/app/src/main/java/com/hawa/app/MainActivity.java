@@ -20,9 +20,7 @@ public class MainActivity extends BridgeActivity {
 
         Window window = getWindow();
 
-        // Keep the Android status/navigation bars visible. The WebView gets
-        // the real system-bar insets so app content never sits underneath
-        // the Android navigation buttons/gesture area.
+        // Keep Android system bars visible and reserve their space for the WebView.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(true);
         }
@@ -48,7 +46,6 @@ public class MainActivity extends BridgeActivity {
             View webView = bridge.getWebView();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 webView.setOnApplyWindowInsetsListener((view, insets) -> {
-                    WindowInsets.Type.InsetsTypeMask ignored = null;
                     android.graphics.Insets bars = insets.getInsets(
                         WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()
                     );
@@ -64,7 +61,7 @@ public class MainActivity extends BridgeActivity {
 
         // Android Back: navigate WebView history when possible. At the root,
         // deliberately do nothing so the Android Back button cannot close
-        // or background the Hurry app accidentally.
+        // or background Hurry accidentally.
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
