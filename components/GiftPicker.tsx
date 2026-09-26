@@ -31,35 +31,24 @@ function findTargetAvatar(
   }
 
   if (accountId) {
+    const escapedAccount =
+      typeof CSS !== "undefined" && CSS.escape
+        ? CSS.escape(accountId)
+        : accountId.replace(/["\\]/g, "\\$&");
     const byAccount = document.querySelector(
-      `img[data-hurry-account="${CSS.escape(accountId)}"]`
+      `img[data-hurry-account="${escapedAccount}"]`
     ) as HTMLImageElement | null;
     if (byAccount) return byAccount;
   }
 
   if (name) {
-    const escaped =
-      typeof CSS !== "undefined" && CSS.escape
-        ? CSS.escape(name)
-        : name.replace(/["\\]/g, "\\function findTargetAvatar(accountId: string, name: string): HTMLImageElement | null {
-  if (name) {
-    const escaped =
+    const escapedName =
       typeof CSS !== "undefined" && CSS.escape
         ? CSS.escape(name)
         : name.replace(/["\\]/g, "\\$&");
-    const byName = document.querySelector(`img[alt="${escaped}"]`) as HTMLImageElement | null;
-    if (byName) return byName;
-  }
-
-  const seats = Array.from(document.querySelectorAll("img[alt]")) as HTMLImageElement[];
-  for (const img of seats) {
-    const parentText = img.parentElement?.parentElement?.textContent || "";
-    if (accountId && parentText.includes(accountId)) return img;
-  }
-
-  return null;
-}");
-    const byName = document.querySelector(`img[alt="${escaped}"]`) as HTMLImageElement | null;
+    const byName = document.querySelector(
+      `img[alt="${escapedName}"]`
+    ) as HTMLImageElement | null;
     if (byName) return byName;
   }
 
@@ -78,7 +67,11 @@ function playLuckyGiftFly(data: any) {
 
   let attempts = 0;
   const findAndAnimate = () => {
-    const target = findTargetAvatar(targetSeatNumber, targetAccountId, targetName);
+    const target = findTargetAvatar(
+      targetSeatNumber,
+      targetAccountId,
+      targetName
+    );
 
     if (!target && attempts++ < 12) {
       window.setTimeout(findAndAnimate, 80);
@@ -113,38 +106,35 @@ function playLuckyGiftFly(data: any) {
       transform: "translate(-50%, -50%)",
     });
 
-    // Append first and wait for the actual gift PNG to load before starting the flight.
-    // This prevents the animation from running invisibly on a cold image cache.
     document.body.appendChild(flyer);
 
-    const startAnimation = () => flyer.animate(
-      [
+    const startAnimation = () =>
+      flyer.animate(
+        [
+          {
+            transform: "translate(-50%, -50%) scale(1)",
+            opacity: 1,
+          },
+          {
+            transform: `translate(calc(-50% + ${endX - startX}px), calc(-50% + ${endY - startY}px)) scale(0.22)`,
+            opacity: 0,
+          },
+        ],
         {
-          transform: "translate(-50%, -50%) scale(1)",
-          width: "82px",
-          height: "82px",
-          opacity: 1,
-        },
-        {
-          transform: `translate(calc(-50% + ${endX - startX}px), calc(-50% + ${endY - startY}px)) scale(1)`,
-          width: "18px",
-          height: "18px",
-          opacity: 0,
-        },
-      ],
-      {
-        duration: Number(data.duration) > 0 ? Number(data.duration) : 1100,
-        easing: "cubic-bezier(0.18,0.72,0.32,1)",
-        fill: "forwards",
-      }
-    );
+          duration: Number(data.duration) > 0 ? Number(data.duration) : 1100,
+          easing: "cubic-bezier(0.18,0.72,0.32,1)",
+          fill: "forwards",
+        }
+      );
 
     const run = () => {
       const animation = startAnimation();
       animation.onfinish = () => flyer.remove();
     };
-    if (flyer.complete && flyer.naturalWidth > 0) run();
-    else {
+
+    if (flyer.complete && flyer.naturalWidth > 0) {
+      run();
+    } else {
       flyer.onload = run;
       flyer.onerror = () => flyer.remove();
     }
@@ -181,7 +171,6 @@ export default function GiftPicker(props: any) {
       const diamondAmount =
         Number.isFinite(amount) && amount > 0 ? Math.floor(amount * 0.1) : 0;
 
-      // Preserve the original coin value. Lucky receiver reward is 10% Diamonds.
       originalEmit("coin_transfer", {
         ...data,
         luckyGift: true,
@@ -193,10 +182,10 @@ export default function GiftPicker(props: any) {
         Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []
       );
 
-      // Play the fly immediately on this device; the backend separately relays it to other room users.
       for (const seat of Array.isArray(props.seats) ? props.seats : []) {
         const targetId = String(seat?.user?.accountId || "");
-        if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId)) continue;
+        if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId))
+          continue;
 
         const luckyEvent = {
           roomId: String(data.roomId || ""),
@@ -214,6 +203,7 @@ export default function GiftPicker(props: any) {
             accountId: targetId,
           },
         };
+
         originalEmit("room_seat_action", luckyEvent);
         playLuckyGiftFly(luckyEvent);
       }
