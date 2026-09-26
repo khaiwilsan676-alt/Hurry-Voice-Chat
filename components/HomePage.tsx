@@ -1443,7 +1443,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
   useEffect(() => {
     if (!userUID || userUID === 'N/A') return;
 
-    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
+    const applyGlobalPresence = ({ rooms }: { rooms?: Array<{ roomId: string; roomName?: string; roomDp?: string; users?: Array<{ accountId?: string; userId?: string; name?: string; image?: string; email?: string }>; activeUserCount?: number }> }) => {
       if (!Array.isArray(rooms)) return;
 
       const activeRooms = rooms.filter(
@@ -1471,9 +1471,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
             merged.push({
               id: roomId,
               accountId: firstUser?.accountId || roomId,
-              name: "Room",
+              name: liveRoom.roomName || "Room",
               country: "🇮🇳",
-              image: "/default-avatar.png",
+              image: liveRoom.roomDp || "/default-avatar.png",
               createdAt: Date.now(),
               isLocked: false,
               roomPassword: undefined,
