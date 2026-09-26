@@ -70,10 +70,10 @@ export default function LanguagePage({ onBack }: LanguagePageProps) {
       >
         <div className="flex flex-col h-full">
           {/* Header with Android Status Bar spacing & Save button */}
-          <div className="flex items-center justify-between px-3 py-4 pt-6 border-b border-gray-100 bg-white">
+          <div className="relative flex items-center justify-between px-3 py-4 pt-6 border-b border-gray-100 bg-white">
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute left-0 top-0 p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <ArrowLeft size={24} className="text-gray-900" />
             </button>

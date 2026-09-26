@@ -1188,7 +1188,7 @@ export default function PublicProfile({
         )}
 
         <div className="absolute top-0 pt-[max(env(safe-area-inset-top),10px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
-          <button onClick={onBack} className="text-white">
+          <button onClick={onBack} className="absolute left-0 top-0 text-white">
             <ArrowLeft size={28} />
           </button>
 
@@ -1440,9 +1440,8 @@ export default function PublicProfile({
 
           <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
-              <button onClick={handleCloseEditSheet}>
-                <ArrowLeft size={24} className="text-gray-700" />
+            <div className="relative flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+              <button onClick={handleCloseEditSheet} className="absolute left-0 top-0"><ArrowLeft size={24} className="text-gray-700" />
               </button>
               <h2 className="text-lg font-bold text-gray-900">Edit Information</h2>
               <div className="w-6"></div>

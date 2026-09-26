@@ -977,7 +977,7 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName } = {}) => {
+  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftCategory, giftImage } = {}) => {
     const room = String(roomId || "");
     const sender = String(senderId || "");
     const value = Number(amount);
@@ -1004,13 +1004,41 @@ io.on("connection", (socket) => {
     const validRecipients = recipients.filter((id) => roomMap.has(id));
     if (validRecipients.length === 0) return;
 
+    const isLuckyGift = String(giftCategory || "") === "Lucky";
+    const timestamp = Date.now();
+
+    if (isLuckyGift && giftImage && roomSeats.has(room)) {
+      const seats = roomSeats.get(room);
+      for (const recipientId of validRecipients) {
+        for (const [seatNumber, seat] of seats.entries()) {
+          if (seat?.isOccupied && String(seat?.user?.accountId) === String(recipientId)) {
+            seats.set(seatNumber, { ...seat, gif: { src: String(giftImage), timestamp, type: "lucky" } });
+          }
+        }
+      }
+      emitRoomSeats(room);
+      setTimeout(() => {
+        const currentSeats = roomSeats.get(room);
+        if (!currentSeats) return;
+        let changed = false;
+        for (const [seatNumber, seat] of currentSeats.entries()) {
+          if (seat?.gif?.type === "lucky" && Number(seat.gif.timestamp) === timestamp) {
+            currentSeats.set(seatNumber, { ...seat, gif: undefined });
+            changed = true;
+          }
+        }
+        if (changed) emitRoomSeats(room);
+      }, 1400);
+    }
+
     io.to(`room:${room}`).emit("coin_transfer_received", {
       roomId: room,
       senderId: sender,
       recipientIds: validRecipients,
       amount: value,
       giftName: String(giftName || "Gift"),
-      timestamp: Date.now(),
+      giftCategory: String(giftCategory || ""),
+      timestamp,
     });
   });
 
