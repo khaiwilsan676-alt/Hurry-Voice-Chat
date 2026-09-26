@@ -456,6 +456,7 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
             } catch (e) {}
 
             socket.emit('fruitparty_winner_update', {
+              eventId: `fruit_1790417048350_dc2wz1r9`,
                 name: currentUserName,
                 win: earned,
                 avatar: currentUserAvatar,
