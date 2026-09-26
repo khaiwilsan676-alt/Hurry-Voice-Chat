@@ -590,6 +590,9 @@ export default function PublicProfile({
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false) 
 
+  // ✅ New state for Album Screen
+  const [showAlbumScreen, setShowAlbumScreen] = useState(false)
+
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
   useEffect(() => {
@@ -1550,8 +1553,9 @@ export default function PublicProfile({
                     </div>
                   ))}
                   {albumImages.length < 7 && (
+                    // ✅ Clicking this + opens the new Album Screen
                     <button
-                      onClick={() => albumInputRef.current?.click()}
+                      onClick={() => setShowAlbumScreen(true)}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
                     >
                       <span className="text-3xl font-thin leading-none">+</span>
@@ -1603,6 +1607,74 @@ export default function PublicProfile({
                 Save Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: Album Screen (Matches Screenshot) */}
+      {showAlbumScreen && (
+        <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0">
+            <button onClick={() => setShowAlbumScreen(false)}>
+              <ArrowLeft size={24} className="text-gray-700" />
+            </button>
+            <h2 className="text-lg font-bold text-gray-900">Albums</h2>
+            <button onClick={() => setShowAlbumScreen(false)} className="text-blue-500 font-medium text-sm">
+              Done
+            </button>
+          </div>
+
+          {/* Info Banner */}
+          <div className="bg-orange-50 px-4 py-3 flex items-start gap-2 shrink-0">
+            <AlertTriangle size={18} className="text-orange-400 mt-0.5 shrink-0" />
+            <p className="text-xs text-orange-600 font-medium">
+              Pin the photos. The top 6 photos will be displayed on your profile
+            </p>
+          </div>
+
+          {/* Photo Grid */}
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="grid grid-cols-3 gap-2">
+              {albumImages.map((img, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-pointer"
+                  onClick={() => setFullImageView(img)}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveAlbumImage(index);
+                    }}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+
+              {/* Add More Button */}
+              {albumImages.length < 7 && (
+                <button
+                  onClick={() => albumInputRef.current?.click()}
+                  className="aspect-square rounded-lg bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 hover:border-gray-300 transition-colors"
+                >
+                  <span className="text-4xl font-thin leading-none">+</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Camera Button */}
+          <div className="px-4 py-4 border-t border-gray-100 flex justify-center shrink-0">
+            <button
+              onClick={() => albumInputRef.current?.click()}
+              className="w-14 h-14 rounded-full bg-[#1dc4e9] flex items-center justify-center text-white shadow-lg shadow-cyan-200 hover:bg-[#1de9b6] transition-colors"
+            >
+              <Camera size={26} />
+            </button>
           </div>
         </div>
       )}
@@ -1693,4 +1765,4 @@ export default function PublicProfile({
       `}</style>
     </div>
   )
-  }
+}
