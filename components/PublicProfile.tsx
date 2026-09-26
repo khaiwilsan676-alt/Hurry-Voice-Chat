@@ -1414,7 +1414,10 @@ export default function PublicProfile({
         {/* Content Tabs Section */}
         <div className="px-5 mt-6 space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
+            <h3 
+              className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center cursor-pointer"
+              onClick={() => setShowAlbumsScreen(true)}
+            >
               Albums
               <span className="text-xs text-gray-400 font-normal">{albumImages.length}/7</span>
             </h3>
@@ -1424,7 +1427,7 @@ export default function PublicProfile({
                   <div
                     key={index}
                     className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => setFullImageView(img)}
+                    onClick={() => setShowAlbumsScreen(true)}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </div>
