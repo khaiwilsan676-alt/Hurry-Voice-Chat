@@ -388,7 +388,7 @@ app.get("/api/rooms/image", async (req, res) => {
     if (!room) return res.status(404).end();
     const value = String(room.dp || room.image || room.roomDp || room["Room dp"] || '').trim();
     if (!value.startsWith('data:image/')) return res.redirect(value || '/default-avatar.png');
-    const match = value.match(/^data:(image\\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
+    const match = value.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
     if (!match) return res.status(415).end();
     res.setHeader('Content-Type', match[1]);
     res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
