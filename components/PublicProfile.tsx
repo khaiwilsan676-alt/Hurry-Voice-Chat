@@ -577,7 +577,7 @@ export default function PublicProfile({
   const [editCountryCode, setEditCountryCode] = useState(user.countryCode)
   const [countryLocked, setCountryLocked] = useState(false)
 
-  const [showBioInput, setShowBioInput] = useState(false)
+  const [showBioScreen, setShowBioScreen] = useState(false) // ✅ New state for Bio Screen
   const [activeTab, setActiveTab] = useState('profile')
 
   const [fullImageView, setFullImageView] = useState<string | null>(null)
@@ -982,7 +982,7 @@ export default function PublicProfile({
 
   const handleCloseEditSheet = () => {
     setShowEditSheet(false)
-    setShowBioInput(false)
+    setShowBioScreen(false) // Close bio screen if open
   }
 
   const handleGenderSelect = async (gender: string) => {
@@ -1114,14 +1114,15 @@ export default function PublicProfile({
 
     await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
     setShowEditSheet(false)
-    setShowBioInput(false)
+    setShowBioScreen(false)
   }
 
+  // ✅ Updated handleBioSave
   const handleBioSave = async () => {
     localStorage.setItem('userBio', editBio)
     const updatedUser = { ...user, bio: editBio };
     setUser(updatedUser);
-    setShowBioInput(false);
+    setShowBioScreen(false);
     await saveToMongoDB({ bio: editBio, about: editBio });
     await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos });
   }
@@ -1502,32 +1503,16 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* Bio */}
+              {/* Bio - Click to open Bio Screen */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Bio</span>
-                {showBioInput ? (
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={editBio}
-                      onChange={(e) => setEditBio(e.target.value)}
-                      className="text-sm text-gray-900 text-right bg-transparent border-b border-gray-200 focus:border-blue-500 outline-none px-2 py-1 w-36"
-                      placeholder="Add bio"
-                      autoFocus
-                    />
-                    <button onClick={handleBioSave} className="text-xs text-blue-500 font-medium">
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowBioInput(true)}
-                    className="flex items-center gap-1 text-sm text-gray-500"
-                  >
-                    <span className="max-w-[180px] truncate">{editBio || ''}</span>
-                    <ChevronRight size={16} className="text-gray-400" />
-                  </button>
-                )}
+                <button
+                  onClick={() => setShowBioScreen(true)}
+                  className="flex items-center gap-1 text-sm text-gray-500"
+                >
+                  <span className="max-w-[180px] truncate">{editBio || ''}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
               </div>
 
               {/* ALBUM — max 7 */}
@@ -1553,7 +1538,6 @@ export default function PublicProfile({
                     </div>
                   ))}
                   {albumImages.length < 7 && (
-                    // ✅ Clicking this + opens the new Album Screen
                     <button
                       onClick={() => setShowAlbumScreen(true)}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
@@ -1605,6 +1589,52 @@ export default function PublicProfile({
                 className="w-full bg-blue-500 text-white py-3 rounded-full font-semibold hover:bg-blue-600 transition-colors"
               >
                 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: Bio Edit Screen (Matches Screenshot) */}
+      {!isOtherUser && showBioScreen && (
+        <div className="fixed inset-0 z-[65] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowBioScreen(false)}></div>
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[50vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+              <button onClick={() => setShowBioScreen(false)}>
+                <ArrowLeft size={24} className="text-gray-700" />
+              </button>
+              <h2 className="text-lg font-bold text-gray-900">Bio</h2>
+              <button onClick={() => setShowBioScreen(false)}>
+                <X size={24} className="text-gray-700" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 px-5 overflow-y-auto">
+              <textarea
+                value={editBio}
+                onChange={(e) => {
+                  if (e.target.value.length <= 50) {
+                    setEditBio(e.target.value)
+                  }
+                }}
+                placeholder=""
+                className="w-full h-32 p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none resize-none border border-transparent focus:border-blue-500"
+              />
+              <div className="text-right text-xs text-gray-400 mt-1">
+                {editBio.length}/50
+              </div>
+            </div>
+
+            {/* Footer / Save Button */}
+            <div className="px-5 pb-6 pt-2 shrink-0">
+              <button
+                onClick={handleBioSave}
+                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
+              >
+                Save
               </button>
             </div>
           </div>
@@ -1745,7 +1775,7 @@ export default function PublicProfile({
       )}
 
       {isOtherUser && showUserReport && targetUser && (
-        <div className="fixed inset-0 z-[100]">
+        <div className="fixed inset-0 ]">
           <UserReport
             currentUser={getCurrentUserData()}
             targetUser={targetUser}
