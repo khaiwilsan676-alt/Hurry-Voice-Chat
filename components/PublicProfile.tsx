@@ -577,7 +577,7 @@ export default function PublicProfile({
   const [editCountryCode, setEditCountryCode] = useState(user.countryCode)
   const [countryLocked, setCountryLocked] = useState(false)
 
-  const [showBioScreen, setShowBioScreen] = useState(false) // ✅ New state for Bio Screen
+  const [showBioScreen, setShowBioScreen] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
 
   const [fullImageView, setFullImageView] = useState<string | null>(null)
@@ -588,9 +588,8 @@ export default function PublicProfile({
   const [showReportToast, setShowReportToast] = useState(false)
 
   const [showChat, setShowChat] = useState(false)
-  const [showUserReport, setShowUserReport] = useState(false) 
+  const [showUserReport, setShowUserReport] = useState(false)
 
-  // ✅ New state for Album Screen
   const [showAlbumScreen, setShowAlbumScreen] = useState(false)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
@@ -982,7 +981,7 @@ export default function PublicProfile({
 
   const handleCloseEditSheet = () => {
     setShowEditSheet(false)
-    setShowBioScreen(false) // Close bio screen if open
+    setShowBioScreen(false)
   }
 
   const handleGenderSelect = async (gender: string) => {
@@ -1117,7 +1116,6 @@ export default function PublicProfile({
     setShowBioScreen(false)
   }
 
-  // ✅ Updated handleBioSave
   const handleBioSave = async () => {
     localStorage.setItem('userBio', editBio)
     const updatedUser = { ...user, bio: editBio };
@@ -1437,7 +1435,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Edit Profile Bottom Sheet — 50vh, scrollable content */}
+      {/* ✅ Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
@@ -1458,7 +1456,7 @@ export default function PublicProfile({
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* Avatar */}
+              {/* 1. Avatar */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
@@ -1477,7 +1475,7 @@ export default function PublicProfile({
                 </div>
               </div>
 
-              {/* Nickname */}
+              {/* 2. Nickname */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
                 <input
@@ -1489,7 +1487,7 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* Age */}
+              {/* 3. Age */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Age</span>
                 <input
@@ -1503,53 +1501,8 @@ export default function PublicProfile({
                 />
               </div>
 
-              {/* Bio - Click to open Bio Screen */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Bio</span>
-                <button
-                  onClick={() => setShowBioScreen(true)}
-                  className="flex items-center gap-1 text-sm text-gray-500"
-                >
-                  <span className="max-w-[180px] truncate">{editBio || ''}</span>
-                  <ChevronRight size={16} className="text-gray-400" />
-                </button>
-              </div>
-
-              {/* ALBUM — max 7 */}
+              {/* 4. BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/7)
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {albumImages.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
-                    >
-                      <img src={img} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => handleRemoveAlbumImage(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                  {albumImages.length < 7 && (
-                    <button
-                      onClick={() => setShowAlbumScreen(true)}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* BACKGROUND — max 4, Album ke niche */}
-              <div className="space-y-3 pt-2 pb-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Background ({coverPhotos.length}/4)
@@ -1580,6 +1533,51 @@ export default function PublicProfile({
                   )}
                 </div>
               </div>
+
+              {/* 5. Bio - Click to open Bio Screen */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Bio</span>
+                <button
+                  onClick={() => setShowBioScreen(true)}
+                  className="flex items-center gap-1 text-sm text-gray-500"
+                >
+                  <span className="max-w-[180px] truncate">{editBio || ''}</span>
+                  <ChevronRight size={16} className="text-gray-400" />
+                </button>
+              </div>
+
+              {/* 6. ALBUM — max 7 (Last me) */}
+              <div className="space-y-3 pt-2 pb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">
+                    Album Photos ({albumImages.length}/7)
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {albumImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => handleRemoveAlbumImage(idx)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {albumImages.length < 7 && (
+                    <button
+                      onClick={() => setShowAlbumScreen(true)}
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                    >
+                      <span className="text-3xl font-thin leading-none">+</span>
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Fixed Footer */}
@@ -1595,12 +1593,11 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ NEW: Bio Edit Screen (Matches Screenshot) */}
+      {/* Bio Edit Screen */}
       {!isOtherUser && showBioScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowBioScreen(false)}></div>
           <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[50vh]">
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 shrink-0">
               <button onClick={() => setShowBioScreen(false)}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -1611,7 +1608,6 @@ export default function PublicProfile({
               </button>
             </div>
 
-            {/* Content */}
             <div className="flex-1 px-5 overflow-y-auto">
               <textarea
                 value={editBio}
@@ -1628,7 +1624,6 @@ export default function PublicProfile({
               </div>
             </div>
 
-            {/* Footer / Save Button */}
             <div className="px-5 pb-6 pt-2 shrink-0">
               <button
                 onClick={handleBioSave}
@@ -1641,10 +1636,9 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ NEW: Album Screen (Matches Screenshot) */}
+      {/* Album Screen */}
       {showAlbumScreen && (
         <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
-          {/* Header */}
           <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100 shrink-0">
             <button onClick={() => setShowAlbumScreen(false)}>
               <ArrowLeft size={24} className="text-gray-700" />
@@ -1655,7 +1649,6 @@ export default function PublicProfile({
             </button>
           </div>
 
-          {/* Info Banner */}
           <div className="bg-orange-50 px-4 py-3 flex items-start gap-2 shrink-0">
             <AlertTriangle size={18} className="text-orange-400 mt-0.5 shrink-0" />
             <p className="text-xs text-orange-600 font-medium">
@@ -1663,7 +1656,6 @@ export default function PublicProfile({
             </p>
           </div>
 
-          {/* Photo Grid */}
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <div className="grid grid-cols-3 gap-2">
               {albumImages.map((img, index) => (
@@ -1685,7 +1677,6 @@ export default function PublicProfile({
                 </div>
               ))}
 
-              {/* Add More Button */}
               {albumImages.length < 7 && (
                 <button
                   onClick={() => albumInputRef.current?.click()}
@@ -1697,7 +1688,6 @@ export default function PublicProfile({
             </div>
           </div>
 
-          {/* Bottom Camera Button */}
           <div className="px-4 py-4 border-t border-gray-100 flex justify-center shrink-0">
             <button
               onClick={() => albumInputRef.current?.click()}
