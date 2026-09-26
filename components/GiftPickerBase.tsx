@@ -9,7 +9,6 @@ const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
 const DEFAULT_BALANCE = 82927;
 
-// Single cached connection — avoids leaking an IndexedDB connection on every poll
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 const initWalletDB = (): Promise<IDBDatabase> => {
@@ -82,7 +81,6 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// Records a gift send into the shared transactions store (type: 'coin')
 const recordGiftTransaction = async (title: string, amount: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -259,7 +257,6 @@ export default function GiftPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [showTargetMenu]);
 
-  // cleanup video timeout on unmount
   useEffect(() => {
     return () => {
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
@@ -297,7 +294,7 @@ export default function GiftPicker({
     onClose();
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const handleRemoteGiftVideo = (data: any = {}) => {
       if (!data?.roomId || String(data.roomId) !== String(roomId)) return;
       if (String(data.senderId || "") === String(currentUserAccountId || "")) return;
@@ -311,20 +308,34 @@ export default function GiftPicker({
     return () => socket.off("gift_video_play", handleRemoteGiftVideo);
   }, [roomId, currentUserAccountId]);
 
-const handleSend = async () => {
+  const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
     setSending(true);
-    setWalletBalance((p) => Math.max(0, p - totalSendCost));
-    await updateWalletBalance(-totalSendCost);
-    await recordGiftTransaction(selectedGiftObj.name, -totalSendCost);
+
+    let luckyReturnAmount = 0;
+    let luckyReturnPercent = 0;
+    let netDeductionCost = totalSendCost;
+
+    if (isLuckyGiftTab) {
+      // 60% chance to lose, 40% chance to win (0.05 to 0.5 percent back)
+      if (Math.random() > 0.6) {
+        luckyReturnPercent = 0.05 + Math.random() * 0.45;
+        luckyReturnAmount = Math.floor(totalSendCost * luckyReturnPercent);
+      }
+      netDeductionCost = totalSendCost - luckyReturnAmount;
+    }
+
+    setWalletBalance((p) => Math.max(0, p - netDeductionCost));
+    await updateWalletBalance(-netDeductionCost);
+    await recordGiftTransaction(selectedGiftObj.name, -netDeductionCost);
 
     if (roomId && currentUserAccountId && recipientIds.length > 0) {
       socket.emit("coin_transfer", {
         roomId: String(roomId),
         senderId: String(currentUserAccountId),
         recipientIds: recipientIds.map(String),
-        amount: totalCost,
+        amount: totalCost, 
         giftName: selectedGiftObj.name,
         giftType: activeTab,
         senderName: currentUserName,
@@ -332,9 +343,13 @@ const handleSend = async () => {
         recipientName: firstRecipient?.name || "User",
         recipientImage: firstRecipient?.image || "/default-avatar.png",
         multiplier: parseMultiplier(selectedMultiplier),
+        luckyGift: isLuckyGiftTab,
+        luckyReturnAmount,
+        luckyReturnPercent,
+        luckyImage: selectedGiftObj.image,
       });
 
-      if (selectedGiftObj.video) {
+      if (selectedGiftObj.video && !isLuckyGiftTab) {
         socket.emit("gift_video_play", {
           roomId: String(roomId),
           senderId: String(currentUserAccountId),
@@ -363,7 +378,7 @@ const handleSend = async () => {
           giftName: selectedGiftObj.name,
           giftImage: selectedGiftObj.image,
           giftCoins: selectedGiftObj.coins,
-          multiplier: parseMultiplier(selectedMultiplier),
+          initialMultiplier: parseMultiplier(selectedMultiplier),
         },
       }));
       setSending(false);
@@ -376,7 +391,6 @@ const handleSend = async () => {
         src: selectedGiftObj.video,
         style: selectedGiftObj.videoStyle ?? "fade",
       });
-      // 🔥 safety fallback: agar video kisi wajah se start/end na ho, 10s me close
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
       videoTimeoutRef.current = setTimeout(() => {
         finishVideo();
@@ -410,9 +424,6 @@ const handleSend = async () => {
     if (selectionLabel === "All room") setSelectionLabel("All");
   };
 
-  // ============================================================
-  // 🎬 VIDEO
-  // ============================================================
   if (playingVideo) {
     const isFade = playingVideo.style === "fade";
     const isArabKing = playingVideo.src.includes("17e19680");
@@ -445,9 +456,6 @@ const handleSend = async () => {
               if (el) {
                 el.controls = false;
                 el.removeAttribute("controls");
-                el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
-                el.setAttribute("disablePictureInPicture", "");
-                el.setAttribute("disableRemotePlayback", "");
                 el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
                 el.setAttribute("disablePictureInPicture", "");
                 el.setAttribute("disableRemotePlayback", "");
@@ -518,9 +526,6 @@ const handleSend = async () => {
         video::-webkit-media-controls-panel,
         video::-webkit-media-controls-overlay-play-button,
         video::-webkit-media-controls-start-playback-button { display: none !important; opacity: 0 !important; }
-      `}</style>
-
-      <style jsx>{`
         .main-container { background: rgba(0, 0, 0, 0.95); }
         .gift-item {
           background: transparent;
@@ -573,18 +578,14 @@ const handleSend = async () => {
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#3b82f6] w-full text-left"
                   >
                     <SolidMicIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">
-                      All on mic
-                    </span>
+                    <span className="text-[14px] tracking-wide font-medium">All on mic</span>
                   </button>
                   <button
                     onClick={handleAllInRoom}
                     className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
                   >
                     <SolidUserIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">
-                      All in room
-                    </span>
+                    <span className="text-[14px] tracking-wide font-medium">All in room</span>
                   </button>
                 </div>
               </div>
@@ -655,16 +656,12 @@ const handleSend = async () => {
                     activeTab === "Hot" && !gift.noMask
                       ? gift.sideFade
                         ? {
-                            WebkitMaskImage:
-                              "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
-                            maskImage:
-                              "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
+                            WebkitMaskImage: "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
+                            maskImage: "radial-gradient(ellipse 50% 50% at center, black 35%, transparent 100%)",
                           }
                         : {
-                            WebkitMaskImage:
-                              "radial-gradient(circle, black 40%, transparent 80%)",
-                            maskImage:
-                              "radial-gradient(circle, black 40%, transparent 80%)",
+                            WebkitMaskImage: "radial-gradient(circle, black 40%, transparent 80%)",
+                            maskImage: "radial-gradient(circle, black 40%, transparent 80%)",
                           }
                       : {}
                   }
@@ -673,9 +670,7 @@ const handleSend = async () => {
                     src={gift.image}
                     alt={gift.name}
                     fill
-                    className={`${
-                      gift.noMask ? "object-contain" : "object-cover"
-                    } ${gift.sideFade ? "rounded-xl" : ""}`}
+                    className={`${gift.noMask ? "object-contain" : "object-cover"} ${gift.sideFade ? "rounded-xl" : ""}`}
                     sizes={gift.noMask ? "44px" : "64px"}
                     priority={gift.id === 1}
                   />
@@ -770,8 +765,22 @@ const handleSend = async () => {
       </div>
     </div>
   );
-                                                                                                                                                                                                                    }
+}
 
+
+// ==========================================================
+// 🎲 Lucky Gift Notification Slider
+// ==========================================================
+interface LuckyNotice {
+  id: string;
+  senderName: string;
+  senderImage: string;
+  recipientName: string;
+  giftImage: string;
+  multiplier: number;
+  returnAmount: number;
+  returnPercent: number;
+}
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const [notice, setNotice] = useState<LuckyNotice | null>(null);
@@ -783,11 +792,12 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       if (data.luckyGift !== true) return;
 
       const next: LuckyNotice = {
+        // ID change hote hi animation reset hota hai (Right to left slider effect)
         id: String(data.transferId || data.eventId || `notify-${Date.now()}-${Math.random()}`),
         senderName: String(data.senderName || "User"),
         senderImage: String(data.senderImage || "/default-avatar.png"),
         recipientName: String(data.recipientName || "User"),
-        giftImage: String(data.luckyImage || data.giftImage || LUCKY_IMAGES[String(data.giftName || "")] || ""),
+        giftImage: String(data.luckyImage || data.giftImage || ""),
         multiplier: Math.max(1, Number(data.multiplier) || 1),
         returnAmount: Math.max(0, Number(data.luckyReturnAmount) || 0),
         returnPercent: Math.max(0, Number(data.luckyReturnPercent) || 0),
@@ -795,7 +805,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
       setNotice(next);
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setNotice(null), 3600);
+      timerRef.current = setTimeout(() => setNotice(null), 3600); // Slider time limit
     };
 
     socket.on("coin_transfer_received", handler);
@@ -814,7 +824,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       style={{ bottom: "20vh" }}
     >
       <div
-        className="relative w-[min(94vw,420px)] h-[72px] overflow-hidden"
+        className="relative w-[min(94vw,420px)] h-[72px] overflow-hidden drop-shadow-xl"
         style={{
           backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
           backgroundSize: "100% 100%",
@@ -822,48 +832,222 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           animation: "hurryLuckyNoticeSlide 3.6s ease-in-out forwards",
         }}
       >
-        <div className="absolute left-[9px] top-1/2 -translate-y-1/2 w-10 h-10 rounded-full overflow-hidden">
-          <img src={notice.senderImage} alt="" className="w-full h-full object-cover" draggable={false} />
+        {/* Left Side: Sender Avatar + Overlapping Frame */}
+        <div className="absolute left-[9px] top-1/2 -translate-y-1/2 w-11 h-11 z-10">
+          <img
+            src={notice.senderImage}
+            alt=""
+            className="w-full h-full rounded-full object-cover"
+            draggable={false}
+          />
+          {/* Overlapping Frame (Bina Cut kiye) */}
+          <img
+            src="/file_00000000fc488211afad439cacecc7c5.png"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain pointer-events-none z-20"
+            draggable={false}
+          />
         </div>
 
-        <div className="absolute left-[56px] top-1/2 -translate-y-1/2 min-w-0 max-w-[46%] text-white">
-          <div className="font-bold text-[12px] truncate">{notice.senderName}</div>
-          <div className="text-[10px] text-white/80 truncate">Sent to {notice.recipientName}</div>
+        {/* Middle Text: Sender Name & Sent to Receiver */}
+        <div className="absolute left-[64px] top-1/2 -translate-y-1/2 min-w-0 max-w-[35%] text-white z-10">
+          <div className="font-bold text-[12px] truncate drop-shadow-md">{notice.senderName}</div>
+          <div className="text-[10px] text-[#ffeb3b] truncate font-medium drop-shadow-sm">
+            Sended to {notice.recipientName}
+          </div>
         </div>
 
-        <div className="absolute right-[7px] top-1/2 -translate-y-1/2 w-[56px] h-[56px]">
+        {/* Center/Middle Image: Multiplier & Lucky Gift Image */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-1.5 z-10">
+          <span className="text-white font-extrabold text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            ×{notice.multiplier}
+          </span>
+          {notice.giftImage && (
+            <img
+              src={notice.giftImage}
+              alt=""
+              className="w-9 h-9 object-contain drop-shadow-lg"
+              draggable={false}
+            />
+          )}
+        </div>
+
+        {/* Right Corner: +0 wali image or Return Value */}
+        <div className="absolute right-[7px] top-1/2 -translate-y-1/2 w-[56px] h-[56px] z-10">
+          {/* Win / Return Amount float up animation */}
+          {notice.returnAmount > 0 && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 text-[#ffeb3b] font-black text-[14px] drop-shadow-[0_0_8px_rgba(255,235,59,0.9)] z-30"
+              style={{ animation: "floatUpFade 1.5s ease-out forwards" }}
+            >
+              +{notice.returnAmount}
+            </div>
+          )}
+
+          {/* Background Right image */}
           <img
             src="/file_00000000a9e48211aee262c0df0c36bc.png"
             alt=""
             className="absolute inset-0 w-full h-full object-contain"
             draggable={false}
           />
-          {notice.giftImage && (
-            <img
-              src={notice.giftImage}
-              alt=""
-              className="absolute left-1/2 top-1/2 w-[32px] h-[32px] -translate-x-1/2 -translate-y-1/2 object-contain"
-              draggable={false}
-            />
-          )}
-          <div className="absolute inset-0 flex items-center justify-center text-white font-extrabold text-[11px] drop-shadow-md">
-            +{notice.returnAmount.toLocaleString()}
+          {/* Centered Return Label (+0 or Win Amount) */}
+          <div className="absolute inset-0 flex items-center justify-center text-white font-extrabold text-[12px] drop-shadow-md z-20 pt-1">
+            +{notice.returnAmount}
           </div>
-        </div>
-
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white font-extrabold text-[15px] drop-shadow-md">
-          ×{notice.multiplier}
         </div>
       </div>
 
       <style jsx>{`
+        /* Right to Left Slide Animation */
         @keyframes hurryLuckyNoticeSlide {
           0% { transform: translate3d(115vw, 0, 0); opacity: 0; }
           12% { transform: translate3d(0, 0, 0); opacity: 1; }
-          78% { transform: translate3d(0, 0, 0); opacity: 1; }
+          85% { transform: translate3d(0, 0, 0); opacity: 1; }
           100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
         }
+        @keyframes floatUpFade {
+          0% { transform: translate(-50%, -10px) scale(0.8); opacity: 1; }
+          100% { transform: translate(-50%, -40px) scale(1.1); opacity: 0; }
+        }
       `}</style>
+    </div>
+  );
+}
+
+
+// ==========================================================
+// ⭕ Blue Lucky Combo Circular Button (Bottom Right)
+// ==========================================================
+export function LuckyComboButton() {
+  const [comboData, setComboData] = useState<any>(null);
+  const [comboMultiplier, setComboMultiplier] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const handleLuckyCombo = (e: any) => {
+      const data = e.detail;
+      setComboData(data);
+      setComboMultiplier(data.initialMultiplier || 1);
+      startTimer();
+    };
+
+    window.addEventListener("hurry:lucky-combo", handleLuckyCombo);
+    return () => window.removeEventListener("hurry:lucky-combo", handleLuckyCombo);
+  }, []);
+
+  const startTimer = () => {
+    setTimeLeft(5); // 5 seconds timer start hoga
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    countdownRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // 5 seconds no click -> close button
+          setComboData(null);
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleComboClick = async () => {
+    if (!comboData) return;
+    
+    startTimer(); // Reset timer for another 5 seconds on click
+
+    const nextMultiplier = comboMultiplier + 1;
+    setComboMultiplier(nextMultiplier); // Increase multiplier
+
+    const baseCost = comboData.giftCoins; 
+    const recipientCount = comboData.recipientIds.length;
+    const totalCost = baseCost * recipientCount;
+    
+    // Return logic fir se hit hoga combo pe
+    let luckyReturnAmount = 0;
+    let luckyReturnPercent = 0;
+    
+    if (Math.random() > 0.6) {
+      luckyReturnPercent = 0.05 + Math.random() * 0.45;
+      luckyReturnAmount = Math.floor(totalCost * luckyReturnPercent);
+    }
+    
+    const finalDeductionCost = totalCost - luckyReturnAmount;
+
+    const bal = await loadWalletBalance();
+    if (bal < finalDeductionCost) {
+      setComboData(null);
+      return;
+    }
+
+    await updateWalletBalance(-finalDeductionCost);
+    await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
+
+    // Ye event emit hone par sabko slider wapis dikhega with nayi multiplier 
+    socket.emit("coin_transfer", {
+      roomId: comboData.roomId,
+      senderId: comboData.senderId,
+      recipientIds: comboData.recipientIds,
+      amount: totalCost, 
+      giftName: comboData.giftName,
+      giftType: "Lucky",
+      senderName: comboData.senderName,
+      senderImage: comboData.senderImage,
+      recipientName: comboData.recipientName,
+      recipientImage: comboData.recipientImage,
+      multiplier: nextMultiplier,
+      luckyGift: true,
+      luckyReturnAmount,
+      luckyReturnPercent,
+      luckyImage: comboData.giftImage,
+    });
+  };
+
+  if (!comboData) return null;
+
+  return (
+    <div
+      className="fixed z-[2147483001] flex flex-col items-center justify-center gap-1"
+      style={{ bottom: "7vh", right: "5vw" }}
+    >
+      <button
+        onClick={handleComboClick}
+        className="relative flex items-center justify-center w-16 h-16 rounded-full outline-none select-none active:scale-95 transition-transform"
+        style={{
+          // Blue Theme Color as requested
+          background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+          boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)",
+        }}
+      >
+        <span className="text-white font-extrabold text-[22px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+          ×{comboMultiplier}
+        </span>
+
+        {/* White Circular Countdown Progress indicator (5 seconds) */}
+        <svg
+          className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none"
+          viewBox="0 0 64 64"
+        >
+          <circle
+            cx="32"
+            cy="32"
+            r="30"
+            fill="none"
+            stroke="#ffffff" // White Stroke
+            strokeWidth="3.5"
+            strokeDasharray="188.5" // Circumference for r=30
+            strokeDashoffset={188.5 - (188.5 * timeLeft) / 5}
+            style={{ transition: "stroke-dashoffset 1s linear" }}
+          />
+        </svg>
+      </button>
+      <span className="text-white text-[10px] font-bold uppercase drop-shadow-md tracking-wider">
+        Combo
+      </span>
     </div>
   );
 }
