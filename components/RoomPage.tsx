@@ -163,13 +163,44 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
 
   useEffect(() => {
     const handleCoinTransferReceived = async (data: any = {}) => {
-      const recipients = Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : [];
-      const diamondAmount = Number(data.diamondAmount);
-      if (!recipients.includes(String(userAccountId)) || !Number.isFinite(diamondAmount) || diamondAmount <= 0) return;
+      const recipients = Array.isArray(data.recipientIds)
+        ? data.recipientIds.map(String)
+        : data.recipientId
+          ? [String(data.recipientId)]
+          : [];
+
+      const currentIds = new Set(
+        [
+          currentUser.accountId,
+          currentUser.uid,
+          currentUser.id,
+          localStorage.getItem("accountNumber"),
+        ]
+          .filter(Boolean)
+          .map(String)
+      );
+
+      const isRecipient = recipients.some((id) => currentIds.has(id));
+      if (!isRecipient) return;
+
+      // Server sends diamondAmount; fall back to 10% of amount for older backend payloads.
+      const rawDiamondAmount = Number(data.diamondAmount);
+      const rawCoinAmount = Number(data.amount);
+      const diamondAmount =
+        Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
+          ? Math.floor(rawDiamondAmount)
+          : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
+            ? Math.floor(rawCoinAmount * 0.1)
+            : 0;
+
+      if (diamondAmount <= 0) return;
 
       await addDiamondsToDB(diamondAmount);
       const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
       await recordTransaction("Diamonds received" + giftLabel, diamondAmount, "diamond");
+      window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", {
+        detail: { amount: diamondAmount },
+      }));
     };
 
     socket.on("coin_transfer_received", handleCoinTransferReceived);
