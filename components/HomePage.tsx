@@ -1100,7 +1100,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
       const dotsBottom = dotsEl.getBoundingClientRect().bottom;
       const cardsTop = cardsEl.getBoundingClientRect().top;
       const currentGap = cardsTop - dotsBottom;
-      const desiredGap = 1.5;
+      const desiredGap = 2;
       const deltaOffset = desiredGap - currentGap;
       setCategoryOffset(deltaOffset);
     };
@@ -2492,7 +2492,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
           ref={categoryCardsRef}
           className="px-3"
           style={{
-            transform: `translateY(${categoryOffset - 4}px)`,
+            transform: `translateY(${categoryOffset}px)`,
             marginBottom: '0px',
             position: 'relative',
             zIndex: 10,
