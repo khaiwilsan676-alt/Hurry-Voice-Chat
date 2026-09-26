@@ -4,10 +4,19 @@ import React, { useEffect } from "react";
 import GiftPickerBase from "./GiftPickerBase";
 import socket from "../src/lib/socket";
 
-const LUCKY_GIFTS = new Set([
-  "Kiss", "Nut", "Mahjong", "Clover", "Charm", "Bouquet",
-  "Leaves", "Crystal", "Candy", "Pop", "Scarecrow",
-]);
+const LUCKY_GIFT_IMAGES: Record<string, string> = {
+  Kiss: "/IMG_20260906_000443.png",
+  Nut: "/IMG_20260906_000508.png",
+  Mahjong: "/IMG_20260906_000521.png",
+  Clover: "/IMG_20260906_000541.png",
+  Charm: "/IMG_20260906_000624.png",
+  Bouquet: "/IMG_20260906_000643.png",
+  Leaves: "/IMG_20260906_000713.png",
+  Crystal: "/IMG_20260906_000756.png",
+  Candy: "/IMG_20260906_000814.png",
+  Pop: "/IMG_20260906_000832.png",
+  Scarecrow: "/IMG_20260906_000850.png",
+};
 
 function createLuckyGiftAnimationSrc(image: string) {
   const safeImage = String(image || "")
@@ -21,48 +30,55 @@ export default function GiftPicker(props: any) {
   useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
     const patchedEmit = ((event: string, ...args: any[]) => {
-      if (event === "coin_transfer" && args[0] && LUCKY_GIFTS.has(String(args[0].giftName || ""))) {
+      if (event === "coin_transfer" && args[0]) {
         const data = args[0];
-        const amount = Number(data.amount);
-        const diamondAmount = Number.isFinite(amount) && amount > 0
-          ? Math.floor(amount * 0.10)
-          : 0;
+        const giftName = String(data.giftName || "");
+        const image = LUCKY_GIFT_IMAGES[giftName];
 
-        originalEmit("coin_transfer", {
-          ...data,
-          amount: diamondAmount,
-        });
+        if (image) {
+          const amount = Number(data.amount);
+          const diamondAmount = Number.isFinite(amount) && amount > 0
+            ? Math.floor(amount * 0.10)
+            : 0;
 
-        const roomId = String(data.roomId || "");
-        const senderId = String(data.senderId || "");
-        const recipientIds = Array.isArray(data.recipientIds)
-          ? new Set(data.recipientIds.map(String))
-          : new Set<string>();
-        const seats = Array.isArray(props.seats) ? props.seats : [];
-        const image = String(data.giftImage || "");
-        const animationSrc = createLuckyGiftAnimationSrc(image);
-        const timestamp = Date.now();
-
-        for (const seat of seats) {
-          const targetId = String(seat?.user?.accountId || "");
-          if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId)) continue;
-
-          originalEmit("room_seat_action", {
-            roomId,
-            userId: senderId,
-            action: "emoji",
-            seatNumber: Number(seat.number),
-            src: animationSrc,
-            timestamp,
-            user: {
-              name: "Lucky Gift",
-              image,
-              accountId: senderId,
-            },
+          // Preserve the sender's full coin deduction in GiftPicker; only
+          // the receiver-side diamond credit is reduced to 10% here.
+          originalEmit("coin_transfer", {
+            ...data,
+            amount: diamondAmount,
           });
-        }
 
-        return socket;
+          const roomId = String(data.roomId || "");
+          const senderId = String(data.senderId || "");
+          const recipientIds = Array.isArray(data.recipientIds)
+            ? new Set(data.recipientIds.map(String))
+            : new Set<string>();
+          const seats = Array.isArray(props.seats) ? props.seats : [];
+          const animationSrc = createLuckyGiftAnimationSrc(image);
+          const timestamp = Date.now();
+
+          // Only occupied recipient seats get the Lucky image animation.
+          for (const seat of seats) {
+            const targetId = String(seat?.user?.accountId || "");
+            if (!seat?.isOccupied || !targetId || !recipientIds.has(targetId)) continue;
+
+            originalEmit("room_seat_action", {
+              roomId,
+              userId: senderId,
+              action: "emoji",
+              seatNumber: Number(seat.number),
+              src: animationSrc,
+              timestamp,
+              user: {
+                name: "Lucky Gift",
+                image,
+                accountId: senderId,
+              },
+            });
+          }
+
+          return socket;
+        }
       }
 
       return originalEmit(event, ...args);
