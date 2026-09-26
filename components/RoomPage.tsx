@@ -162,9 +162,11 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
 
   useEffect(() => {
+    const creditedTransferIds = new Set<string>();
+
     const handleCoinTransferReceived = async (data: any = {}) => {
       const recipients = Array.isArray(data.recipientIds)
-        ? data.recipientIds.map(String)
+        ? data.recipientIds.map((id: any) => String(id)).filter(Boolean)
         : data.recipientId
           ? [String(data.recipientId)]
           : [];
@@ -180,32 +182,57 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
           .map(String)
       );
 
-      const isRecipient = recipients.some((id) => currentIds.has(id));
-      if (!isRecipient) return;
+      // Only the selected recipient's own room session may credit its wallet.
+      if (!recipients.some((id) => currentIds.has(id))) return;
 
-      // Server sends diamondAmount; fall back to 10% of amount for older backend payloads.
+      // Server normally supplies diamondAmount. For older payloads, calculate
+      // the same rule here: Lucky = 10%, every other gift = 100%.
       const rawDiamondAmount = Number(data.diamondAmount);
       const rawCoinAmount = Number(data.amount);
+      const isLucky =
+        data.luckyGift === true || String(data.giftType || "") === "Lucky";
+
       const diamondAmount =
         Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
           ? Math.floor(rawDiamondAmount)
           : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
-            ? Math.floor(rawCoinAmount)
+            ? Math.floor(rawCoinAmount * (isLucky ? 0.1 : 1))
             : 0;
 
       if (diamondAmount <= 0) return;
 
+      // Protect against the same transfer being delivered more than once.
+      const transferKey = String(
+        data.transferId ||
+        data.eventId ||
+        `${data.roomId || ""}:${data.senderId || ""}:${data.timestamp || ""}:${data.giftName || ""}:${diamondAmount}`
+      );
+
+      if (creditedTransferIds.has(transferKey)) return;
+      creditedTransferIds.add(transferKey);
+
+      // Keep the credit in the same FruitPartyDB/GameState/user_data record
+      // used by the Diamonds Wallet screen.
       await addDiamondsToDB(diamondAmount);
+
       const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
-      await recordTransaction("Diamonds received" + giftLabel, diamondAmount, "diamond");
-      window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", {
-        detail: { amount: diamondAmount },
-      }));
+      await recordTransaction(
+        "Diamonds received" + giftLabel,
+        diamondAmount,
+        "diamond"
+      );
+
+      window.dispatchEvent(
+        new CustomEvent("hurry:diamonds-updated", {
+          detail: { amount: diamondAmount },
+        })
+      );
     };
 
     socket.on("coin_transfer_received", handleCoinTransferReceived);
     return () => {
       socket.off("coin_transfer_received", handleCoinTransferReceived);
+      creditedTransferIds.clear();
     };
   }, [userAccountId]);
 
