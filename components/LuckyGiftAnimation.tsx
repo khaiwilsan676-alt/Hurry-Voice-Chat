@@ -73,12 +73,14 @@ function animateLuckyGift(data: any, roomId: string) {
     const half = size / 2;
     const startX = window.innerWidth / 2;
     const startY = window.innerHeight - Math.max(18, size / 2);
+    const middleX = window.innerWidth / 2;
+    const middleY = window.innerHeight * 0.52;
     const endX = rect.left + rect.width / 2;
     const endY = rect.top + rect.height / 2;
-    const duration =
+    const travelDuration =
       Number(data?.duration) > 0
         ? Math.min(1800, Math.max(600, Number(data.duration)))
-        : 1100;
+        : 900;
 
     Object.assign(flyer.style, {
       position: "fixed",
@@ -92,8 +94,7 @@ function animateLuckyGift(data: any, roomId: string) {
       zIndex: "2147483647",
       opacity: "1",
       transform: `translate3d(${startX - half}px,${startY - half}px,0) scale(1)`,
-      transition: `transform ${duration}ms cubic-bezier(.18,.72,.32,1), opacity ${duration}ms ease-out`,
-      willChange: "transform,opacity",
+      willChange: "transform",
     });
 
     const start = () => {
@@ -106,13 +107,26 @@ function animateLuckyGift(data: any, roomId: string) {
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          // First travel from the bottom to the middle and hold there for 1 second.
+          flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
           flyer.style.transform =
-            `translate3d(${endX - half}px,${endY - half}px,0) scale(.22)`;
-          flyer.style.opacity = "0";
+            `translate3d(${middleX - half}px,${middleY - half}px,0) scale(1)`;
+
+          window.setTimeout(() => {
+            if (cancelled) {
+              flyer.remove();
+              return;
+            }
+
+            // Then travel to the target. No opacity/fade and no color/size change.
+            flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
+            flyer.style.transform =
+              `translate3d(${endX - half}px,${endY - half}px,0) scale(1)`;
+
+            window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
+          }, 1000);
         });
       });
-
-      window.setTimeout(() => flyer.remove(), duration + 180);
     };
 
     flyer.onload = start;
