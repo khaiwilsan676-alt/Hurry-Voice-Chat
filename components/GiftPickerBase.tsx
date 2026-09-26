@@ -288,7 +288,21 @@ export default function GiftPicker({
     onClose();
   };
 
-  const handleSend = async () => {
+    useEffect(() => {
+    const handleRemoteGiftVideo = (data: any = {}) => {
+      if (!data?.roomId || String(data.roomId) !== String(roomId)) return;
+      if (String(data.senderId || "") === String(currentUserAccountId || "")) return;
+      if (!data.video) return;
+      setPlayingVideo({ src: String(data.video), style: data.videoStyle === "fade" ? "fade" : "normal" });
+      setSending(false);
+      if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
+      videoTimeoutRef.current = setTimeout(finishVideo, 15000);
+    };
+    socket.on("gift_video_play", handleRemoteGiftVideo);
+    return () => socket.off("gift_video_play", handleRemoteGiftVideo);
+  }, [roomId, currentUserAccountId]);
+
+const handleSend = async () => {
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
     setSending(true);
@@ -305,6 +319,17 @@ export default function GiftPicker({
         giftName: selectedGiftObj.name,
         giftType: activeTab,
       });
+
+      if (selectedGiftObj.video) {
+        socket.emit("gift_video_play", {
+          roomId: String(roomId),
+          senderId: String(currentUserAccountId),
+          giftName: selectedGiftObj.name,
+          video: String(selectedGiftObj.video),
+          videoStyle: selectedGiftObj.videoStyle ?? "fade",
+          timestamp: Date.now(),
+        });
+      }
     }
 
     if (onSend) {
