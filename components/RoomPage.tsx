@@ -622,6 +622,8 @@ function RoomContent({
         timestamp: Number(data.createdAt || Date.now()),
         type: data.type || "message",
         imageUrl: data.imageUrl || undefined,
+        equippedBubble: data.equippedBubble || undefined,
+        equippedVehicle: data.equippedVehicle || undefined,
       };
 
       setMessages(prev => {
