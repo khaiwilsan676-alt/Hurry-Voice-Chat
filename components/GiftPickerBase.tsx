@@ -383,7 +383,7 @@ export default function GiftPicker({
             ref={(el) => {
               if (el) {
                 el.controls = false;
-                el.setAttribute("controls", "false");
+                el.removeAttribute("controls");
                 el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
                 el.setAttribute("disablePictureInPicture", "");
                 el.setAttribute("disableRemotePlayback", "");
