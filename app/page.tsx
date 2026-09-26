@@ -131,7 +131,7 @@ export default function Page() {
       if (uid && localStorage.getItem(`forceLogout_${uid}`)) {
         void handleLogout()
       }
-    }, 1000)
+    }, 5000)
 
     return () => clearInterval(intervalId)
   }, [])
