@@ -110,6 +110,77 @@ const recordGiftTransaction = async (title: string, amount: number): Promise<voi
   }
 };
 
+const VIDEO_CACHE_DB = "HurryVideoCache";
+const VIDEO_CACHE_STORE = "videos";
+let videoCacheDbPromise: Promise<IDBDatabase> | null = null;
+const videoBlobPromises = new Map<string, Promise<Blob>>();
+
+const openVideoCacheDB = (): Promise<IDBDatabase> => {
+  if (typeof window === "undefined") return Promise.reject(new Error("No window"));
+  if (videoCacheDbPromise) return videoCacheDbPromise;
+  videoCacheDbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open(VIDEO_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(VIDEO_CACHE_STORE)) {
+        db.createObjectStore(VIDEO_CACHE_STORE, { keyPath: "src" });
+      }
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => { db.close(); videoCacheDbPromise = null; };
+      db.onclose = () => { videoCacheDbPromise = null; };
+      resolve(db);
+    };
+    request.onerror = () => { videoCacheDbPromise = null; reject(request.error); };
+  });
+  return videoCacheDbPromise;
+};
+
+const readCachedVideoBlob = async (src: string): Promise<Blob | null> => {
+  try {
+    const db = await openVideoCacheDB();
+    return await new Promise<Blob | null>((resolve) => {
+      const tx = db.transaction(VIDEO_CACHE_STORE, "readonly");
+      const req = tx.objectStore(VIDEO_CACHE_STORE).get(src);
+      req.onsuccess = () => resolve(req.result?.blob instanceof Blob ? req.result.blob : null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+};
+
+const writeCachedVideoBlob = async (src: string, blob: Blob): Promise<void> => {
+  try {
+    const db = await openVideoCacheDB();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(VIDEO_CACHE_STORE, "readwrite");
+      tx.objectStore(VIDEO_CACHE_STORE).put({ src, blob, savedAt: Date.now() });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    try { await navigator.storage?.persist?.(); } catch {}
+  } catch {}
+};
+
+const getVideoBlobOnce = (src: string): Promise<Blob> => {
+  const existingPromise = videoBlobPromises.get(src);
+  if (existingPromise) return existingPromise;
+  const promise = (async () => {
+    const cached = await readCachedVideoBlob(src);
+    if (cached) return cached;
+    const response = await fetch(src);
+    if (!response.ok) throw new Error("Video fetch failed: " + response.status);
+    const blob = await response.blob();
+    if (!blob.size) throw new Error("Empty video");
+    await writeCachedVideoBlob(src, blob);
+    return blob;
+  })();
+  videoBlobPromises.set(src, promise);
+  promise.catch(() => { if (videoBlobPromises.get(src) === promise) videoBlobPromises.delete(src); });
+  return promise;
+};
+
 const SolidMicIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.88 0 2.76-2.24 5-5 5s-5-2.24-5-5c0-.49-.41-.88-.9-.88s-.9.39-.9.88c0 3.66 2.85 6.66 6.4 7.08V22h1.8v-2.92c3.55-.42 6.4-3.42 6.4-7.08 0-.49-.41-.88-.9-.88z" />
@@ -163,6 +234,10 @@ export default function GiftPicker({
   const [playingVideo, setPlayingVideo] = useState<
     { src: string; style: "fade" | "pure" } | null
   >(null);
+  const [videoSource, setVideoSource] = useState<string | null>(null);
+  const [videoHasStarted, setVideoHasStarted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoObjectUrlRef = useRef<string | null>(null);
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const [showTargetMenu, setShowTargetMenu] = useState(false);
@@ -227,7 +302,7 @@ export default function GiftPicker({
       if (alive) setWalletBalance(b);
     };
     fetchBal();
-    const id = setInterval(fetchBal, 1000);
+    const id = setInterval(fetchBal, 3000);
     return () => {
       alive = false;
       clearInterval(id);
@@ -255,10 +330,46 @@ export default function GiftPicker({
     return () => document.removeEventListener("mousedown", handler);
   }, [showTargetMenu]);
 
+  // Prepare the video invisibly. Reveal only after real playback starts.
+  useEffect(() => {
+    let cancelled = false;
+    if (!playingVideo) {
+      setVideoSource(null);
+      setVideoHasStarted(false);
+      return;
+    }
+    setVideoSource(null);
+    setVideoHasStarted(false);
+    const loadOnce = async () => {
+      try {
+        const blob = await getVideoBlobOnce(playingVideo.src);
+        if (cancelled) return;
+        if (videoObjectUrlRef.current) URL.revokeObjectURL(videoObjectUrlRef.current);
+        const objectUrl = URL.createObjectURL(blob);
+        videoObjectUrlRef.current = objectUrl;
+        setVideoSource(objectUrl);
+      } catch {
+        if (!cancelled) setVideoSource(playingVideo.src);
+      }
+    };
+    loadOnce();
+    return () => {
+      cancelled = true;
+      if (videoObjectUrlRef.current) {
+        URL.revokeObjectURL(videoObjectUrlRef.current);
+        videoObjectUrlRef.current = null;
+      }
+    };
+  }, [playingVideo]);
+
   // cleanup video timeout on unmount
   useEffect(() => {
     return () => {
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
+      if (videoObjectUrlRef.current) {
+        URL.revokeObjectURL(videoObjectUrlRef.current);
+        videoObjectUrlRef.current = null;
+      }
     };
   }, []);
 
@@ -283,6 +394,7 @@ export default function GiftPicker({
       clearTimeout(videoTimeoutRef.current);
       videoTimeoutRef.current = null;
     }
+    setVideoHasStarted(false);
     setPlayingVideo(null);
     setSending(false);
     onClose();
@@ -377,7 +489,7 @@ export default function GiftPicker({
 
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none"
-          style={{ background: "transparent" }}
+          style={{ background: "transparent", opacity: videoHasStarted ? 1 : 0 }}
         >
           <video
             ref={(el) => {
@@ -387,25 +499,33 @@ export default function GiftPicker({
                 el.setAttribute("controlsList", "nodownload noplaybackrate noremoteplayback");
                 el.setAttribute("disablePictureInPicture", "");
                 el.setAttribute("disableRemotePlayback", "");
-                el.play().catch(() => {});
+                el.muted = true;
+                el.defaultMuted = true;
+                el.playsInline = true;
+                if (videoSource) el.play().catch(() => {});
               }
             }}
-            src={playingVideo.src}
+            src={videoSource ?? undefined}
+            preload="auto"
             autoPlay
             muted
             playsInline
             controls={false}
             disablePictureInPicture
             disableRemotePlayback
-            poster={playingVideo.src.includes("17e19680") ? "/image_d9df9625~2.jpg" : "/IMG_20260922_142150.jpg"}
             onLoadedData={(e) => {
-              setSending(false);
               e.currentTarget.play().catch(() => {});
             }}
             onCanPlay={(e) => {
               e.currentTarget.play().catch(() => {});
             }}
-            onPlaying={() => setSending(false)}
+            onCanPlayThrough={(e) => {
+              e.currentTarget.play().catch(() => {});
+            }}
+            onPlaying={() => {
+              setVideoHasStarted(true);
+              setSending(false);
+            }}
             onEnded={finishVideo}
             onError={finishVideo}
             className={

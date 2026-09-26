@@ -470,7 +470,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     }
 
     fetchBalance()
-    const intervalId = setInterval(fetchBalance, 1000)
+    const intervalId = setInterval(fetchBalance, 3000)
 
     return () => {
       isMounted = false
