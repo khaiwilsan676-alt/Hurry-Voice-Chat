@@ -1518,7 +1518,7 @@ function RoomContent({
   return (
     <div
       className="fixed inset-0 z-50 bg-black flex flex-col"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)', height: '100%' }}
+      style={{ height: '100dvh', maxHeight: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}
     >
       <img
         src={backgroundImage}
@@ -1529,7 +1529,7 @@ function RoomContent({
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
 
-      <div className="relative z-10 flex flex-col h-full px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4px)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }} onClick={(e) => e.stopPropagation()}>
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
         {/* Top Header */}
         <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
@@ -1807,8 +1807,8 @@ function RoomContent({
         {showChatInput && (
           <div
             ref={inputContainerRef}
-            className="fixed bottom-0 left-0 right-0 z-[10000] flex items-center w-full"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            className="fixed left-0 right-0 z-[10000] flex items-center w-full"
+            style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}
           >
             <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
               <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
@@ -1864,7 +1864,7 @@ function RoomContent({
       {/* RIGHT SIDE FLOATING STACK */}
       <div
         className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
-        style={{ top: 'calc(100lvh - 270px)', right: '10px' }}
+        style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 18px)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <RoomSideBanner />
@@ -2224,7 +2224,7 @@ function RoomContent({
       <div
         className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
         style={{
-          bottom: 'calc(100lvh - (100lvh - 310px) + 6px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 18px)',
           right: '10px',
           width: '60px',
         }}
