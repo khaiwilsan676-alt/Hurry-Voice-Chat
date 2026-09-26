@@ -21,9 +21,9 @@ public class MainActivity extends BridgeActivity {
         // Keep screen awake while the app is open
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // Existing edge-to-edge setup
+        // Restore the previous Android safe-area behavior.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false);
+            window.setDecorFitsSystemWindows(true);
         }
 
         window.addFlags(
