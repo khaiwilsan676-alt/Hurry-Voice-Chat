@@ -16,11 +16,36 @@ import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
 import LuckyGiftAnimation from './LuckyGiftAnimation';
+import LuckyGiftNotificationSlider from './LuckyGiftNotificationSlider';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 import { addDiamondsToDB, recordTransaction } from "./Wallet";
 
 import { JitsiMeeting } from "@jitsi/react-sdk";
+
+async function updateSharedWalletBalance(delta: number): Promise<void> {
+  if (!Number.isFinite(delta) || typeof indexedDB === "undefined") return;
+  await new Promise<void>((resolve) => {
+    const req = indexedDB.open("FruitPartyDB", 3);
+    req.onerror = () => resolve();
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction("GameState", "readwrite");
+      const store = tx.objectStore("GameState");
+      const getReq = store.get("user_data");
+      getReq.onsuccess = () => {
+        const data = getReq.result || {};
+        store.put({ ...data, balance: Math.max(0, Number(data.balance || 0) + delta) }, "user_data");
+      };
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); resolve(); };
+    };
+  });
+}
+
+async function addCoinsToDB(amount: number): Promise<void> {
+  return updateSharedWalletBalance(Math.max(0, Number(amount) || 0));
+}
 
 interface RoomPageProps {
   roomOwner: {
@@ -192,24 +217,15 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
       const isLucky =
         data.luckyGift === true || String(data.giftType || "") === "Lucky";
 
-      const diamondAmount =
-        Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
-          ? Math.floor(rawDiamondAmount)
-          : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
-            ? Math.floor(rawCoinAmount * (isLucky ? 0.1 : 1))
-            : 0;
-
-      if (diamondAmount <= 0) return;
-
-      // Protect against the same transfer being delivered more than once.
-      const transferKey = String(
-        data.transferId ||
-        data.eventId ||
-        `${data.roomId || ""}:${data.senderId || ""}:${data.timestamp || ""}:${data.giftName || ""}:${diamondAmount}`
-      );
-
-      if (creditedTransferIds.has(transferKey)) return;
-      creditedTransferIds.add(transferKey);
+      const isSender = currentIds.has(String(data.senderId || ""));
+      const luckyReturnAmount = Math.max(0, Number(data.luckyReturnAmount) || 0);
+      if (isLucky && isSender && luckyReturnAmount > 0) {
+        await addCoinsToDB(luckyReturnAmount);
+        await recordTransaction("Lucky Gift return", luckyReturnAmount, "coin");
+        window.dispatchEvent(new CustomEvent("hurry:coins-updated", {
+          detail: { amount: luckyReturnAmount },
+        }));
+      }
 
       // Keep the credit in the same FruitPartyDB/GameState/user_data record
       // used by the Diamonds Wallet screen.
@@ -340,6 +356,7 @@ function RoomContent({
   const [storeInitialView, setStoreInitialView] = useState<"store" | "bag">("store");
   const [showCupIcon, setShowCupIcon] = useState(false);
   const [cupCount, setCupCount] = useState(0);
+  const [luckyCombo, setLuckyCombo] = useState<any>(null);
 
   const [musicControllerState, setMusicControllerState] = useState<'hidden' | 'full' | 'minimized'>('hidden');
   const [currentTrack, setCurrentTrack] = useState<MusicTrack | null>(null);
@@ -463,6 +480,86 @@ function RoomContent({
   const currentUserSeat = seats.find(s => s.isOccupied && s.user?.accountId === userAccountId);
 
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
+
+  useEffect(() => {
+    const handleLuckyCombo = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (!detail || String(detail.roomId || "") !== String(roomId)) return;
+      setLuckyCombo({
+        ...detail,
+        roomId: String(detail.roomId || roomId),
+        senderId: String(detail.senderId || userAccountId),
+        recipientIds: Array.isArray(detail.recipientIds) ? detail.recipientIds.map(String) : [],
+        giftCoins: Number(detail.giftCoins) || 0,
+        multiplier: 1,
+      });
+    };
+    window.addEventListener("hurry:lucky-combo", handleLuckyCombo);
+    return () => window.removeEventListener("hurry:lucky-combo", handleLuckyCombo);
+  }, [roomId, userAccountId]);
+
+  const handleLuckyComboSend = async () => {
+    if (!luckyCombo) return;
+    const nextMultiplier = Math.max(1, Number(luckyCombo.multiplier || 1) + 1);
+    const amount = Math.max(0, Number(luckyCombo.giftCoins) * nextMultiplier);
+    const recipientCount = Math.max(1, luckyCombo.recipientIds.length);
+    const totalCost = amount * recipientCount;
+    if (!amount || !luckyCombo.recipientIds.length) return;
+
+    try {
+      const currentBalance = await new Promise<number>((resolve) => {
+        const req = indexedDB.open("FruitPartyDB", 3);
+        req.onerror = () => resolve(0);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction("GameState", "readonly");
+          const getReq = tx.objectStore("GameState").get("user_data");
+          getReq.onsuccess = () => { db.close(); resolve(Number(getReq.result?.balance || 0)); };
+          getReq.onerror = () => { db.close(); resolve(0); };
+        };
+      });
+      if (currentBalance < totalCost) return;
+
+      await updateSharedWalletBalance(-totalCost);
+      socket.emit("coin_transfer", {
+        roomId: String(roomId),
+        senderId: String(userAccountId),
+        recipientIds: luckyCombo.recipientIds,
+        amount,
+        giftName: luckyCombo.giftName,
+        giftType: "Lucky",
+        luckyGift: true,
+        luckyImage: luckyCombo.giftImage,
+        senderName: currentUser.name,
+        senderImage: currentUser.image,
+        recipientName: luckyCombo.recipientName,
+        recipientImage: luckyCombo.recipientImage,
+        multiplier: nextMultiplier,
+        timestamp: Date.now(),
+      });
+
+      const targets = new Set(luckyCombo.recipientIds.map(String));
+      for (const seat of seats) {
+        const targetId = String(seat?.user?.accountId || "");
+        if (!seat?.isOccupied || !targetId || !targets.has(targetId)) continue;
+        socket.emit("room_seat_action", {
+          eventId: `lucky-combo-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          roomId: String(roomId),
+          userId: String(userAccountId),
+          action: "lucky_image",
+          seatNumber: Number(seat.number),
+          src: luckyCombo.giftImage,
+          timestamp: Date.now(),
+          duration: 1100,
+          luckyGift: true,
+          targetName: String(seat.user?.name || luckyCombo.recipientName),
+          user: { name: "Lucky Gift", image: luckyCombo.giftImage, accountId: targetId },
+        });
+      }
+
+      setLuckyCombo((prev: any) => prev ? { ...prev, multiplier: nextMultiplier } : prev);
+    } catch {}
+  };
 
   const displayRoomName = roomName
     ? (roomName.length > 6 ? roomName.substring(0, 6) + '...' : roomName)
@@ -2541,6 +2638,23 @@ function RoomContent({
       `}</style>
 
       <LuckyGiftAnimation roomId={String(roomId)} />
+      <LuckyGiftNotificationSlider roomId={String(roomId)} />
+
+      {luckyCombo && (
+        <button
+          type="button"
+          onClick={handleLuckyComboSend}
+          className="fixed right-3 z-[2147482000] w-14 h-14 rounded-full overflow-hidden pointer-events-auto active:scale-95 transition-transform"
+          style={{ bottom: "7vh" }}
+          aria-label={`Lucky Gift combo ×${luckyCombo.multiplier + 1}`}
+        >
+          <img src="/file_00000000a9e48211aee262c0df0c36bc.png" alt="" className="absolute inset-0 w-full h-full object-contain" draggable={false} />
+          <img src={luckyCombo.giftImage} alt="" className="absolute left-1/2 top-1/2 w-8 h-8 -translate-x-1/2 -translate-y-1/2 object-contain" draggable={false} />
+          <span className="absolute inset-0 flex items-center justify-center text-white font-extrabold text-[11px] drop-shadow-md">
+            ×{luckyCombo.multiplier + 1}
+          </span>
+        </button>
+      )}
 
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
       {showGiftPicker && (
@@ -2549,6 +2663,8 @@ function RoomContent({
           seats={seats}
           roomId={roomId}
           currentUserAccountId={userAccountId}
+          currentUserName={currentUser.name}
+          currentUserImage={currentUser.image}
           roomUsers={roomUsers}
           onSend={(count: number) => setCupCount((prev) => prev + count)}
         />
