@@ -16,7 +16,7 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Window window = getWindow();
+        Window window = getWindow();\n\n        // Android WebView defaults can block media/storage features that work in Chrome.\n        // Explicitly enable the settings required by Jitsi/WebRTC and cached media.\n        if (bridge != null && bridge.getWebView() != null) {\n            bridge.getWebView().getSettings().setDomStorageEnabled(true);\n            bridge.getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);\n        }
 
         // Keep screen awake while the app is open
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
