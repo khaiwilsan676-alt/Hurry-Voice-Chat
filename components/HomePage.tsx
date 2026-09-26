@@ -2977,7 +2977,16 @@ export default function HomePage({ onLogout }: HomePageProps) {
         </div>
       )}
 
-      <div className="w-full">
+      <div
+        className="w-full"
+        style={{
+          paddingBottom:
+            !isChatOpen && currentPage !== 'room' && !isPublicProfileActive && !isSearchOpen && currentPage !== 'leaderboard'
+              ? 'calc(65px + env(safe-area-inset-bottom, 0px))'
+              : '0px',
+          boxSizing: 'border-box',
+        }}
+      >
         {currentPage === 'home' && (
           <div
             className="w-full bg-white"
