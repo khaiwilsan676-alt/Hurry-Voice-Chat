@@ -1732,20 +1732,27 @@ function RoomContent({
                       {msg.equippedVehicle && (
                         <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
                       )}
-                      <div className="flex items-start gap-1.5 px-1 max-w-[75%]">
+                      <div className="flex items-center gap-2 px-2.5 py-2 max-w-[75%] bg-white/40 backdrop-blur-md rounded-full border border-white/30 shadow-sm">
                         <div
-                          className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
+                          className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer border border-white/50"
                           style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
                           onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
                         >
                           <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                         </div>
-                        <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                            <span className="text-white text-xs font-bold px-2 py-0.5 rounded-md bg-black/20 border border-black/20">Owner</span>
+                        <div className="min-w-0 flex flex-col justify-center">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-semibold text-white/95 leading-tight truncate" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                            <span className="inline-flex items-center gap-1 shrink-0 rounded-full bg-blue-500 px-1.5 py-0.5 text-white text-[9px] font-bold shadow-sm">
+                              <span className="w-3 h-3 rounded-full bg-blue-700/70 flex items-center justify-center">
+                                <svg viewBox="0 0 24 24" className="w-2 h-2 fill-white">
+                                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                </svg>
+                              </span>
+                              Owner
+                            </span>
                           </div>
-                          <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
+                          <span className="text-white/80 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                         </div>
                       </div>
                     </>
