@@ -653,18 +653,57 @@ export default function StorePage({
   // Equip / Unequip toggle (one equipped item per tab)
   const handleEquipToggle = async (item: StoreItem) => {
     const next = new Set(equippedIds);
-    if (next.has(item.id)) {
+    const wasEquipped = next.has(item.id);
+
+    if (wasEquipped) {
       next.delete(item.id);
     } else {
-      // Remove any other equipped item from the same tab
+      // Remove any other equipped item from the same tab.
       allStoreItems.forEach((it) => {
         if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
       });
       next.add(item.id);
     }
+
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
+
+    // RoomPage uses this exact value for the next Room entry event.
+    // Store the actual playable asset, not only the item ID.
+    if (item.tab === "Vehicle") {
+      if (wasEquipped) {
+        localStorage.removeItem("equipped_Vehicle");
+      } else {
+        const vehicleAsset = item.tryVideo || item.image;
+        if (vehicleAsset) {
+          localStorage.setItem("equipped_Vehicle", vehicleAsset);
+        }
+      }
+      window.dispatchEvent(new Event("hurry-vehicle-equipped"));
+    }
   };
+
+  // Keep the legacy RoomPage vehicle key synchronized with the persisted
+  // IndexedDB equipment, including equipment restored after app restart.
+  useEffect(() => {
+    const equippedVehicleId = Array.from(equippedIds).find((id) => {
+      const item = allStoreItems.find((it) => it.id === id);
+      return item?.tab === "Vehicle";
+    });
+
+    const equippedVehicle = equippedVehicleId
+      ? allStoreItems.find((it) => it.id === equippedVehicleId)
+      : null;
+
+    if (equippedVehicle) {
+      localStorage.setItem(
+        "equipped_Vehicle",
+        equippedVehicle.tryVideo || equippedVehicle.image
+      );
+    } else {
+      localStorage.removeItem("equipped_Vehicle");
+    }
+  }, [equippedIds]);
 
   const displayedItems = allStoreItems.filter((item) => {
     const isOwned = ownedIds.has(item.id);
