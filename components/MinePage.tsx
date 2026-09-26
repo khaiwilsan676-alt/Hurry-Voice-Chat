@@ -91,32 +91,31 @@ export default function MinePage({
             </div>
           </>
         ) : (
-          <>
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-white/50">
-              <img
-                src={
-                  myRoom?.image && myRoom.image !== 'undefined' && myRoom.image !== 'null'
-                    ? myRoom.image
-                    : (userPhoto || '/default-avatar.png')
-                }
-                alt={myRoom?.name || 'Room Avatar'}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = userPhoto || '/default-avatar.png';
-                }}
-              />
+          <div className="flex flex-col w-full">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 overflow-hidden border-2 border-white/50">
+                <img
+                  src={userPhoto || myRoom?.image || '/default-avatar.png'}
+                  alt={userName || 'User Avatar'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/default-avatar.png';
+                  }}
+                />
+              </div>
+              <div className="flex items-center gap-2 min-w-0">
+                <h3 className="text-white font-bold text-xl leading-tight truncate">
+                  {userName || 'User'}
+                </h3>
+                <span className="text-white text-xs font-bold px-2 py-1 rounded-full bg-white/20 border border-white/40 flex-shrink-0">
+                  Owner
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <h3 className="text-white font-bold text-xl leading-tight">
-                {myRoom?.name && myRoom.name !== 'My Room' && myRoom.name !== 'My room'
-                  ? myRoom.name
-                  : ("Room")}
-              </h3>
-              <p className="text-white/80 text-sm mt-1 font-medium">
-                {t.enterRoomSubtitle || 'Tap to enter your room'}
-              </p>
-            </div>
-          </>
+            <p className="text-white/80 text-sm mt-3 font-medium">
+              Enter the Room
+            </p>
+          </div>
         )}
       </div>
 
