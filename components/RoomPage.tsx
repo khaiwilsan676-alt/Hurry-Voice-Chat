@@ -16,7 +16,7 @@ import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
 import LuckyGiftAnimation from './LuckyGiftAnimation';
-import LuckyGiftNotificationSlider from './LuckyGiftNotificationSlider';
+import { LuckyGiftNotificationSlider } from './GiftPickerBase';
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 import { addDiamondsToDB, recordTransaction } from "./Wallet";
