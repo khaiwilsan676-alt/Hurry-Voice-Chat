@@ -1729,9 +1729,6 @@ function RoomContent({
                 <div key={msg.id} className="leading-[1.8rem]">
                   {msg.type === 'join' ? (
                     <>
-                      {msg.equippedVehicle && (
-                        <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
-                      )}
                       <div className="flex flex-col gap-0.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
                         <div className="flex items-center gap-2 min-w-0">
                           <div
@@ -1750,6 +1747,9 @@ function RoomContent({
                         </div>
                         <span className="text-white/80 leading-tight" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                       </div>
+                      {msg.equippedVehicle && (
+                        <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
+                      )}
                     </>
                   ) : msg.imageUrl ? (
                     <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
