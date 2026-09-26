@@ -1553,6 +1553,7 @@ export default function PublicProfile({
             {/* Note: Save Changes button from here has been removed */}
           </div>
         </div>
+        </div>
       )}
 
       {/* Nickname Edit Screen */}
