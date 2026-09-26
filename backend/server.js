@@ -1255,11 +1255,17 @@ io.on("connection", (socket) => {
         isMuted: false,
         isSpeaking: false,
         gif: undefined,
+        socketId: String(socket.id),
       });
     }
 
     if (action === "leave") {
-      if (current.isOccupied) {
+      // Only the socket currently occupying this seat may release it.
+      if (
+        current.isOccupied &&
+        (!current.socketId || String(current.socketId) === String(socket.id)) &&
+        String(current.user?.accountId || "") === userId
+      ) {
         seats.set(seatNumber, {
           ...current,
           isOccupied: false,
