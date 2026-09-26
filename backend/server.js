@@ -1437,6 +1437,17 @@ io.on("connection", (socket) => {
     // Popular/Following cards refresh immediately without changing the UI.
     io.emit("room_settings_updated", data);
   });
+  socket.on("gift_video_play", (data = {}) => {
+    if (!data?.roomId || !data?.video) return;
+    const roomId = String(data.roomId);
+    if (!socketIsInRoom(socket, roomId)) return;
+    if (data.senderId && !socketOwnsIdentity(socket, data.senderId)) return;
+    io.to(`room:${roomId}`).emit("gift_video_play", {
+      roomId, senderId: String(data.senderId || ""), giftName: data.giftName || "",
+      video: String(data.video), videoStyle: data.videoStyle || "fade", timestamp: Number(data.timestamp || Date.now())
+    });
+  });
+
   socket.on("room_message", (message) => {
     if (!message?.roomId || !message?.senderId) return;
     const roomId = String(message.roomId);
