@@ -5,6 +5,8 @@ import android.graphics.Color;
 import android.view.Window;
 import android.view.WindowManager;
 import android.os.Build;
+import android.view.WindowInsets;
+import android.webkit.WebView;
 
 import androidx.activity.OnBackPressedCallback;
 
@@ -36,6 +38,23 @@ public class MainActivity extends BridgeActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.setStatusBarContrastEnforced(false);
             window.setNavigationBarContrastEnforced(false);
+        }
+
+        // Restore the previous top safe-area inset bridge for the WebView.
+        if (bridge != null && bridge.getWebView() != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WebView webView = bridge.getWebView();
+            webView.setOnApplyWindowInsetsListener((view, insets) -> {
+                android.graphics.Insets bars = insets.getInsets(
+                    WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars()
+                );
+                view.setPadding(bars.left, 0, bars.right, bars.bottom);
+                view.post(() -> webView.evaluateJavascript(
+                    "document.documentElement.style.setProperty('--status-bar-height','" + bars.top + "px')",
+                    null
+                ));
+                return insets;
+            });
+            webView.requestApplyInsets();
         }
 
         // Android Back handling
