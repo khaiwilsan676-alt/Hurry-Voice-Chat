@@ -16,6 +16,11 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            signingConfig signingConfigs.debug
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
