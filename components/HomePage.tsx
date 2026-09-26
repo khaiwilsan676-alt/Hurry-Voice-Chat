@@ -864,6 +864,17 @@ export default function HomePage({ onLogout }: HomePageProps) {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
   const [isInviteFriendsOpen, setIsInviteFriendsOpen] = useState(false)
   const [currentSignInDay, setCurrentSignInDay] = useState(1)
+  const [claimedToday, setClaimedToday] = useState(false)
+  const signInClaimingRef = useRef(false)
+
+  useEffect(() => {
+    const dayKey = `signInDay_${userUID}`
+    const claimKey = `signInClaimDate_${userUID}`
+    const savedDay = Number(localStorage.getItem(dayKey) || '1')
+    const today = new Date().toISOString().slice(0, 10)
+    setCurrentSignInDay(savedDay >= 1 && savedDay <= 7 ? savedDay : 1)
+    setClaimedToday(localStorage.getItem(claimKey) === today)
+  }, [userUID])
 
   const [isDragging, setIsDragging] = useState(false)
   const [dragPosition, setDragPosition] = useState({ x: 0, y: 0 })
@@ -2438,12 +2449,75 @@ export default function HomePage({ onLogout }: HomePageProps) {
   // ============ SIGN IN MODAL ============
   const handleImageClick = () => { setIsSignInModalOpen(true) }
   const handleCloseModal = () => { setIsSignInModalOpen(false) }
-  const handleSignIn = () => {
-    const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
-    setCurrentSignInDay(nextDay)
-    localStorage.setItem('signInDay', nextDay.toString())
-    setIsSignInModalOpen(false)
-    alert(`Day ${currentSignInDay} reward claimed! 🎉`)
+  const handleSignIn = async () => {
+    if (claimedToday || signInClaimingRef.current) return
+    signInClaimingRef.current = true
+
+    const rewardByDay: Record<number, { coins: number; itemIds: string[] }> = {
+      1: { coins: 5000, itemIds: [] },
+      2: { coins: 5000, itemIds: [] },
+      3: { coins: 0, itemIds: ['daily_d3_frame'] },
+      4: { coins: 10000, itemIds: [] },
+      5: { coins: 10000, itemIds: ['daily_d5_frame'] },
+      6: { coins: 10000, itemIds: ['daily_d6_theme'] },
+      7: { coins: 15000, itemIds: ['daily_d7_frame', 'daily_d7_theme'] },
+    }
+
+    const reward = rewardByDay[currentSignInDay]
+    if (!reward) {
+      signInClaimingRef.current = false
+      return
+    }
+
+    try {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open('FruitPartyDB', 3)
+        request.onupgradeneeded = () => {
+          const db = request.result
+          if (!db.objectStoreNames.contains('GameState')) db.createObjectStore('GameState')
+        }
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+      })
+
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('GameState', 'readwrite')
+        const store = tx.objectStore('GameState')
+        const req = store.get('user_data')
+        req.onsuccess = () => {
+          const data = req.result || {}
+          const currentBalance = typeof data.balance === 'number' ? data.balance : 82927
+          const ownedItems = Array.isArray(data.ownedItems) ? [...data.ownedItems] : []
+          for (const itemId of reward.itemIds) {
+            if (!ownedItems.includes(itemId)) ownedItems.push(itemId)
+          }
+          const putReq = store.put({
+            ...data,
+            balance: currentBalance + reward.coins,
+            ownedItems,
+          }, 'user_data')
+          putReq.onsuccess = () => resolve()
+          putReq.onerror = () => reject(putReq.error)
+        }
+        req.onerror = () => reject(req.error)
+        tx.onerror = () => reject(tx.error)
+      })
+      db.close()
+
+      const today = new Date().toISOString().slice(0, 10)
+      const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
+      localStorage.setItem(`signInDay_${userUID}`, String(nextDay))
+      localStorage.setItem(`signInClaimDate_${userUID}`, today)
+      setCurrentSignInDay(nextDay)
+      setClaimedToday(true)
+      setIsSignInModalOpen(false)
+      alert(`Day ${currentSignInDay} reward claimed! 🎉`)
+    } catch (error) {
+      console.error('Daily check-in reward claim failed:', error)
+      alert('Reward claim failed. Please try again.')
+    } finally {
+      signInClaimingRef.current = false
+    }
   }
 
   // ============ VIEWPORT META ============
@@ -2814,6 +2888,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         onClose={handleCloseModal}
         currentDay={currentSignInDay}
         onSignIn={handleSignIn}
+        claimedToday={claimedToday}
       />
 
       {showDeleteZone && keptRoom && (
