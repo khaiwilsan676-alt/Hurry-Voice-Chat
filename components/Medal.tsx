@@ -89,11 +89,12 @@ function MedalVideo({
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
 
   return (
+    <>
+      <style>{`video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel, video::-webkit-media-controls-overlay-play-button, video::-webkit-media-controls-start-playback-button { display:none !important; opacity:0 !important; }`}</style>
     <video
       ref={videoRef}
       src={src}
       autoPlay={autoPlay}
-      muted
       loop
       playsInline
       controls={false}
@@ -108,6 +109,7 @@ function MedalVideo({
         ...style,
       }}
     />
+    </>
   )
 }
 
