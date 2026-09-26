@@ -1016,7 +1016,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     return (
       <div className="min-h-screen relative flex flex-col bg-gray-900">
         <video 
-          autoPlay 
+                        controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              autoPlay 
           loop 
           playsInline
           muted
@@ -1155,7 +1158,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     return (
       <div className="min-h-screen relative flex flex-col bg-gray-900">
         <video 
-          autoPlay 
+                        controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              autoPlay 
           loop 
           playsInline
           muted
@@ -1295,7 +1301,10 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     <div className="min-h-screen relative flex flex-col items-center justify-between px-4 overflow-hidden bg-gray-900">
       
       <video 
-        autoPlay 
+                      controls={false}
+              disablePictureInPicture
+              disableRemotePlayback
+              autoPlay 
         loop 
         playsInline
         muted
