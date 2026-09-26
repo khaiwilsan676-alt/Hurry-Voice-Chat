@@ -18,7 +18,7 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled true
+            // Keep Capacitor/Jitsi/Google native integrations intact in release APK.\n            minifyEnabled false
             shrinkResources true
             debuggable false
             signingConfig signingConfigs.debug
