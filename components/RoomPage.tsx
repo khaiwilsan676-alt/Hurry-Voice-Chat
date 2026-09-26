@@ -1707,107 +1707,82 @@ function RoomContent({
             {renderSeats()}
           </div>
 
-          <div className="space-y-0.5">
-  {messages.map((msg) => (
-    <div key={msg.id} className="leading-[1.8rem]">
-      {msg.type === 'join' ? (
-        <>
-          {msg.equippedVehicle && (
-            <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
-          )}
-          <div className="flex px-1 max-w-[75%]">
-            <div className="flex flex-col bg-black/30 rounded-md px-2 py-1 border border-black/10 shadow-sm">
-              {/* Row 1: Avatar + Name + Owner tag */}
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer border border-black/10"
-                  style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
-                  onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
-                >
-                  <img
-                    src={msg.senderImage || "/default-avatar.png"}
-                    alt={msg.sender}
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                    onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }}
-                  />
-                </div>
-
-                <span
-                  className="font-semibold text-white/90 leading-tight"
-                  style={{ fontSize: 'var(--msg-name-size)' }}
-                >
-                  {msg.sender}
-                </span>
-
-                {msg.senderAccountId === roomOwnerId && (
-                  <span
-                    className="rounded-full bg-blue-500 flex items-center justify-center shrink-0"
-                    style={{
-                      width: 'calc(var(--msg-avatar-size) * 0.65)',
-                      height: 'calc(var(--msg-avatar-size) * 0.65)',
-                    }}
-                    title="Owner"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="fill-white"
-                      style={{
-                        width: 'calc(var(--msg-avatar-size) * 0.42)',
-                        height: 'calc(var(--msg-avatar-size) * 0.42)',
-                      }}
-                    >
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    </svg>
-                  </span>
+          <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
+            <div className="mx-1 mb-3 flex justify-start">
+              <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+                <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                  Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
+                </p>
+                {roomAnnouncement && (
+                  <div className="mt-2 pt-2 border-t border-white/10">
+                    <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                      <span className="font-bold mr-1">ANNOUNCEMENT: </span>
+                      {roomAnnouncement}
+                    </p>
+                  </div>
                 )}
               </div>
+            </div>
 
-              {/* Row 2: Enter the Room */}
-              <span
-                className="text-white/70 leading-tight mt-0.5"
-                style={{ fontSize: 'var(--msg-jointime-size)' }}
-              >
-                Enter the Room
-              </span>
-            </div>
-          </div>
-        </>
-      ) : msg.imageUrl ? (
-        <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
-          <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-            <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-            <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
-              <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} />
+            <div className="space-y-0.5">
+              {messages.map((msg) => (
+                <div key={msg.id} className="leading-[1.8rem]">
+                  {msg.type === 'join' ? (
+                    <>
+                      {msg.equippedVehicle && (
+                        <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />
+                      )}
+                      <div className="flex items-start gap-1.5 px-1 max-w-[75%]">
+                        <div
+                          className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10"
+                          style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }}
+                          onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}
+                        >
+                          <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                        </div>
+                        <div className="flex flex-col bg-black/30 rounded-md px-2 py-0.5 border border-black/10 shadow-sm">
+                          <span className="font-semibold text-white/90 leading-tight" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                          <span className="text-white/70 leading-tight mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : msg.imageUrl ? (
+                    <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
+                          <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 max-w-[75%]">
+                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                        {msg.equippedBubble ? (
+                          <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                            <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
+                        ) : (
+                          <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                            <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
             </div>
           </div>
         </div>
-      ) : (
-        <div className="flex items-start gap-2 max-w-[75%]">
-          <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-            <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-            {msg.equippedBubble ? (
-              <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
-                <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-              </div>
-            ) : (
-              <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
-                <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  ))}
-  <div ref={messagesEndRef} />
-</div>
 
         {/* Footer Controls */}
         <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
@@ -2678,7 +2653,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                 draggable={false}
               />
               <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center z-10"
-                style={{ width: '71%', height: '71%',transform: 'translateY(2px)' }}>
+                style={{ width: '71%', height: '71%' }}>
                 <img
                   src={user.image || "/default-avatar.png"}
                   alt={user.name}
