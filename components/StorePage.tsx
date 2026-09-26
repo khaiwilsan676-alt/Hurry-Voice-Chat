@@ -619,7 +619,7 @@ export default function StorePage({
       setEquippedIds(new Set(equippedItems));
     };
     sync();
-    const id = setInterval(sync, 1500);
+    const id = setInterval(sync, 3000);
     return () => {
       alive = false;
       clearInterval(id);
