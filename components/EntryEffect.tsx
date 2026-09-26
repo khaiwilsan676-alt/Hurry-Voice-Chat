@@ -156,7 +156,9 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) {
       setUseVideoFallback(true);
-      return;
+      setVisible(true);
+      const timer = window.setTimeout(() => complete(), 4000);
+      return () => window.clearTimeout(timer);
     }
 
     const start = async () => {
@@ -207,7 +209,11 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         render();
         finishTimer = window.setTimeout(() => !cancelled && complete(), 4000);
       } catch {
-        if (!cancelled) setUseVideoFallback(true);
+        if (!cancelled) {
+          setUseVideoFallback(true);
+          setVisible(true);
+          finishTimer = window.setTimeout(() => !cancelled && complete(), 4000);
+        }
       }
     };
 
