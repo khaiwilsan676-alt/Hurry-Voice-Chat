@@ -87,6 +87,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
   const [src, setSrc] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const completedRef = useRef(false);
 
@@ -141,6 +142,32 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     let finishTimer: number | undefined;
     let started = false;
 
+    const renderFrame = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (cancelled || !video || !canvas || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+      const width = video.videoWidth || 1280;
+      const height = video.videoHeight || 720;
+      if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(video, 0, 0, width, height);
+      const frame = ctx.getImageData(0, 0, width, height);
+      const pixels = frame.data;
+      for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const greenDominance = g - Math.max(r, b);
+        const chroma = g - (r + b) * 0.5;
+        if (g > 70 && greenDominance > 18 && chroma > 12) {
+          const strength = Math.min(1, Math.max(greenDominance / 70, chroma / 60));
+          pixels[i + 3] = Math.round(255 * (1 - strength));
+        }
+      }
+      ctx.putImageData(frame, 0, 0);
+      requestAnimationFrame(renderFrame);
+    };
+
     const start = async () => {
       if (cancelled || started) return;
       try {
@@ -148,6 +175,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         video.currentTime = 0;
         await video.play();
         if (cancelled) return;
+        requestAnimationFrame(renderFrame);
         started = true;
         setVisible(true);
 
@@ -193,9 +221,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
   if (!src) return null;
 
   return (
-    <div
-      className="absolute top-1/4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none w-full max-w-[300px] flex flex-col items-center justify-center animate-bounce-in"
-    >
+    <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center overflow-hidden">
       <video
         ref={videoRef}
         src={src}
@@ -205,14 +231,13 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         disablePictureInPicture
         disableRemotePlayback
         preload="auto"
-        className={`w-[120px] h-[120px] object-contain pointer-events-none ${visible ? "opacity-100" : "opacity-0"}`}
-        aria-label={`${userName} vehicle entry`}
+        aria-hidden="true"
+        className="absolute h-0 w-0 opacity-0 pointer-events-none"
       />
-      <div className="mt-2 bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-500 px-4 py-1.5 rounded-full shadow-lg border border-yellow-200">
-        <span className="text-black font-bold text-sm tracking-wide">
-          {userName} entered the room!
-        </span>
-      </div>
+      <canvas
+        ref={canvasRef}
+        aria-label={`${userName} vehicle entry`}
+        className={`block w-screen h-screen object-contain pointer-events-none transition-opacity duration-75 ${visible ? "opacity-100" : "opacity-0"}`}
+      />
     </div>
   );
-}
