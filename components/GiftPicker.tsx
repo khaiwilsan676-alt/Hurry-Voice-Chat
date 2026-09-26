@@ -83,9 +83,11 @@ function playLuckyGiftFly(data: any) {
       transform: "translate(-50%, -50%)",
     });
 
+    // Append first and wait for the actual gift PNG to load before starting the flight.
+    // This prevents the animation from running invisibly on a cold image cache.
     document.body.appendChild(flyer);
 
-    const animation = flyer.animate(
+    const startAnimation = () => flyer.animate(
       [
         {
           transform: "translate(-50%, -50%) scale(1)",
@@ -107,7 +109,15 @@ function playLuckyGiftFly(data: any) {
       }
     );
 
-    animation.onfinish = () => flyer.remove();
+    const run = () => {
+      const animation = startAnimation();
+      animation.onfinish = () => flyer.remove();
+    };
+    if (flyer.complete && flyer.naturalWidth > 0) run();
+    else {
+      flyer.onload = run;
+      flyer.onerror = () => flyer.remove();
+    }
   };
 
   requestAnimationFrame(findAndAnimate);
