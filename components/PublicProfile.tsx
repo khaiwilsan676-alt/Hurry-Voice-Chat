@@ -1547,7 +1547,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* ALBUM — max 7 (Removed + icon) */}
+              {/* ALBUM — max 7 (Removed + icon as per request) */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1569,7 +1569,7 @@ export default function PublicProfile({
                       </button>
                     </div>
                   ))}
-                  {/* ❌ Removed + button as requested */}
+                  {/* ❌ Removed + button from here */}
                 </div>
               </div>
 
@@ -1666,7 +1666,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Albums Screen (Updated with Edit mode, Pin & Delete) */}
+      {/* ✅ Albums Screen (With Edit Mode, Pin, Delete & + button) */}
       {showAlbumScreen && (
         <div className="fixed inset-0 z-[70] bg-white flex flex-col animate-slide-up">
           {/* Header */}
@@ -1749,7 +1749,7 @@ export default function PublicProfile({
                 )
               })}
 
-              {/* Add More Button */}
+              {/* ✅ BAHAR WALA + BUTTON (Add More) */}
               {albumImages.length < 7 && (
                 <button
                   onClick={() => albumInputRef.current?.click()}
