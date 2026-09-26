@@ -192,7 +192,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     };
   }, [src, vehicleUrl]);
 
-  if (!visible || !src) return null;
+  if (!src) return null;
 
   return (
     <div
@@ -201,14 +201,13 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
       <video
         ref={videoRef}
         src={src}
-        muted
         autoPlay
         playsInline
         controls={false}
         disablePictureInPicture
         disableRemotePlayback
         preload="auto"
-        className="w-[120px] h-[120px] object-contain pointer-events-none"
+        className={`w-[120px] h-[120px] object-contain pointer-events-none ${visible ? "opacity-100" : "opacity-0"}`}
         aria-label={`${userName} vehicle entry`}
       />
       <div className="mt-2 bg-gradient-to-r from-yellow-500 via-yellow-300 to-yellow-500 px-4 py-1.5 rounded-full shadow-lg border border-yellow-200">
