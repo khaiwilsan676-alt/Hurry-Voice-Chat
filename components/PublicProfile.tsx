@@ -1410,9 +1410,9 @@ export default function PublicProfile({
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
-          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[70vh]">
+          <div className="relative bg-white w-full max-w-md rounded-[6px] animate-slide-up flex flex-col h-[70vh]">
             {/* Fixed Header */}
-            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+            <div className="flex items-center justify-between px-3 py-4 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
               </button>
@@ -1430,10 +1430,11 @@ export default function PublicProfile({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
-                  <div
+                   <div
                     onClick={() => avatarInputRef.current?.click()}
-                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 cursor-pointer"
+                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
                   >
+
                     {user.photo ? (
                       <img src={user.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -1471,24 +1472,24 @@ export default function PublicProfile({
                   <ChevronRight size={16} className="text-gray-400" />
                 </button>
               </div>
-
-              {/* 5. BACKGROUND — max 4 */}
+                            {/* 5. BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Background ({coverPhotos.length}/4)
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
                   {coverPhotos.map((photo, idx) => (
                     <div
                       key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group"
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
                     >
                       <img src={photo} alt="" className="w-full h-full object-cover" />
+                      {/* Ekdam top-right corner pe Cross Button */}
                       <button
                         onClick={() => handleRemoveCoverPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow"
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
                       >
                         ×
                       </button>
@@ -1497,7 +1498,7 @@ export default function PublicProfile({
                   {coverPhotos.length < 4 && (
                     <button
                       onClick={() => coverInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
                     >
                       <span className="text-3xl font-thin leading-none">+</span>
                     </button>
@@ -1505,19 +1506,19 @@ export default function PublicProfile({
                 </div>
               </div>
 
-              {/* 6. ALBUM Inline — max 7 */}
+
+                                          {/* 6. ALBUM Inline — max 7 */}
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     Album Photos ({albumImages.length}/7)
                   </span>
-                  <span className="text-[10px] text-gray-400">Long press to pin</span>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
                   {albumImages.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group cursor-pointer"
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group cursor-pointer shrink-0"
                       onTouchStart={() => handleTouchStart(idx)}
                       onTouchEnd={handleTouchEnd}
                       onMouseDown={() => handleTouchStart(idx)}
@@ -1525,6 +1526,7 @@ export default function PublicProfile({
                       onMouseLeave={handleTouchEnd}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
+                      {/* Ekdam top-right corner pe Cross Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1539,15 +1541,15 @@ export default function PublicProfile({
                   {albumImages.length < 7 && (
                     <button
                       onClick={() => albumInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors"
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
                     >
                       <span className="text-3xl font-thin leading-none">+</span>
                     </button>
                   )}
                 </div>
               </div>
-            </div>
-            
+
+
             {/* Note: Save Changes button from here has been removed */}
           </div>
         </div>
@@ -1579,6 +1581,41 @@ export default function PublicProfile({
         </div>
       )}
 
+           {/* Nickname Edit Screen */}
+      {!isOtherUser && showNameScreen && (
+        <div className="fixed inset-0 z-[65] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={handleNameSave}></div>
+          <div className="relative bg-white w-full max-w-md rounded-t-md animate-slide-up flex flex-col h-[40vh]">
+            <div className="flex items-center justify-between px-5 py-4 shrink-0">
+              <button onClick={handleNameSave}>
+                <ArrowLeft size={24} className="text-gray-700" />
+              </button>
+              <h2 className="text-lg font-bold text-gray-900">Nickname</h2>
+              <div className="w-6"></div>
+            </div>
+
+            <div className="flex-1 px-5 overflow-y-auto">
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Enter new name"
+                className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
+              />
+            </div>
+            
+            <div className="px-5 pb-6 pt-2 shrink-0">
+              <button
+                onClick={handleNameSave}
+                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Age Edit Screen */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
@@ -1602,6 +1639,15 @@ export default function PublicProfile({
                 max="150"
                 className="w-full p-4 bg-gray-100 rounded-lg text-sm text-gray-900 outline-none border border-transparent focus:border-blue-500"
               />
+            </div>
+            
+            <div className="px-5 pb-6 pt-2 shrink-0">
+              <button
+                onClick={handleAgeSave}
+                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -1634,6 +1680,15 @@ export default function PublicProfile({
               <div className="text-right text-xs text-gray-400 mt-1">
                 {editBio.length}/50
               </div>
+            </div>
+            
+            <div className="px-5 pb-6 pt-2 shrink-0">
+              <button
+                onClick={handleBioSave}
+                className="w-full bg-[#1dc4e9] text-white py-3.5 rounded-full font-semibold text-lg hover:bg-[#1de9b6] transition-colors"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
