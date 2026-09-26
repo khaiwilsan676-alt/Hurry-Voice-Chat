@@ -568,9 +568,19 @@ export default function PublicProfile({
   // ✅ Fullscreen Album Image Viewer State
   const [fullImageIndex, setFullImageIndex] = useState<number | null>(null)
 
-  // ✅ Refs for swipe (to avoid re-renders)
+  // ✅ Zoom & Swipe Refs
   const touchStartXRef = useRef<number>(0)
   const touchEndXRef = useRef<number>(0)
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+
+  // Zoom State
+  const [scale, setScale] = useState(1)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const lastTouchDistRef = useRef<number>(0)
+  const lastTapRef = useRef<number>(0)
+  const isPinchingRef = useRef<boolean>(false)
+  const dragStartRef = useRef({ x: 0, y: 0 })
+  const isDraggingRef = useRef<boolean>(false)
 
   const [isFollowing, setIsFollowing] = useState(false)
 
@@ -598,6 +608,12 @@ export default function PublicProfile({
       setCoverPhotos([user.coverPhoto])
     }
   }, [user.coverPhoto])
+
+  // Reset zoom when image changes
+  useEffect(() => {
+    setScale(1)
+    setPosition({ x: 0, y: 0 })
+  }, [fullImageIndex])
 
   const saveToMongoDB = async (updateData: Record<string, any>) => {
     const currentUid = user.uid || localStorage.getItem('userUID') || localStorage.getItem('userPhone')
@@ -1132,45 +1148,137 @@ export default function PublicProfile({
   // ✅ Full Image Viewer Handlers
   const handleImageClick = (index: number) => {
     setFullImageIndex(index);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
   };
 
   const handleNextImage = () => {
     if (fullImageIndex !== null && fullImageIndex < albumImages.length - 1) {
       setFullImageIndex(fullImageIndex + 1);
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
     }
   };
 
   const handlePrevImage = () => {
     if (fullImageIndex !== null && fullImageIndex > 0) {
       setFullImageIndex(fullImageIndex - 1);
+      setScale(1);
+      setPosition({ x: 0, y: 0 });
     }
   };
 
-  // ✅ Swipe Handlers (Using Refs & preventDefault for smooth swipe)
-  const handleTouchStartSwipe = (e: React.TouchEvent) => {
-    touchStartXRef.current = e.targetTouches[0].clientX;
-    touchEndXRef.current = 0;
+  // ✅ Get distance between two touches
+  const getTouchDistance = (touches: React.TouchList) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const handleTouchMoveSwipe = (e: React.TouchEvent) => {
-    touchEndXRef.current = e.targetTouches[0].clientX;
+  // ✅ Handle Touch Start (Swipe + Pinch + Drag)
+  const handleImageTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch start
+      isPinchingRef.current = true;
+      lastTouchDistRef.current = getTouchDistance(e.touches);
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const now = Date.now();
+      const DOUBLE_TAP_DELAY = 300;
+      
+      // Double tap detection
+      if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+        // Double tap: toggle zoom
+        if (scale > 1) {
+          setScale(1);
+          setPosition({ x: 0, y: 0 });
+        } else {
+          setScale(2.5);
+        }
+        lastTapRef.current = 0;
+        return;
+      }
+      lastTapRef.current = now;
+
+      // For swipe/drag
+      touchStartXRef.current = e.touches[0].clientX;
+      touchEndXRef.current = 0;
+      
+      if (scale > 1) {
+        // Dragging zoomed image
+        isDraggingRef.current = true;
+        dragStartRef.current = {
+          x: e.touches[0].clientX - position.x,
+          y: e.touches[0].clientY - position.y,
+        };
+      }
+    }
   };
 
-  const handleTouchEndSwipe = (e: React.TouchEvent) => {
+  // ✅ Handle Touch Move (Swipe + Pinch + Drag)
+  const handleImageTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      // Pinch move
+      e.preventDefault();
+      const currentDist = getTouchDistance(e.touches);
+      if (lastTouchDistRef.current > 0) {
+        const delta = currentDist / lastTouchDistRef.current;
+        const newScale = Math.min(Math.max(scale * delta, 1), 5);
+        setScale(newScale);
+        if (newScale === 1) setPosition({ x: 0, y: 0 });
+      }
+      lastTouchDistRef.current = currentDist;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      e.preventDefault();
+      
+      if (scale > 1 && isDraggingRef.current) {
+        // Drag zoomed image
+        const newX = e.touches[0].clientX - dragStartRef.current.x;
+        const newY = e.touches[0].clientY - dragStartRef.current.y;
+        setPosition({ x: newX, y: newY });
+        return;
+      }
+
+      // For swipe
+      touchEndXRef.current = e.touches[0].clientX;
+    }
+  };
+
+  // ✅ Handle Touch End (Swipe + Pinch end)
+  const handleImageTouchEnd = (e: React.TouchEvent) => {
+    if (isPinchingRef.current) {
+      isPinchingRef.current = false;
+      lastTouchDistRef.current = 0;
+      if (scale <= 1) {
+        setScale(1);
+        setPosition({ x: 0, y: 0 });
+      }
+      return;
+    }
+
+    isDraggingRef.current = false;
+
+    if (scale > 1) return; // Don't swipe when zoomed
+
     const startX = touchStartXRef.current;
     const endX = touchEndXRef.current;
-    if (!startX || !endX) return;
+    
+    if (startX && endX) {
+      const distance = startX - endX;
+      const minSwipeDistance = 50;
 
-    const distance = startX - endX;
-    const minSwipeDistance = 50;
-
-    if (distance > minSwipeDistance) {
-      // Swiped left -> Next image
-      handleNextImage();
-    } else if (distance < -minSwipeDistance) {
-      // Swiped right -> Previous image
-      handlePrevImage();
+      if (distance > minSwipeDistance) {
+        handleNextImage();
+      } else if (distance < -minSwipeDistance) {
+        handlePrevImage();
+      }
     }
+    
     touchStartXRef.current = 0;
     touchEndXRef.current = 0;
   };
@@ -1434,20 +1542,20 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Full Image View Modal with Swipe, Back Button & Counter */}
+      {/* ✅ Full Image View Modal with Swipe + Zoom + Drag */}
       {fullImageIndex !== null && (
         <div 
-          className="fixed inset-0 z-[60] bg-black flex flex-col select-none"
-          style={{ touchAction: 'none' }} // ✅ Important for swipe to work
-          onTouchStart={handleTouchStartSwipe}
-          onTouchMove={handleTouchMoveSwipe}
-          onTouchEnd={handleTouchEndSwipe}
+          className="fixed inset-0 z-[60] bg-black flex flex-col select-none overflow-hidden"
+          style={{ touchAction: 'none' }}
+          onTouchStart={handleImageTouchStart}
+          onTouchMove={handleImageTouchMove}
+          onTouchEnd={handleImageTouchEnd}
         >
           {/* Top Bar with Back and Counter */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-gradient-to-b from-black/60 to-transparent">
+          <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-gradient-to-b from-black/70 to-transparent pointer-events-none">
             <button
               onClick={() => setFullImageIndex(null)}
-              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors pointer-events-auto"
             >
               <ArrowLeft size={28} />
             </button>
@@ -1458,30 +1566,45 @@ export default function PublicProfile({
           </div>
 
           {/* Main Image Container */}
-          <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+          <div 
+            ref={imageContainerRef}
+            className="flex-1 flex items-center justify-center overflow-hidden"
+          >
             <img
               src={albumImages[fullImageIndex]}
               alt=""
-              className="max-w-full max-h-[80vh] object-contain rounded-lg pointer-events-none select-none"
+              className="max-w-full max-h-[85vh] object-contain select-none pointer-events-none"
+              style={{
+                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                transition: isPinchingRef.current || isDraggingRef.current ? 'none' : 'transform 0.2s ease-out',
+                transformOrigin: 'center center',
+              }}
               draggable={false}
             />
           </div>
 
-          {/* Left/Right Click Buttons for Desktop fallback */}
+          {/* Zoom Indicator */}
+          {scale > 1 && (
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-20 pointer-events-none">
+              {Math.round(scale * 100)}%
+            </div>
+          )}
+
+          {/* Desktop Navigation Buttons */}
           {fullImageIndex > 0 && (
             <button 
               onClick={handlePrevImage}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white bg-black/30 hover:bg-black/60 p-2 rounded-full transition-all hidden md:block"
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white bg-black/40 hover:bg-black/70 p-3 rounded-full transition-all hidden md:flex z-20"
             >
-              <ArrowLeft size={32} />
+              <ArrowLeft size={28} />
             </button>
           )}
           {fullImageIndex < albumImages.length - 1 && (
             <button 
               onClick={handleNextImage}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white bg-black/30 hover:bg-black/60 p-2 rounded-full transition-all hidden md:block"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white bg-black/40 hover:bg-black/70 p-3 rounded-full transition-all hidden md:flex z-20"
             >
-              <ArrowLeft size={32} className="rotate-180" />
+              <ArrowLeft size={28} className="rotate-180" />
             </button>
           )}
         </div>
