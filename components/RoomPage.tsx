@@ -207,19 +207,32 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
           .map(String)
       );
 
-      // Only the selected recipient's own room session may credit its wallet.
-      if (!recipients.some((id) => currentIds.has(id))) return;
-
-      // Server normally supplies diamondAmount. For older payloads, calculate
-      // the same rule here: Lucky = 10%, every other gift = 100%.
       const rawDiamondAmount = Number(data.diamondAmount);
       const rawCoinAmount = Number(data.amount);
       const isLucky =
         data.luckyGift === true || String(data.giftType || "") === "Lucky";
+      const diamondAmount =
+        Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
+          ? Math.floor(rawDiamondAmount)
+          : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
+            ? Math.floor(rawCoinAmount * (isLucky ? 0.1 : 1))
+            : 0;
+
+      const transferKey = String(
+        data.transferId ||
+        data.eventId ||
+        `${data.roomId || ""}:${data.senderId || ""}:${data.timestamp || ""}:${data.giftName || ""}:${diamondAmount}`
+      );
 
       const isSender = currentIds.has(String(data.senderId || ""));
       const luckyReturnAmount = Math.max(0, Number(data.luckyReturnAmount) || 0);
-      if (isLucky && isSender && luckyReturnAmount > 0) {
+      if (
+        isLucky &&
+        isSender &&
+        luckyReturnAmount > 0 &&
+        !creditedTransferIds.has(`return:${transferKey}`)
+      ) {
+        creditedTransferIds.add(`return:${transferKey}`);
         await addCoinsToDB(luckyReturnAmount);
         await recordTransaction("Lucky Gift return", luckyReturnAmount, "coin");
         window.dispatchEvent(new CustomEvent("hurry:coins-updated", {
@@ -227,8 +240,11 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
         }));
       }
 
-      // Keep the credit in the same FruitPartyDB/GameState/user_data record
-      // used by the Diamonds Wallet screen.
+      // Only the selected recipient's own room session may credit Diamonds.
+      if (!recipients.some((id) => currentIds.has(id))) return;
+      if (diamondAmount <= 0 || creditedTransferIds.has(transferKey)) return;
+      creditedTransferIds.add(transferKey);
+
       await addDiamondsToDB(diamondAmount);
 
       const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
