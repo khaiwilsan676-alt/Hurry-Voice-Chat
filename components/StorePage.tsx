@@ -61,6 +61,49 @@ const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]
   }
 };
 
+const CHAT_BUBBLE_EXPIRY_PREFIX = "chatBubbleExpiry_";
+
+const durationToMs = (duration: string): number => {
+  const match = String(duration || "").trim().match(/^(\\d+)D$/i);
+  return match ? Number(match[1]) * 24 * 60 * 60 * 1000 : 0;
+};
+
+const getExpiryKey = (itemId: string) => CHAT_BUBBLE_EXPIRY_PREFIX + itemId;
+
+const getStoredExpiry = (itemId: string): number | null => {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(getExpiryKey(itemId));
+  const value = raw ? Number(raw) : NaN;
+  return Number.isFinite(value) ? value : null;
+};
+
+const isItemActive = (item: StoreItem): boolean => {
+  const expiry = getStoredExpiry(item.id);
+  return expiry === null || expiry > Date.now();
+};
+
+const saveItemExpiry = (item: StoreItem) => {
+  const ms = durationToMs(item.duration);
+  if (ms <= 0 || typeof window === "undefined") return;
+  localStorage.setItem(getExpiryKey(item.id), String(Date.now() + ms));
+};
+
+const clearExpiredStoreItems = (items: StoreItem[]) => {
+  if (typeof window === "undefined") return;
+  const now = Date.now();
+  for (const item of items) {
+    const key = getExpiryKey(item.id);
+    const raw = localStorage.getItem(key);
+    if (raw && Number(raw) <= now) {
+      localStorage.removeItem(key);
+      if (item.tab === "Chat Bubble") {
+        localStorage.removeItem("equipped_Chat Bubble");
+        localStorage.removeItem("equipped_Chat Bubble_expiresAt");
+      }
+    }
+  }
+};
+
 // delta positive = add, negative = deduct
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
@@ -616,6 +659,7 @@ export default function StorePage({
   useEffect(() => {
     let alive = true;
     const sync = async () => {
+      clearExpiredStoreItems(allStoreItems);
       const { balance: bal, ownedItems, equippedItems } = await loadWalletData();
       if (!alive) return;
       setBalance(bal);
@@ -624,13 +668,30 @@ export default function StorePage({
         ownedItems.forEach((id) => next.add(id));
         return next;
       });
-      setEquippedIds(new Set(equippedItems));
+      const activeEquipped = equippedItems.filter((id) => {
+        const item = allStoreItems.find((it) => it.id === id);
+        return !item || isItemActive(item);
+      });
+      setEquippedIds(new Set(activeEquipped));
+      const activeBubbleId = activeEquipped.find((id) => allStoreItems.find((it) => it.id === id)?.tab === "Chat Bubble");
+      if (!activeBubbleId) {
+        localStorage.removeItem("equipped_Chat Bubble");
+        localStorage.removeItem("equipped_Chat Bubble_expiresAt");
+      }
     };
     sync();
     const id = setInterval(sync, 1500);
+    const expiryTimer = setInterval(() => {
+      clearExpiredStoreItems(allStoreItems);
+      setOwnedIds((prev) => new Set(Array.from(prev).filter((itemId) => {
+        const item = allStoreItems.find((it) => it.id === itemId);
+        return !item || isItemActive(item);
+      })));
+    }, 1000);
     return () => {
       alive = false;
       clearInterval(id);
+      clearInterval(expiryTimer);
     };
   }, []);
 
@@ -650,6 +711,7 @@ export default function StorePage({
     // Optimistic UI
     setBalance((b) => b - cost);
     setOwnedIds((prev) => new Set(prev).add(item.id));
+    saveItemExpiry(item);
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
@@ -675,6 +737,21 @@ export default function StorePage({
 
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
+
+    // Chat Bubble is local to the user and expires with the purchased duration.
+    if (item.tab === "Chat Bubble") {
+      if (wasEquipped) {
+        localStorage.removeItem("equipped_Chat Bubble");
+        localStorage.removeItem("equipped_Chat Bubble_expiresAt");
+      } else {
+        localStorage.setItem("equipped_Chat Bubble", item.image);
+        const expiry = getStoredExpiry(item.id);
+        if (expiry) {
+          localStorage.setItem("equipped_Chat Bubble_expiresAt", String(expiry));
+        }
+      }
+      window.dispatchEvent(new Event("hurry-chat-bubble-equipped"));
+    }
 
     // RoomPage uses this exact value for the next Room entry event.
     // Store the actual playable asset, not only the item ID.
@@ -720,8 +797,9 @@ export default function StorePage({
 
   const displayedItems = allStoreItems.filter((item) => {
     const isOwned = ownedIds.has(item.id);
+    const isActive = isItemActive(item);
     if (currentView === "bag") {
-      return isOwned && item.tab === activeTab;
+      return isOwned && isActive && item.tab === activeTab;
     }
     return !item.dailyReward && item.tab === activeTab;
   });
@@ -733,6 +811,14 @@ export default function StorePage({
       </span>
     ));
   };
+
+  if (typeof window !== "undefined") {
+    const bubbleExpiry = Number(localStorage.getItem("equipped_Chat Bubble_expiresAt") || 0);
+    if (bubbleExpiry > 0 && bubbleExpiry <= Date.now()) {
+      localStorage.removeItem("equipped_Chat Bubble");
+      localStorage.removeItem("equipped_Chat Bubble_expiresAt");
+    }
+  }
 
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
