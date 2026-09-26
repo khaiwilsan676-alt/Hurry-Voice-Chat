@@ -64,7 +64,7 @@ const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]
 const CHAT_BUBBLE_EXPIRY_PREFIX = "chatBubbleExpiry_";
 
 const durationToMs = (duration: string): number => {
-  const match = String(duration || "").trim().match(/^(\\d+)D$/i);
+  const match = String(duration || "").trim().match(/^(\d+)D$/i);
   return match ? Number(match[1]) * 24 * 60 * 60 * 1000 : 0;
 };
 
@@ -96,7 +96,10 @@ const clearExpiredStoreItems = (items: StoreItem[]) => {
     const raw = localStorage.getItem(key);
     if (raw && Number(raw) <= now) {
       localStorage.removeItem(key);
-      if (item.tab === "Chat Bubble") {
+      if (
+        item.tab === "Chat Bubble" &&
+        localStorage.getItem("equipped_Chat Bubble_expiresAt") === raw
+      ) {
         localStorage.removeItem("equipped_Chat Bubble");
         localStorage.removeItem("equipped_Chat Bubble_expiresAt");
       }
@@ -812,14 +815,6 @@ export default function StorePage({
     ));
   };
 
-  if (typeof window !== "undefined") {
-    const bubbleExpiry = Number(localStorage.getItem("equipped_Chat Bubble_expiresAt") || 0);
-    if (bubbleExpiry > 0 && bubbleExpiry <= Date.now()) {
-      localStorage.removeItem("equipped_Chat Bubble");
-      localStorage.removeItem("equipped_Chat Bubble_expiresAt");
-    }
-  }
-
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
@@ -998,130 +993,3 @@ export default function StorePage({
 
                     <div className="flex items-center justify-center gap-0.5 mt-2 mb-1 w-full z-10">
                       {renderStars(item.stars)}
-                    </div>
-
-                    <div className="flex items-center justify-center gap-1.5 mb-3 w-full z-10">
-                      <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-                        <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-                      </div>
-                      <span className={`text-[14px] font-bold tracking-tight truncate ${isTheme ? "text-white drop-shadow-md" : "text-gray-900"}`}>
-                        {item.price}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
-                      <button
-                        type="button"
-                        className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
-                      >
-                        Send
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isOwned) {
-                            handleEquipToggle(item);
-                          } else {
-                            handleBuy(item);
-                          }
-                        }}
-                        disabled={buying === item.id}
-                        className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {buying === item.id
-                          ? '...'
-                          : isOwned
-                          ? (isEquipped ? 'Equipped' : 'Equip')
-                          : 'Buy'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {displayedItems.length === 0 && (
-                <div className="col-span-2 flex flex-col items-center justify-center min-h-[50vh] w-full">
-                  {currentView === "bag" ? (
-                    <div className="flex flex-col items-center">
-                      <div className="relative w-[120px] h-[120px] mb-2">
-                        <Image
-                          src="/file_0000000047308211a02722299d1fda2e.png"
-                          alt="No data"
-                          fill
-                          className="object-contain"
-                        />
-                      </div>
-                      <span className="text-gray-400 text-sm font-medium">No data</span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 text-sm font-medium">No items found</span>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Vehicle & Frame Try Modal */}
-      {tryCenterItem && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
-          onClick={() => setTryCenterItem(null)}
-        >
-          <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
-            {tryCenterItem.tryVideo ? (
-              <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.image.endsWith('.mp4') ? (
-              <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.removeGreen ? (
-              <WebGLImageAvatar src={tryCenterItem.image} />
-            ) : (
-              <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
-            )}
-          </div>
-
-          <div className="flex items-center justify-center gap-1 mt-4 pointer-events-none">
-            {renderStars(tryCenterItem.stars)}
-          </div>
-
-          <div className="mt-2 text-[20px] font-bold text-gray-900 pointer-events-none">
-            {tryCenterItem.name}
-          </div>
-        </div>
-      )}
-
-      {/* Theme Try Modal */}
-      {tryThemeItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            <button
-              type="button"
-              onClick={() => setTryThemeItem(null)}
-              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
-            >
-              ✕
-            </button>
-
-            <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
-              <Image
-                src={tryThemeItem.image}
-                alt={tryThemeItem.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            <div className="flex items-center justify-center gap-1 mt-4">
-              {renderStars(tryThemeItem.stars)}
-            </div>
-
-            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
-              {tryThemeItem.name}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-        }
