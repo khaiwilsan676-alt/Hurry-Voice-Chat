@@ -392,7 +392,6 @@ export default function GiftPicker({
             }}
             src={playingVideo.src}
             autoPlay
-            muted
             playsInline
             controls={false}
             disablePictureInPicture
@@ -448,6 +447,14 @@ export default function GiftPicker({
           />
         </filter>
       </svg>
+
+      <style jsx>{`
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-overlay-play-button,
+        video::-webkit-media-controls-start-playback-button { display: none !important; opacity: 0 !important; }
+      `}</style>
 
       <style jsx>{`
         .main-container { background: rgba(0, 0, 0, 0.95); }
