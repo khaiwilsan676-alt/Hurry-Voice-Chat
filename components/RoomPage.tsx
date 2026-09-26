@@ -52,7 +52,6 @@ interface Seat {
   gif?: {
     src: string;
     timestamp: number;
-    type?: "emoji" | "lucky";
   };
 }
 
@@ -167,10 +166,9 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
       const amount = Number(data.amount);
       if (!recipients.includes(String(userAccountId)) || !Number.isFinite(amount) || amount <= 0) return;
 
-      const diamondAmount = data.giftCategory === "Lucky" ? Math.floor(amount * 0.10) : amount;
-      await addDiamondsToDB(diamondAmount);
+      await addDiamondsToDB(amount);
       const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
-      await recordTransaction("Coins received" + giftLabel, diamondAmount, "diamond");
+      await recordTransaction("Coins received" + giftLabel, amount, "diamond");
     };
 
     socket.on("coin_transfer_received", handleCoinTransferReceived);
@@ -1276,7 +1274,7 @@ function RoomContent({
 
     setSeats(prev => prev.map(s => s.number === seatNum ? {
       ...s,
-      gif: { src: emojiData.src, timestamp: sendTimestamp, type: "emoji" }
+      gif: { src: emojiData.src, timestamp: sendTimestamp }
     } : s));
 
     emitSeatAction("emoji", seatNum, {
@@ -2458,12 +2456,6 @@ function RoomContent({
           animation: rotate-slow 4s linear infinite;
         }
 
-        @keyframes luckyGiftShrink {
-          0% { transform: scale(1); opacity: 1; }
-          55% { transform: scale(0.72); opacity: 1; }
-          100% { transform: scale(0.18); opacity: 0; }
-        }
-        .lucky-gift-image { animation: luckyGiftShrink 1.35s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; transform-origin: center; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
         @keyframes waveBehind { 0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.9; } 50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
@@ -2617,7 +2609,7 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
                     key={`${gif.src}-${gif.timestamp}`}
                     src={`${encodeURI(gif.src)}?t=${gif.timestamp}`}
                     alt="Reaction"
-                    className={`w-full h-full object-contain select-none pointer-events-none ${gif.type === "lucky" ? "lucky-gift-image" : ""}`}
+                    className="w-full h-full object-contain select-none pointer-events-none"
                     style={{ maxWidth: 'none', maxHeight: 'none' }}
                   />
                 </div>

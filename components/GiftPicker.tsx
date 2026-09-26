@@ -303,8 +303,6 @@ export default function GiftPicker({
         recipientIds: recipientIds.map(String),
         amount: totalCost,
         giftName: selectedGiftObj.name,
-        giftCategory: activeTab === "Lucky" ? "Lucky" : "",
-        giftImage: selectedGiftObj.image,
       });
     }
 

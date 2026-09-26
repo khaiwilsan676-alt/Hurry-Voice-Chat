@@ -701,7 +701,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col pb-[8vh]">
         <div
-          className="relative flex items-center p-4 bg-white safe-top"
+          className="flex items-center p-4 bg-white safe-top"
           style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 16px) + 12px)' }}
         >
           <button
@@ -713,7 +713,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
               setProblemDescription('');
               setContactInfo('');
             }}
-            className="absolute left-0 top-0 p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           >
             <ArrowLeft size={24} className="text-gray-700" />
           </button>

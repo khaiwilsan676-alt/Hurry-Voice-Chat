@@ -701,7 +701,7 @@ export default function StorePage({
                   onBack();
                 }
               }}
-              className="absolute left-0 top-0 p-1 text-black hover:bg-black/5 rounded-full transition-colors z-10"
+              className="p-1 -ml-2 text-black hover:bg-black/5 rounded-full transition-colors z-10"
             >
               <ArrowLeft size={26} strokeWidth={2} />
             </button>
