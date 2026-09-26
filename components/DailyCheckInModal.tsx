@@ -18,6 +18,7 @@ interface DailyCheckInModalProps {
   onClose: () => void;
   currentDay: number;
   onSignIn: () => void;
+  claimedToday?: boolean;
 }
 
 export default function DailyCheckInModal({
@@ -25,6 +26,7 @@ export default function DailyCheckInModal({
   onClose,
   currentDay,
   onSignIn,
+  claimedToday = false,
 }: DailyCheckInModalProps) {
   const [viewportHeight, setViewportHeight] = useState(0);
 
@@ -251,14 +253,14 @@ export default function DailyCheckInModal({
           {/* Sign-in button */}
           <button
             onClick={onSignIn}
-            disabled={currentDay > 7}
+            disabled={claimedToday || currentDay > 7}
             className={`w-full py-3.5 rounded-xl font-bold text-white text-base transition-all transform active:scale-95 ${
-              currentDay > 7
+              claimedToday || currentDay > 7
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50'
             }`}
           >
-            {currentDay > 7 ? 'All Rewards Claimed!' : 'Sign In'}
+            {claimedToday ? 'Claimed Today — Come Back Tomorrow' : currentDay > 7 ? 'All Rewards Claimed!' : 'Sign In'}
           </button>
         </div>
       </div>
