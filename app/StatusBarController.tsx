@@ -7,10 +7,11 @@ export default function StatusBarController() {
   useEffect(() => {
     const setup = async () => {
       try {
-        // Status bar overlays the WebView = TRUE fullscreen/edge-to-edge
-        await StatusBar.setOverlaysWebView({ overlay: true })
+        // Keep the entire app content below the Android status bar.
+        // This applies to every page so no page renders underneath the status-bar area.
+        await StatusBar.setOverlaysWebView({ overlay: false })
 
-        // Transparent status bar
+        // Keep the status-bar background transparent while content begins below it
         await StatusBar.setBackgroundColor({
           color: '#00000000',
         })
