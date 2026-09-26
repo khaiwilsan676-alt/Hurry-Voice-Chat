@@ -564,7 +564,10 @@ export default function PublicProfile({
   const [countryLocked, setCountryLocked] = useState(false)
 
   const [activeTab, setActiveTab] = useState('profile')
-  const [fullImageView, setFullImageView] = useState<string | null>(null)
+  
+  // ✅ New state for Fullscreen Album Image Viewer
+  const [fullImageIndex, setFullImageIndex] = useState<number | null>(null)
+
   const [isFollowing, setIsFollowing] = useState(false)
 
   const [showActionSheet, setShowActionSheet] = useState(false)
@@ -572,6 +575,10 @@ export default function PublicProfile({
 
   const [showChat, setShowChat] = useState(false)
   const [showUserReport, setShowUserReport] = useState(false)
+
+  // Swipe states for image viewer
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
@@ -1122,6 +1129,45 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
+  // ✅ Full Image Viewer Handlers
+  const handleImageClick = (index: number) => {
+    setFullImageIndex(index);
+  };
+
+  const handleNextImage = () => {
+    if (fullImageIndex !== null && fullImageIndex < albumImages.length - 1) {
+      setFullImageIndex(fullImageIndex + 1);
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (fullImageIndex !== null && fullImageIndex > 0) {
+      setFullImageIndex(fullImageIndex - 1);
+    }
+  };
+
+  const handleTouchStartSwipe = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMoveSwipe = (e: React.TouchEvent) => {
+    setTouchEnd(e.target.touches[0].clientX);
+  };
+
+  const handleTouchEndSwipe = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      handleNextImage();
+    } else if (isRightSwipe) {
+      handlePrevImage();
+    }
+  };
+
   return (
     <div className={`w-full bg-white min-h-screen text-gray-900 relative ${isOtherUser ? 'pb-24' : 'pb-10'}`}>
       {/* Cover Image & Header Section */}
@@ -1318,7 +1364,7 @@ export default function PublicProfile({
                 <div
                   key={index}
                   className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setFullImageView(img)}
+                  onClick={() => handleImageClick(index)}
                 >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </div>
@@ -1381,24 +1427,56 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Full Image View Modal */}
-      {fullImageView && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setFullImageView(null)}
+      {/* ✅ Updated Full Image View Modal with Swipe, Back Button & Counter */}
+      {fullImageIndex !== null && (
+        <div 
+          className="fixed inset-0 z-[60] bg-black flex flex-col"
+          onTouchStart={handleTouchStartSwipe}
+          onTouchMove={handleTouchMoveSwipe}
+          onTouchEnd={handleTouchEndSwipe}
         >
-          <button
-            onClick={() => setFullImageView(null)}
-            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors"
-          >
-            <X size={24} />
-          </button>
-          <img
-            src={fullImageView}
-            alt=""
-            className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
+          {/* Top Bar with Back and Counter */}
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),16px)] pb-4 bg-gradient-to-b from-black/60 to-transparent">
+            <button
+              onClick={() => setFullImageIndex(null)}
+              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
+              <ArrowLeft size={28} />
+            </button>
+            <span className="text-white font-medium text-lg">
+              {fullImageIndex + 1}/{albumImages.length}
+            </span>
+            <div className="w-10"></div>
+          </div>
+
+          {/* Main Image Container */}
+          <div className="flex-1 flex items-center justify-center p-4">
+            <img
+              src={albumImages[fullImageIndex]}
+              alt=""
+              className="max-w-full max-h-[80vh] object-contain rounded-lg select-none"
+              onClick={(e) => e.stopPropagation()}
+              draggable={false}
+            />
+          </div>
+
+          {/* Left/Right Click Buttons for Desktop fallback */}
+          {fullImageIndex > 0 && (
+            <button 
+              onClick={handlePrevImage}
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white bg-black/30 hover:bg-black/60 p-2 rounded-full transition-all hidden md:block"
+            >
+              <ArrowLeft size={32} />
+            </button>
+          )}
+          {fullImageIndex < albumImages.length - 1 && (
+            <button 
+              onClick={handleNextImage}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white bg-black/30 hover:bg-black/60 p-2 rounded-full transition-all hidden md:block"
+            >
+              <ArrowLeft size={32} className="rotate-180" />
+            </button>
+          )}
         </div>
       )}
 
