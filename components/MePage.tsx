@@ -702,7 +702,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
       <div className="min-h-screen bg-gray-50 flex flex-col pb-[8vh]">
         <div
           className="flex items-center p-4 bg-white safe-top"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 18px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
         >
           <button
             onClick={() => {
