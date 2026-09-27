@@ -578,12 +578,12 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
 
   return (
     <div className="w-full min-h-screen bg-white relative overflow-hidden">
-      {/* ============ TOP SHEET — Blue band + Inbox title ============ */}
+      {/* ============ TOP SHEET — Blue band + Message title ============ */}
       <div
         className="w-full sticky top-0 z-30"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 11px)',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
@@ -596,13 +596,13 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
               className="text-2xl text-black font-extrabold outline-none"
               style={{ textDecoration: 'none' }}
             >
-              Inbox
+              Message
             </h1>
           </div>
         </div>
       </div>
 
-      {/* ============ MAIN CONTENT (Inbox only) ============ */}
+      {/* ============ MAIN CONTENT (Message only) ============ */}
       <div className="pt-1 pb-24 flex flex-col gap-0.6">
         {/* Fixed chats */}
         {fixedChats.map((chat) => {
