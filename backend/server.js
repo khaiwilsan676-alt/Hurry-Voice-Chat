@@ -1172,7 +1172,7 @@ io.on("connection", (socket) => {
     const isLucky = luckyGift === true || String(giftType || "") === "Lucky";
     const diamondAmount =
       Number.isFinite(value) && value > 0
-        ? Math.floor(value * (isLucky ? 0.1 : 1))
+        ? Math.floor(value)
         : 0;
 
     if (diamondAmount <= 0) return;

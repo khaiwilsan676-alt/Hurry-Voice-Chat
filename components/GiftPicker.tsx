@@ -181,7 +181,7 @@ export default function GiftPicker({
       const image = luckyImages[String(data.giftName || "")];
       if (!image) return originalEmit(event, ...args);
       const amount = Number(data.amount);
-      const diamondAmount = Number.isFinite(amount) && amount > 0 ? Math.floor(amount * 0.1) : 0;
+      const diamondAmount = Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0;
       originalEmit("coin_transfer", { ...data, luckyGift: true, luckyImage: image, diamondAmount });
       const recipientIds = new Set(Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []);
       for (const seat of seats) {

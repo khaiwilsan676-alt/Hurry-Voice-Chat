@@ -215,7 +215,7 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
         Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
           ? Math.floor(rawDiamondAmount)
           : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
-            ? Math.floor(rawCoinAmount * (isLucky ? 0.1 : 1))
+            ? Math.floor(rawCoinAmount)
             : 0;
 
       const transferKey = String(

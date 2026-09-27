@@ -1093,8 +1093,8 @@ export default function PublicProfile({
   const handleAlbumUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      if (albumImages.length >= 9) {
-        alert('You can only upload up to 9 images in the album.')
+      if (albumImages.length >= 7) {
+        alert('You can only upload up to 7 images in the album.')
         return
       }
       try {
