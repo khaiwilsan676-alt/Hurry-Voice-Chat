@@ -324,7 +324,7 @@ export default function Level({ onBack }: LevelProps) {
         {/* Top App Bar */}
         <div
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 13px)' }}
         >
           {/* Back Button - Ekdam Strict Corner Left */}
           <button
