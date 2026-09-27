@@ -809,14 +809,15 @@ export default function GiftPicker({
               }}
             >
               {sending ? "Sending..." : "Send"}
-            </button>
+                        </button>
           </div>
         </div>
       </div>
+      </div>   {/* 👈 close the `fixed inset-0` wrapper (B) */}
 
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
       <LuckyComboButton />
-    </div>
+    </div>     {/* close outer wrapper (A) */}
   );
 }
 
