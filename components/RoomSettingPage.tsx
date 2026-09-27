@@ -322,8 +322,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       await saveMicModeToIndexedDB(String(roomOwnerId || ""), Number(settingsData.micMode || 15));
 
       // ✅ 2. Socket broadcast
+      const currentUserId = localStorage.getItem('userUID') || localStorage.getItem('accountNumber') || '';
       socket.emit('room_settings_update', {
         roomId: roomOwnerId,
+        userId: currentUserId,
+        roomOwnerId: roomOwnerId,
         roomName: settingsData.roomName,
         roomDp: settingsData.roomDp,
         announcement: settingsData.announcement,
