@@ -683,76 +683,192 @@ export default function ChatScreen({
             )}
           </div>
         </div>
-                      }}
-                      onTouchEnd={() => {
-                        if (deleteMode) return;
-                        if (swipeMsgId === msg.id) {
-                          if (swipeOffset < -50) {
-                            // Agar 50px se jyada left slide hua toh reply set kardo
-                            setReplyTo(msg);
-                          }
-                          setSwipeMsgId(null);
-                          setSwipeStartX(null);
-                          setSwipeOffset(0);
-                        }
-                      }}
-                      style={{ 
-                        transform: `translateX(${currentOffset}px)`, 
-                        transition: isSwiping ? 'none' : 'transform 0.2s ease-out' 
-                      }}
-                    >
-                      {deleteMode && !isMine && <CheckboxRender />}
+{messages.map((msg) => {
+          const isMine = msg.sender === 'me';
+          const isSelected = selectedMessages.has(msg.id);
 
-                      <div className={`flex items-end ${isMine ? 'justify-end' : 'justify-start'} max-w-[85%]`}>
-                        
-                        {!isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mb-1">
-                            <img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                        
-                        <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                          
-                          {msg.type === 'image' && msg.imageUrl ? (
-                            <div className={`rounded-2xl overflow-hidden relative ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}>
-                              <img
-                                src={msg.imageUrl}
-                                alt="Shared"
-                                className="max-w-full h-auto max-h-64 object-cover cursor-pointer"
-                                onClick={() => !deleteMode && setSelectedImageModal(msg.imageUrl || null)}
-                              />
-                            </div>
-                          ) : (
-                            <div className={`px-3 py-2 rounded-2xl break-words relative ${
-                                isMine ? 'bg-[#374151] text-white rounded-br-md' : 'bg-white text-gray-800 rounded-bl-md'
-                              }`}
-                            >
-                              {msg.replyTo && (
-                                <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/10 rounded p-1">
-                                  <p className="text-[10px] font-semibold text-blue-400">{msg.replyTo.senderName}</p>
-                                  <p className={`text-[11px] truncate ${isMine ? 'text-gray-300' : 'text-gray-600'}`}>{msg.replyTo.text}</p>
-                                </div>
-                              )}
-                              <p className="text-sm">{msg.text}</p>
-                            </div>
-                          )}
-
-                        </div>
-
-                        {isMine && (
-                          <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mb-1">
-                            <img src={currentUser.photo || '/default-avatar.png'} alt={currentUser.name} className="w-full h-full object-cover" />
-                          </div>
-                        )}
-                      </div>
-
-                      {deleteMode && isMine && <CheckboxRender />}
+          // ---- Room invite ----
+          if (msg.type === 'room_invite' && msg.roomData) {
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+                  deleteMode ? 'cursor-pointer' : ''
+                }`}
+                onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
+                onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
+              >
+                <div
+                  className={`max-w-[80%] overflow-hidden rounded-2xl shadow-md ${
+                    isMine ? 'rounded-br-md' : 'rounded-bl-md'
+                  } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                >
+                  <div className="relative h-40 bg-gray-200">
+                    <img
+                      src={msg.roomData.roomImage || '/default-avatar.png'}
+                      alt={msg.roomData.roomName}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-2 left-3 right-3">
+                      <p className="text-white font-bold text-sm truncate">{msg.roomData.roomName}</p>
                     </div>
                   </div>
-                </React.Fragment>
-              );
-            });
-          })()}
+                  <div className="bg-white p-3">
+                    <p className="text-sm text-gray-700 mb-2">Joins our Party Room</p>
+                    <button
+                      onClick={() => handleJoinRoom(msg.roomData!.roomId)}
+                      className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-full flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <LogIn size={18} />
+                      Enter
+                    </button>
+                    <p className="text-[10px] text-gray-400 mt-1 text-center">
+                      {formatTime(msg.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          // ---- Image message ----
+          if (msg.type === 'image' && msg.imageUrl) {
+            return (
+              <div
+                key={msg.id}
+                className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+                  deleteMode ? 'cursor-pointer' : ''
+                }`}
+                onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+                onTouchStart={(e) => !deleteMode && handleSwipeStart(e, msg)}
+                onTouchEnd={(e) => !deleteMode && handleSwipeEnd(e)}
+              >
+                {!isMine && (
+                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-auto">
+                    <img
+                      src={targetUser.photo || '/default-avatar.png'}
+                      alt={targetUser.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                  <div
+                    className={`rounded-2xl overflow-hidden relative ${
+                      isMine ? 'rounded-br-md' : 'rounded-bl-md'
+                    } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                  >
+                    {msg.replyTo && (
+                      <div className="px-3 pt-2 bg-white/95">
+                        <div className="border-l-4 border-blue-400 pl-2 bg-black/5 rounded p-1">
+                          <p className="text-[10px] font-semibold text-blue-600">
+                            {msg.replyTo.senderName}
+                          </p>
+                          <p className="text-[11px] text-gray-600 truncate">{msg.replyTo.text}</p>
+                        </div>
+                      </div>
+                    )}
+                    <img
+                      src={msg.imageUrl}
+                      alt="Shared image"
+                      className="max-w-full h-auto max-h-64 object-cover"
+                    />
+                    <div className={`px-2 py-1 ${isMine ? 'bg-[#dcf8c6]' : 'bg-white'}`}>
+                      <p className={`text-[10px] text-right ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                        {formatTime(msg.timestamp)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {isMine && (
+                  <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mt-auto">
+                    <img
+                      src={currentUser.photo || '/default-avatar.png'}
+                      alt={currentUser.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // ---- Regular text message ----
+          return (
+            <div
+              key={msg.id}
+              className={`flex ${isMine ? 'justify-end' : 'justify-start'} ${
+                deleteMode ? 'cursor-pointer' : ''
+              }`}
+              onClick={() => deleteMode && toggleMessageSelection(msg.id)}
+              onTouchStart={(e) => {
+                if (!deleteMode) {
+                  handleTouchStart(msg);
+                  handleSwipeStart(e, msg);
+                }
+              }}
+              onTouchEnd={(e) => {
+                if (!deleteMode) {
+                  handleTouchEnd();
+                  handleSwipeEnd(e);
+                }
+              }}
+              onMouseDown={() => !deleteMode && handleMouseDown(msg)}
+              onMouseUp={() => !deleteMode && handleMouseUp()}
+            >
+              {!isMine && (
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 mr-2 mt-auto">
+                  <img
+                    src={targetUser.photo || '/default-avatar.png'}
+                    alt={targetUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                {!isMine && (
+                  <span className="text-[10px] text-gray-500 ml-1 mb-0.5">{targetUser.name}</span>
+                )}
+                <div
+                  className={`px-3 py-2 rounded-2xl break-words relative ${
+                    isMine
+                      ? 'bg-[#dcf8c6] text-gray-800 rounded-br-md'
+                      : 'bg-white text-gray-800 rounded-bl-md shadow-sm'
+                  } ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                >
+                  {msg.replyTo && (
+                    <div className="border-l-4 border-blue-400 pl-2 mb-1 bg-black/5 rounded p-1">
+                      <p className="text-[10px] font-semibold text-blue-600">
+                        {msg.replyTo.senderName}
+                      </p>
+                      <p className="text-[11px] text-gray-600 truncate">{msg.replyTo.text}</p>
+                    </div>
+                  )}
+                  <p className="text-sm">{msg.text}</p>
+                  <p className={`text-[10px] mt-1 ${isMine ? 'text-gray-500' : 'text-gray-400'}`}>
+                    {formatTime(msg.timestamp)}
+                  </p>
+                </div>
+                {copiedMessage === msg.id && (
+                  <span className="text-[10px] text-green-600 mt-0.5">Copied!</span>
+                )}
+              </div>
+              {isMine && (
+                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 ml-2 mt-auto">
+                  <img
+                    src={currentUser.photo || '/default-avatar.png'}
+                    alt={currentUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
           
           <div ref={messagesEndRef} />
         </div>
