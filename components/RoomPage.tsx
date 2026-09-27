@@ -407,6 +407,7 @@ function RoomContent({
 
   const [publicMsgOff, setPublicMsgOff] = useState(false);
   const [showPublicMsgModal, setShowPublicMsgModal] = useState(false);
+  const [roomAdmins, setRoomAdmins] = useState<string[]>([]);
 
   useEffect(() => {
     const name = localStorage.getItem('userName') || 'User';
@@ -432,6 +433,8 @@ function RoomContent({
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
   const roomOwnerId = roomOwner.accountId || roomOwner.uid || roomOwner.id || "";
   const isRoomOwner = userAccountId === roomOwnerId;
+  const isRoomAdmin = roomAdmins.some(id => String(id) === String(userAccountId));
+  const canSendWhenPublicMsgOff = isRoomOwner || isRoomAdmin;
 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1166,11 +1169,26 @@ function RoomContent({
 
   const isCurrentUsersSeat = (seat?: Seat) => Boolean(seat && seat.isOccupied && seat.user?.accountId === userAccountId);
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadRoomAdmins = async () => {
+      try {
+        const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomId))}`), { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        const admins = Array.isArray(data?.room?.admin) ? data.room.admin.map(String) : [];
+        if (!cancelled) setRoomAdmins(admins);
+      } catch {}
+    };
+    loadRoomAdmins();
+    return () => { cancelled = true; };
+  }, [roomId]);
+
   const showPublicMsgOffAlert = () => { setShowPublicMsgModal(true); };
 
   const handleSendMessage = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (publicMsgOff && !isRoomOwner) { showPublicMsgOffAlert(); return; }
+    if (publicMsgOff && !canSendWhenPublicMsgOff) { showPublicMsgOffAlert(); return; }
     if (!message.trim()) return;
     sendMessageToSocket(message.trim());
     setMessage("");
