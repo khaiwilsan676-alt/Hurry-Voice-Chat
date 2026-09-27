@@ -556,7 +556,7 @@ export default function GiftPicker({
   }
 
   return (
-    <>
+    <div>
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
       <svg style={{ position: "absolute", width: 0, height: 0 }}>
@@ -815,7 +815,7 @@ export default function GiftPicker({
 
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
       <LuckyComboButton />
-    </>
+    </div>
   );
 }
 
