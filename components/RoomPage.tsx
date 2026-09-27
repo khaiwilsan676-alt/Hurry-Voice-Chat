@@ -1666,7 +1666,7 @@ function RoomContent({
 
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
 
-      <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 18px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
         {/* Top Header */}
         <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
@@ -2023,7 +2023,7 @@ function RoomContent({
           title={currentTrack.name}
         >
           <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
-            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '18px', height: '18px' }}>
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '24px', height: '24px' }}>
               <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
             </svg>
           </div>
@@ -2033,7 +2033,7 @@ function RoomContent({
       {/* RIGHT SIDE FLOATING STACK */}
       <div
         className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
-        style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 18px)' }}
+        style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }}
         onClick={(e) => e.stopPropagation()}
       >
         <RoomSideBanner />
@@ -2393,7 +2393,7 @@ function RoomContent({
       <div
         className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`}
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 18px)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)',
           right: '10px',
           width: '60px',
         }}
