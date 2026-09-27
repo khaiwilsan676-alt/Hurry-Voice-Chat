@@ -557,8 +557,10 @@ export default function GiftPicker({
 
   return (
     <div>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div
+        className="fixed inset-0 z-50 flex items-end justify-center"
+        style={{ display: open ? "flex" : "none" }}
+      >
       <svg style={{ position: "absolute", width: 0, height: 0 }}>
         <filter id="removeWhite" x="0%" y="0%" width="100%" height="100%">
           <feColorMatrix
@@ -810,8 +812,7 @@ export default function GiftPicker({
             </button>
           </div>
         </div>
-        </div>
-      )}
+      </div>
 
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
       <LuckyComboButton />
