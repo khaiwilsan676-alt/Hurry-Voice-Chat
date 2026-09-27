@@ -138,7 +138,6 @@ interface Seat {
 }
 
 // 🎯 LUCKY GIFT WIN CHANCE — Balanced RTP (~90%)
-// 15x → 0.3% | 10x → 0.7% | 5x → 3% | 3x → 8% | 2x → 20% | 0x → 68%
 function rollLuckyWin(): number {
   const luck = Math.random();
   if (luck > 0.997) return 15;
@@ -182,7 +181,6 @@ export default function GiftPicker({
     const patchedEmit = ((event: string, ...args: any[]) => {
       if (event !== "coin_transfer" || !args[0]) return originalEmit(event, ...args);
       const data = { ...args[0] };
-      // ✅ UPDATED LUCKY IMAGES MAPPING
       const luckyImages: Record<string, string> = {
         Tiara: "/IMG_20260927_213855.png",
         "Lucky Clover": "/IMG_20260927_213917.png",
@@ -278,7 +276,6 @@ export default function GiftPicker({
     },
   ];
 
-  // ✅ UPDATED LUCKY GIFTS — sab noMask (koi cutting nahi)
   const luckyGifts: Gift[] = [
     { id: 101, name: "Tiara", coins: 3000, image: "/IMG_20260927_213855.png", noMask: true },
     { id: 102, name: "Lucky Clover", coins: 1499, image: "/IMG_20260927_213917.png", noMask: true },
@@ -393,6 +390,15 @@ export default function GiftPicker({
     if (!canAfford) return;
     setSending(true);
 
+    // 🐛 DEBUG LOGS
+    console.log("=== 🎁 GIFT SEND START ===");
+    console.log("My ID:", currentUserAccountId);
+    console.log("Recipients:", recipientIds);
+    console.log("Match (I'm recipient?):", recipientIds.some(id => String(id) === String(currentUserAccountId)));
+    console.log("Cost:", totalSendCost);
+    console.log("Balance:", walletBalance);
+    console.log("Gift:", selectedGiftObj.name, "| Tab:", activeTab);
+
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
     let netDeductionCost = totalSendCost;
@@ -404,6 +410,8 @@ export default function GiftPicker({
       luckyReturnAmount = winTimes > 0 ? (totalSendCost * winTimes) : 0;
       luckyReturnPercent = winTimes > 0 ? winTimes : 0;
       netDeductionCost = totalSendCost - luckyReturnAmount;
+
+      console.log("🎲 Lucky roll — winTimes:", winTimes, "| return:", luckyReturnAmount);
     }
 
     setWalletBalance((p) => Math.max(0, p - netDeductionCost));
@@ -411,8 +419,9 @@ export default function GiftPicker({
     await recordGiftTransaction(selectedGiftObj.name, -netDeductionCost);
 
     if (roomId && currentUserAccountId && recipientIds.length > 0) {
-      // ✅ UNIQUE ID — dedup fix (Diamond + history)
       const uniqueTransferId = `tx-${currentUserAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      console.log("📤 Emitting coin_transfer with transferId:", uniqueTransferId);
 
       socket.emit("coin_transfer", {
         roomId: String(roomId),
@@ -431,7 +440,6 @@ export default function GiftPicker({
         luckyReturnPercent,
         luckyImage: selectedGiftObj.image,
         winTimes,
-        // 👇 Dedup fix — Diamond add + history kaam karega
         transferId: uniqueTransferId,
         eventId: uniqueTransferId,
         timestamp: Date.now(),
@@ -883,7 +891,7 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎇 BIG WIN ORB — Video + Win text dono -25Vh pe overlay
+// 🎇 BIG WIN ORB
 export function BigWinOrb({ roomId }: { roomId: string }) {
   const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
 
@@ -1049,10 +1057,9 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
     </>
   );
 }
+
 // ==========================================================
- // ==========================================================
 // 🎲 Lucky Gift Notification Slider
-// ==========================================================
 interface LuckyNotice {
   id: string;
   senderId: string;
@@ -1443,7 +1450,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
 // ==========================================================
 // ⭕ COMBO BUTTON
-// ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -1513,7 +1519,6 @@ export function LuckyComboButton() {
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
 
-    // ✅ UNIQUE ID — dedup fix
     const comboTransferId = `combo-${comboData.senderId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     socket.emit("coin_transfer", {
@@ -1667,10 +1672,8 @@ export function LuckyComboButton() {
   );
 }
 
-
 // ==========================================================
 // EMBEDDED LUCKY GIFT FLY
-// ==========================================================
 type LuckyGiftAnimationProps = { roomId: string };
 
 function findTargetAvatar(data: any): HTMLImageElement | null {
@@ -1825,4 +1828,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-}
+      }
