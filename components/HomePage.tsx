@@ -485,7 +485,7 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
 
       <header
         className="relative z-50 flex flex-col w-full"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 18px)' }}
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
       >
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
           <button
@@ -3269,7 +3269,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   />
                 </svg>
                 {totalUnreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-sm">
+                  <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[24px] h-[24px] flex items-center justify-center px-1 shadow-sm">
                     {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
                   </div>
                 )}
