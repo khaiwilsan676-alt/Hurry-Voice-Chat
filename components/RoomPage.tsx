@@ -15,7 +15,7 @@ import WhiteColorRemovalShader from './WhiteColorRemovalShader';
 import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
-import LuckyGiftAnimation from './LuckyGiftAnimation';
+import { LuckyGiftAnimation } from './GiftPicker';
 
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
