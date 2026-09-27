@@ -890,21 +890,22 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
   return (
     <>
       <style>{`
-        @keyframes orbPopIn {
-          0% { transform: scale(0.6); opacity: 0; }
-          60% { transform: scale(1.05); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
+        @keyframes orbFadeIn {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
-        @keyframes orbBlastOut {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(1.35); opacity: 0; }
+        @keyframes orbFadeOut {
+          0% { opacity: 1; }
+          100% { opacity: 0; }
         }
       `}</style>
 
+      {/* ✅ Wrapper pe koi transform nahi — bas opacity animation
+          Isse mix-blend-mode screen ROOM ke saath blend karega, wrapper ke andar nahi */}
       <div
         style={{
           position: "fixed",
-          top: "15vh",
+          top: "-2Vh",
           left: 0,
           right: 0,
           bottom: 0,
@@ -913,12 +914,13 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          opacity: 1,
           animation: orbData.isExiting
-            ? "orbBlastOut 0.6s ease-out forwards"
-            : "orbPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+            ? "orbFadeOut 0.6s ease-out forwards"
+            : "orbFadeIn 0.3s ease-out forwards",
         }}
       >
-        {/* ✅ Video sirf EK BAAR — loop nahi, original time pe khatam */}
+        {/* ✅ Video — black transparent, colors intact */}
         <video
           key={orbData.id}
           src="/VID_20260927_033315_204_bsl.mp4"
@@ -944,33 +946,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           }}
         />
 
-        {/* Avatar without border */}
-        <div
-          style={{
-            position: "absolute",
-            top: 12,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 5,
-            width: 60,
-            height: 60,
-            overflow: "hidden",
-          }}
-        >
-          <img
-            src={orbData.avatar}
-            alt=""
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "50%",
-              display: "block",
-            }}
-          />
-        </div>
-
-        {/* Win text */}
+        {/* ✅ Avatar + Win text ek saath column mein */}
         <div
           style={{
             position: "relative",
@@ -978,9 +954,30 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginTop: "8vh",
           }}
         >
+          {/* Avatar WITHOUT border — just above Win text */}
+          <div
+            style={{
+              width: 60,
+              height: 60,
+              overflow: "hidden",
+              marginBottom: 12,
+            }}
+          >
+            <img
+              src={orbData.avatar}
+              alt=""
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+                display: "block",
+              }}
+            />
+          </div>
+
           <span
             style={{
               color: "#ffe800",
@@ -1008,7 +1005,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
     </>
   );
 }
-
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
 // ==========================================================
