@@ -324,7 +324,7 @@ export default function Level({ onBack }: LevelProps) {
         {/* Top App Bar */}
         <div
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 18px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
         >
           {/* Back Button - Ekdam Strict Corner Left */}
           <button
@@ -447,7 +447,7 @@ export default function Level({ onBack }: LevelProps) {
               key={currentTier.rightGraphic}
               src={currentTier.rightGraphic}
               alt="Tier Graphic"
-              className="w-[100px] h-[100px] object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200"
+              className="w-[100px] h-[100px] object-contain drop-shadow-[0_8px_24px_rgba(0,0,0,0.8)] animate-in fade-in zoom-in-95 duration-200"
             />
           </div>
         </div>
