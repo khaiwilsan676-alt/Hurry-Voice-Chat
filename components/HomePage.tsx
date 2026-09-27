@@ -2499,35 +2499,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
     }
 
     try {
-      // Keep the reward state in browser/WebView storage and mirror the
-      // successful claim to the backend so APK reinstall does not reset it.
-      const today = getDailyDateKey()
-      try {
-        const response = await fetch(apiUrl('/api/daily-checkin'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: userUID,
-            dateKey: today,
-            currentDay: currentSignInDay,
-          }),
-        })
-        if (response.ok) {
-          const serverData = await response.json()
-          if (serverData?.alreadyClaimed) {
-            const serverDay = Number(serverData.currentDay)
-            if (serverDay >= 1 && serverDay <= 7) {
-              setCurrentSignInDay(serverDay)
-              localStorage.setItem(`signInDay_${userUID}`, String(serverDay))
-            }
-            setClaimedToday(true)
-            localStorage.setItem(`signInClaimDate_${userUID}`, today)
-            setIsSignInModalOpen(false)
-            return
-          }
-        }
-      } catch {}
-
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         const request = indexedDB.open('FruitPartyDB', 3)
         request.onupgradeneeded = () => {
@@ -2561,6 +2532,35 @@ export default function HomePage({ onLogout }: HomePageProps) {
         tx.onerror = () => reject(tx.error)
       })
       db.close()
+
+      // Keep the reward state in browser/WebView storage and mirror the
+      // successful claim to the backend so APK reinstall does not reset it.
+      const today = getDailyDateKey()
+      try {
+        const response = await fetch(apiUrl('/api/daily-checkin'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userUID,
+            dateKey: today,
+            currentDay: currentSignInDay,
+          }),
+        })
+        if (response.ok) {
+          const serverData = await response.json()
+          if (serverData?.alreadyClaimed) {
+            const serverDay = Number(serverData.currentDay)
+            if (serverDay >= 1 && serverDay <= 7) {
+              setCurrentSignInDay(serverDay)
+              localStorage.setItem(`signInDay_${userUID}`, String(serverDay))
+            }
+            setClaimedToday(true)
+            localStorage.setItem(`signInClaimDate_${userUID}`, today)
+            setIsSignInModalOpen(false)
+            return
+          }
+        }
+      } catch {}
 
       const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
       localStorage.setItem(`signInDay_${userUID}`, String(nextDay))
