@@ -848,7 +848,7 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎇 BIG WIN ORB — Video EDGE-TO-EDGE, black fully transparent
+// 🎇 BIG WIN ORB — Video sirf EK BAAR chalti hai (original time)
 // ==========================================================
 export function BigWinOrb({ roomId }: { roomId: string }) {
   const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
@@ -871,10 +871,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           id: newId,
           isExiting: false
         });
-
-        setTimeout(() => {
-          setOrbData(prev => (prev?.id === newId ? { ...prev, isExiting: true } : prev));
-        }, 3500);
       }
     };
 
@@ -905,24 +901,13 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
         }
       `}</style>
 
-      <svg style={{ position: "absolute", width: 0, height: 0 }} aria-hidden="true">
-        <filter id="remove-black-video" colorInterpolationFilters="sRGB">
-          <feColorMatrix
-            type="matrix"
-            values="
-              1 0 0 0 0
-              0 1 0 0 0
-              0 0 1 0 0
-              0.2126 0.7152 0.0722 0 0
-            "
-          />
-        </filter>
-      </svg>
-
       <div
         style={{
           position: "fixed",
-          inset: 0,
+          top: "15vh",
+          left: 0,
+          right: 0,
+          bottom: 0,
           zIndex: 2147483005,
           pointerEvents: "none",
           display: "flex",
@@ -933,45 +918,59 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             : "orbPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
         }}
       >
+        {/* ✅ Video sirf EK BAAR — loop nahi, original time pe khatam */}
         <video
           key={orbData.id}
           src="/VID_20260927_033315_204_bsl.mp4"
           autoPlay
           muted
-          loop
           playsInline
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          onEnded={() => {
+            setOrbData(prev => (prev ? { ...prev, isExiting: true } : prev));
+          }}
           style={{
             position: "absolute",
             inset: 0,
             width: "100vw",
-            height: "100vh",
+            height: "100%",
             objectFit: "cover",
             backgroundColor: "transparent",
             pointerEvents: "none",
             zIndex: 1,
-            filter: "url(#remove-black-video)",
             mixBlendMode: "screen",
           }}
         />
 
+        {/* Avatar without border */}
         <div
           style={{
             position: "absolute",
-            top: "12vh",
+            top: 12,
             left: "50%",
             transform: "translateX(-50%)",
             zIndex: 5,
             width: 60,
             height: 60,
-            borderRadius: "50%",
-            border: "2px solid #fff",
             overflow: "hidden",
-            boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
           }}
         >
-          <img src={orbData.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img
+            src={orbData.avatar}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+              display: "block",
+            }}
+          />
         </div>
 
+        {/* Win text */}
         <div
           style={{
             position: "relative",
@@ -1027,7 +1026,7 @@ interface LuckyNotice {
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const [notice, setNotice] = useState<LuckyNotice | null>(null);
-  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number, giftImage: string}[]>([]);
+  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number}[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -1065,7 +1064,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
       if (incomingWin > 0) {
         const floatId = `float-${Date.now()}-${Math.random()}`;
-        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin, giftImage }]);
+        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin }]);
 
         setTimeout(() => {
           setNotice(currentNotice => {
@@ -1128,8 +1127,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
         }
         @keyframes floatUpFade {
-          0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -40px) scale(1.3); opacity: 0; }
+          0% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
         }
       `}</style>
 
@@ -1279,7 +1278,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* RIGHT CORNER: Card image + Coin icon + Value */}
+          {/* RIGHT CORNER */}
           <div
             style={{
               position: "absolute",
@@ -1291,47 +1290,35 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               zIndex: 10,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center"
+              justifyContent: "center",
+              overflow: "visible",
             }}
           >
-            {/* ✅ Floating wins — ab coin icon bhi sath mein aayega */}
+            {/* Floating: sirf Coin icon + Amount, right side fixed */}
             {floatingWins.map(fw => (
               <div
                 key={fw.id}
                 style={{
                   position: "absolute",
-                  top: -15, 
-                  left: "50%",
-                  transform: "translateX(-50%)",
+                  top: -15,
+                  right: 0,
                   display: "flex",
                   alignItems: "center",
                   gap: "3px",
                   animation: "floatUpFade 1.2s ease-out forwards",
                   zIndex: 20,
-                  whiteSpace: "nowrap"
+                  whiteSpace: "nowrap",
                 }}
               >
-                {/* ✅ Gift image */}
-                <img
-                  src={fw.giftImage}
-                  alt=""
-                  style={{
-                    width: 18,
-                    height: 18,
-                    objectFit: "contain",
-                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))",
-                  }}
-                />
-                {/* ✅ Coin icon */}
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
                   alt="Coins"
                   style={{
-                    width: 18,
-                    height: 18,
+                    width: 20,
+                    height: 20,
                     objectFit: "cover",
                     borderRadius: "50%",
-                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))",
+                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.9))",
                   }}
                 />
                 <span
@@ -1339,7 +1326,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     color: "#ffff00", 
                     fontWeight: "900",
                     fontSize: 18,
-                    textShadow: "-1px -1px 0 #d9381e, 1px -1px 0 #d9381e, -1px 1px 0 #d9381e, 1px 1px 0 #d9381e, 0px 4px 6px rgba(0,0,0,0.8)", 
+                    textShadow: "-1px -1px 0 #d9381e, 1px -1px 0 #d9381e, -1px 1px 0 #d9381e, 1px 1px 0 #d9381e, 0px 4px 6px rgba(0,0,0,0.9)", 
                   }}
                 >
                   +{fw.amount}
@@ -1416,7 +1403,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON — Bada + Niche
+// ⭕ COMBO BUTTON
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
@@ -1798,4 +1785,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-        }
+      }
