@@ -109,6 +109,7 @@ function emitRoomSeats(roomId) {
 }
 
 const pendingSeatDisconnects = new Map();
+const lockedRooms = new Map();
 
 function cancelPendingSeatDisconnect(roomId, userId) {
   const key = `${String(roomId)}:${String(userId)}`;
@@ -993,11 +994,34 @@ io.on("connection", (socket) => {
 
   socket.on(
     "room_join",
-    ({ roomId, userId, accountId, name, dp, email } = {}) => {
+    async ({ roomId, userId, accountId, name, dp, email, roomOwnerId } = {}) => {
       if (!roomId || (!userId && !accountId)) return;
 
       const room = String(roomId);
       const accId = accountId ? String(accountId) : String(userId);
+      const requestedOwnerId = String(roomOwnerId || "");
+      const cachedLock = lockedRooms.get(room);
+
+      if (cachedLock?.locked && String(cachedLock.ownerId || "") !== accId) {
+        socket.emit("room_locked", { roomId: room, ownerId: String(cachedLock.ownerId || "") });
+        return;
+      }
+
+      if (db) {
+        try {
+          const roomDoc = await db.collection("rooms").findOne({
+            $or: [{ accountId: room }, { roomId: room }, { id: room }]
+          });
+          if (roomDoc?.isLocked && String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId) !== accId) {
+            const owner = String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId || "");
+            lockedRooms.set(room, { locked: true, ownerId: owner, updatedAt: Date.now() });
+            socket.emit("room_locked", { roomId: room, ownerId: owner });
+            return;
+          }
+        } catch (error) {
+          console.error("Room lock check failed:", error.message);
+        }
+      }
 
       // Do not allow a client to impersonate a different account identity.
       if (socket.userId || socket.accountId || socket.roomUserId || socket.roomAccountId) {
@@ -1476,9 +1500,25 @@ io.on("connection", (socket) => {
     if (!socketIsInRoom(socket, roomId)) return;
     if (data.userId && !socketOwnsIdentity(socket, data.userId)) return;
 
-    // Room name/DP are public metadata. Broadcast the saved update so
-    // Popular/Following cards refresh immediately without changing the UI.
-    io.emit("room_settings_updated", data);
+    const locked = Boolean(data.isLocked);
+    const ownerId = String(data.roomOwnerId || data.userId || socket.roomAccountId || socket.accountId || "");
+    lockedRooms.set(roomId, { locked, ownerId, updatedAt: Date.now() });
+
+    io.to(`room:${roomId}`).emit("room_settings_updated", data);
+
+    if (locked) {
+      for (const client of io.sockets.sockets.values()) {
+        if (String(client.roomId || "") !== roomId) continue;
+        const clientId = String(client.roomAccountId || client.accountId || client.roomUserId || client.userId || "");
+        if (clientId === ownerId) continue;
+        client.emit("room_locked", { roomId, ownerId });
+        client.leave(`room:${roomId}`);
+        client.roomId = null;
+        removeUserFromRoom(roomId, clientId);
+      }
+      emitRoomPresence(roomId);
+      emitGlobalRoomPresence();
+    }
   });
   socket.on("gift_video_play", (data = {}) => {
     if (!data?.roomId || !data?.video) return;
