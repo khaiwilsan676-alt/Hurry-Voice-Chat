@@ -500,7 +500,7 @@ export default function Medal({ onBack }: MedalProps) {
 
       <div
         className="relative z-10 flex-none w-full max-w-md mx-auto px-3 pb-2"
-        style={{ paddingTop: 'max(env(safe-area-inset-top), 16px)' }}
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
       >
         <div className="relative flex items-center justify-between pb-4">
           <button
