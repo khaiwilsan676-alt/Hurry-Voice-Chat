@@ -335,12 +335,12 @@ export default function Fourgride({
                   <button
                     onClick={onTogglePublicMsg}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      publicMsgOff ? 'bg-blue-500' : 'bg-gray-300'
+                      'bg-blue-500'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        publicMsgOff ? 'translate-x-[10px]' : 'translate-x-0.5'
+                        'translate-x-[10px]'
                       }`}
                     />
                   </button>
@@ -355,12 +355,12 @@ export default function Fourgride({
                   <button
                     onClick={toggleEntryEffect}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      entryEffect ? 'bg-blue-500' : 'bg-gray-300'
+                      'bg-blue-500'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        entryEffect ? 'translate-x-[10px]' : 'translate-x-0.5'
+                        'translate-x-[10px]'
                       }`}
                     />
                   </button>
@@ -375,12 +375,12 @@ export default function Fourgride({
                   <button
                     onClick={toggleGiftEffect}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      giftEffect ? 'bg-blue-500' : 'bg-gray-300'
+                      'bg-blue-500'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        giftEffect ? 'translate-x-[10px]' : 'translate-x-0.5'
+                        'translate-x-[10px]'
                       }`}
                     />
                   </button>
