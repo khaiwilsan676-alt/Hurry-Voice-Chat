@@ -2430,7 +2430,7 @@ function RoomContent({
 
       {showRoomTask && (
         <div className="absolute inset-0 z-[11000] pointer-events-none">
-          <Roomtask onBack={() => setShowRoomTask(false)} />
+          <Roomtask onBack={() => setShowRoomTask(false)} isRoomOwner={String(currentUser.uid || currentUser.id || currentUser.accountId) === String(roomOwner.uid || roomOwner.id || roomOwner.accountId)} />
         </div>
       )}
 
