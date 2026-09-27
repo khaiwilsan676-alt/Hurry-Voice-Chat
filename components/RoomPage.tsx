@@ -782,6 +782,7 @@ function RoomContent({
         roomId,
         userId: currentUser.uid || currentUser.id || userAccountId,
         accountId: userAccountId,
+        roomOwnerId: roomOwner.uid || roomOwner.id || roomOwner.accountId || roomId,
         name: currentRoomUser.name,
         dp: currentRoomUser.image,
         email: (currentUser as any)?.email || (currentUser as any)?.emailPhone || "",
@@ -790,6 +791,20 @@ function RoomContent({
     };
 
     socket.emit("room_presence_request", { roomId });
+
+    const handleRoomLocked = (data: any) => {
+      if (!data || String(data.roomId) !== String(roomId)) return;
+      const ownerId = String(data.ownerId || "");
+      if (ownerId && ownerId === String(userAccountId)) return;
+
+      setIsLocked(true);
+      try { jitsiApi?.executeCommand("hangup"); } catch {}
+      alert("This room is locked. You cannot enter or listen to the room voice.");
+      if (onBack) onBack();
+      else if (onClose) onClose();
+    };
+
+    socket.on("room_locked", handleRoomLocked);
 
     socket.on("room_settings_updated", async (data: any) => {
       if (!data || String(data.roomId) !== String(roomId)) return;
@@ -874,6 +889,9 @@ function RoomContent({
       socket.off("room_user_offline", handleRoomUserOffline);
       socket.off("room_message", handleRoomMessage);
       socket.off("room_chat_cleared", handleRoomChatCleared);
+      socket.off("room_locked", handleRoomLocked);
+      socket.off("room_settings_updated");
+      socket.off("room_seats");
 
       if (!isKeepingRef.current) {
         socket.emit("room_leave", {
@@ -1361,9 +1379,11 @@ function RoomContent({
     }
 
     socket.emit(
-      "room_settings_updated",
+      "room_settings_update",
       {
         roomId: roomOwner.accountId || roomId,
+        userId: userAccountId,
+        roomOwnerId: roomOwner.accountId || roomOwner.uid || roomOwner.id || roomId,
         roomName: roomSettings.roomName,
         roomDp: roomSettings.roomDp,
         announcement: roomSettings.announcement,
