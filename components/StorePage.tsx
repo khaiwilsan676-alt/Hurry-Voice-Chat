@@ -815,7 +815,7 @@ export default function StorePage({
         {/* Sticky Header */}
         <div
           className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 15px)' }}
         >
           <div className="flex items-center justify-between px-3 pt-3 pb-2 w-full">
             <button
