@@ -849,7 +849,6 @@ export default function GiftPicker({
 
 // ==========================================================
 // 🎇 BIG WIN ORB — Video sirf EK BAAR chalti hai (original time)
-// ==========================================================
 export function BigWinOrb({ roomId }: { roomId: string }) {
   const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
 
@@ -912,12 +911,10 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
         </filter>
       </svg>
 
-      {/* ✅ Wrapper pe koi transform nahi — bas opacity animation
-          Isse mix-blend-mode screen ROOM ke saath blend karega, wrapper ke andar nahi */}
       <div
         style={{
           position: "fixed",
-          top: "-10Vh",
+          top: 0,
           left: 0,
           right: 0,
           bottom: 0,
@@ -932,7 +929,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             : "orbFadeIn 0.3s ease-out forwards",
         }}
       >
-        {/* ✅ Video — black transparent, colors intact (Family jaisa filter) */}
+        {/* ✅ Video — upar shift kiya, objectPosition top */}
         <video
           key={orbData.id}
           src="/VID_20260927_033315_204_bsl.mp4"
@@ -947,10 +944,12 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           }}
           style={{
             position: "absolute",
-            inset: 0,
+            top: "-25Vh",
+            left: 0,
             width: "100vw",
             height: "100%",
             objectFit: "cover",
+            objectPosition: "center top",
             backgroundColor: "transparent",
             pointerEvents: "none",
             zIndex: 1,
@@ -959,7 +958,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           }}
         />
 
-        {/* ✅ Avatar + Win text ek saath column mein */}
+        {/* ✅ Avatar + Win text */}
         <div
           style={{
             position: "relative",
@@ -969,7 +968,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             alignItems: "center",
           }}
         >
-          {/* Avatar WITHOUT border — just above Win text */}
           <div
             style={{
               width: 60,
@@ -1017,8 +1015,9 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
       </div>
     </>
   );
-              }
+}
 // ==========================================================
+ // ==========================================================
 // 🎲 Lucky Gift Notification Slider
 // ==========================================================
 interface LuckyNotice {
@@ -1599,8 +1598,8 @@ export function LuckyComboButton() {
               style={{
                 position: "absolute",
                 inset: 0,
-                width: "90%",
-                height: "90%",
+                width: "100%",
+                height: "100%",
                 transform: "rotate(-90deg)",
                 pointerEvents: "none",
                 zIndex: 3,
