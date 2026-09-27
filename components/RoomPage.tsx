@@ -16,7 +16,7 @@ import Roomtask from './Roomtask';
 import StorePage from './StorePage';
 import EntryEffect from './EntryEffect';
 import LuckyGiftAnimation from './LuckyGiftAnimation';
-import { LuckyGiftNotificationSlider, LuckyComboButton } from './GiftPickerBase';
+
 import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 import { addDiamondsToDB, recordTransaction } from "./Wallet";
@@ -2573,13 +2573,9 @@ function RoomContent({
       `}</style>
 
       <LuckyGiftAnimation roomId={String(roomId)} />
-      <LuckyGiftNotificationSlider roomId={String(roomId)} />
-
-      <LuckyComboButton />
-
       {showEmojiPicker && <EmojiPicker onClose={() => setShowEmojiPicker(false)} onSelectEmoji={handleSeatEmoji} />}
-      {showGiftPicker && (
-        <GiftPicker
+      <GiftPicker
+          open={showGiftPicker}
           onClose={() => setShowGiftPicker(false)}
           seats={seats}
           roomId={roomId}
@@ -2589,7 +2585,6 @@ function RoomContent({
           roomUsers={roomUsers}
           onSend={(count: number) => setCupCount((prev) => prev + count)}
         />
-      )}
     </div>
   );
 }
