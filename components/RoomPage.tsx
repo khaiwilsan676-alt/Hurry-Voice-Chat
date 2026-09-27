@@ -1898,7 +1898,7 @@ function RoomContent({
     src="/file_0000000019c4821180028eebae10dbfc.png"
     alt="Gift"
     className="cursor-pointer active:scale-95 transition-transform select-none"
-    style={{ width: 'calc(var(--footer-btn-size) + 4px)', height: 'auto' }}
+    style={{ width: 'calc(var(--footer-btn-size) + 9px)', height: 'auto' }}
     draggable={false}
     onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
   />
