@@ -570,7 +570,7 @@ export default function GiftPicker({
         </filter>
       </svg>
 
-      <style jsx>{`
+      <style>{`
         video::-webkit-media-controls,
         video::-webkit-media-controls-enclosure,
         video::-webkit-media-controls-panel,
@@ -1024,7 +1024,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
         </div>
       </div>
 
-      <style jsx global>{`
+      <style>{`
         @keyframes hurryLuckyNoticeSlide {
           0%   { transform: translate3d(115vw, 0, 0); opacity: 0; }
           12%  { transform: translate3d(0, 0, 0);     opacity: 1; }
