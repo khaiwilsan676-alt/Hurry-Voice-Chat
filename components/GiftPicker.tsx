@@ -81,6 +81,28 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
+// 🔥 NEW — Diamonds locally add karne wala function
+const addDiamondsToLocalDB = async (amount: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(SHARED_STORE, "readwrite");
+      const store = tx.objectStore(SHARED_STORE);
+      const req = store.get("user_data");
+      req.onsuccess = () => {
+        const data = req.result || {};
+        const current = Number(data.diamonds) || 0;
+        const putReq = store.put({ ...data, diamonds: current + amount }, "user_data");
+        putReq.onsuccess = () => resolve();
+        putReq.onerror = () => reject(putReq.error);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error("Local diamond add failed", e);
+  }
+};
+
 const recordGiftTransaction = async (title: string, amount: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -105,6 +127,34 @@ const recordGiftTransaction = async (title: string, amount: number): Promise<voi
     });
   } catch (e) {
     console.error("Failed to record gift transaction", e);
+  }
+};
+
+// 🔥 NEW — Diamond history record
+const recordDiamondTransaction = async (title: string, amount: number): Promise<void> => {
+  try {
+    const db = await initWalletDB();
+    return new Promise<void>((resolve, reject) => {
+      const tx = db.transaction("transactions", "readwrite");
+      const store = tx.objectStore("transactions");
+
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
+      const record = {
+        title,
+        amount,
+        date: dateStr,
+        timestamp: now.getTime(),
+        type: "diamond",
+      };
+
+      const req = store.add(record);
+      req.onsuccess = () => resolve();
+      req.onerror = () => reject(req.error);
+    });
+  } catch (e) {
+    console.error("Failed to record diamond transaction", e);
   }
 };
 
@@ -137,7 +187,6 @@ interface Seat {
   user?: { name: string; image: string; accountId: string };
 }
 
-// 🎯 LUCKY GIFT WIN CHANCE — Balanced RTP (~90%)
 function rollLuckyWin(): number {
   const luck = Math.random();
   if (luck > 0.997) return 15;
@@ -190,7 +239,7 @@ export default function GiftPicker({
         Balloon: "/IMG_20260927_214220.png",
         Dragon: "/IMG_20260927_221521.png",
         "Nine Hands": "/IMG_20260927_221544.png",
-        Coffin: "/IMG_20260927_221559.png",
+        Coffee: "/IMG_20260927_221559.png",
         Sword: "/IMG_20260927_221615.png",
         "Love lock": "/IMG_20260927_221637.png",
         Lantern: "/IMG_20260927_221654.png",
@@ -285,7 +334,7 @@ export default function GiftPicker({
     { id: 106, name: "Balloon", coins: 4000, image: "/IMG_20260927_214220.png", noMask: true },
     { id: 107, name: "Dragon", coins: 7000, image: "/IMG_20260927_221521.png", noMask: true },
     { id: 108, name: "Nine Hands", coins: 10999, image: "/IMG_20260927_221544.png", noMask: true },
-    { id: 109, name: "Coffin", coins: 8999, image: "/IMG_20260927_221559.png", noMask: true },
+    { id: 109, name: "Coffee", coins: 8999, image: "/IMG_20260927_221559.png", noMask: true },
     { id: 110, name: "Sword", coins: 9999, image: "/IMG_20260927_221615.png", noMask: true },
     { id: 111, name: "Love lock", coins: 5000, image: "/IMG_20260927_221637.png", noMask: true },
     { id: 112, name: "Lantern", coins: 6999, image: "/IMG_20260927_221654.png", noMask: true },
@@ -390,14 +439,10 @@ export default function GiftPicker({
     if (!canAfford) return;
     setSending(true);
 
-    // 🐛 DEBUG LOGS
-    console.log("=== 🎁 GIFT SEND START ===");
+    console.log("=== 🎁 GIFT SEND ===");
     console.log("My ID:", currentUserAccountId);
     console.log("Recipients:", recipientIds);
-    console.log("Match (I'm recipient?):", recipientIds.some(id => String(id) === String(currentUserAccountId)));
-    console.log("Cost:", totalSendCost);
-    console.log("Balance:", walletBalance);
-    console.log("Gift:", selectedGiftObj.name, "| Tab:", activeTab);
+    console.log("Is self?", recipientIds.some(id => String(id) === String(currentUserAccountId)));
 
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
@@ -406,12 +451,9 @@ export default function GiftPicker({
 
     if (isLuckyGiftTab) {
       winTimes = rollLuckyWin();
-
       luckyReturnAmount = winTimes > 0 ? (totalSendCost * winTimes) : 0;
       luckyReturnPercent = winTimes > 0 ? winTimes : 0;
       netDeductionCost = totalSendCost - luckyReturnAmount;
-
-      console.log("🎲 Lucky roll — winTimes:", winTimes, "| return:", luckyReturnAmount);
     }
 
     setWalletBalance((p) => Math.max(0, p - netDeductionCost));
@@ -420,8 +462,6 @@ export default function GiftPicker({
 
     if (roomId && currentUserAccountId && recipientIds.length > 0) {
       const uniqueTransferId = `tx-${currentUserAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-      console.log("📤 Emitting coin_transfer with transferId:", uniqueTransferId);
 
       socket.emit("coin_transfer", {
         roomId: String(roomId),
@@ -444,6 +484,16 @@ export default function GiftPicker({
         eventId: uniqueTransferId,
         timestamp: Date.now(),
       });
+
+      // 🔥🔥 SELF-CREDIT — sender khud recipient hai toh seedha DB me diamond add karo
+      const isSelfRecipient = recipientIds.some(id => String(id) === String(currentUserAccountId));
+      if (isSelfRecipient) {
+        console.log("💰 Self-credit: adding", totalCost, "diamonds");
+        await addDiamondsToLocalDB(totalCost);
+        await recordDiamondTransaction("Diamonds received — " + selectedGiftObj.name, totalCost);
+        window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: totalCost } }));
+        console.log("✅ Diamonds added locally");
+      }
 
       if (isLuckyGiftTab) {
         window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
@@ -1543,6 +1593,14 @@ export function LuckyComboButton() {
       timestamp: Date.now(),
     });
 
+    // 🔥 SELF-CREDIT for combo
+    const isSelfRecipient = comboData.recipientIds.some((id: string) => String(id) === String(comboData.senderId));
+    if (isSelfRecipient) {
+      await addDiamondsToLocalDB(totalCost);
+      await recordDiamondTransaction("Diamonds received — " + comboData.giftName, totalCost);
+      window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: totalCost } }));
+    }
+
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
       detail: {
         roomId: comboData.roomId,
@@ -1828,4 +1886,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-      }
+  }
