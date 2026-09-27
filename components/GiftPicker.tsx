@@ -425,6 +425,7 @@ export default function GiftPicker({
       if (!data?.roomId || String(data.roomId) !== String(roomId)) return;
       if (String(data.senderId || "") === String(currentUserAccountId || "")) return;
       if (!data.video) return;
+      if (localStorage.getItem("hurry_gift_effect_enabled") !== "true") return;
       setPlayingVideo({ src: String(data.video), style: data.videoStyle === "fade" ? "fade" : "pure" });
       setSending(false);
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
@@ -512,7 +513,7 @@ export default function GiftPicker({
         }));
       }
 
-      if (selectedGiftObj.video && !isLuckyGiftTab) {
+      if (selectedGiftObj.video && !isLuckyGiftTab && localStorage.getItem("hurry_gift_effect_enabled") === "true") {
         socket.emit("gift_video_play", {
           roomId: String(roomId),
           senderId: String(currentUserAccountId),
@@ -549,7 +550,7 @@ export default function GiftPicker({
       return;
     }
 
-    if (selectedGiftObj.video) {
+    if (selectedGiftObj.video && localStorage.getItem("hurry_gift_effect_enabled") === "true") {
       setPlayingVideo({
         src: selectedGiftObj.video,
         style: selectedGiftObj.videoStyle ?? "fade",
