@@ -21,7 +21,12 @@ import { generateStableId } from '../lib/hash';
 import socket from "../src/lib/socket";
 import { addDiamondsToDB, recordTransaction } from "./Wallet";
 
-import { JitsiMeeting } from "@jitsi/react-sdk";
+import dynamic from "next/dynamic";
+
+const JitsiMeeting = dynamic(
+  () => import("@jitsi/react-sdk").then((mod) => mod.JitsiMeeting),
+  { ssr: false, loading: () => null }
+);
 
 async function updateSharedWalletBalance(delta: number): Promise<void> {
   if (!Number.isFinite(delta) || typeof indexedDB === "undefined") return;
