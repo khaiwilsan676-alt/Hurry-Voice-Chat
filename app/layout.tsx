@@ -91,12 +91,13 @@ export default function RootLayout({
           content="yes"
         />
 
-        {/* 🐛 Eruda Debug Console — har page pe load hoga (email check nahi) */}
+        {/* 🐛 Eruda — sirf /debug page pe load hoga */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
                 try {
+                  if (window.location.pathname !== '/debug') return;
                   var s = document.createElement('script');
                   s.src = 'https://cdn.jsdelivr.net/npm/eruda';
                   s.async = true;
