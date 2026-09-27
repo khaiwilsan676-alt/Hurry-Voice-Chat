@@ -299,7 +299,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
       </div>
 
       {/* Back Icon - Fixed at Top Left Corner */}
-      <div className="fixed top-0 left-0 z-[60] flex items-center pl-0 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+8px)] pointer-events-auto">
+      <div className="fixed top-0 left-0 z-[60] flex items-center pl-0 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+13px)] pointer-events-auto">
         <button
           onClick={handleBack}
           className="p-1 text-white hover:text-white/80 transition-colors cursor-pointer active:scale-95"
