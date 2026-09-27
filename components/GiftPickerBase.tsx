@@ -318,7 +318,6 @@ export default function GiftPicker({
     let netDeductionCost = totalSendCost;
 
     if (isLuckyGiftTab) {
-      // 60% chance to lose, 40% chance to win (0.05 to 0.5 percent back)
       if (Math.random() > 0.6) {
         luckyReturnPercent = 0.05 + Math.random() * 0.45;
         luckyReturnAmount = Math.floor(totalSendCost * luckyReturnPercent);
@@ -335,7 +334,7 @@ export default function GiftPicker({
         roomId: String(roomId),
         senderId: String(currentUserAccountId),
         recipientIds: recipientIds.map(String),
-        amount: totalCost, 
+        amount: totalCost,
         giftName: selectedGiftObj.name,
         giftType: activeTab,
         senderName: currentUserName,
@@ -770,16 +769,16 @@ export default function GiftPicker({
 
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
+// Slider dikhta hai — bg image + left corner sender avatar (with overlap frame)
+// + MIDDLE: gift image + ×multiplier + right corner image.
+// Combo button click se SIRF multiplier update hota hai (animation dobara nahi)
 // ==========================================================
 interface LuckyNotice {
   id: string;
-  senderName: string;
+  senderId: string;
   senderImage: string;
-  recipientName: string;
   giftImage: string;
   multiplier: number;
-  returnAmount: number;
-  returnPercent: number;
 }
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
@@ -791,21 +790,35 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       if (String(data.roomId || "") !== String(roomId || "")) return;
       if (data.luckyGift !== true) return;
 
-      const next: LuckyNotice = {
-        // ID change hote hi animation reset hota hai (Right to left slider effect)
-        id: String(data.transferId || data.eventId || `notify-${Date.now()}-${Math.random()}`),
-        senderName: String(data.senderName || "User"),
-        senderImage: String(data.senderImage || "/default-avatar.png"),
-        recipientName: String(data.recipientName || "User"),
-        giftImage: String(data.luckyImage || data.giftImage || ""),
-        multiplier: Math.max(1, Number(data.multiplier) || 1),
-        returnAmount: Math.max(0, Number(data.luckyReturnAmount) || 0),
-        returnPercent: Math.max(0, Number(data.luckyReturnPercent) || 0),
-      };
+      const senderId = String(data.senderId || "");
+      const senderImage = String(data.senderImage || "/default-avatar.png");
+      const giftImage = String(data.luckyImage || data.giftImage || "");
+      const multiplier = Math.max(1, Number(data.multiplier) || 1);
 
-      setNotice(next);
+      setNotice((prev) => {
+        // Agar same sender ka notice chal raha hai aur multiplier badha hai
+        // (combo button click) → sirf multiplier update karo, animation replay mat karo.
+        if (
+          prev &&
+          prev.senderId === senderId &&
+          prev.giftImage === giftImage &&
+          multiplier > prev.multiplier
+        ) {
+          return { ...prev, multiplier };
+        }
+
+        // Warna naya notice → naya id → animation dobara play hoga.
+        return {
+          id: `notify-${Date.now()}-${Math.random()}`,
+          senderId,
+          senderImage,
+          giftImage,
+          multiplier,
+        };
+      });
+
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setNotice(null), 3600); // Slider time limit
+      timerRef.current = setTimeout(() => setNotice(null), 3600);
     };
 
     socket.on("coin_transfer_received", handler);
@@ -824,7 +837,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       style={{ bottom: "20vh" }}
     >
       <div
-        className="relative w-[min(94vw,420px)] h-[72px] overflow-hidden drop-shadow-xl"
+        className="relative w-[min(94vw,420px)] h-[72px]"
         style={{
           backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
           backgroundSize: "100% 100%",
@@ -832,7 +845,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           animation: "hurryLuckyNoticeSlide 3.6s ease-in-out forwards",
         }}
       >
-        {/* Left Side: Sender Avatar + Overlapping Frame */}
+        {/* LEFT CORNER: Sender Avatar + Overlapping Frame (frame on top of avatar) */}
         <div className="absolute left-[9px] top-1/2 -translate-y-1/2 w-11 h-11 z-10">
           <img
             src={notice.senderImage}
@@ -840,7 +853,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             className="w-full h-full rounded-full object-cover"
             draggable={false}
           />
-          {/* Overlapping Frame (Bina Cut kiye) */}
           <img
             src="/file_00000000fc488211afad439cacecc7c5.png"
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain pointer-events-none z-20"
@@ -848,66 +860,38 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           />
         </div>
 
-        {/* Middle Text: Sender Name & Sent to Receiver */}
-        <div className="absolute left-[64px] top-1/2 -translate-y-1/2 min-w-0 max-w-[35%] text-white z-10">
-          <div className="font-bold text-[12px] truncate drop-shadow-md">{notice.senderName}</div>
-          <div className="text-[10px] text-[#ffeb3b] truncate font-medium drop-shadow-sm">
-            Sended to {notice.recipientName}
-          </div>
-        </div>
-
-        {/* Center/Middle Image: Multiplier & Lucky Gift Image */}
+        {/* MIDDLE: Gift image + × multiplier (combo button se increase hota hai) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-1.5 z-10">
-          <span className="text-white font-extrabold text-[16px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            ×{notice.multiplier}
-          </span>
           {notice.giftImage && (
             <img
               src={notice.giftImage}
               alt=""
-              className="w-9 h-9 object-contain drop-shadow-lg"
+              className="w-9 h-9 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
               draggable={false}
             />
           )}
+          <span className="text-white font-extrabold text-[18px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
+            ×{notice.multiplier}
+          </span>
         </div>
 
-        {/* Right Corner: +0 wali image or Return Value */}
+        {/* RIGHT CORNER: corner image */}
         <div className="absolute right-[7px] top-1/2 -translate-y-1/2 w-[56px] h-[56px] z-10">
-          {/* Win / Return Amount float up animation */}
-          {notice.returnAmount > 0 && (
-            <div
-              className="absolute left-1/2 -translate-x-1/2 text-[#ffeb3b] font-black text-[14px] drop-shadow-[0_0_8px_rgba(255,235,59,0.9)] z-30"
-              style={{ animation: "floatUpFade 1.5s ease-out forwards" }}
-            >
-              +{notice.returnAmount}
-            </div>
-          )}
-
-          {/* Background Right image */}
           <img
             src="/file_00000000a9e48211aee262c0df0c36bc.png"
             alt=""
             className="absolute inset-0 w-full h-full object-contain"
             draggable={false}
           />
-          {/* Centered Return Label (+0 or Win Amount) */}
-          <div className="absolute inset-0 flex items-center justify-center text-white font-extrabold text-[12px] drop-shadow-md z-20 pt-1">
-            +{notice.returnAmount}
-          </div>
         </div>
       </div>
 
       <style jsx>{`
-        /* Right to Left Slide Animation */
         @keyframes hurryLuckyNoticeSlide {
-          0% { transform: translate3d(115vw, 0, 0); opacity: 0; }
-          12% { transform: translate3d(0, 0, 0); opacity: 1; }
-          85% { transform: translate3d(0, 0, 0); opacity: 1; }
+          0%   { transform: translate3d(115vw, 0, 0); opacity: 0; }
+          12%  { transform: translate3d(0, 0, 0);     opacity: 1; }
+          85%  { transform: translate3d(0, 0, 0);     opacity: 1; }
           100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
-        }
-        @keyframes floatUpFade {
-          0% { transform: translate(-50%, -10px) scale(0.8); opacity: 1; }
-          100% { transform: translate(-50%, -40px) scale(1.1); opacity: 0; }
         }
       `}</style>
     </div>
@@ -917,12 +901,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
 // ==========================================================
 // ⭕ Blue Lucky Combo Circular Button (Bottom Right)
+// Sirf number dikhta hai ×1, ×2, ×3 ...
+// Click pe combo multiplier badhta hai — slider me SIRF number update hota hai
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -938,14 +923,12 @@ export function LuckyComboButton() {
   }, []);
 
   const startTimer = () => {
-    setTimeLeft(5); // 5 seconds timer start hoga
-    if (timerRef.current) clearTimeout(timerRef.current);
+    setTimeLeft(5);
     if (countdownRef.current) clearInterval(countdownRef.current);
 
     countdownRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          // 5 seconds no click -> close button
           setComboData(null);
           if (countdownRef.current) clearInterval(countdownRef.current);
           return 0;
@@ -957,25 +940,24 @@ export function LuckyComboButton() {
 
   const handleComboClick = async () => {
     if (!comboData) return;
-    
-    startTimer(); // Reset timer for another 5 seconds on click
+
+    startTimer(); // Reset 5s
 
     const nextMultiplier = comboMultiplier + 1;
-    setComboMultiplier(nextMultiplier); // Increase multiplier
+    setComboMultiplier(nextMultiplier);
 
-    const baseCost = comboData.giftCoins; 
+    const baseCost = comboData.giftCoins;
     const recipientCount = comboData.recipientIds.length;
     const totalCost = baseCost * recipientCount;
-    
-    // Return logic fir se hit hoga combo pe
+
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
-    
+
     if (Math.random() > 0.6) {
       luckyReturnPercent = 0.05 + Math.random() * 0.45;
       luckyReturnAmount = Math.floor(totalCost * luckyReturnPercent);
     }
-    
+
     const finalDeductionCost = totalCost - luckyReturnAmount;
 
     const bal = await loadWalletBalance();
@@ -987,12 +969,12 @@ export function LuckyComboButton() {
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
 
-    // Ye event emit hone par sabko slider wapis dikhega with nayi multiplier 
+    // Emit — slider har client pe sirf multiplier update karega (same sender + same gift + bada multiplier)
     socket.emit("coin_transfer", {
       roomId: comboData.roomId,
       senderId: comboData.senderId,
       recipientIds: comboData.recipientIds,
-      amount: totalCost, 
+      amount: totalCost,
       giftName: comboData.giftName,
       giftType: "Lucky",
       senderName: comboData.senderName,
@@ -1011,43 +993,40 @@ export function LuckyComboButton() {
 
   return (
     <div
-      className="fixed z-[2147483001] flex flex-col items-center justify-center gap-1"
+      className="fixed z-[2147483001] flex flex-col items-center gap-1"
       style={{ bottom: "7vh", right: "5vw" }}
     >
       <button
         onClick={handleComboClick}
-        className="relative flex items-center justify-center w-16 h-16 rounded-full outline-none select-none active:scale-95 transition-transform"
+        className="relative flex items-center justify-center w-14 h-14 rounded-full outline-none select-none active:scale-95 transition-transform"
         style={{
-          // Blue Theme Color as requested
           background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
           boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)",
         }}
       >
-        <span className="text-white font-extrabold text-[22px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+        {/* Sirf number, koi gift image nahi */}
+        <span className="text-white font-extrabold text-[20px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
           ×{comboMultiplier}
         </span>
 
-        {/* White Circular Countdown Progress indicator (5 seconds) */}
+        {/* White 5s countdown ring */}
         <svg
           className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none"
-          viewBox="0 0 64 64"
+          viewBox="0 0 56 56"
         >
           <circle
-            cx="32"
-            cy="32"
-            r="30"
+            cx="28"
+            cy="28"
+            r="26"
             fill="none"
-            stroke="#ffffff" // White Stroke
-            strokeWidth="3.5"
-            strokeDasharray="188.5" // Circumference for r=30
-            strokeDashoffset={188.5 - (188.5 * timeLeft) / 5}
+            stroke="#ffffff"
+            strokeWidth="3"
+            strokeDasharray="163.4"
+            strokeDashoffset={163.4 - (163.4 * timeLeft) / 5}
             style={{ transition: "stroke-dashoffset 1s linear" }}
           />
         </svg>
       </button>
-      <span className="text-white text-[10px] font-bold uppercase drop-shadow-md tracking-wider">
-        Combo
-      </span>
     </div>
   );
-}
+  }
