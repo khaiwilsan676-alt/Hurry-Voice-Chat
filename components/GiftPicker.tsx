@@ -365,9 +365,20 @@ export default function GiftPicker({
     let netDeductionCost = totalSendCost;
 
     if (isLuckyGiftTab) {
-      // Return Price 0% - 30% random
-      luckyReturnPercent = Math.random() * 0.30;
-      luckyReturnAmount = Math.floor(totalSendCost * luckyReturnPercent);
+      const luck = Math.random();
+      
+      if (luck > 0.92) {
+        // 8% Chance: Big Jackpot (Profit) -> random amount between 120% to 270% + random noise
+        luckyReturnAmount = Math.floor(totalSendCost * (1.2 + Math.random() * 1.5)) + Math.floor(Math.random() * 99);
+      } else if (luck > 0.65) {
+        // 27% Chance: Small Return (Loss cover) -> random amount between 10% to 60% + random noise
+        luckyReturnAmount = Math.floor(totalSendCost * (0.1 + Math.random() * 0.5)) + Math.floor(Math.random() * 77);
+      } else {
+        // 65% Chance: 0 return
+        luckyReturnAmount = 0;
+      }
+      
+      luckyReturnPercent = totalSendCost > 0 ? (luckyReturnAmount / totalSendCost) : 0;
       netDeductionCost = totalSendCost - luckyReturnAmount;
     }
 
@@ -394,7 +405,7 @@ export default function GiftPicker({
         luckyImage: selectedGiftObj.image,
       });
 
-      // ✅ LOCAL SLIDER TRIGGER - Pass winning amount to Slider
+      // ✅ LOCAL SLIDER TRIGGER - Pass completely random winning amount to Slider
       if (isLuckyGiftTab) {
         window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
           detail: {
@@ -837,7 +848,7 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎲 Lucky Gift Notification Slider (SYNCED WITH COMBO & ACCUMULATED WINS)
+// 🎲 Lucky Gift Notification Slider (WITH FLOATING WINS & 40vh)
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -847,12 +858,13 @@ interface LuckyNotice {
   senderImage: string;
   giftImage: string;
   multiplier: number;
-  totalWinAmount: number; // For keeping track of total combo wins
+  totalWinAmount: number; // Center text accumulator
   isExiting: boolean;
 }
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const [notice, setNotice] = useState<LuckyNotice | null>(null);
+  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number}[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -866,18 +878,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const senderImage = String(data.senderImage || "/default-avatar.png");
       const giftImage = String(data.luckyImage || data.giftImage || "");
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
-      const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0); // Calculate win amount
+      const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0); 
 
+      // 1. Pehle notice object create/update karo (bina + amount add kiye)
       setNotice((prev) => {
         if (prev && prev.senderId === senderId && prev.giftImage === giftImage) {
           if (multiplier > prev.multiplier) {
-            // Add new win amount to previous total win amount
-            return { 
-              ...prev, 
-              multiplier, 
-              isExiting: false,
-              totalWinAmount: prev.totalWinAmount + incomingWin 
-            };
+            return { ...prev, multiplier, isExiting: false }; 
           }
           return { ...prev, isExiting: false }; 
         }
@@ -889,10 +896,34 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           senderImage,
           giftImage,
           multiplier,
-          totalWinAmount: incomingWin,
+          totalWinAmount: 0, // Starts at 0, float logic will add to it
           isExiting: false
         };
       });
+
+      // 2. Agar "Kabhi-Kabhi" win aayi hai, to Float animation dikhao!
+      if (incomingWin > 0) {
+        const floatId = `float-${Date.now()}-${Math.random()}`;
+        
+        // Add to floating array (will animate up in UI)
+        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin }]);
+
+        // 600ms baad Float animation se central text mein Add (+) kar do
+        setTimeout(() => {
+          setNotice(currentNotice => {
+            if (!currentNotice) return currentNotice;
+            return { 
+              ...currentNotice, 
+              totalWinAmount: currentNotice.totalWinAmount + incomingWin 
+            };
+          });
+        }, 600);
+
+        // 1.2 second baad array se hata do
+        setTimeout(() => {
+          setFloatingWins(prev => prev.filter(f => f.id !== floatId));
+        }, 1200);
+      }
 
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
@@ -918,7 +949,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
   useEffect(() => {
     if (notice?.isExiting) {
-      const t = setTimeout(() => setNotice(null), 400); 
+      const t = setTimeout(() => {
+        setNotice(null);
+        setFloatingWins([]); // Clear floats if any are stuck
+      }, 400); 
       return () => clearTimeout(t);
     }
   }, [notice?.isExiting]);
@@ -936,6 +970,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           0% { transform: translate3d(0, 0, 0); opacity: 1; }
           100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
         }
+        @keyframes floatUpFade {
+          0% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, -40px) scale(1.3); opacity: 0; }
+        }
       `}</style>
 
       <div
@@ -944,7 +982,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           position: "fixed",
           left: 8,
           right: 8,
-          bottom: "30vh", 
+          bottom: "40vh", // ✅ Ab ye 40vh par aayega
           zIndex: 2147483000,
           pointerEvents: "none",
           display: "flex",
@@ -1093,7 +1131,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               right: 4,
               top: "50%",
               transform: "translateY(-50%)",
-              width: 66, // Slightly larger card image (56 -> 66)
+              width: 66, 
               height: 66,
               zIndex: 10,
               display: "flex",
@@ -1101,6 +1139,28 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               justifyContent: "center"
             }}
           >
+            {/* ✅ Floating Win Animations: ये हवा में उड़ कर गायब होंगे */}
+            {floatingWins.map(fw => (
+              <span
+                key={fw.id}
+                style={{
+                  position: "absolute",
+                  top: -10, // Start just above the card
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  color: "#ffde00", // Shiny Yellow
+                  fontWeight: "900",
+                  fontSize: 16,
+                  textShadow: "0px 2px 5px rgba(0,0,0,1), 0px 0px 10px rgba(255,215,0,0.8)",
+                  animation: "floatUpFade 1.2s ease-out forwards",
+                  zIndex: 20,
+                  whiteSpace: "nowrap"
+                }}
+              >
+                +{fw.amount}
+              </span>
+            ))}
+
             <img
               src="/file_00000000a9e48211aee262c0df0c36bc.png"
               alt=""
@@ -1116,6 +1176,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               }}
               draggable={false}
             />
+            
             {/* Center +WinAmount Text */}
             <span
               style={{
@@ -1123,7 +1184,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 zIndex: 2,
                 color: "white",
                 fontWeight: "900",
-                fontSize: 14, // Adjusted so large numbers fit nicely
+                fontSize: 14, 
                 textShadow: "0px 1px 4px rgba(0,0,0,0.9)",
                 marginTop: 2
               }}
@@ -1192,9 +1253,20 @@ export function LuckyComboButton() {
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
 
-    // Return Price 0% - 30% random range for Combo clicks too
-    luckyReturnPercent = Math.random() * 0.30;
-    luckyReturnAmount = Math.floor(totalCost * luckyReturnPercent);
+    // ✅ RANDOM NUMBER RETURN LOGIC FOR COMBO
+    const luck = Math.random();
+    if (luck > 0.92) {
+      // 8% Chance: Big Jackpot (Profit) -> random completely odd figures
+      luckyReturnAmount = Math.floor(totalCost * (1.2 + Math.random() * 1.5)) + Math.floor(Math.random() * 99);
+    } else if (luck > 0.65) {
+      // 27% Chance: Small Return
+      luckyReturnAmount = Math.floor(totalCost * (0.1 + Math.random() * 0.5)) + Math.floor(Math.random() * 77);
+    } else {
+      // 65% Chance: Zero
+      luckyReturnAmount = 0;
+    }
+    
+    luckyReturnPercent = totalCost > 0 ? (luckyReturnAmount / totalCost) : 0;
     const finalDeductionCost = totalCost - luckyReturnAmount;
 
     const bal = await loadWalletBalance();
@@ -1225,7 +1297,7 @@ export function LuckyComboButton() {
       luckyImage: comboData.giftImage,
     });
 
-    // ✅ LOCAL SLIDER TRIGGER - Send accumulative win data
+    // ✅ LOCAL SLIDER TRIGGER - Send random win data
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
       detail: {
         roomId: comboData.roomId,
@@ -1236,7 +1308,7 @@ export function LuckyComboButton() {
         giftImage: comboData.giftImage,
         multiplier: nextMultiplier,
         luckyGift: true,
-        luckyReturnAmount: luckyReturnAmount // send won coins
+        luckyReturnAmount: luckyReturnAmount // send completely odd random won coins
       }
     }));
 
