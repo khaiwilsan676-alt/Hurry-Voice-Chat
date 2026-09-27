@@ -900,12 +900,24 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
         }
       `}</style>
 
+      {/* ✅ SVG FILTER — Family jaisa black remove filter */}
+      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
+        <filter id="remove-black" colorInterpolationFilters="sRGB">
+          <feColorMatrix type="matrix" values="
+            1 0 0 0 0
+            0 1 0 0 0
+            0 0 1 0 0
+            1.5 1.5 1.5 0 -0.2
+          " />
+        </filter>
+      </svg>
+
       {/* ✅ Wrapper pe koi transform nahi — bas opacity animation
           Isse mix-blend-mode screen ROOM ke saath blend karega, wrapper ke andar nahi */}
       <div
         style={{
           position: "fixed",
-          top: "-2Vh",
+          top: "-10Vh",
           left: 0,
           right: 0,
           bottom: 0,
@@ -920,7 +932,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             : "orbFadeIn 0.3s ease-out forwards",
         }}
       >
-        {/* ✅ Video — black transparent, colors intact */}
+        {/* ✅ Video — black transparent, colors intact (Family jaisa filter) */}
         <video
           key={orbData.id}
           src="/VID_20260927_033315_204_bsl.mp4"
@@ -943,6 +955,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             pointerEvents: "none",
             zIndex: 1,
             mixBlendMode: "screen",
+            filter: "url(#remove-black)",
           }}
         />
 
@@ -1004,7 +1017,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
       </div>
     </>
   );
-}
+              }
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
 // ==========================================================
@@ -1572,7 +1585,7 @@ export function LuckyComboButton() {
               style={{
                 color: "#ffffff",
                 fontWeight: 700,
-                fontSize: 20,
+                fontSize: 18,
                 textShadow: "0 1px 3px rgba(0,0,0,0.5)",
                 letterSpacing: "0.5px",
                 zIndex: 3,
@@ -1586,8 +1599,8 @@ export function LuckyComboButton() {
               style={{
                 position: "absolute",
                 inset: 0,
-                width: "100%",
-                height: "100%",
+                width: "90%",
+                height: "90%",
                 transform: "rotate(-90deg)",
                 pointerEvents: "none",
                 zIndex: 3,
