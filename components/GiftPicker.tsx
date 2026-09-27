@@ -809,12 +809,10 @@ export default function GiftPicker({
               </div>
             )}
 
-            {/* ✅ Same pill — Send side seamless blue, koi alag rounded shape nahi */}
             <div
               className="flex items-center rounded-full border border-[#3b82f6] overflow-hidden"
               style={{ background: "transparent" }}
             >
-              {/* Multiplier Side */}
               <button
                 onClick={() => setShowMultipliers(!showMultipliers)}
                 className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-transparent transition-transform"
@@ -823,7 +821,6 @@ export default function GiftPicker({
                 <ChevronUp className={`w-3 h-3 transition-transform ${showMultipliers ? "rotate-180" : ""}`} />
               </button>
 
-              {/* Send Button Side — same pill border ke andar */}
               <button
                 onClick={handleSend}
                 disabled={!selectedGift || !canAfford || sending}
@@ -916,7 +913,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
               1 0 0 0 0
               0 1 0 0 0
               0 0 1 0 0
-              -1.2 -1.2 -1.2 0 1
+              0.2126 0.7152 0.0722 0 0
             "
           />
         </filter>
@@ -953,6 +950,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             pointerEvents: "none",
             zIndex: 1,
             filter: "url(#remove-black-video)",
+            mixBlendMode: "screen",
           }}
         />
 
@@ -1014,7 +1012,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
 
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
-// Right side: Card image + Coin icon + Value
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -1282,7 +1279,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* ✅ RIGHT CORNER: Card image + Coin icon + Value */}
+          {/* RIGHT CORNER: Card image + Coin icon + Value */}
           <div
             style={{
               position: "absolute",
@@ -1297,6 +1294,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               justifyContent: "center"
             }}
           >
+            {/* ✅ Floating wins — ab coin icon bhi sath mein aayega */}
             {floatingWins.map(fw => (
               <div
                 key={fw.id}
@@ -1307,13 +1305,35 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                   transform: "translateX(-50%)",
                   display: "flex",
                   alignItems: "center",
-                  gap: "2px",
+                  gap: "3px",
                   animation: "floatUpFade 1.2s ease-out forwards",
                   zIndex: 20,
                   whiteSpace: "nowrap"
                 }}
               >
-                <img src={fw.giftImage} alt="" style={{width: 18, height: 18, objectFit: "contain", filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))"}} />
+                {/* ✅ Gift image */}
+                <img
+                  src={fw.giftImage}
+                  alt=""
+                  style={{
+                    width: 18,
+                    height: 18,
+                    objectFit: "contain",
+                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))",
+                  }}
+                />
+                {/* ✅ Coin icon */}
+                <img
+                  src="/file_00000000e56882119c217d508b6733dc.png"
+                  alt="Coins"
+                  style={{
+                    width: 18,
+                    height: 18,
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))",
+                  }}
+                />
                 <span
                   style={{
                     color: "#ffff00", 
@@ -1622,7 +1642,7 @@ export function LuckyComboButton() {
 
 
 // ==========================================================
-// EMBEDDED LUCKY GIFT FLY — bottom → center pause → target
+// EMBEDDED LUCKY GIFT FLY
 // ==========================================================
 type LuckyGiftAnimationProps = { roomId: string };
 
