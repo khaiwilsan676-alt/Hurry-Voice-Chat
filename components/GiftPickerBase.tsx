@@ -769,9 +769,12 @@ export default function GiftPicker({
 
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
-// Slider dikhta hai — bg image + left corner sender avatar (with overlap frame)
-// + MIDDLE: gift image + ×multiplier + right corner image.
-// Combo button click se SIRF multiplier update hota hai (animation dobara nahi)
+// - Ek gift send → slider ek baar slide-in hota hai
+// - Combo button press → same sender + same gift + bada multiplier
+//   → SIRF middle ka × number increase hota hai, animation dobara NAHI
+// - Middle: gift image + ×multiplier
+// - Left corner: sender avatar + overlap frame
+// - Right corner: corner image
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -796,8 +799,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
 
       setNotice((prev) => {
-        // Agar same sender ka notice chal raha hai aur multiplier badha hai
-        // (combo button click) → sirf multiplier update karo, animation replay mat karo.
+        // Combo press: same sender, same gift, bada multiplier → sirf number update
         if (
           prev &&
           prev.senderId === senderId &&
@@ -807,7 +809,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           return { ...prev, multiplier };
         }
 
-        // Warna naya notice → naya id → animation dobara play hoga.
+        // Naya send → naya id → animation replay
         return {
           id: `notify-${Date.now()}-${Math.random()}`,
           senderId,
@@ -831,62 +833,144 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   if (!notice) return null;
 
   return (
-    <div
-      key={notice.id}
-      className="fixed left-2 right-2 z-[2147483000] pointer-events-none flex justify-center"
-      style={{ bottom: "20vh" }}
-    >
+    <>
       <div
-        className="relative w-[min(94vw,420px)] h-[72px]"
+        key={notice.id}
         style={{
-          backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
+          position: "fixed",
+          left: 8,
+          right: 8,
+          bottom: "20vh",
+          zIndex: 2147483000,
+          pointerEvents: "none",
+          display: "flex",
+          justifyContent: "center",
           animation: "hurryLuckyNoticeSlide 3.6s ease-in-out forwards",
         }}
       >
-        {/* LEFT CORNER: Sender Avatar + Overlapping Frame (frame on top of avatar) */}
-        <div className="absolute left-[9px] top-1/2 -translate-y-1/2 w-11 h-11 z-10">
-          <img
-            src={notice.senderImage}
-            alt=""
-            className="w-full h-full rounded-full object-cover"
-            draggable={false}
-          />
-          <img
-            src="/file_00000000fc488211afad439cacecc7c5.png"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[135%] h-[135%] max-w-none object-contain pointer-events-none z-20"
-            draggable={false}
-          />
-        </div>
-
-        {/* MIDDLE: Gift image + × multiplier (combo button se increase hota hai) */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-1.5 z-10">
-          {notice.giftImage && (
+        <div
+          style={{
+            position: "relative",
+            width: "min(94vw, 420px)",
+            height: 72,
+            backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
+            backgroundSize: "100% 100%",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          {/* LEFT CORNER: sender avatar + overlap frame (frame on top) */}
+          <div
+            style={{
+              position: "absolute",
+              left: 9,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 44,
+              height: 44,
+              zIndex: 10,
+            }}
+          >
             <img
-              src={notice.giftImage}
+              src={notice.senderImage}
               alt=""
-              className="w-9 h-9 object-contain drop-shadow-[0_2px_6px_rgba(0,0,0,0.6)]"
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "50%",
+                objectFit: "cover",
+                display: "block",
+              }}
               draggable={false}
             />
-          )}
-          <span className="text-white font-extrabold text-[18px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.85)]">
-            ×{notice.multiplier}
-          </span>
-        </div>
+            <img
+              src="/file_00000000fc488211afad439cacecc7c5.png"
+              alt=""
+              style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "135%",
+                height: "135%",
+                maxWidth: "none",
+                objectFit: "contain",
+                pointerEvents: "none",
+                zIndex: 20,
+              }}
+              draggable={false}
+            />
+          </div>
 
-        {/* RIGHT CORNER: corner image */}
-        <div className="absolute right-[7px] top-1/2 -translate-y-1/2 w-[56px] h-[56px] z-10">
-          <img
-            src="/file_00000000a9e48211aee262c0df0c36bc.png"
-            alt=""
-            className="absolute inset-0 w-full h-full object-contain"
-            draggable={false}
-          />
+          {/* MIDDLE: gift image + ×multiplier */}
+          <div
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              zIndex: 10,
+            }}
+          >
+            {notice.giftImage && (
+              <img
+                src={notice.giftImage}
+                alt=""
+                style={{
+                  width: 36,
+                  height: 36,
+                  objectFit: "contain",
+                  display: "block",
+                }}
+                draggable={false}
+              />
+            )}
+            <span
+              style={{
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: 18,
+                textShadow: "0 2px 4px rgba(0,0,0,0.85)",
+                lineHeight: 1,
+              }}
+            >
+              ×{notice.multiplier}
+            </span>
+          </div>
+
+          {/* RIGHT CORNER: corner image */}
+          <div
+            style={{
+              position: "absolute",
+              right: 7,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 56,
+              height: 56,
+              zIndex: 10,
+            }}
+          >
+            <img
+              src="/file_00000000a9e48211aee262c0df0c36bc.png"
+              alt=""
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+              }}
+              draggable={false}
+            />
+          </div>
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes hurryLuckyNoticeSlide {
           0%   { transform: translate3d(115vw, 0, 0); opacity: 0; }
           12%  { transform: translate3d(0, 0, 0);     opacity: 1; }
@@ -894,20 +978,23 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
         }
       `}</style>
-    </div>
+    </>
   );
 }
 
 
 // ==========================================================
 // ⭕ Blue Lucky Combo Circular Button (Bottom Right)
-// Sirf number dikhta hai ×1, ×2, ×3 ...
-// Click pe combo multiplier badhta hai — slider me SIRF number update hota hai
+// - Sirf number dikhta hai (×1, ×2, ×3 ...)
+// - Har press = ek naya gift send (balance kata jaata hai, coin_transfer emit)
+//   → bilkul jaise normal Send button ho
+// - Slider middle me SIRF × multiplier update hota hai (same sender + same gift)
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [busy, setBusy] = useState(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -939,13 +1026,15 @@ export function LuckyComboButton() {
   };
 
   const handleComboClick = async () => {
-    if (!comboData) return;
+    if (!comboData || busy) return;
+    setBusy(true);
 
-    startTimer(); // Reset 5s
+    startTimer(); // 5s reset
 
     const nextMultiplier = comboMultiplier + 1;
     setComboMultiplier(nextMultiplier);
 
+    // ===== Ye poora "send" flow hai — bilkul Send button jaisa =====
     const baseCost = comboData.giftCoins;
     const recipientCount = comboData.recipientIds.length;
     const totalCost = baseCost * recipientCount;
@@ -962,6 +1051,7 @@ export function LuckyComboButton() {
 
     const bal = await loadWalletBalance();
     if (bal < finalDeductionCost) {
+      setBusy(false);
       setComboData(null);
       return;
     }
@@ -969,7 +1059,7 @@ export function LuckyComboButton() {
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
 
-    // Emit — slider har client pe sirf multiplier update karega (same sender + same gift + bada multiplier)
+    // Fresh emit — jaisa normal send me hota hai
     socket.emit("coin_transfer", {
       roomId: comboData.roomId,
       senderId: comboData.senderId,
@@ -987,32 +1077,66 @@ export function LuckyComboButton() {
       luckyReturnPercent,
       luckyImage: comboData.giftImage,
     });
+
+    setBusy(false);
   };
 
   if (!comboData) return null;
 
   return (
     <div
-      className="fixed z-[2147483001] flex flex-col items-center gap-1"
-      style={{ bottom: "7vh", right: "5vw" }}
+      style={{
+        position: "fixed",
+        bottom: "7vh",
+        right: "5vw",
+        zIndex: 2147483001,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4,
+      }}
     >
       <button
         onClick={handleComboClick}
-        className="relative flex items-center justify-center w-14 h-14 rounded-full outline-none select-none active:scale-95 transition-transform"
+        className="active:scale-95 transition-transform"
         style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          border: "none",
+          outline: "none",
+          cursor: "pointer",
           background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
           boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)",
         }}
       >
-        {/* Sirf number, koi gift image nahi */}
-        <span className="text-white font-extrabold text-[20px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+        <span
+          style={{
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: 20,
+            textShadow: "0 2px 4px rgba(0,0,0,0.6)",
+            lineHeight: 1,
+            zIndex: 2,
+          }}
+        >
           ×{comboMultiplier}
         </span>
 
-        {/* White 5s countdown ring */}
         <svg
-          className="absolute inset-0 w-full h-full transform -rotate-90 pointer-events-none"
           viewBox="0 0 56 56"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            transform: "rotate(-90deg)",
+            pointerEvents: "none",
+          }}
         >
           <circle
             cx="28"
@@ -1029,4 +1153,4 @@ export function LuckyComboButton() {
       </button>
     </div>
   );
-  }
+                                           }
