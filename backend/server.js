@@ -2118,6 +2118,78 @@ app.post("/api/check-ban", async (req, res) => {
   }
 });
 
+// ==============================================================
+ // DAILY CHECK-IN PERSISTENCE
+ // Browser/WebView storage remains the fast local cache, while this
+ // record survives APK uninstall/reinstall for the same user ID.
+ // ==============================================================
+app.get("/api/daily-checkin", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+    const userId = String(req.query.userId || "").trim();
+    if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+    const record = await db.collection("dailyCheckIns").findOne({ userId });
+    res.json({
+      success: true,
+      currentDay: Number(record?.currentDay || 1),
+      claimedDate: String(record?.claimedDate || ""),
+    });
+  } catch (err) {
+    console.error("GET /api/daily-checkin error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
+app.post("/api/daily-checkin", async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ error: "DB not connected" });
+
+    const userId = String(req.body?.userId || "").trim();
+    const dateKey = String(req.body?.dateKey || "").trim();
+    const requestedDay = Number(req.body?.currentDay || 1);
+
+    if (!userId || !dateKey || !Number.isInteger(requestedDay) || requestedDay < 1 || requestedDay > 7) {
+      return res.status(400).json({ error: "Invalid check-in data" });
+    }
+
+    const existing = await db.collection("dailyCheckIns").findOne({ userId });
+
+    if (existing?.claimedDate === dateKey) {
+      return res.json({
+        success: true,
+        alreadyClaimed: true,
+        currentDay: Number(existing.currentDay || requestedDay),
+        claimedDate: dateKey,
+      });
+    }
+
+    const nextDay = requestedDay < 7 ? requestedDay + 1 : 1;
+    await db.collection("dailyCheckIns").updateOne(
+      { userId },
+      {
+        $set: {
+          userId,
+          currentDay: nextDay,
+          claimedDate: dateKey,
+          updatedAt: Date.now(),
+        },
+      },
+      { upsert: true }
+    );
+
+    res.json({
+      success: true,
+      alreadyClaimed: false,
+      currentDay: nextDay,
+      claimedDate: dateKey,
+    });
+  } catch (err) {
+    console.error("POST /api/daily-checkin error:", err);
+    res.status(500).json({ error: "Internal error" });
+  }
+});
+
 const PORT = process.env.PORT || 10000;
 
 async function startServer() {
