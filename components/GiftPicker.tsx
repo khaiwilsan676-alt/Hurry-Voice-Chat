@@ -234,7 +234,7 @@ export default function GiftPicker({
     },
     {
       id: 2,
-      name: "Autumn's Embrace ",
+      name: "Autumn's Embrace",
       coins: 54900,
       image: "/IMG_20260922_182259.png",
       video: "/gemini_generated_video_89e836bd~2.mp4",
@@ -394,6 +394,20 @@ export default function GiftPicker({
         luckyReturnPercent,
         luckyImage: selectedGiftObj.image,
       });
+
+      // ✅ LOCAL SLIDER TRIGGER - Send button dabate hi local event se slider instantly dikhega
+      if (isLuckyGiftTab) {
+        window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
+          detail: {
+            roomId: String(roomId),
+            senderId: String(currentUserAccountId),
+            senderImage: currentUserImage,
+            giftImage: selectedGiftObj.image,
+            multiplier: parseMultiplier(selectedMultiplier),
+            luckyGift: true
+          }
+        }));
+      }
 
       if (selectedGiftObj.video && !isLuckyGiftTab) {
         socket.emit("gift_video_play", {
@@ -809,7 +823,7 @@ export default function GiftPicker({
               }}
             >
               {sending ? "Sending..." : "Send"}
-                        </button>
+            </button>
           </div>
         </div>
        </div>
@@ -820,15 +834,8 @@ export default function GiftPicker({
   );
 }
 
-
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
-// - Ek gift send → slider ek baar slide-in hota hai
-// - Combo button press → same sender + same gift + bada multiplier
-//   → SIRF middle ka × number increase hota hai, animation dobara NAHI
-// - Middle: gift image + ×multiplier
-// - Left corner: sender avatar + overlap frame
-// - Right corner: corner image
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -843,7 +850,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const handler = (data: any = {}) => {
+    const processNotice = (data: any = {}) => {
       if (String(data.roomId || "") !== String(roomId || "")) return;
       if (data.luckyGift !== true) return;
 
@@ -853,17 +860,15 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
 
       setNotice((prev) => {
-        // Combo press: same sender, same gift, bada multiplier → sirf number update
+        // Combo press: update only multiplier without repeating animation
         if (
           prev &&
           prev.senderId === senderId &&
-          prev.giftImage === giftImage &&
-          multiplier > prev.multiplier
+          prev.giftImage === giftImage
         ) {
-          return { ...prev, multiplier };
+          if (multiplier === prev.multiplier) return prev; // Ignore duplicate events
+          if (multiplier > prev.multiplier) return { ...prev, multiplier };
         }
-
-        // Naya send → naya id → animation replay
         return {
           id: `notify-${Date.now()}-${Math.random()}`,
           senderId,
@@ -877,9 +882,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       timerRef.current = setTimeout(() => setNotice(null), 3600);
     };
 
-    socket.on("coin_transfer_received", handler);
+    // Socket aur Local Event dono pe listen karega!
+    socket.on("coin_transfer_received", processNotice);
+    window.addEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
+
     return () => {
-      socket.off("coin_transfer_received", handler);
+      socket.off("coin_transfer_received", processNotice);
+      window.removeEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [roomId]);
@@ -912,7 +921,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* LEFT CORNER: sender avatar + overlap frame (frame on top) */}
+          {/* LEFT CORNER: sender avatar + overlap frame */}
           <div
             style={{
               position: "absolute",
@@ -1036,13 +1045,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   );
 }
 
-
 // ==========================================================
 // ⭕ Blue Lucky Combo Circular Button (Bottom Right)
-// - Sirf number dikhta hai (×1, ×2, ×3 ...)
-// - Har press = ek naya gift send (balance kata jaata hai, coin_transfer emit)
-//   → bilkul jaise normal Send button ho
-// - Slider middle me SIRF × multiplier update hota hai (same sender + same gift)
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
@@ -1088,7 +1092,6 @@ export function LuckyComboButton() {
     const nextMultiplier = comboMultiplier + 1;
     setComboMultiplier(nextMultiplier);
 
-    // ===== Ye poora "send" flow hai — bilkul Send button jaisa =====
     const baseCost = comboData.giftCoins;
     const recipientCount = comboData.recipientIds.length;
     const totalCost = baseCost * recipientCount;
@@ -1113,7 +1116,7 @@ export function LuckyComboButton() {
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
 
-    // Fresh emit — jaisa normal send me hota hai
+    // Fresh emit
     socket.emit("coin_transfer", {
       roomId: comboData.roomId,
       senderId: comboData.senderId,
@@ -1132,79 +1135,120 @@ export function LuckyComboButton() {
       luckyImage: comboData.giftImage,
     });
 
+    // ✅ LOCAL SLIDER TRIGGER for Combo - Combo dabane pe turant slider update hoga
+    window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
+      detail: {
+        roomId: comboData.roomId,
+        senderId: comboData.senderId,
+        senderImage: comboData.senderImage,
+        giftImage: comboData.giftImage,
+        multiplier: nextMultiplier,
+        luckyGift: true
+      }
+    }));
+
     setBusy(false);
   };
 
   if (!comboData) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: "7vh",
-        right: "5vw",
-        zIndex: 2147483001,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 4,
-      }}
-    >
-      <button
-        onClick={handleComboClick}
-        className="active:scale-95 transition-transform"
+    <>
+      <style>{`
+        @keyframes comboRipple {
+          0% { transform: scale(1); opacity: 0.6; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        .combo-wave {
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(59,130,246,0.6) 0%, rgba(37,99,235,0.1) 100%);
+          animation: comboRipple 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+          pointer-events: none;
+          z-index: 1;
+        }
+      `}</style>
+
+      <div
         style={{
-          position: "relative",
+          position: "fixed",
+          bottom: "7vh",
+          right: "5vw",
+          zIndex: 2147483001,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          border: "none",
-          outline: "none",
-          cursor: "pointer",
-          background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-          boxShadow: "0 0 20px rgba(59, 130, 246, 0.6)",
+          gap: 4,
         }}
       >
-        <span
-          style={{
-            color: "#fff",
-            fontWeight: 800,
-            fontSize: 20,
-            textShadow: "0 2px 4px rgba(0,0,0,0.6)",
-            lineHeight: 1,
-            zIndex: 2,
-          }}
-        >
-          ×{comboMultiplier}
-        </span>
+        {/* BIGGER BUTTON + WAVES WRAPPER */}
+        <div style={{ position: "relative", width: 68, height: 68, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          
+          {/* Waves Effect */}
+          <div className="combo-wave" style={{ animationDelay: "0s" }} />
+          <div className="combo-wave" style={{ animationDelay: "0.6s" }} />
+          <div className="combo-wave" style={{ animationDelay: "1.2s" }} />
 
-        <svg
-          viewBox="0 0 56 56"
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            transform: "rotate(-90deg)",
-            pointerEvents: "none",
-          }}
-        >
-          <circle
-            cx="28"
-            cy="28"
-            r="26"
-            fill="none"
-            stroke="#ffffff"
-            strokeWidth="3"
-            strokeDasharray="163.4"
-            strokeDashoffset={163.4 - (163.4 * timeLeft) / 5}
-            style={{ transition: "stroke-dashoffset 1s linear" }}
-          />
-        </svg>
-      </button>
-    </div>
+          <button
+            onClick={handleComboClick}
+            className="active:scale-95 transition-transform"
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 68, // Button size increased 56 -> 68
+              height: 68,
+              borderRadius: "50%",
+              border: "none",
+              outline: "none",
+              cursor: "pointer",
+              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+              boxShadow: "0 4px 20px rgba(59, 130, 246, 0.7)",
+              zIndex: 2, // Button waves ke upar rahega
+            }}
+          >
+            <span
+              style={{
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: 24,
+                textShadow: "0 2px 4px rgba(0,0,0,0.6)",
+                lineHeight: 1,
+                zIndex: 3,
+              }}
+            >
+              ×{comboMultiplier}
+            </span>
+
+            <svg
+              viewBox="0 0 68 68"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                transform: "rotate(-90deg)",
+                pointerEvents: "none",
+                zIndex: 3,
+              }}
+            >
+              <circle
+                cx="34"
+                cy="34"
+                r="32"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="3.5"
+                strokeDasharray="201"
+                strokeDashoffset={201 - (201 * timeLeft) / 5}
+                style={{ transition: "stroke-dashoffset 1s linear" }}
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </>
   );
-                                           }
+}
