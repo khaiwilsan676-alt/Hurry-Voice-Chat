@@ -1821,12 +1821,13 @@ function RoomContent({
           </div>
         </div>
 
-        {/* Footer Controls */}
+         {/* Footer Controls */}
 <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-  <div className="flex items-center justify-between w-full gap-1">
+  {/* Relative container ensures the absolute center stays perfectly aligned */}
+  <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
 
     {/* LEFT CORNER: Say Hi, Mic, Emoji */}
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-start gap-1 z-10">
       {/* Say Hi Chat */}
       <button
         onClick={openChatInput}
@@ -1886,35 +1887,34 @@ function RoomContent({
       )}
     </div>
 
-    {/* MIDDLE CENTER: Image Gift (3D Circle Card) */}
-    <div className="flex items-center justify-center">
+    {/* MIDDLE CENTER: Gift Image (Absolute Center so it NEVER moves) */}
+    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
       <button
         onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
         aria-label="Gift"
-        className="relative rounded-full overflow-hidden shrink-0 cursor-pointer border-[2.5px] border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.9)] transition-transform hover:scale-105 active:scale-95 p-0 bg-transparent flex items-center justify-center"
-        style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+        className="relative rounded-full overflow-hidden shrink-0 cursor-pointer border-[2px] border-white/40 shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_-4px_6px_rgba(0,0,0,0.4),inset_0_4px_8px_rgba(255,255,255,0.5)] bg-gradient-to-br from-purple-500 via-blue-600 to-indigo-700 transition-transform hover:scale-105 active:scale-95 p-0 flex items-center justify-center"
+        style={{ width: 'calc(var(--footer-btn-size) + 4px)', height: 'calc(var(--footer-btn-size) + 4px)' }}
       >
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent pointer-events-none z-10" />
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent pointer-events-none z-10" />
         <img
           src="/IMG_20260927_153549.png"
           alt="Gift"
-          className="w-full h-full object-cover rounded-full z-0"
+          className="w-full h-full object-cover rounded-full z-0 transform scale-[1.1]"
           draggable={false}
         />
       </button>
     </div>
 
-    {/* RIGHT CORNER: Mail, Menu (4-Grid) */}
-    <div className="flex items-center gap-1">
-      {/* Mail */}
+    {/* RIGHT SIDE: Mail, Menu (4-Grid) */}
+    <div className="flex items-center justify-end gap-1 z-10">
+      {/* Mail - Solid white with transparent 'V' */}
       <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }}
         aria-label="Message Box Menu"
         className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
         style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
       >
-        <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-          <rect x="3" y="5" width="18" height="14" rx="3" ry="3" />
-          <path d="M3 7l7.53 5.54a3 3 0 0 0 2.94 0L21 7" />
+        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+          <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z" />
         </svg>
       </button>
 
