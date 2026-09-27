@@ -90,6 +90,42 @@ export default function RootLayout({
           name="mobile-web-app-capable"
           content="yes"
         />
+
+        {/* 🐛 Debug Page Loader — sirf /debug URL pe, sirf allowed email
+            Normal app me koi Eruda nahi aayega */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                try {
+                  if (window.location.pathname !== '/debug') return;
+                  var ALLOWED = ['hurry.in@gmail.com'];
+                  var keys = ['userEmail', 'email', 'emailPhone', 'user_email', 'emailOrPhone'];
+                  var email = '';
+                  for (var i = 0; i < keys.length; i++) {
+                    var v = localStorage.getItem(keys[i]);
+                    if (v && v.trim()) { email = v.trim().toLowerCase(); break; }
+                  }
+                  if (!email || ALLOWED.indexOf(email) === -1) return;
+
+                  var s = document.createElement('script');
+                  s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+                  s.async = true;
+                  s.onload = function () {
+                    if (window.eruda) {
+                      window.eruda.init();
+                      console.log('%c✅ Eruda ready for /debug', 'color:#00ff00;font-weight:bold;font-size:14px');
+                    }
+                  };
+                  s.onerror = function () {
+                    console.warn('[Hurry Debug] Eruda CDN load failed');
+                  };
+                  document.head.appendChild(s);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
 
       <body className="antialiased app-root bg-transparent">
