@@ -2502,7 +2502,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
       // Keep the reward state in browser/WebView storage and mirror the
       // successful claim to the backend so APK reinstall does not reset it.
       const today = getDailyDateKey()
-      let serverClaimRecorded = false
       try {
         const response = await fetch(apiUrl('/api/daily-checkin'), {
           method: 'POST',
@@ -2526,7 +2525,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
             setIsSignInModalOpen(false)
             return
           }
-          serverClaimRecorded = Boolean(serverData?.success)
         }
       } catch {}
 
