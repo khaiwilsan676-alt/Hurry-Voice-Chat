@@ -1373,7 +1373,7 @@ export default function PublicProfile({
           </div>
         )}
 
-        <div className="absolute top-0 pt-[calc(env(safe-area-inset-top,0px)+8px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
+        <div className="absolute top-0 pt-[calc(env(safe-area-inset-top,0px)+13px)] mt-2 left-0 right-0 px-3 flex items-center justify-between z-10">
           <button onClick={onBack} className="text-white">
             <ArrowLeft size={28} />
           </button>
