@@ -1821,9 +1821,9 @@ function RoomContent({
           </div>
         </div>
 
-         {/* Footer Controls */}
+        {/* Footer Controls */}
 <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-  {/* Relative container ensures the absolute center stays perfectly aligned */}
+  {/* Relative container keeps center elements locked in position */}
   <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
 
     {/* LEFT CORNER: Say Hi, Mic, Emoji */}
@@ -1887,19 +1887,22 @@ function RoomContent({
       )}
     </div>
 
-    {/* MIDDLE CENTER: Gift Image (Absolute Center so it NEVER moves) */}
+    {/* MIDDLE CENTER: Gift Box (Purple/Blue/Violet mix gradient, 3D border, small inner image size) */}
     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
       <button
         onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
         aria-label="Gift"
-        className="relative rounded-full overflow-hidden shrink-0 cursor-pointer border-[2px] border-white/40 shadow-[0_4px_10px_rgba(0,0,0,0.5),inset_0_-4px_6px_rgba(0,0,0,0.4),inset_0_4px_8px_rgba(255,255,255,0.5)] bg-gradient-to-br from-purple-500 via-blue-600 to-indigo-700 transition-transform hover:scale-105 active:scale-95 p-0 flex items-center justify-center"
+        className="relative rounded-full shrink-0 cursor-pointer border-[2px] border-white/70 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-3px_6px_rgba(0,0,0,0.5)] bg-gradient-to-tr from-violet-600 via-purple-600 to-blue-500 transition-transform hover:scale-105 active:scale-95 p-1 flex items-center justify-center overflow-hidden"
         style={{ width: 'calc(var(--footer-btn-size) + 4px)', height: 'calc(var(--footer-btn-size) + 4px)' }}
       >
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/20 to-transparent pointer-events-none z-10" />
+        {/* Glossy top reflection for 3D depth */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/25 to-transparent pointer-events-none z-10" />
+        
+        {/* Slightly reduced image size */}
         <img
           src="/IMG_20260927_153549.png"
           alt="Gift"
-          className="w-full h-full object-cover rounded-full z-0 transform scale-[1.1]"
+          className="w-99 h-90 object-contain rounded-full z-0 transform scale-85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
           draggable={false}
         />
       </button>
@@ -1907,14 +1910,22 @@ function RoomContent({
 
     {/* RIGHT SIDE: Mail, Menu (4-Grid) */}
     <div className="flex items-center justify-end gap-1 z-10">
-      {/* Mail - Solid white with transparent 'V' */}
+      {/* Mail Icon (Pure solid white, curved corners, transparent V-cut line) */}
       <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }}
         aria-label="Message Box Menu"
         className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
         style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
       >
-        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-          <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z" />
+        <svg viewBox="0 0 24 24" style={{ width: 'calc(var(--footer-icon-size) + 2px)', height: 'calc(var(--footer-icon-size) + 2px)' }}>
+          <defs>
+            <mask id="mail-v-cutout">
+              <rect x="0" y="0" width="24" height="24" fill="white" />
+              {/* V cutout path */}
+              <path d="M3.5 7.5L12 13.5L20.5 7.5" stroke="black" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            </mask>
+          </defs>
+          {/* Rounded solid white envelope base */}
+          <rect x="2" y="4.5" width="20" height="15" rx="3.5" fill="#ffffff" mask="url(#mail-v-cutout)" />
         </svg>
       </button>
 
@@ -1933,6 +1944,7 @@ function RoomContent({
 
   </div>
 </div>
+
 
         {/* Input container */}
         {showChatInput && (
