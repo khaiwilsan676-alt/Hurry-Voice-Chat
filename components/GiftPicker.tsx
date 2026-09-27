@@ -137,6 +137,18 @@ interface Seat {
   user?: { name: string; image: string; accountId: string };
 }
 
+// 🎯 LUCKY GIFT WIN CHANCE — Balanced RTP (~90%)
+// 15x → 0.3% | 10x → 0.7% | 5x → 3% | 3x → 8% | 2x → 20% | 0x → 68%
+function rollLuckyWin(): number {
+  const luck = Math.random();
+  if (luck > 0.997) return 15;
+  if (luck > 0.990) return 10;
+  if (luck > 0.960) return 5;
+  if (luck > 0.880) return 3;
+  if (luck > 0.680) return 2;
+  return 0;
+}
+
 export default function GiftPicker({
   open = true,
   onClose,
@@ -170,13 +182,25 @@ export default function GiftPicker({
     const patchedEmit = ((event: string, ...args: any[]) => {
       if (event !== "coin_transfer" || !args[0]) return originalEmit(event, ...args);
       const data = { ...args[0] };
+      // ✅ UPDATED LUCKY IMAGES MAPPING
       const luckyImages: Record<string, string> = {
-        Kiss: "/IMG_20260906_000443.png", Nut: "/IMG_20260906_000508.png",
-        Mahjong: "/IMG_20260906_000521.png", Clover: "/IMG_20260906_000541.png",
-        Charm: "/IMG_20260906_000624.png", Bouquet: "/IMG_20260906_000643.png",
-        Leaves: "/IMG_20260906_000713.png", Crystal: "/IMG_20260906_000756.png",
-        Candy: "/IMG_20260906_000814.png", Pop: "/IMG_20260906_000832.png",
-        Scarecrow: "/IMG_20260906_000850.png",
+        Tiara: "/IMG_20260927_213855.png",
+        "Lucky Clover": "/IMG_20260927_213917.png",
+        Hi: "/IMG_20260927_213946.png",
+        Rose: "/IMG_20260927_214121.png",
+        Kiss: "/IMG_20260927_214139.png",
+        Balloon: "/IMG_20260927_214220.png",
+        Dragon: "/IMG_20260927_221521.png",
+        "Nine Hands": "/IMG_20260927_221544.png",
+        Coffin: "/IMG_20260927_221559.png",
+        Sword: "/IMG_20260927_221615.png",
+        "Love lock": "/IMG_20260927_221637.png",
+        Lantern: "/IMG_20260927_221654.png",
+        Ring: "/IMG_20260927_221707.png",
+        "Dancing Girl": "/IMG_20260927_221722.png",
+        Whale: "/IMG_20260927_221742.png",
+        Star: "/file_0000000066f482118f772ed6fab4ad1f.png",
+        "Fire Bird": "/file_00000000fe088211b7be0110e2d3f878.png",
       };
       const amount = Number(data.amount);
       const diamondAmount = Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0;
@@ -254,18 +278,25 @@ export default function GiftPicker({
     },
   ];
 
+  // ✅ UPDATED LUCKY GIFTS — sab noMask (koi cutting nahi)
   const luckyGifts: Gift[] = [
-    { id: 101, name: "Kiss", coins: 1999, image: "/IMG_20260906_000443.png" },
-    { id: 102, name: "Nut", coins: 3999, image: "/IMG_20260906_000508.png" },
-    { id: 103, name: "Mahjong", coins: 5999, image: "/IMG_20260906_000521.png" },
-    { id: 104, name: "Clover", coins: 4250, image: "/IMG_20260906_000541.png" },
-    { id: 105, name: "Charm", coins: 7000, image: "/IMG_20260906_000624.png" },
-    { id: 106, name: "Bouquet", coins: 10999, image: "/IMG_20260906_000643.png" },
-    { id: 107, name: "Leaves", coins: 6799, image: "/IMG_20260906_000713.png" },
-    { id: 108, name: "Crystal", coins: 2999, image: "/IMG_20260906_000756.png" },
-    { id: 109, name: "Candy", coins: 15499, image: "/IMG_20260906_000814.png" },
-    { id: 110, name: "Pop", coins: 4000, image: "/IMG_20260906_000832.png" },
-    { id: 111, name: "Scarecrow", coins: 7500, image: "/IMG_20260906_000850.png" },
+    { id: 101, name: "Tiara", coins: 3000, image: "/IMG_20260927_213855.png", noMask: true },
+    { id: 102, name: "Lucky Clover", coins: 1499, image: "/IMG_20260927_213917.png", noMask: true },
+    { id: 103, name: "Hi", coins: 999, image: "/IMG_20260927_213946.png", noMask: true },
+    { id: 104, name: "Rose", coins: 3999, image: "/IMG_20260927_214121.png", noMask: true },
+    { id: 105, name: "Kiss", coins: 1600, image: "/IMG_20260927_214139.png", noMask: true },
+    { id: 106, name: "Balloon", coins: 4000, image: "/IMG_20260927_214220.png", noMask: true },
+    { id: 107, name: "Dragon", coins: 7000, image: "/IMG_20260927_221521.png", noMask: true },
+    { id: 108, name: "Nine Hands", coins: 10999, image: "/IMG_20260927_221544.png", noMask: true },
+    { id: 109, name: "Coffin", coins: 8999, image: "/IMG_20260927_221559.png", noMask: true },
+    { id: 110, name: "Sword", coins: 9999, image: "/IMG_20260927_221615.png", noMask: true },
+    { id: 111, name: "Love lock", coins: 5000, image: "/IMG_20260927_221637.png", noMask: true },
+    { id: 112, name: "Lantern", coins: 6999, image: "/IMG_20260927_221654.png", noMask: true },
+    { id: 113, name: "Ring", coins: 5999, image: "/IMG_20260927_221707.png", noMask: true },
+    { id: 114, name: "Dancing Girl", coins: 12000, image: "/IMG_20260927_221722.png", noMask: true },
+    { id: 115, name: "Whale", coins: 7899, image: "/IMG_20260927_221742.png", noMask: true },
+    { id: 116, name: "Star", coins: 9800, image: "/file_0000000066f482118f772ed6fab4ad1f.png", noMask: true },
+    { id: 117, name: "Fire Bird", coins: 13000, image: "/file_00000000fe088211b7be0110e2d3f878.png", noMask: true },
   ];
 
   const currentGifts: Gift[] =
@@ -368,12 +399,7 @@ export default function GiftPicker({
     let winTimes = 0;
 
     if (isLuckyGiftTab) {
-      const luck = Math.random();
-      if (luck > 0.96) winTimes = 15;
-      else if (luck > 0.90) winTimes = 10;
-      else if (luck > 0.82) winTimes = 5;
-      else if (luck > 0.65) winTimes = 2;
-      else winTimes = 0;
+      winTimes = rollLuckyWin();
 
       luckyReturnAmount = winTimes > 0 ? (totalSendCost * winTimes) : 0;
       luckyReturnPercent = winTimes > 0 ? winTimes : 0;
@@ -385,6 +411,9 @@ export default function GiftPicker({
     await recordGiftTransaction(selectedGiftObj.name, -netDeductionCost);
 
     if (roomId && currentUserAccountId && recipientIds.length > 0) {
+      // ✅ UNIQUE ID — dedup fix (Diamond + history)
+      const uniqueTransferId = `tx-${currentUserAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
       socket.emit("coin_transfer", {
         roomId: String(roomId),
         senderId: String(currentUserAccountId),
@@ -401,7 +430,11 @@ export default function GiftPicker({
         luckyReturnAmount,
         luckyReturnPercent,
         luckyImage: selectedGiftObj.image,
-        winTimes
+        winTimes,
+        // 👇 Dedup fix — Diamond add + history kaam karega
+        transferId: uniqueTransferId,
+        eventId: uniqueTransferId,
+        timestamp: Date.now(),
       });
 
       if (isLuckyGiftTab) {
@@ -850,7 +883,7 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎇 BIG WIN ORB — Video sirf EK BAAR chalti hai (original time)
+// 🎇 BIG WIN ORB — Video + Win text dono -25Vh pe overlay
 export function BigWinOrb({ roomId }: { roomId: string }) {
   const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
 
@@ -901,7 +934,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
         }
       `}</style>
 
-      {/* ✅ SVG FILTER — Family jaisa black remove filter */}
       <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
         <filter id="remove-black" colorInterpolationFilters="sRGB">
           <feColorMatrix type="matrix" values="
@@ -931,7 +963,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             : "orbFadeIn 0.3s ease-out forwards",
         }}
       >
-        {/* ✅ Video — upar shift kiya, objectPosition top */}
         <video
           key={orbData.id}
           src="/VID_20260927_033315_204_bsl.mp4"
@@ -960,7 +991,6 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
           }}
         />
 
-        {/* ✅ Avatar + Win text */}
         <div
           style={{
             position: "relative",
@@ -968,6 +998,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            transform: "translateY(-25vh)",
           }}
         >
           <div
@@ -1288,7 +1319,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* RIGHT CORNER */}
           <div
             style={{
               position: "absolute",
@@ -1304,7 +1334,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               overflow: "visible",
             }}
           >
-            {/* Floating: sirf Coin icon + Amount, right side fixed */}
             {floatingWins.map(fw => (
               <div
                 key={fw.id}
@@ -1468,13 +1497,8 @@ export function LuckyComboButton() {
     let luckyReturnPercent = 0;
     let winTimes = 0;
 
-    const luck = Math.random();
-    if (luck > 0.96) winTimes = 15;
-    else if (luck > 0.90) winTimes = 10;
-    else if (luck > 0.82) winTimes = 5;
-    else if (luck > 0.65) winTimes = 2;
-    else winTimes = 0;
-    
+    winTimes = rollLuckyWin();
+
     luckyReturnAmount = winTimes > 0 ? (totalCost * winTimes) : 0;
     luckyReturnPercent = winTimes > 0 ? winTimes : 0;
     const finalDeductionCost = totalCost - luckyReturnAmount;
@@ -1488,6 +1512,9 @@ export function LuckyComboButton() {
 
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
+
+    // ✅ UNIQUE ID — dedup fix
+    const comboTransferId = `combo-${comboData.senderId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
     socket.emit("coin_transfer", {
       roomId: comboData.roomId,
@@ -1505,7 +1532,10 @@ export function LuckyComboButton() {
       luckyReturnAmount,
       luckyReturnPercent,
       luckyImage: comboData.giftImage,
-      winTimes
+      winTimes,
+      transferId: comboTransferId,
+      eventId: comboTransferId,
+      timestamp: Date.now(),
     });
 
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
@@ -1795,4 +1825,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-      }
+}
