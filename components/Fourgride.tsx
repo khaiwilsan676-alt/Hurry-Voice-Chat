@@ -18,6 +18,8 @@ interface FourgrideProps {
 const DB_NAME = 'HurryMusicDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'music';
+const ENTRY_EFFECT_KEY = 'hurry_entry_effect_enabled';
+const GIFT_EFFECT_KEY = 'hurry_gift_effect_enabled';
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -99,8 +101,27 @@ export default function Fourgride({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Toggle handlers
-  const toggleEntryEffect = () => setEntryEffect(!entryEffect);
-  const toggleGiftEffect = () => setGiftEffect(!giftEffect);
+  const toggleEntryEffect = () => {
+    setEntryEffect(prev => {
+      const next = !prev;
+      localStorage.setItem(ENTRY_EFFECT_KEY, String(next));
+      window.dispatchEvent(new CustomEvent('hurry_effect_settings_changed', { detail: { entryEffect: next } }));
+      return next;
+    });
+  };
+  const toggleGiftEffect = () => {
+    setGiftEffect(prev => {
+      const next = !prev;
+      localStorage.setItem(GIFT_EFFECT_KEY, String(next));
+      window.dispatchEvent(new CustomEvent('hurry_effect_settings_changed', { detail: { giftEffect: next } }));
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    setEntryEffect(localStorage.getItem(ENTRY_EFFECT_KEY) === 'true');
+    setGiftEffect(localStorage.getItem(GIFT_EFFECT_KEY) === 'true');
+  }, []);
 
   // Clear chat handler
   const handleClearChat = () => {
