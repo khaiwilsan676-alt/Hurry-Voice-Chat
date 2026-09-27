@@ -1822,92 +1822,117 @@ function RoomContent({
         </div>
 
         {/* Footer Controls */}
-        <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-          <div className="flex items-center justify-between gap-1 ">
-            <button
-              onClick={openChatInput}
-              aria-label="Say Hi Chat"
-              className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
-              style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-            >
-              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-                <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-              </svg>
-            </button>
+<div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
+  <div className="flex items-center justify-between w-full gap-1">
 
-            <div className="flex items-center gap-1.5">
-              {hasSeat && (
-                <button
-                  onClick={handleBottomMicToggle}
-                  className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible"
-                  style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-                >
-                  {currentUserSeat?.isMuted ? (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs>
-                        <mask id="mic-cut-muted">
-                          <rect x="-2" y="-2" width="32" height="32" fill="white" />
-                          <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
-                        </mask>
-                      </defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs>
-                        <mask id="mic-cut-unmuted">
-                          <rect x="-2" y="-2" width="32" height="32" fill="white" />
-                          <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
-                        </mask>
-                      </defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                    </svg>
-                  )}
-                </button>
-              )}
+    {/* LEFT CORNER: Say Hi, Mic, Emoji */}
+    <div className="flex items-center gap-1">
+      {/* Say Hi Chat */}
+      <button
+        onClick={openChatInput}
+        aria-label="Say Hi Chat"
+        className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+        style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+      >
+        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+          <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+        </svg>
+      </button>
 
-              {hasSeat && (
-                <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
-                  </svg>
-                </button>
-              )}
+      {/* Mic (Only if hasSeat) */}
+      {hasSeat && (
+        <button
+          onClick={handleBottomMicToggle}
+          className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible"
+          style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+        >
+          {currentUserSeat?.isMuted ? (
+            <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+              <defs>
+                <mask id="mic-cut-muted">
+                  <rect x="-2" y="-2" width="32" height="32" fill="white" />
+                  <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
+                </mask>
+              </defs>
+              <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
+              <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+              <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+              <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
+              <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+            </svg>
+          ) : (
+            <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+              <defs>
+                <mask id="mic-cut-unmuted">
+                  <rect x="-2" y="-2" width="32" height="32" fill="white" />
+                  <rect x="9" y="6" width="6" height="2" rx="1" fill="black" />
+                </mask>
+              </defs>
+              <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
+              <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+              <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+            </svg>
+          )}
+        </button>
+      )}
 
-              <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }}
-                aria-label="Message Box Menu"
-                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
-                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-              >
-                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-                  <rect x="3" y="5" width="18" height="14" rx="3" ry="3" />
-                  <path d="M3 7l7.53 5.54a3 3 0 0 0 2.94 0L21 7" />
-                </svg>
-              </button>
+      {/* Emoji (Only if hasSeat) */}
+      {hasSeat && (
+        <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+          <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+            <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
+          </svg>
+        </button>
+      )}
+    </div>
 
-              <button onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} aria-label="Gift" className="bg-white/10 backdrop-blur-md rounded-full border-none hover:bg-white/20 transition-colors flex items-center justify-center shrink-0 overflow-hidden cursor-pointer shadow-sm p-0" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                <img src="/file_000000008e508208b1353ae33e2abef9.png" alt="Gift" className="w-full h-full object-cover rounded-full" draggable={false} />
-              </button>
+    {/* MIDDLE CENTER: Image Gift (3D Circle Card) */}
+    <div className="flex items-center justify-center">
+      <button
+        onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
+        aria-label="Gift"
+        className="relative rounded-full overflow-hidden shrink-0 cursor-pointer border-[2.5px] border-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.9)] transition-transform hover:scale-105 active:scale-95 p-0 bg-transparent flex items-center justify-center"
+        style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+      >
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/30 to-transparent pointer-events-none z-10" />
+        <img
+          src="/IMG_20260927_153549.png"
+          alt="Gift"
+          className="w-full h-full object-cover rounded-full z-0"
+          draggable={false}
+        />
+      </button>
+    </div>
 
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
-                aria-label="Apps Menu"
-                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
-                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-              >
-                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <rect x="3" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+    {/* RIGHT CORNER: Mail, Menu (4-Grid) */}
+    <div className="flex items-center gap-1">
+      {/* Mail */}
+      <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }}
+        aria-label="Message Box Menu"
+        className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+        style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+      >
+        <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+          <rect x="3" y="5" width="18" height="14" rx="3" ry="3" />
+          <path d="M3 7l7.53 5.54a3 3 0 0 0 2.94 0L21 7" />
+        </svg>
+      </button>
+
+      {/* Menu (4-Grid) */}
+      <button
+        onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
+        aria-label="Apps Menu"
+        className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+        style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+      >
+        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+          <rect x="3" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.5" /><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.5" />
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
 
         {/* Input container */}
         {showChatInput && (
