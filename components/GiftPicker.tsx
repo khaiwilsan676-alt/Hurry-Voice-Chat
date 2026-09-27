@@ -809,22 +809,25 @@ export default function GiftPicker({
               </div>
             )}
 
-            {/* ✅ Divider line hata diya bss */}
-            <div className="flex items-center rounded-full border border-[#3b82f6] p-[2px] bg-transparent">
+            {/* ✅ Same pill — Send side seamless blue, koi alag rounded shape nahi */}
+            <div
+              className="flex items-center rounded-full border border-[#3b82f6] overflow-hidden"
+              style={{ background: "transparent" }}
+            >
               {/* Multiplier Side */}
               <button
                 onClick={() => setShowMultipliers(!showMultipliers)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-l-full text-xs font-bold text-white bg-transparent transition-transform"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-transparent transition-transform"
               >
                 <span>{selectedMultiplier}</span>
                 <ChevronUp className={`w-3 h-3 transition-transform ${showMultipliers ? "rotate-180" : ""}`} />
               </button>
 
-              {/* Send Button Side */}
+              {/* Send Button Side — same pill border ke andar */}
               <button
                 onClick={handleSend}
                 disabled={!selectedGift || !canAfford || sending}
-                className="text-white font-bold text-xs px-6 py-1.5 rounded-full transition-all active:scale-95"
+                className="text-white font-bold text-xs px-6 py-1.5 rounded-r-full transition-all active:scale-95"
                 style={{
                   background: "linear-gradient(135deg, #3b82f6, #2563eb)",
                   boxShadow: "0 2px 10px rgba(59,130,246,0.35)",
@@ -848,7 +851,7 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎇 BIG WIN ORB (Video version) — Sirf 10x ya usse zyada pe
+// 🎇 BIG WIN ORB — Video EDGE-TO-EDGE, black fully transparent
 // ==========================================================
 export function BigWinOrb({ roomId }: { roomId: string }) {
   const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
@@ -895,77 +898,114 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
     <>
       <style>{`
         @keyframes orbPopIn {
-          0% { transform: scale(0); opacity: 0; }
-          60% { transform: scale(1.1); opacity: 1; }
+          0% { transform: scale(0.6); opacity: 0; }
+          60% { transform: scale(1.05); opacity: 1; }
           100% { transform: scale(1); opacity: 1; }
         }
         @keyframes orbBlastOut {
-          0% { transform: scale(1); opacity: 1; filter: brightness(1); }
-          30% { transform: scale(0.85); opacity: 1; filter: brightness(1.2); }
-          60% { transform: scale(1.5); opacity: 1; filter: brightness(2); }
-          100% { transform: scale(2.8); opacity: 0; filter: brightness(3); }
+          0% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(1.35); opacity: 0; }
         }
       `}</style>
+
+      <svg style={{ position: "absolute", width: 0, height: 0 }} aria-hidden="true">
+        <filter id="remove-black-video" colorInterpolationFilters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              -1.2 -1.2 -1.2 0 1
+            "
+          />
+        </filter>
+      </svg>
+
       <div
         style={{
           position: "fixed",
-          top: "20vh",
-          left: "50%",
-          transform: "translateX(-50%)",
+          inset: 0,
           zIndex: 2147483005,
           pointerEvents: "none",
           display: "flex",
+          alignItems: "center",
           justifyContent: "center",
-          alignItems: "center"
+          animation: orbData.isExiting
+            ? "orbBlastOut 0.6s ease-out forwards"
+            : "orbPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
         }}
       >
-        <div
+        <video
           key={orbData.id}
+          src="/VID_20260927_033315_204_bsl.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100vw",
+            height: "100vh",
+            objectFit: "cover",
+            backgroundColor: "transparent",
+            pointerEvents: "none",
+            zIndex: 1,
+            filter: "url(#remove-black-video)",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            top: "12vh",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 5,
+            width: 60,
+            height: 60,
+            borderRadius: "50%",
+            border: "2px solid #fff",
+            overflow: "hidden",
+            boxShadow: "0 4px 14px rgba(0,0,0,0.6)",
+          }}
+        >
+          <img src={orbData.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+
+        <div
           style={{
             position: "relative",
-            width: 220,
-            height: 220,
+            zIndex: 5,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            animation: orbData.isExiting 
-              ? "orbBlastOut 0.6s ease-out forwards" 
-              : "orbPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+            marginTop: "8vh",
           }}
         >
-          <video
-            key={orbData.id}
-            src="/VID_20260927_033315_204_bsl.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
+          <span
             style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              mixBlendMode: "screen",
-              backgroundColor: "transparent",
-              pointerEvents: "none",
-              zIndex: 1,
+              color: "#ffe800",
+              fontSize: 34,
+              fontWeight: "900",
+              textShadow: "0 3px 6px rgba(0,0,0,0.9), 0 0 20px rgba(255,232,0,0.9)",
+              letterSpacing: "1.5px",
             }}
-          />
-
-          <div style={{ position: "absolute", top: 15, zIndex: 5, width: 44, height: 44, borderRadius: "50%", border: "2px solid #fff", overflow: "hidden", boxShadow: "0 4px 10px rgba(0,0,0,0.5)" }}>
-            <img src={orbData.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-
-          <div style={{ zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center", marginTop: 25 }}>
-            <span style={{ color: "#ffe800", fontSize: 22, fontWeight: "900", textShadow: "0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,232,0,0.8)", letterSpacing: "1px" }}>
-              Win {orbData.amount}
-            </span>
-            <span style={{ color: "#00ffcc", fontSize: 16, fontWeight: "800", textShadow: "0 2px 4px rgba(0,0,0,0.8)", marginTop: 4 }}>
-              {orbData.times} Times
-            </span>
-          </div>
+          >
+            Win {orbData.amount}
+          </span>
+          <span
+            style={{
+              color: "#00ffcc",
+              fontSize: 22,
+              fontWeight: "800",
+              textShadow: "0 3px 6px rgba(0,0,0,0.9)",
+              marginTop: 6,
+            }}
+          >
+            {orbData.times} Times
+          </span>
         </div>
       </div>
     </>
@@ -974,6 +1014,7 @@ export function BigWinOrb({ roomId }: { roomId: string }) {
 
 // ==========================================================
 // 🎲 Lucky Gift Notification Slider
+// Right side: Card image + Coin icon + Value
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -1241,6 +1282,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
+          {/* ✅ RIGHT CORNER: Card image + Coin icon + Value */}
           <div
             style={{
               position: "absolute",
@@ -1285,6 +1327,23 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               </div>
             ))}
 
+            <img
+              src="/file_00000000a9e48211aee262c0df0c36bc.png"
+              alt=""
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "contain", 
+                display: "block",
+                zIndex: 1,
+                opacity: 1
+              }}
+              draggable={false}
+            />
+            
             <div
               style={{
                 position: "relative",
@@ -1292,13 +1351,14 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
+                marginTop: 2
               }}
             >
               <div
                 style={{
                   position: "relative",
-                  width: 26,
-                  height: 26,
+                  width: 22,
+                  height: 22,
                   borderRadius: "50%",
                   overflow: "hidden",
                   flexShrink: 0,
@@ -1318,12 +1378,11 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               </div>
               <span
                 style={{
-                  color: "#ffe800",
+                  color: "#fff0b3",
                   fontWeight: "900",
-                  fontSize: 18,
-                  textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
-                  letterSpacing: "0.5px",
-                  lineHeight: 1,
+                  fontSize: 16, 
+                  textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)", 
+                  letterSpacing: "0.5px"
                 }}
               >
                 {notice.totalWinAmount.toLocaleString()}
@@ -1337,7 +1396,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON — Border patla (2px) aur andar, image ke jaisa
+// ⭕ COMBO BUTTON — Bada + Niche
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
@@ -1473,7 +1532,7 @@ export function LuckyComboButton() {
       <div
         style={{
           position: "fixed",
-          bottom: "12vh",
+          bottom: "6vh",
           right: "5vw",
           zIndex: 2147483001,
           display: "flex",
@@ -1482,7 +1541,7 @@ export function LuckyComboButton() {
           gap: 4,
         }}
       >
-        <div style={{ position: "relative", width: 80, height: 80, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "relative", width: 104, height: 104, display: "flex", alignItems: "center", justifyContent: "center" }}>
           
           <div className="combo-wave-red" style={{ animationDelay: "0s" }} />
           <div className="combo-wave-red" style={{ animationDelay: "0.6s" }} />
@@ -1495,14 +1554,14 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 72, 
-              height: 72,
+              width: 96,
+              height: 96,
               borderRadius: "50%",
               border: "none",
               outline: "none",
               cursor: "pointer",
               background: "radial-gradient(circle at center, #ff4d79 0%, #ff1a4d 100%)",
-              boxShadow: "0 4px 20px rgba(255, 26, 77, 0.7)",
+              boxShadow: "0 6px 26px rgba(255, 26, 77, 0.75)",
               zIndex: 2,
             }}
           >
@@ -1510,7 +1569,7 @@ export function LuckyComboButton() {
               style={{
                 color: "#ffffff",
                 fontWeight: 700,
-                fontSize: 16,
+                fontSize: 20,
                 textShadow: "0 1px 3px rgba(0,0,0,0.5)",
                 letterSpacing: "0.5px",
                 zIndex: 3,
@@ -1519,9 +1578,8 @@ export function LuckyComboButton() {
               Combo
             </span>
 
-            {/* ✅ Border patla (2px) aur andar — image ke jaisa */}
             <svg
-              viewBox="0 0 72 72"
+              viewBox="0 0 96 96"
               style={{
                 position: "absolute",
                 inset: 0,
@@ -1530,27 +1588,27 @@ export function LuckyComboButton() {
                 transform: "rotate(-90deg)",
                 pointerEvents: "none",
                 zIndex: 3,
-                padding: 6,
+                padding: 8,
                 boxSizing: "border-box",
               }}
             >
               <circle
-                cx="36"
-                cy="36"
-                r="32"
+                cx="48"
+                cy="48"
+                r="42"
                 fill="none"
                 stroke="rgba(255, 255, 255, 0.35)"
                 strokeWidth="1.5"
               />
               <circle
-                cx="36"
-                cy="36"
-                r="32"
+                cx="48"
+                cy="48"
+                r="42"
                 fill="none"
                 stroke="#ffffff"
                 strokeWidth="1.5"
-                strokeDasharray="201.06"
-                strokeDashoffset={201.06 - (201.06 * timeLeft) / 5}
+                strokeDasharray="263.89"
+                strokeDashoffset={263.89 - (263.89 * timeLeft) / 5}
                 strokeLinecap="round"
                 style={{ transition: "stroke-dashoffset 1s linear" }}
               />
@@ -1564,7 +1622,7 @@ export function LuckyComboButton() {
 
 
 // ==========================================================
-// EMBEDDED LUCKY GIFT FLY / TARGET ANIMATION
+// EMBEDDED LUCKY GIFT FLY — bottom → center pause → target
 // ==========================================================
 type LuckyGiftAnimationProps = { roomId: string };
 
@@ -1638,8 +1696,9 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const half = size / 2;
 
     const startX = window.innerWidth / 2;
-    const startY = window.innerHeight * 0.52;
-
+    const startY = window.innerHeight - Math.max(18, size / 2);
+    const middleX = window.innerWidth / 2;
+    const middleY = window.innerHeight * 0.52;
     const endX = rect.left + rect.width / 2;
     const endY = rect.top + rect.height / 2;
 
@@ -1671,11 +1730,22 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          flyer.style.transition = `transform ${travelDuration}ms cubic-bezier(.18,.72,.32,1)`;
+          flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
           flyer.style.transform =
-            `translate3d(${endX - half}px,${endY - half}px,0) scale(0.12)`;
+            `translate3d(${middleX - half}px,${middleY - half}px,0) scale(1)`;
 
-          window.setTimeout(() => flyer.remove(), travelDuration + 120);
+          window.setTimeout(() => {
+            if (cancelled) {
+              flyer.remove();
+              return;
+            }
+
+            flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
+            flyer.style.transform =
+              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.12)`;
+
+            window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
+          }, 700);
         });
       });
     };
@@ -1708,4 +1778,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-    }
+        }
