@@ -1,0 +1,59 @@
+name: Apply wallet and album fixes
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[auto-patch]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply requested fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          replacements = {
+              "components/GiftPicker.tsx": [
+                  ("Math.floor(amount * 0.1)", "Math.floor(amount)"),
+              ],
+              "backend/server.js": [
+                  ("Math.floor(value * (isLucky ? 0.1 : 1))", "Math.floor(value)"),
+              ],
+              "components/RoomPage.tsx": [
+                  ("Math.floor(rawCoinAmount * (isLucky ? 0.1 : 1))", "Math.floor(rawCoinAmount)"),
+              ],
+              "components/PublicProfile.tsx": [
+                  ("albumImages.length >= 9", "albumImages.length >= 7"),
+                  ("You can only upload up to 9 images in the album.", "You can only upload up to 7 images in the album."),
+              ],
+          }
+
+          for filename, pairs in replacements.items():
+              path = Path(filename)
+              text = path.read_text(encoding="utf-8")
+              original = text
+              for old, new in pairs:
+                  if old not in text:
+                      raise SystemExit(f"Expected text not found in {filename}: {old}")
+                  text = text.replace(old, new)
+              if text != original:
+                  path.write_text(text, encoding="utf-8")
+
+      - name: Commit fixes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add components/GiftPicker.tsx backend/server.js components/RoomPage.tsx components/PublicProfile.tsx
+          if git diff --cached --quiet; then
+            echo "No changes needed"
+            exit 0
+          fi
+          git commit -m "[auto-patch] Fix gift diamonds and album limit"
+          git push
