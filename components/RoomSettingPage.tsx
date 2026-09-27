@@ -384,7 +384,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       {/* MAIN SETTINGS PAGE */}
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-2 pt-[calc(env(safe-area-inset-top,0px)+8px)] pb-3 flex-shrink-0 bg-white">
+        <div className="flex items-center px-2 pt-[calc(env(safe-area-inset-top,0px)+13px)] pb-3 flex-shrink-0 bg-white">
           <button
             onClick={onBack}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
