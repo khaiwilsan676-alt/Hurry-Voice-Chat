@@ -118,7 +118,7 @@ export default function SettingPage({
         <div
           className="flex items-center px-4 py-3 bg-white relative"
           style={{
-            paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)'
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)'
           }}
         >
           <button 
@@ -169,7 +169,7 @@ export default function SettingPage({
       <div
         className="flex items-center justify-between px-3 py-3 bg-white"
         style={{
-          paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)'
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)'
         }}
       >
         <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
