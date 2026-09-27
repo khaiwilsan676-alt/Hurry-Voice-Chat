@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 interface RoomtaskProps {
   onBack?: () => void;
+  isRoomOwner?: boolean;
 }
 
 // Custom Hook jo WebGL Shader se image ka white background strictly remove karta hai (PURE ORIGINAL)
@@ -130,7 +131,7 @@ function TaskItem({ title, reward, iconSrc, claimed, completed, onClaim }: { tit
     </div>
   </div>;
 }
-export default function Roomtask({ onBack }: RoomtaskProps) {
+export default function Roomtask({ onBack, isRoomOwner = false }: RoomtaskProps) {
   
   // Yaha original WebGL hook se clean image aayegi (base64 data URL)
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
@@ -216,7 +217,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
     { title: "Send 1 Gift", reward: " 1,000" },
   ];
 
-  const isRoomOwner = true;
   if (!isRoomOwner) return null;
 
   return (
