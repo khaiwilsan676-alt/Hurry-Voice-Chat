@@ -80,16 +80,13 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
   const [src, setSrc] = useState<string | null>(null);
   const [visible, setVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const completedRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
 
   const complete = () => {
     if (completedRef.current) return;
     completedRef.current = true;
     setVisible(false);
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     onComplete?.();
   };
 
@@ -114,7 +111,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     });
     return () => {
       cancelled = true;
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       const objectUrl = objectUrlRef.current;
       objectUrlRef.current = null;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -124,38 +120,10 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
   useEffect(() => {
     if (!src) return;
     const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas) return;
+    if (!video) return;
 
     let cancelled = false;
     let started = false;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
-    if (!ctx) return;
-
-    const render = () => {
-      if (cancelled) return;
-      if (video.videoWidth > 0 && video.videoHeight > 0 && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-      }
-      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && canvas.width && canvas.height) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const p = frame.data;
-        for (let i = 0; i < p.length; i += 4) {
-          const r = p[i];
-          const g = p[i + 1];
-          const b = p[i + 2];
-          const greenDominance = g - Math.max(r, b);
-          if (g > 70 && greenDominance > 18 && g / Math.max(1, (r + b) / 2) > 1.18) {
-            const edge = Math.min(1, Math.max(0, (greenDominance - 18) / 55));
-            p[i + 3] = Math.round(p[i + 3] * (1 - edge));
-          }
-        }
-        ctx.putImageData(frame, 0, 0);
-      }
-      rafRef.current = requestAnimationFrame(render);
-    };
 
     const start = async () => {
       if (cancelled || started) return;
@@ -167,7 +135,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         if (!cancelled) {
           started = true;
           setVisible(true);
-          rafRef.current = requestAnimationFrame(render);
         }
       } catch {
         if (!cancelled) complete();
@@ -179,7 +146,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
       if (!started) {
         started = true;
         setVisible(true);
-        rafRef.current = requestAnimationFrame(render);
       }
     };
     const onEnded = () => complete();
@@ -194,7 +160,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
 
     return () => {
       cancelled = true;
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       video.pause();
       video.removeEventListener("loadeddata", onReady);
       video.removeEventListener("canplay", onReady);
@@ -219,12 +184,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         disableRemotePlayback
         preload="auto"
         aria-hidden="true"
-        className="absolute w-px h-px opacity-0 pointer-events-none"
-      />
-      <canvas
-        ref={canvasRef}
-        aria-hidden="true"
-        className={`max-w-[100vw] max-h-[100vh] w-auto h-auto object-contain pointer-events-none transition-opacity duration-75 ${visible ? "opacity-100" : "opacity-0"}`}
+        className={`max-w-[100vw] max-h-[100vh] w-auto h-auto object-contain pointer-events-none transition-opacity duration-75 mix-blend-screen ${visible ? "opacity-100" : "opacity-0"}`}
       />
     </div>
   );
