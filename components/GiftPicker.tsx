@@ -365,10 +365,9 @@ export default function GiftPicker({
     let netDeductionCost = totalSendCost;
 
     if (isLuckyGiftTab) {
-      if (Math.random() > 0.6) {
-        luckyReturnPercent = 0.05 + Math.random() * 0.45;
-        luckyReturnAmount = Math.floor(totalSendCost * luckyReturnPercent);
-      }
+      // Return Price 0% - 30% random
+      luckyReturnPercent = Math.random() * 0.30;
+      luckyReturnAmount = Math.floor(totalSendCost * luckyReturnPercent);
       netDeductionCost = totalSendCost - luckyReturnAmount;
     }
 
@@ -395,16 +394,19 @@ export default function GiftPicker({
         luckyImage: selectedGiftObj.image,
       });
 
-      // ✅ LOCAL SLIDER TRIGGER - Send button dabate hi local event se slider instantly dikhega
+      // ✅ LOCAL SLIDER TRIGGER - Pass winning amount to Slider
       if (isLuckyGiftTab) {
         window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
           detail: {
             roomId: String(roomId),
             senderId: String(currentUserAccountId),
+            senderName: currentUserName,
             senderImage: currentUserImage,
+            recipientName: firstRecipient?.name || "User",
             giftImage: selectedGiftObj.image,
             multiplier: parseMultiplier(selectedMultiplier),
-            luckyGift: true
+            luckyGift: true,
+            luckyReturnAmount: luckyReturnAmount // send won coins
           }
         }));
       }
@@ -822,7 +824,7 @@ export default function GiftPicker({
                 cursor: !selectedGift || !canAfford || sending ? "not-allowed" : "pointer",
               }}
             >
-              {sending ? "Sending..." : "Send"}
+              {sending ? "Send" : "Send"}
             </button>
           </div>
         </div>
@@ -835,14 +837,18 @@ export default function GiftPicker({
 }
 
 // ==========================================================
-// 🎲 Lucky Gift Notification Slider
+// 🎲 Lucky Gift Notification Slider (SYNCED WITH COMBO & ACCUMULATED WINS)
 // ==========================================================
 interface LuckyNotice {
   id: string;
   senderId: string;
+  senderName: string;
+  recipientName: string;
   senderImage: string;
   giftImage: string;
   multiplier: number;
+  totalWinAmount: number; // For keeping track of total combo wins
+  isExiting: boolean;
 }
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
@@ -855,60 +861,97 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       if (data.luckyGift !== true) return;
 
       const senderId = String(data.senderId || "");
+      const senderName = String(data.senderName || "User");
+      const recipientName = String(data.recipientName || "User");
       const senderImage = String(data.senderImage || "/default-avatar.png");
       const giftImage = String(data.luckyImage || data.giftImage || "");
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
+      const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0); // Calculate win amount
 
       setNotice((prev) => {
-        // Combo press: update only multiplier without repeating animation
-        if (
-          prev &&
-          prev.senderId === senderId &&
-          prev.giftImage === giftImage
-        ) {
-          if (multiplier === prev.multiplier) return prev; // Ignore duplicate events
-          if (multiplier > prev.multiplier) return { ...prev, multiplier };
+        if (prev && prev.senderId === senderId && prev.giftImage === giftImage) {
+          if (multiplier > prev.multiplier) {
+            // Add new win amount to previous total win amount
+            return { 
+              ...prev, 
+              multiplier, 
+              isExiting: false,
+              totalWinAmount: prev.totalWinAmount + incomingWin 
+            };
+          }
+          return { ...prev, isExiting: false }; 
         }
         return {
           id: `notify-${Date.now()}-${Math.random()}`,
           senderId,
+          senderName,
+          recipientName,
           senderImage,
           giftImage,
           multiplier,
+          totalWinAmount: incomingWin,
+          isExiting: false
         };
       });
 
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => setNotice(null), 3600);
+      timerRef.current = setTimeout(() => {
+        setNotice(prev => (prev ? { ...prev, isExiting: true } : null));
+      }, 5500); 
     };
 
-    // Socket aur Local Event dono pe listen karega!
     socket.on("coin_transfer_received", processNotice);
     window.addEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
+
+    const handleClose = () => {
+      setNotice(prev => (prev ? { ...prev, isExiting: true } : null));
+    };
+    window.addEventListener("hurry:lucky-slider-close", handleClose);
 
     return () => {
       socket.off("coin_transfer_received", processNotice);
       window.removeEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
+      window.removeEventListener("hurry:lucky-slider-close", handleClose);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (notice?.isExiting) {
+      const t = setTimeout(() => setNotice(null), 400); 
+      return () => clearTimeout(t);
+    }
+  }, [notice?.isExiting]);
 
   if (!notice) return null;
 
   return (
     <>
+      <style>{`
+        @keyframes noticeSlideIn {
+          0% { transform: translate3d(115vw, 0, 0); opacity: 0; }
+          100% { transform: translate3d(0, 0, 0); opacity: 1; }
+        }
+        @keyframes noticeSlideOut {
+          0% { transform: translate3d(0, 0, 0); opacity: 1; }
+          100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
+        }
+      `}</style>
+
       <div
         key={notice.id}
         style={{
           position: "fixed",
           left: 8,
           right: 8,
-          bottom: "20vh",
+          bottom: "30vh", 
           zIndex: 2147483000,
           pointerEvents: "none",
           display: "flex",
           justifyContent: "center",
-          animation: "hurryLuckyNoticeSlide 3.6s ease-in-out forwards",
+          animation: notice.isExiting 
+            ? "noticeSlideOut 0.4s ease-in forwards" 
+            : "noticeSlideIn 0.4s ease-out forwards",
         }}
       >
         <div
@@ -921,7 +964,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             backgroundRepeat: "no-repeat",
           }}
         >
-          {/* LEFT CORNER: sender avatar + overlap frame */}
+          {/* LEFT CORNER: Avatar */}
           <div
             style={{
               position: "absolute",
@@ -964,6 +1007,46 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             />
           </div>
 
+          {/* LEFT TEXT: Sender and Receiver Name */}
+          <div
+            style={{
+              position: "absolute",
+              left: 60, 
+              top: "50%",
+              transform: "translateY(-50%)",
+              display: "flex",
+              flexDirection: "column",
+              maxWidth: "75px", 
+              zIndex: 10,
+            }}
+          >
+            <span
+              style={{
+                color: "white",
+                fontSize: 11,
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                lineHeight: 1.2
+              }}
+            >
+              {notice.senderName}
+            </span>
+            <span
+              style={{
+                color: "#ffd700", 
+                fontSize: 9,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                lineHeight: 1.2
+              }}
+            >
+              To {notice.recipientName}
+            </span>
+          </div>
+
           {/* MIDDLE: gift image + ×multiplier */}
           <div
             style={{
@@ -1003,16 +1086,19 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* RIGHT CORNER: corner image */}
+          {/* RIGHT CORNER: Increased size image + accumulated win text */}
           <div
             style={{
               position: "absolute",
-              right: 7,
+              right: 4,
               top: "50%",
               transform: "translateY(-50%)",
-              width: 56,
-              height: 56,
+              width: 66, // Slightly larger card image (56 -> 66)
+              height: 66,
               zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
             }}
           >
             <img
@@ -1026,27 +1112,33 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 height: "100%",
                 objectFit: "contain",
                 display: "block",
+                zIndex: 1
               }}
               draggable={false}
             />
+            {/* Center +WinAmount Text */}
+            <span
+              style={{
+                position: "relative",
+                zIndex: 2,
+                color: "white",
+                fontWeight: "900",
+                fontSize: 14, // Adjusted so large numbers fit nicely
+                textShadow: "0px 1px 4px rgba(0,0,0,0.9)",
+                marginTop: 2
+              }}
+            >
+              +{notice.totalWinAmount}
+            </span>
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes hurryLuckyNoticeSlide {
-          0%   { transform: translate3d(115vw, 0, 0); opacity: 0; }
-          12%  { transform: translate3d(0, 0, 0);     opacity: 1; }
-          85%  { transform: translate3d(0, 0, 0);     opacity: 1; }
-          100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
-        }
-      `}</style>
     </>
   );
 }
 
 // ==========================================================
-// ⭕ Blue Lucky Combo Circular Button (Bottom Right)
+// ⭕ Blue Lucky Combo Circular Button
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
@@ -1074,6 +1166,7 @@ export function LuckyComboButton() {
     countdownRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          window.dispatchEvent(new CustomEvent("hurry:lucky-slider-close"));
           setComboData(null);
           if (countdownRef.current) clearInterval(countdownRef.current);
           return 0;
@@ -1099,11 +1192,9 @@ export function LuckyComboButton() {
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
 
-    if (Math.random() > 0.6) {
-      luckyReturnPercent = 0.05 + Math.random() * 0.45;
-      luckyReturnAmount = Math.floor(totalCost * luckyReturnPercent);
-    }
-
+    // Return Price 0% - 30% random range for Combo clicks too
+    luckyReturnPercent = Math.random() * 0.30;
+    luckyReturnAmount = Math.floor(totalCost * luckyReturnPercent);
     const finalDeductionCost = totalCost - luckyReturnAmount;
 
     const bal = await loadWalletBalance();
@@ -1116,7 +1207,6 @@ export function LuckyComboButton() {
     await updateWalletBalance(-finalDeductionCost);
     await recordGiftTransaction(comboData.giftName, -finalDeductionCost);
 
-    // Fresh emit
     socket.emit("coin_transfer", {
       roomId: comboData.roomId,
       senderId: comboData.senderId,
@@ -1135,15 +1225,18 @@ export function LuckyComboButton() {
       luckyImage: comboData.giftImage,
     });
 
-    // ✅ LOCAL SLIDER TRIGGER for Combo - Combo dabane pe turant slider update hoga
+    // ✅ LOCAL SLIDER TRIGGER - Send accumulative win data
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
       detail: {
         roomId: comboData.roomId,
         senderId: comboData.senderId,
+        senderName: comboData.senderName,
         senderImage: comboData.senderImage,
+        recipientName: comboData.recipientName,
         giftImage: comboData.giftImage,
         multiplier: nextMultiplier,
-        luckyGift: true
+        luckyGift: true,
+        luckyReturnAmount: luckyReturnAmount // send won coins
       }
     }));
 
@@ -1182,10 +1275,8 @@ export function LuckyComboButton() {
           gap: 4,
         }}
       >
-        {/* BIGGER BUTTON + WAVES WRAPPER */}
         <div style={{ position: "relative", width: 68, height: 68, display: "flex", alignItems: "center", justifyContent: "center" }}>
           
-          {/* Waves Effect */}
           <div className="combo-wave" style={{ animationDelay: "0s" }} />
           <div className="combo-wave" style={{ animationDelay: "0.6s" }} />
           <div className="combo-wave" style={{ animationDelay: "1.2s" }} />
@@ -1198,7 +1289,7 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 68, // Button size increased 56 -> 68
+              width: 68, 
               height: 68,
               borderRadius: "50%",
               border: "none",
@@ -1206,7 +1297,7 @@ export function LuckyComboButton() {
               cursor: "pointer",
               background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
               boxShadow: "0 4px 20px rgba(59, 130, 246, 0.7)",
-              zIndex: 2, // Button waves ke upar rahega
+              zIndex: 2,
             }}
           >
             <span
