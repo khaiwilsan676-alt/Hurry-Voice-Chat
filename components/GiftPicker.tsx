@@ -812,12 +812,11 @@ export default function GiftPicker({
                         </button>
           </div>
         </div>
+       </div>
       </div>
-      </div>   {/* 👈 close the `fixed inset-0` wrapper (B) */}
-
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
       <LuckyComboButton />
-    </div>     {/* close outer wrapper (A) */}
+    </div>
   );
 }
 
