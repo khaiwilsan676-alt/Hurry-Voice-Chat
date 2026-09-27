@@ -191,88 +191,101 @@ export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKe
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
 
-  useEffect(() => {
-    const creditedTransferIds = new Set<string>();
+ useEffect(() => {
+  // 🗂️ Map<transferKey, timestamp> — auto expiry ke liye
+  const creditedTransferIds = new Map<string, number>();
 
-    const handleCoinTransferReceived = async (data: any = {}) => {
-      const recipients = Array.isArray(data.recipientIds)
-        ? data.recipientIds.map((id: any) => String(id)).filter(Boolean)
-        : data.recipientId
-          ? [String(data.recipientId)]
-          : [];
+  const handleCoinTransferReceived = async (data: any = {}) => {
+    const recipients = Array.isArray(data.recipientIds)
+      ? data.recipientIds.map((id: any) => String(id)).filter(Boolean)
+      : data.recipientId
+        ? [String(data.recipientId)]
+        : [];
 
-      const currentIds = new Set(
-        [
-          currentUser.accountId,
-          currentUser.uid,
-          currentUser.id,
-          localStorage.getItem("accountNumber"),
-        ]
-          .filter(Boolean)
-          .map(String)
-      );
+    const currentIds = new Set(
+      [
+        currentUser.accountId,
+        currentUser.uid,
+        currentUser.id,
+        localStorage.getItem("accountNumber"),
+      ]
+        .filter(Boolean)
+        .map(String)
+    );
 
-      const rawDiamondAmount = Number(data.diamondAmount);
-      const rawCoinAmount = Number(data.amount);
-      const isLucky =
-        data.luckyGift === true || String(data.giftType || "") === "Lucky";
-      const diamondAmount =
-        Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
-          ? Math.floor(rawDiamondAmount)
-          : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
-            ? Math.floor(rawCoinAmount)
-            : 0;
+    const rawDiamondAmount = Number(data.diamondAmount);
+    const rawCoinAmount = Number(data.amount);
+    const isLucky =
+      data.luckyGift === true || String(data.giftType || "") === "Lucky";
+    const diamondAmount =
+      Number.isFinite(rawDiamondAmount) && rawDiamondAmount > 0
+        ? Math.floor(rawDiamondAmount)
+        : Number.isFinite(rawCoinAmount) && rawCoinAmount > 0
+          ? Math.floor(rawCoinAmount)
+          : 0;
 
-      const transferKey = String(
-        data.transferId ||
+    const transferKey = String(
+      data.transferId ||
         data.eventId ||
         `${data.roomId || ""}:${data.senderId || ""}:${data.timestamp || ""}:${data.giftName || ""}:${diamondAmount}`
-      );
+    );
 
-      const isSender = currentIds.has(String(data.senderId || ""));
-      const luckyReturnAmount = Math.max(0, Number(data.luckyReturnAmount) || 0);
-      if (
-        isLucky &&
-        isSender &&
-        luckyReturnAmount > 0 &&
-        !creditedTransferIds.has(`return:${transferKey}`)
-      ) {
-        creditedTransferIds.add(`return:${transferKey}`);
-        await addCoinsToDB(luckyReturnAmount);
-        await recordTransaction("Lucky Gift return", luckyReturnAmount, "coin");
-        window.dispatchEvent(new CustomEvent("hurry:coins-updated", {
-          detail: { amount: luckyReturnAmount },
-        }));
-      }
+    // 🧹 Auto-cleanup: 2 min se purane entries hata do
+    const now = Date.now();
+    for (const [k, ts] of creditedTransferIds) {
+      if (now - ts > 2 * 60 * 1000) creditedTransferIds.delete(k);
+    }
 
-      // Only the selected recipient's own room session may credit Diamonds.
-      if (!recipients.some((id) => currentIds.has(id))) return;
-      if (diamondAmount <= 0 || creditedTransferIds.has(transferKey)) return;
-      creditedTransferIds.add(transferKey);
+    const isSender = currentIds.has(String(data.senderId || ""));
+    const luckyReturnAmount = Math.max(0, Number(data.luckyReturnAmount) || 0);
 
-      await addDiamondsToDB(diamondAmount);
-
-      const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
-      await recordTransaction(
-        "Diamonds received" + giftLabel,
-        diamondAmount,
-        "diamond"
-      );
-
+    // Lucky gift return — sender ko coins wapas
+    if (
+      isLucky &&
+      isSender &&
+      luckyReturnAmount > 0 &&
+      !creditedTransferIds.has(`return:${transferKey}`)
+    ) {
+      creditedTransferIds.set(`return:${transferKey}`, now);
+      await addCoinsToDB(luckyReturnAmount);
+      await recordTransaction("Lucky Gift return", luckyReturnAmount, "coin");
       window.dispatchEvent(
-        new CustomEvent("hurry:diamonds-updated", {
-          detail: { amount: diamondAmount },
+        new CustomEvent("hurry:coins-updated", {
+          detail: { amount: luckyReturnAmount },
         })
       );
-    };
+    }
 
-    socket.on("coin_transfer_received", handleCoinTransferReceived);
-    return () => {
-      socket.off("coin_transfer_received", handleCoinTransferReceived);
-      creditedTransferIds.clear();
-    };
-  }, [userAccountId]);
+    // Sirf recipient ke session me Diamond credit hoga
+    if (!recipients.some((id) => currentIds.has(id))) return;
 
+    // Duplicate check
+    if (diamondAmount <= 0 || creditedTransferIds.has(transferKey)) return;
+    creditedTransferIds.set(transferKey, now);   // ✅ Set with timestamp
+
+    await addDiamondsToDB(diamondAmount);
+
+    const giftLabel = data.giftName ? " — " + String(data.giftName) : "";
+    await recordTransaction(
+      "Diamonds received" + giftLabel,
+      diamondAmount,
+      "diamond"
+    );
+
+    window.dispatchEvent(
+      new CustomEvent("hurry:diamonds-updated", {
+        detail: { amount: diamondAmount },
+      })
+    );
+  };
+
+  socket.on("coin_transfer_received", handleCoinTransferReceived);
+
+  return () => {
+    socket.off("coin_transfer_received", handleCoinTransferReceived);
+    creditedTransferIds.clear();
+  };
+}, [userAccountId]);
   return (
     <RoomVoiceJitsi
       roomId={roomId}
