@@ -363,22 +363,26 @@ export default function GiftPicker({
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
     let netDeductionCost = totalSendCost;
+    let winTimes = 0; // To track 2x, 5x, 10x, 15x
 
     if (isLuckyGiftTab) {
       const luck = Math.random();
       
-      if (luck > 0.92) {
-        // 8% Chance: Big Jackpot (Profit) -> random amount between 120% to 270% + random noise
-        luckyReturnAmount = Math.floor(totalSendCost * (1.2 + Math.random() * 1.5)) + Math.floor(Math.random() * 99);
+      // ✅ Custom multiplier logic: 2x, 5x, 10x, 15x
+      if (luck > 0.96) {
+        winTimes = 15;
+      } else if (luck > 0.90) {
+        winTimes = 10;
+      } else if (luck > 0.82) {
+        winTimes = 5;
       } else if (luck > 0.65) {
-        // 27% Chance: Small Return (Loss cover) -> random amount between 10% to 60% + random noise
-        luckyReturnAmount = Math.floor(totalSendCost * (0.1 + Math.random() * 0.5)) + Math.floor(Math.random() * 77);
+        winTimes = 2;
       } else {
-        // 65% Chance: 0 return
-        luckyReturnAmount = 0;
+        winTimes = 0;
       }
-      
-      luckyReturnPercent = totalSendCost > 0 ? (luckyReturnAmount / totalSendCost) : 0;
+
+      luckyReturnAmount = winTimes > 0 ? (totalSendCost * winTimes) : 0;
+      luckyReturnPercent = winTimes > 0 ? winTimes : 0;
       netDeductionCost = totalSendCost - luckyReturnAmount;
     }
 
@@ -403,9 +407,10 @@ export default function GiftPicker({
         luckyReturnAmount,
         luckyReturnPercent,
         luckyImage: selectedGiftObj.image,
+        winTimes // Broadcast how many times they won
       });
 
-      // ✅ LOCAL SLIDER TRIGGER - Pass completely random winning amount to Slider
+      // ✅ LOCAL SLIDER TRIGGER 
       if (isLuckyGiftTab) {
         window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
           detail: {
@@ -417,7 +422,8 @@ export default function GiftPicker({
             giftImage: selectedGiftObj.image,
             multiplier: parseMultiplier(selectedMultiplier),
             luckyGift: true,
-            luckyReturnAmount: luckyReturnAmount // send won coins
+            luckyReturnAmount: luckyReturnAmount,
+            winTimes: winTimes
           }
         }));
       }
@@ -792,7 +798,7 @@ export default function GiftPicker({
 
           <div className="flex items-center gap-2 relative">
             {showMultipliers && (
-              <div className="absolute bottom-10 right-14 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900 border border-white/10">
+              <div className="absolute bottom-10 right-0 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900 border border-white/10">
                 {multipliers.map((num) => (
                   <button
                     key={num}
@@ -812,43 +818,168 @@ export default function GiftPicker({
               </div>
             )}
 
-            <button
-              onClick={() => setShowMultipliers(!showMultipliers)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-[#1f2937] border border-white/15 active:scale-95 transition-transform"
-            >
-              <span>{selectedMultiplier}</span>
-              <ChevronUp
-                className={`w-3 h-3 transition-transform ${
-                  showMultipliers ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+            {/* ✅ PILL BUTTON: Joined Multiplier and Send Button */}
+            <div className="flex items-center rounded-full border border-[#3b82f6] p-[2px] bg-transparent">
+              {/* Multiplier Side */}
+              <button
+                onClick={() => setShowMultipliers(!showMultipliers)}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-l-full text-xs font-bold text-white bg-transparent transition-transform"
+              >
+                <span>{selectedMultiplier}</span>
+                <ChevronUp className={`w-3 h-3 transition-transform ${showMultipliers ? "rotate-180" : ""}`} />
+              </button>
 
-            <button
-              onClick={handleSend}
-              disabled={!selectedGift || !canAfford || sending}
-              className="text-white font-bold text-xs px-5 py-1.5 rounded-full transition-all active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                boxShadow: "0 2px 15px rgba(59,130,246,0.35)",
-                opacity: sending ? 0.85 : 1,
-                cursor: !selectedGift || !canAfford || sending ? "not-allowed" : "pointer",
-              }}
-            >
-              {sending ? "Send" : "Send"}
-            </button>
+              {/* Send Button Side */}
+              <button
+                onClick={handleSend}
+                disabled={!selectedGift || !canAfford || sending}
+                className="text-white font-bold text-xs px-6 py-1.5 rounded-full transition-all active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                  boxShadow: "0 2px 10px rgba(59,130,246,0.35)",
+                  opacity: sending ? 0.85 : 1,
+                  cursor: !selectedGift || !canAfford || sending ? "not-allowed" : "pointer",
+                }}
+              >
+                {sending ? "..." : "Send"}
+              </button>
+            </div>
+
           </div>
         </div>
        </div>
       </div>
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
+      <BigWinOrb roomId={String(roomId || "")} />
       <LuckyComboButton />
     </div>
   );
 }
 
 // ==========================================================
-// 🎲 Lucky Gift Notification Slider (WITH FLOATING WINS & 40vh)
+// 🎇 BIG WIN ORB (Pop up at 20vh when Win > 0) + BLAST ANIMATION
+// ==========================================================
+export function BigWinOrb({ roomId }: { roomId: string }) {
+  const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
+
+  useEffect(() => {
+    const handleOrb = (e: any) => {
+      const data = e.detail;
+      if (String(data.roomId || "") !== String(roomId || "")) return;
+      if (data.luckyGift !== true) return;
+      
+      const winTimes = Number(data.winTimes) || 0;
+      const winAmount = Number(data.luckyReturnAmount) || 0;
+
+      // Only show the big glowing orb IF there is a win!
+      if (winAmount > 0 && winTimes > 0) {
+        const newId = `orb-${Date.now()}-${Math.random()}`;
+        setOrbData({
+          amount: winAmount,
+          times: winTimes,
+          avatar: data.senderImage || "/default-avatar.png",
+          id: newId,
+          isExiting: false
+        });
+
+        // Hide orb after 3.5 seconds
+        setTimeout(() => {
+          setOrbData(prev => (prev?.id === newId ? { ...prev, isExiting: true } : prev));
+        }, 3500);
+      }
+    };
+
+    window.addEventListener("hurry:lucky-slider", handleOrb);
+    return () => window.removeEventListener("hurry:lucky-slider", handleOrb);
+  }, [roomId]);
+
+  useEffect(() => {
+    if (orbData?.isExiting) {
+      // ✅ Wait 600ms for the blast animation to complete before clearing state
+      const t = setTimeout(() => setOrbData(null), 600);
+      return () => clearTimeout(t);
+    }
+  }, [orbData?.isExiting]);
+
+  if (!orbData) return null;
+
+  return (
+    <>
+      <style>{`
+        @keyframes orbPopIn {
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* ✅ EK DAM BLAST WALI ANIMATION */
+        @keyframes orbBlastOut {
+          0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+          30% { transform: scale(0.85); opacity: 1; filter: brightness(1.2); } /* Sikudega pehle */
+          60% { transform: scale(1.5); opacity: 1; filter: brightness(2); box-shadow: 0 0 100px rgba(0, 195, 255, 1); } /* Achanak bada hoga */
+          100% { transform: scale(2.8); opacity: 0; filter: brightness(3); box-shadow: 0 0 200px rgba(0, 195, 255, 0); } /* Fatke gayab */
+        }
+        
+        @keyframes spinSlow {
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div
+        style={{
+          position: "fixed",
+          top: "20vh", // Fixed at top 20vh
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 2147483005,
+          pointerEvents: "none",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center"
+        }}
+      >
+        <div
+          key={orbData.id}
+          style={{
+            position: "relative",
+            width: 220,
+            height: 220,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            // Use the new Blast animation for exit
+            animation: orbData.isExiting 
+              ? "orbBlastOut 0.6s ease-out forwards" 
+              : "orbPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+          }}
+        >
+          {/* Glowing Orb Background */}
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, rgba(0, 195, 255, 0.8) 0%, rgba(0, 85, 255, 0.4) 50%, transparent 80%)", boxShadow: "0 0 40px rgba(0, 195, 255, 0.6)", zIndex: 1 }}></div>
+          <div style={{ position: "absolute", inset: 10, borderRadius: "50%", border: "2px dashed rgba(255,255,255,0.4)", animation: "spinSlow 10s linear infinite", zIndex: 2 }}></div>
+          <div style={{ position: "absolute", inset: -20, borderRadius: "50%", background: "radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, transparent 60%)", zIndex: 1 }}></div>
+          
+          {/* Avatar on Top */}
+          <div style={{ position: "absolute", top: 15, zIndex: 5, width: 44, height: 44, borderRadius: "50%", border: "2px solid #fff", overflow: "hidden", boxShadow: "0 4px 10px rgba(0,0,0,0.5)" }}>
+            <img src={orbData.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+
+          {/* Win Text */}
+          <div style={{ zIndex: 5, display: "flex", flexDirection: "column", alignItems: "center", marginTop: 25 }}>
+            <span style={{ color: "#ffe800", fontSize: 22, fontWeight: "900", textShadow: "0 2px 4px rgba(0,0,0,0.8), 0 0 10px rgba(255,232,0,0.8)", letterSpacing: "1px" }}>
+              Win {orbData.amount}
+            </span>
+            <span style={{ color: "#00ffcc", fontSize: 16, fontWeight: "800", textShadow: "0 2px 4px rgba(0,0,0,0.8)", marginTop: 4 }}>
+              {orbData.times} Times
+            </span>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ==========================================================
+// 🎲 Lucky Gift Notification Slider (WAPAS RIGHT SIDE SLIDE, MOTI IMAGE, 40vh)
 // ==========================================================
 interface LuckyNotice {
   id: string;
@@ -864,7 +995,7 @@ interface LuckyNotice {
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const [notice, setNotice] = useState<LuckyNotice | null>(null);
-  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number}[]>([]);
+  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number, giftImage: string}[]>([]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -905,8 +1036,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       if (incomingWin > 0) {
         const floatId = `float-${Date.now()}-${Math.random()}`;
         
-        // Add to floating array (will animate up in UI)
-        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin }]);
+        // ✅ Floating array mein gift image bhi bhej di
+        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin, giftImage }]);
 
         // 600ms baad Float animation se central text mein Add (+) kar do
         setTimeout(() => {
@@ -962,6 +1093,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   return (
     <>
       <style>{`
+        /* ✅ WAPAS RIGHT SIDE SE SLIDE HOKE AAYEGA */
         @keyframes noticeSlideIn {
           0% { transform: translate3d(115vw, 0, 0); opacity: 0; }
           100% { transform: translate3d(0, 0, 0); opacity: 1; }
@@ -982,11 +1114,12 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           position: "fixed",
           left: 8,
           right: 8,
-          bottom: "40vh", // ✅ Ab ye 40vh par aayega
+          bottom: "40vh", 
           zIndex: 2147483000,
           pointerEvents: "none",
           display: "flex",
           justifyContent: "center",
+          /* ✅ Right se slide animation wapas aa gayi hai */
           animation: notice.isExiting 
             ? "noticeSlideOut 0.4s ease-in forwards" 
             : "noticeSlideIn 0.4s ease-out forwards",
@@ -996,7 +1129,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           style={{
             position: "relative",
             width: "min(94vw, 420px)",
-            height: 72,
+            height: 88, // ✅ MOTI IMAGE RAKHI HAI
             backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
             backgroundSize: "100% 100%",
             backgroundRepeat: "no-repeat",
@@ -1009,8 +1142,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               left: 9,
               top: "50%",
               transform: "translateY(-50%)",
-              width: 44,
-              height: 44,
+              width: 52, // Avatar size adjusted to fit new height
+              height: 52,
               zIndex: 10,
             }}
           >
@@ -1049,7 +1182,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           <div
             style={{
               position: "absolute",
-              left: 60, 
+              left: 70, 
               top: "50%",
               transform: "translateY(-50%)",
               display: "flex",
@@ -1061,7 +1194,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             <span
               style={{
                 color: "white",
-                fontSize: 11,
+                fontSize: 12, // Adjusted for taller card
                 fontWeight: "bold",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -1074,7 +1207,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             <span
               style={{
                 color: "#ffd700", 
-                fontSize: 9,
+                fontSize: 10,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -1103,10 +1236,11 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 src={notice.giftImage}
                 alt=""
                 style={{
-                  width: 36,
-                  height: 36,
+                  width: 42,
+                  height: 42, 
                   objectFit: "contain",
                   display: "block",
+                  opacity: 1 // Original opacity, no fade
                 }}
                 draggable={false}
               />
@@ -1115,7 +1249,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               style={{
                 color: "#fff",
                 fontWeight: 800,
-                fontSize: 18,
+                fontSize: 22, // Bada × number
                 textShadow: "0 2px 4px rgba(0,0,0,0.85)",
                 lineHeight: 1,
               }}
@@ -1124,41 +1258,50 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* RIGHT CORNER: Increased size image + accumulated win text */}
+          {/* RIGHT CORNER: Mota Card image + accumulated win text */}
           <div
             style={{
               position: "absolute",
-              right: 4,
+              right: -8, 
               top: "50%",
               transform: "translateY(-50%)",
-              width: 66, 
-              height: 66,
+              width: 85, // Size increased for thicker card match
+              height: 85,
               zIndex: 10,
               display: "flex",
               alignItems: "center",
               justifyContent: "center"
             }}
           >
-            {/* ✅ Floating Win Animations: ये हवा में उड़ कर गायब होंगे */}
+            {/* ✅ Floating Win Animations: Gift Image before the Amount */}
             {floatingWins.map(fw => (
-              <span
+              <div
                 key={fw.id}
                 style={{
                   position: "absolute",
-                  top: -10, // Start just above the card
+                  top: -15, 
                   left: "50%",
                   transform: "translateX(-50%)",
-                  color: "#ffde00", // Shiny Yellow
-                  fontWeight: "900",
-                  fontSize: 16,
-                  textShadow: "0px 2px 5px rgba(0,0,0,1), 0px 0px 10px rgba(255,215,0,0.8)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "2px", // Space between gift image and text
                   animation: "floatUpFade 1.2s ease-out forwards",
                   zIndex: 20,
                   whiteSpace: "nowrap"
                 }}
               >
-                +{fw.amount}
-              </span>
+                <img src={fw.giftImage} alt="" style={{width: 18, height: 18, objectFit: "contain", filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))"}} />
+                <span
+                  style={{
+                    color: "#ffff00", 
+                    fontWeight: "900",
+                    fontSize: 18,
+                    textShadow: "-1px -1px 0 #d9381e, 1px -1px 0 #d9381e, -1px 1px 0 #d9381e, 1px 1px 0 #d9381e, 0px 4px 6px rgba(0,0,0,0.8)", 
+                  }}
+                >
+                  +{fw.amount}
+                </span>
+              </div>
             ))}
 
             <img
@@ -1170,27 +1313,29 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 left: 0,
                 width: "100%",
                 height: "100%",
-                objectFit: "contain",
+                objectFit: "contain", 
                 display: "block",
-                zIndex: 1
+                zIndex: 1,
+                opacity: 1
               }}
               draggable={false}
             />
             
-            {/* Center +WinAmount Text */}
-            <span
-              style={{
-                position: "relative",
-                zIndex: 2,
-                color: "white",
-                fontWeight: "900",
-                fontSize: 14, 
-                textShadow: "0px 1px 4px rgba(0,0,0,0.9)",
-                marginTop: 2
-              }}
-            >
-              +{notice.totalWinAmount}
-            </span>
+            {/* ✅ Center Accumulator: Gift Image before the Amount */}
+            <div style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "center", gap: "3px", marginTop: 2 }}>
+              <img src={notice.giftImage} alt="" style={{width: 16, height: 16, objectFit: "contain"}} />
+              <span
+                style={{
+                  color: "#fff0b3", // Light gold
+                  fontWeight: "900",
+                  fontSize: 16, 
+                  textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)", 
+                  letterSpacing: "0.5px"
+                }}
+              >
+                +{notice.totalWinAmount}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -1199,7 +1344,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ Blue Lucky Combo Circular Button
+// ⭕ EXACT PINK/RED COMBO BUTTON (Like 1000202676.jpg)
 // ==========================================================
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
@@ -1252,21 +1397,24 @@ export function LuckyComboButton() {
 
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
+    let winTimes = 0;
 
-    // ✅ RANDOM NUMBER RETURN LOGIC FOR COMBO
+    // ✅ "Kabhi-Kabhi" return logic for Combo (2x, 5x, 10x, 15x logic)
     const luck = Math.random();
-    if (luck > 0.92) {
-      // 8% Chance: Big Jackpot (Profit) -> random completely odd figures
-      luckyReturnAmount = Math.floor(totalCost * (1.2 + Math.random() * 1.5)) + Math.floor(Math.random() * 99);
+    if (luck > 0.96) {
+      winTimes = 15;
+    } else if (luck > 0.90) {
+      winTimes = 10;
+    } else if (luck > 0.82) {
+      winTimes = 5;
     } else if (luck > 0.65) {
-      // 27% Chance: Small Return
-      luckyReturnAmount = Math.floor(totalCost * (0.1 + Math.random() * 0.5)) + Math.floor(Math.random() * 77);
+      winTimes = 2;
     } else {
-      // 65% Chance: Zero
-      luckyReturnAmount = 0;
+      winTimes = 0;
     }
     
-    luckyReturnPercent = totalCost > 0 ? (luckyReturnAmount / totalCost) : 0;
+    luckyReturnAmount = winTimes > 0 ? (totalCost * winTimes) : 0;
+    luckyReturnPercent = winTimes > 0 ? winTimes : 0;
     const finalDeductionCost = totalCost - luckyReturnAmount;
 
     const bal = await loadWalletBalance();
@@ -1295,9 +1443,10 @@ export function LuckyComboButton() {
       luckyReturnAmount,
       luckyReturnPercent,
       luckyImage: comboData.giftImage,
+      winTimes // Broadcast how many times they won
     });
 
-    // ✅ LOCAL SLIDER TRIGGER - Send random win data
+    // ✅ LOCAL SLIDER TRIGGER - Pass random win data to slider AND big orb
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
       detail: {
         roomId: comboData.roomId,
@@ -1308,7 +1457,8 @@ export function LuckyComboButton() {
         giftImage: comboData.giftImage,
         multiplier: nextMultiplier,
         luckyGift: true,
-        luckyReturnAmount: luckyReturnAmount // send completely odd random won coins
+        luckyReturnAmount: luckyReturnAmount, // send won coins
+        winTimes: winTimes
       }
     }));
 
@@ -1320,16 +1470,16 @@ export function LuckyComboButton() {
   return (
     <>
       <style>{`
-        @keyframes comboRipple {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(1.6); opacity: 0; }
+        @keyframes comboPulseRed {
+          0% { transform: scale(1); opacity: 0.5; }
+          100% { transform: scale(1.5); opacity: 0; }
         }
-        .combo-wave {
+        .combo-wave-red {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(59,130,246,0.6) 0%, rgba(37,99,235,0.1) 100%);
-          animation: comboRipple 2s infinite cubic-bezier(0, 0.2, 0.8, 1);
+          background: radial-gradient(circle, rgba(255, 51, 102, 0.6) 0%, rgba(255, 51, 102, 0.1) 100%);
+          animation: comboPulseRed 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
           pointer-events: none;
           z-index: 1;
         }
@@ -1338,7 +1488,7 @@ export function LuckyComboButton() {
       <div
         style={{
           position: "fixed",
-          bottom: "7vh",
+          bottom: "12vh",
           right: "5vw",
           zIndex: 2147483001,
           display: "flex",
@@ -1347,11 +1497,11 @@ export function LuckyComboButton() {
           gap: 4,
         }}
       >
-        <div style={{ position: "relative", width: 68, height: 68, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ position: "relative", width: 80, height: 80, display: "flex", alignItems: "center", justifyContent: "center" }}>
           
-          <div className="combo-wave" style={{ animationDelay: "0s" }} />
-          <div className="combo-wave" style={{ animationDelay: "0.6s" }} />
-          <div className="combo-wave" style={{ animationDelay: "1.2s" }} />
+          {/* Waves background */}
+          <div className="combo-wave-red" style={{ animationDelay: "0s" }} />
+          <div className="combo-wave-red" style={{ animationDelay: "0.6s" }} />
 
           <button
             onClick={handleComboClick}
@@ -1361,32 +1511,35 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 68, 
-              height: 68,
+              width: 72, 
+              height: 72,
               borderRadius: "50%",
               border: "none",
               outline: "none",
               cursor: "pointer",
-              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-              boxShadow: "0 4px 20px rgba(59, 130, 246, 0.7)",
+              // Exact Pink/Red Match from the image
+              background: "radial-gradient(circle at center, #ff4d79 0%, #ff1a4d 100%)",
+              boxShadow: "0 4px 20px rgba(255, 26, 77, 0.7)",
               zIndex: 2,
             }}
           >
+            {/* Word "Combo" instead of xMultiplier */}
             <span
               style={{
-                color: "#fff",
-                fontWeight: 800,
-                fontSize: 24,
-                textShadow: "0 2px 4px rgba(0,0,0,0.6)",
-                lineHeight: 1,
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: 16, // Fit nicely in the circle
+                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                letterSpacing: "0.5px",
                 zIndex: 3,
               }}
             >
-              ×{comboMultiplier}
+              Combo
             </span>
 
+            {/* Solid white circular timer matching the image */}
             <svg
-              viewBox="0 0 68 68"
+              viewBox="0 0 72 72"
               style={{
                 position: "absolute",
                 inset: 0,
@@ -1398,14 +1551,22 @@ export function LuckyComboButton() {
               }}
             >
               <circle
-                cx="34"
-                cy="34"
-                r="32"
+                cx="36"
+                cy="36"
+                r="34"
                 fill="none"
-                stroke="#ffffff"
-                strokeWidth="3.5"
-                strokeDasharray="201"
-                strokeDashoffset={201 - (201 * timeLeft) / 5}
+                stroke="rgba(255, 255, 255, 0.3)" // Faded background track
+                strokeWidth="4"
+              />
+              <circle
+                cx="36"
+                cy="36"
+                r="34"
+                fill="none"
+                stroke="#ffffff" // Solid white timer line
+                strokeWidth="4"
+                strokeDasharray="213.6"
+                strokeDashoffset={213.6 - (213.6 * timeLeft) / 5}
                 style={{ transition: "stroke-dashoffset 1s linear" }}
               />
             </svg>
