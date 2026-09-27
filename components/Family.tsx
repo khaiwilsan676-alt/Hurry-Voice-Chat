@@ -272,7 +272,7 @@ export default function Family({ onBack }: FamilyProps) {
 
         <div
           className="flex flex-row items-center w-full px-2 relative z-30"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 11px)' }}
         >
           <button
             type="button"
@@ -534,7 +534,7 @@ export default function Family({ onBack }: FamilyProps) {
           </filter>
         </svg>
 
-        <div className="flex items-center justify-between px-2 py-4 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
+        <div className="flex items-center justify-between px-2 py-4 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 11px)' }}>
           <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
             <ArrowLeft size={28} className="text-black" />
           </button>
@@ -629,7 +629,7 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
 
       <div className="relative z-20 flex flex-col w-full">
-        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)' }}>
+        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 11px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
