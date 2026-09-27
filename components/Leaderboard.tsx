@@ -141,7 +141,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
       {/* FIXED TOP HEADER */}
       <header
         className="relative z-50 flex flex-col w-full"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 15px)' }}
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
