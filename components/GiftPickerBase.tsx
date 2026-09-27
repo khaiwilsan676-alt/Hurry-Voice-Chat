@@ -299,7 +299,7 @@ export default function GiftPicker({
       if (!data?.roomId || String(data.roomId) !== String(roomId)) return;
       if (String(data.senderId || "") === String(currentUserAccountId || "")) return;
       if (!data.video) return;
-      setPlayingVideo({ src: String(data.video), style: data.videoStyle === "fade" ? "fade" : "normal" });
+      setPlayingVideo({ src: String(data.video), style: data.videoStyle === "fade" ? "fade" : "pure" });
       setSending(false);
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
       videoTimeoutRef.current = setTimeout(finishVideo, 15000);
