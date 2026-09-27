@@ -443,15 +443,22 @@ export default function Fruitparty({ onClose, onMinimize, isMinimized = false }:
         if (earned > 0) {
             recordTransaction('Won in Fruit Party', earned);
 
-            // get current user from localStorage
-            let currentUserName = "Alex";
-            let currentUserAvatar = "/default-avatar.png";
+            // Use the same profile name + DP shown on Me/Public Profile.
+            let currentUserName = localStorage.getItem('userName') || "User";
+            let currentUserAvatar = localStorage.getItem('userPhoto') || "/default-avatar.png";
             try {
                 const userData = localStorage.getItem('currentUser');
                 if (userData) {
                     const parsed = JSON.parse(userData);
-                    currentUserName = parsed.name || "User";
-                    currentUserAvatar = parsed.photoUrl || parsed.photoURL || "/default-avatar.png";
+                    currentUserName = localStorage.getItem('userName') || parsed.name || "User";
+                    currentUserAvatar =
+                      localStorage.getItem('userPhoto') ||
+                      parsed.photo ||
+                      parsed.avatar ||
+                      parsed.image ||
+                      parsed.photoUrl ||
+                      parsed.photoURL ||
+                      "/default-avatar.png";
                 }
             } catch (e) {}
 
