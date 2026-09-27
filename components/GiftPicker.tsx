@@ -178,11 +178,13 @@ export default function GiftPicker({
         Candy: "/IMG_20260906_000814.png", Pop: "/IMG_20260906_000832.png",
         Scarecrow: "/IMG_20260906_000850.png",
       };
-      const image = luckyImages[String(data.giftName || "")];
-      if (!image) return originalEmit(event, ...args);
       const amount = Number(data.amount);
       const diamondAmount = Number.isFinite(amount) && amount > 0 ? Math.floor(amount) : 0;
-      originalEmit("coin_transfer", { ...data, luckyGift: true, luckyImage: image, diamondAmount });
+      data.diamondAmount = diamondAmount;
+      const image = luckyImages[String(data.giftName || "")];
+      if (!image) return originalEmit(event, data);
+
+      originalEmit("coin_transfer", { ...data, luckyGift: true, luckyImage: image });
       const recipientIds = new Set(Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []);
       for (const seat of seats) {
         const targetId = String(seat?.user?.accountId || "");
