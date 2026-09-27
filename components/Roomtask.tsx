@@ -108,115 +108,72 @@ function useProcessedShaderImage(src: string) {
   return processedSrc;
 }
 
-// Helper component for task items
-function TaskItem({ 
-  title, 
-  reward,
-  iconSrc
-}: { 
-  title: string; 
-  reward: string;
-  iconSrc: string;
-}) {
-  
-  // Title ke basis par Left Icon aur uska size decide karna
+// Daily task card. Claim is available only after the task is complete.
+function TaskItem({ title, reward, iconSrc, claimed, completed, onClaim }: { title:string; reward:string; iconSrc:string; claimed:boolean; completed:boolean; onClaim:()=>void }) {
   const lowerTitle = title.toLowerCase();
-  
-  let leftIconSrc = iconSrc; 
-  let iconSize = "w-10 h-10"; 
-
-  if (lowerTitle.includes('mic')) {
-    leftIconSrc = '/file_00000000f8d88211ba5ff45c06383e5f.png';
-    iconSize = "w-20 h-20";
-  } else if (lowerTitle.includes('share')) {
-    leftIconSrc = '/file_0000000019a0821193463686d6fc9184.png';
-    iconSize = "w-14.5 h-14.5 ml-2";
-  } else if (lowerTitle.includes('gift')) {
-    leftIconSrc = '/file_0000000081f48211afe58f6348196b55.png';
-    iconSize = "w-20 h-20";
-  } else if (lowerTitle.includes('user') || lowerTitle.includes('follower')) {
-    leftIconSrc = '/file_00000000858082118b5c81b85cd6d2a8.png';
-    iconSize = "w-20 h-20";
-  }
-
-  const rewardValue = reward.replace(/coins/gi, '').trim();
-
-  return (
-    // Explicitly added rounded-none to ensure NO curves at all
-    <div className="relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none">
-      <img 
-        src="/file_000000004fd0821198ed4e26d5008b16.png"
-        alt="Task Background"
-        // Force rounded-none on image so original square/rectangle shape remains
-        className="absolute inset-0 w-full h-full object-fill cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none z-0 rounded-none"
-        draggable={false}
-      />
-
-      <div className="relative z-30 w-full pl-2 pr-4 flex items-center justify-between pointer-events-none rounded-none">
-        
-        {/* Left Side: 0.5 gap */}
-        <div className="flex items-center space-x-0.5 flex-1">
-          <img 
-            src={leftIconSrc} 
-            alt="Task Icon" 
-            className={`${iconSize} object-contain flex-shrink-0 ${leftIconSrc === iconSrc ? '' : 'drop-shadow-md'} select-none rounded-none`}
-            draggable={false}
-          />
-          <div className="flex flex-col justify-center">
-            <span className="text-[15px] sm:text-[16px] font-bold text-white leading-tight drop-shadow-md line-clamp-3">
-              {title}
-            </span>
-          </div>
-        </div>
-
-        {/* Right Side */}
-        <div className="flex-shrink-0 pointer-events-auto flex flex-col items-center justify-center space-y-1.5 pl-1">
-          
-          <div className="flex items-center space-x-1">
-            <img 
-              src={iconSrc} 
-              alt="Coins" 
-              className="w-6 h-6 object-contain flex-shrink-0 select-none rounded-none"
-              draggable={false}
-            />
-            <span className="text-[15px] font-extrabold text-[#ffd700] drop-shadow-md whitespace-nowrap">
-              {rewardValue}
-            </span>
-          </div>
-
-          <button 
-            onClick={() => {}}
-            className="transition-transform hover:scale-105 active:scale-95 cursor-pointer outline-none rounded-none"
-          >
-            <img 
-              src="/file_00000000196c8208b7ea093e8d7f56c8.png"
-              alt="Claim Action"
-              className="w-[85px] h-auto object-contain select-none rounded-none"
-              draggable={false}
-            />
-          </button>
-
-        </div>
+  let leftIconSrc = iconSrc; let iconSize = 'w-10 h-10';
+  if (lowerTitle.includes('mic')) { leftIconSrc='/file_00000000f8d88211ba5ff45c06383e5f.png'; iconSize='w-20 h-20'; }
+  else if (lowerTitle.includes('share')) { leftIconSrc='/file_0000000019a0821193463686d6fc9184.png'; iconSize='w-14.5 h-14.5 ml-2'; }
+  else if (lowerTitle.includes('gift')) { leftIconSrc='/file_0000000081f48211afe58f6348196b55.png'; iconSize='w-20 h-20'; }
+  else if (lowerTitle.includes('user') || lowerTitle.includes('follower')) { leftIconSrc='/file_00000000858082118b5c81b85cd6d2a8.png'; iconSize='w-20 h-20'; }
+  const rewardValue = reward.replace(/coins/gi,'').trim();
+  return <div className='relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none'>
+    <img src='/file_000000004fd0821198ed4e26d5008b16.png' alt='Task Background' className='absolute inset-0 w-full h-full object-fill select-none z-0 rounded-none' draggable={false} />
+    <div className='relative z-30 w-full pl-2 pr-4 flex items-center justify-between pointer-events-none'>
+      <div className='flex items-center space-x-0.5 flex-1'><img src={leftIconSrc} alt='Task Icon' className={iconSize+' object-contain flex-shrink-0 select-none rounded-none'} draggable={false}/><div className='flex flex-col justify-center'><span className='text-[15px] sm:text-[16px] font-bold text-white leading-tight drop-shadow-md line-clamp-3'>{title}</span></div></div>
+      <div className='flex-shrink-0 pointer-events-auto flex flex-col items-center justify-center space-y-1.5 pl-1'>
+        <div className='flex items-center space-x-1'><img src={iconSrc} alt='Coins' className='w-6 h-6 object-contain' draggable={false}/><span className='text-[15px] font-extrabold text-[#ffd700] drop-shadow-md whitespace-nowrap'>{rewardValue}</span></div>
+        <button type='button' disabled={!completed || claimed} onClick={onClaim} className={'transition-transform active:scale-95 cursor-pointer outline-none rounded-none '+((claimed||!completed)?'opacity-50 grayscale':'hover:scale-105')}>
+          <img src='/file_00000000196c8208b7ea093e8d7f56c8.png' alt='Claim Action' className='w-[85px] h-auto object-contain select-none rounded-none' draggable={false}/>
+        </button>
       </div>
     </div>
-  );
+  </div>;
 }
-
 export default function Roomtask({ onBack }: RoomtaskProps) {
   
   // Yaha original WebGL hook se clean image aayegi (base64 data URL)
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
+  const [claimedTasks, setClaimedTasks] = useState<boolean[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<boolean[]>([]);
+  const dailyKey = new Date().toLocaleDateString('en-CA');
+  const storageKey = 'hurry_room_tasks_' + dailyKey;
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      setClaimedTasks(Array.isArray(saved.claimed) ? saved.claimed : []);
+      setCompletedTasks(Array.isArray(saved.completed) ? saved.completed : []);
+    } catch { setClaimedTasks([]); setCompletedTasks([]); }
+  }, [storageKey]);
+
+  const claimTask = (index: number, reward: string) => {
+    if (!completedTasks[index] || claimedTasks[index]) return;
+    const claimed = [...claimedTasks]; claimed[index] = true;
+    setClaimedTasks(claimed);
+    localStorage.setItem(storageKey, JSON.stringify({ claimed, completed: completedTasks }));
+    const amount = Number(reward.replace(/[^0-9]/g,'')) || 0;
+    if (amount > 0) {
+      try {
+        const req = indexedDB.open('FruitPartyDB', 3);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction('GameState','readwrite');
+          const store = tx.objectStore('GameState');
+          const get = store.get('user_data');
+          get.onsuccess = () => store.put({ ...(get.result || {}), balance: Number(get.result?.balance || 0) + amount }, 'user_data');
+        };
+      } catch {}
+    }
+  };
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const timer = setInterval(() => {
       const now = new Date();
-      const dayOfWeek = now.getDay();
-      const daysUntilNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-      
       const nextTarget = new Date(now);
-      nextTarget.setDate(now.getDate() + daysUntilNextMonday);
+      nextTarget.setDate(now.getDate() + 1);
       nextTarget.setHours(0, 0, 0, 0);
 
       const diff = nextTarget.getTime() - now.getTime();
@@ -259,8 +216,11 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
     { title: "Send 1 Gift", reward: " 1,000" },
   ];
 
+  const isRoomOwner = true;
+  if (!isRoomOwner) return null;
+
   return (
-    <div className="relative w-full h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#380308] scrollbar-none select-none m-0 p-0">
+    <div className="relative w-full h-[100dvh] overflow-y-auto overflow-x-hidden overscroll-contain touch-pan-y bg-[#380308] scrollbar-none select-none m-0 p-0">
       
       <div className="relative w-full min-h-full flex flex-col m-0 p-0">
         
@@ -291,7 +251,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
         <button 
           onClick={onBack} 
-          className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
+          className="fixed z-[100] pointer-events-auto p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
           style={{
             top: 'calc(env(safe-area-inset-top, 0px) + 2px)',
             left: '2px'
@@ -418,6 +378,9 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                     title={task.title}
                     reward={task.reward}
                     iconSrc={cleanedIconSrc}
+                    claimed={!!claimedTasks[index]}
+                    completed={!!completedTasks[index]}
+                    onClaim={() => claimTask(index, task.reward)}
                   />
                 ))}
               </div>
