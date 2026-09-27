@@ -85,8 +85,7 @@ export default function Svip({ onBack }: SvipProps) {
           <header
             className="relative z-30 flex items-center justify-between w-full px-3 py-2"
             style={{
-              paddingTop:
-                'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 6px)',
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)',
             }}
           >
             {/* Left: Back arrow */}
