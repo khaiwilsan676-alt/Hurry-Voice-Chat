@@ -708,21 +708,24 @@ export default function Wildparty({ onClose, onMinimize }: WildpartyProps) {
           await updateWalletBalance(totalWinnings);
           recordTransaction('Won in Wild Party', totalWinnings);
 
-          let currentUserName = "User";
-          let currentUserAvatar = "/default-avatar.png";
+          // Use the same profile name + DP shown on Me/Public Profile.
+          let currentUserName = localStorage.getItem('userName') || "User";
+          let currentUserAvatar = localStorage.getItem('userPhoto') || "/default-avatar.png";
           try {
               const userData = localStorage.getItem('currentUser');
               if (userData) {
                   const parsed = JSON.parse(userData);
                   currentUserName =
+                    localStorage.getItem('userName') ||
                     parsed.name ||
                     parsed.userName ||
                     parsed.displayName ||
                     parsed.username ||
                     "User";
                   currentUserAvatar =
-                    parsed.avatar ||
+                    localStorage.getItem('userPhoto') ||
                     parsed.photo ||
+                    parsed.avatar ||
                     parsed.image ||
                     parsed.photoUrl ||
                     parsed.photoURL ||
