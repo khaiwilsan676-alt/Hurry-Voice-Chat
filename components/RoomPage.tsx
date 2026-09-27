@@ -1892,27 +1892,17 @@ function RoomContent({
       )}
     </div>
 
-    {/* MIDDLE CENTER: Gift Box (Purple/Blue/Violet mix gradient, 3D border, small inner image size) */}
-    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
-      <button
-        onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
-        aria-label="Gift"
-        className="relative rounded-full shrink-0 cursor-pointer border-[2px] border-white/70 shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_2px_4px_rgba(255,255,255,0.8),inset_0_-3px_6px_rgba(0,0,0,0.5)] bg-gradient-to-tr from-violet-600 via-purple-600 to-blue-500 transition-transform hover:scale-105 active:scale-95 p-1 flex items-center justify-center overflow-hidden"
-        style={{ width: 'calc(var(--footer-btn-size) + 4px)', height: 'calc(var(--footer-btn-size) + 4px)' }}
-      >
-        {/* Glossy top reflection for 3D depth */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-transparent via-white/25 to-transparent pointer-events-none z-10" />
-        
-        {/* Slightly reduced image size */}
-        <img
-          src="/IMG_20260927_153549.png"
-          alt="Gift"
-          className="w-99 h-90 object-contain rounded-full z-0 transform scale-85 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
-          draggable={false}
-        />
-      </button>
-    </div>
-
+    {/* MIDDLE CENTER: Gift — sirf image */}
+<div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
+  <img
+    src="/file_0000000019c4821180028eebae10dbfc.png"
+    alt="Gift"
+    className="cursor-pointer active:scale-95 transition-transform select-none"
+    style={{ width: 'calc(var(--footer-btn-size) + 4px)', height: 'auto' }}
+    draggable={false}
+    onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }}
+  />
+</div>
     {/* RIGHT SIDE: Mail, Menu (4-Grid) */}
     <div className="flex items-center justify-end gap-1 z-10">
       {/* Mail Icon (Pure solid white, curved corners, transparent V-cut line) */}
