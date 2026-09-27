@@ -878,8 +878,31 @@ export default function HomePage({ onLogout }: HomePageProps) {
     const claimKey = `signInClaimDate_${userUID}`
     const savedDay = Number(localStorage.getItem(dayKey) || '1')
     const today = getDailyDateKey()
-    setCurrentSignInDay(savedDay >= 1 && savedDay <= 7 ? savedDay : 1)
-    setClaimedToday(localStorage.getItem(claimKey) === today)
+    const localDay = savedDay >= 1 && savedDay <= 7 ? savedDay : 1
+    const localClaimed = localStorage.getItem(claimKey) === today
+
+    setCurrentSignInDay(localDay)
+    setClaimedToday(localClaimed)
+
+    if (!userUID || userUID === 'N/A') return
+
+    // Browser/WebView localStorage is the fast cache. The backend copy
+    // restores the check-in state after an APK uninstall/reinstall.
+    fetch(apiUrl(`/api/daily-checkin?userId=${encodeURIComponent(userUID)}`), { cache: 'no-store' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (!data?.success) return
+        const serverDay = Number(data.currentDay)
+        if (serverDay >= 1 && serverDay <= 7) {
+          setCurrentSignInDay(serverDay)
+          localStorage.setItem(dayKey, String(serverDay))
+        }
+        if (String(data.claimedDate || '') === today) {
+          setClaimedToday(true)
+          localStorage.setItem(claimKey, today)
+        }
+      })
+      .catch(() => {})
   }, [userUID])
 
   const [isDragging, setIsDragging] = useState(false)
@@ -2476,6 +2499,37 @@ export default function HomePage({ onLogout }: HomePageProps) {
     }
 
     try {
+      // Keep the reward state in browser/WebView storage and mirror the
+      // successful claim to the backend so APK reinstall does not reset it.
+      const today = getDailyDateKey()
+      let serverClaimRecorded = false
+      try {
+        const response = await fetch(apiUrl('/api/daily-checkin'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: userUID,
+            dateKey: today,
+            currentDay: currentSignInDay,
+          }),
+        })
+        if (response.ok) {
+          const serverData = await response.json()
+          if (serverData?.alreadyClaimed) {
+            const serverDay = Number(serverData.currentDay)
+            if (serverDay >= 1 && serverDay <= 7) {
+              setCurrentSignInDay(serverDay)
+              localStorage.setItem(`signInDay_${userUID}`, String(serverDay))
+            }
+            setClaimedToday(true)
+            localStorage.setItem(`signInClaimDate_${userUID}`, today)
+            setIsSignInModalOpen(false)
+            return
+          }
+          serverClaimRecorded = Boolean(serverData?.success)
+        }
+      } catch {}
+
       const db = await new Promise<IDBDatabase>((resolve, reject) => {
         const request = indexedDB.open('FruitPartyDB', 3)
         request.onupgradeneeded = () => {
@@ -2510,7 +2564,6 @@ export default function HomePage({ onLogout }: HomePageProps) {
       })
       db.close()
 
-      const today = getDailyDateKey()
       const nextDay = currentSignInDay < 7 ? currentSignInDay + 1 : 1
       localStorage.setItem(`signInDay_${userUID}`, String(nextDay))
       localStorage.setItem(`signInClaimDate_${userUID}`, today)
