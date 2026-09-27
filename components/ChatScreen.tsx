@@ -629,7 +629,7 @@ export default function ChatScreen({
           className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10"
           style={{
             background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 15px)',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
           }}
         >
           {/* Left Side: Back Button + Avatar + Name/Status */}
