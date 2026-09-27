@@ -11,6 +11,7 @@ interface EntryEffectProps {
 const CACHE_DB = "HurryVideoCacheDB";
 const CACHE_STORE = "videos";
 const CACHE_VERSION = 2;
+const ENTRY_EFFECT_KEY = "hurry_entry_effect_enabled";
 
 function openCache(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -94,14 +95,26 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     completedRef.current = false;
     setVisible(false);
     setSrc(null);
-    if (!vehicleUrl || !isMp4(vehicleUrl)) {
+
+    const isEnabled = () => localStorage.getItem(ENTRY_EFFECT_KEY) === "true";
+    if (!isEnabled() || !vehicleUrl || !isMp4(vehicleUrl)) {
       complete();
       return;
     }
+
     let cancelled = false;
+    const handleSettingChange = () => {
+      if (!isEnabled()) {
+        complete();
+        setSrc(null);
+      }
+    };
+    window.addEventListener("hurry_effect_settings_changed", handleSettingChange);
+
     loadVideo(vehicleUrl).then(({ src: loadedSrc, objectUrl }) => {
-      if (cancelled) {
+      if (cancelled || !isEnabled()) {
         if (objectUrl) URL.revokeObjectURL(objectUrl);
+        if (!cancelled) complete();
         return;
       }
       objectUrlRef.current = objectUrl;
@@ -109,8 +122,10 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     }).catch(() => {
       if (!cancelled) complete();
     });
+
     return () => {
       cancelled = true;
+      window.removeEventListener("hurry_effect_settings_changed", handleSettingChange);
       const objectUrl = objectUrlRef.current;
       objectUrlRef.current = null;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -118,7 +133,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
   }, [vehicleUrl]);
 
   useEffect(() => {
-    if (!src) return;
+    if (!src || localStorage.getItem(ENTRY_EFFECT_KEY) !== "true") return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -126,7 +141,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     let started = false;
 
     const start = async () => {
-      if (cancelled || started) return;
+      if (cancelled || started || localStorage.getItem(ENTRY_EFFECT_KEY) !== "true") return;
       try {
         video.currentTime = 0;
         video.muted = true;
@@ -169,12 +184,10 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
     };
   }, [src]);
 
-  if (!src) return null;
+  if (!src || localStorage.getItem(ENTRY_EFFECT_KEY) !== "true") return null;
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center overflow-hidden">
-
-      {/* ✅ SVG FILTER — green remove (Family jaisa) */}
       <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
         <filter id="remove-green" colorInterpolationFilters="sRGB">
           <feColorMatrix type="matrix" values="
@@ -185,7 +198,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
           " />
         </filter>
       </svg>
-
       <video
         ref={videoRef}
         src={src}
@@ -202,4 +214,4 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
       />
     </div>
   );
-        }
+}
