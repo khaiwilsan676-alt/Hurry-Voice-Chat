@@ -267,7 +267,6 @@ export default function GiftPicker({
   const insufficientTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const walletOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 🔥 SWIPE — tab switching
   const touchStartXRef = useRef<number | null>(null);
   const touchStartYRef = useRef<number | null>(null);
 
@@ -348,7 +347,6 @@ export default function GiftPicker({
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
 
-  // 🔥 SWIPE HANDLERS
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
     touchStartYRef.current = e.touches[0].clientY;
@@ -369,11 +367,9 @@ export default function GiftPicker({
     const currentIndex = tabs.indexOf(activeTab);
 
     if (deltaX < 0) {
-      // 👈 LEFT swipe → NEXT tab
       const nextIndex = (currentIndex + 1) % tabs.length;
       setActiveTab(tabs[nextIndex]);
     } else {
-      // 👉 RIGHT swipe → PREVIOUS tab
       const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
       setActiveTab(tabs[prevIndex]);
     }
@@ -865,18 +861,17 @@ export default function GiftPicker({
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
 
+        {/* 🎤 MIC + 🏠 HOUSE — dono -mt-2 */}
         <div className="absolute top-3 right-4 z-[60] flex items-center gap-2">
-          {/* 🎤 MIC button */}
           <button
             onClick={handleAllOnMic}
-            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
+            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all -mt-2 ${
               recipientMode === "mic"
                 ? "border-[#3b82f6] bg-[#3b82f6]/20 text-[#3b82f6]"
                 : "border-gray-500 bg-[#282d32] text-gray-400"
             }`}
           >
             <SolidMicIcon className="w-[18px] h-[18px]" />
-            {/* ✅ All tag — no border */}
             <div
               className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold leading-[1.2] ${
                 recipientMode === "mic" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
@@ -886,10 +881,9 @@ export default function GiftPicker({
             </div>
           </button>
 
-          {/* 🏠 HOUSE button — thoda upar (-mt-1) */}
           <button
             onClick={handleAllInRoom}
-            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all -mt-1 ${
+            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all -mt-2 ${
               recipientMode === "room"
                 ? "border-[#3b82f6] bg-[#3b82f6]/20 text-[#3b82f6]"
                 : "border-gray-500 bg-[#282d32] text-gray-400"
@@ -900,7 +894,6 @@ export default function GiftPicker({
                 recipientMode === "room" ? "text-[#3b82f6]" : "text-gray-400"
               }`}
             />
-            {/* ✅ All tag — no border */}
             <div
               className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold leading-[1.2] ${
                 recipientMode === "room" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
@@ -955,7 +948,6 @@ export default function GiftPicker({
           })}
         </div>
 
-        {/* 🔥 SWIPE AREA */}
         <div
           className="flex-1 overflow-y-auto py-2 scrollbar-none"
           onTouchStart={handleTouchStart}
@@ -1387,11 +1379,11 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* 🏆 WIN VALUE OVERLAY */}
+          {/* 🏆 WIN VALUE OVERLAY — Image NICHE, BADI, LEFT */}
           <div
             style={{
               position: "absolute",
-              right: 20,
+              right: 40,
               top: -100,
               height: 100,
               display: "flex",
@@ -1414,6 +1406,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                   animation: "dropWinCoins 1.4s forwards",
                 }}
               >
+                {/* 🏆 Big Win image — BADI, NICHE (bottom aligned), value ke peeche */}
                 {notice.maxWinTimes >= 10 && (
                   <img
                     src="/file_000000004e18820b810ae49258003b98.png"
@@ -1421,10 +1414,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     draggable={false}
                     style={{
                       position: "absolute",
-                      bottom: 0,
+                      bottom: -10,
                       left: "50%",
                       transform: "translateX(-50%)",
-                      height: 110,
+                      height: 140,
                       objectFit: "contain",
                       pointerEvents: "none",
                       zIndex: 1,
@@ -1432,12 +1425,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                   />
                 )}
 
+                {/* 🪙 Coin + Value — same ROW, image ke UPAR overlap */}
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
                   alt="Coins"
                   style={{
-                    width: 22,
-                    height: 22,
+                    width: 20,
+                    height: 20,
                     objectFit: "cover",
                     borderRadius: "50%",
                     filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
@@ -1862,4 +1856,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-                             }
+        }
