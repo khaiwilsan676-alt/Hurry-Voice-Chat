@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import socket from "../src/lib/socket";
 
@@ -81,7 +81,6 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// 🔥 NEW — Diamonds locally add karne wala function
 const addDiamondsToLocalDB = async (amount: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -130,7 +129,6 @@ const recordGiftTransaction = async (title: string, amount: number): Promise<voi
   }
 };
 
-// 🔥 NEW — Diamond history record
 const recordDiamondTransaction = async (title: string, amount: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -189,10 +187,10 @@ interface Seat {
 
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.997) return 15;
-  if (luck > 0.990) return 10;
-  if (luck > 0.960) return 5;
-  if (luck > 0.880) return 3;
+  if (luck > 0.997) return 50;
+  if (luck > 0.990) return 30;
+  if (luck > 0.960) return 15;
+  if (luck > 0.880) return 10;
   if (luck > 0.680) return 2;
   return 0;
 }
@@ -287,8 +285,6 @@ export default function GiftPicker({
   >(null);
 
   const sheetRef = useRef<HTMLDivElement>(null);
-  const [showTargetMenu, setShowTargetMenu] = useState(false);
-  const targetMenuRef = useRef<HTMLDivElement>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
   const videoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -374,16 +370,6 @@ export default function GiftPicker({
   }, [onClose, playingVideo, open]);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (targetMenuRef.current && !targetMenuRef.current.contains(e.target as Node)) {
-        setShowTargetMenu(false);
-      }
-    };
-    if (showTargetMenu) document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showTargetMenu]);
-
-  useEffect(() => {
     return () => {
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
     };
@@ -440,11 +426,6 @@ export default function GiftPicker({
     if (!canAfford) return;
     setSending(true);
 
-    console.log("=== 🎁 GIFT SEND ===");
-    console.log("My ID:", currentUserAccountId);
-    console.log("Recipients:", recipientIds);
-    console.log("Is self?", recipientIds.some(id => String(id) === String(currentUserAccountId)));
-
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
     let netDeductionCost = totalSendCost;
@@ -486,14 +467,11 @@ export default function GiftPicker({
         timestamp: Date.now(),
       });
 
-      // 🔥🔥 SELF-CREDIT — sender khud recipient hai toh seedha DB me diamond add karo
       const isSelfRecipient = recipientIds.some(id => String(id) === String(currentUserAccountId));
       if (isSelfRecipient) {
-        console.log("💰 Self-credit: adding", totalCost, "diamonds");
         await addDiamondsToLocalDB(totalCost);
         await recordDiamondTransaction("Diamonds received — " + selectedGiftObj.name, totalCost);
         window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: totalCost } }));
-        console.log("✅ Diamonds added locally");
       }
 
       if (isLuckyGiftTab) {
@@ -571,13 +549,15 @@ export default function GiftPicker({
       .map((s) => s.user!.accountId);
     setSelectedTargets(micUsers);
     setSelectionLabel("All");
-    setShowTargetMenu(false);
   };
 
   const handleAllInRoom = () => {
     setSelectedTargets([]);
     setSelectionLabel("All room");
-    setShowTargetMenu(false);
+  };
+
+  const handleOpenWallet = () => {
+    window.location.href = "/wallet";
   };
 
   const handleAvatarClick = (accountId: string) => {
@@ -718,50 +698,42 @@ export default function GiftPicker({
         ref={sheetRef}
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
-        <div className="absolute top-3 right-4 z-[60]" ref={targetMenuRef}>
-          <div className="relative">
-            <button
-              onClick={() => setShowTargetMenu(!showTargetMenu)}
-              className="flex items-center gap-1.5 text-white px-2 py-1 rounded-[6px] shadow-sm transition-transform active:scale-95"
-              style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)" }}
-            >
-              {selectionLabel === "All" ? (
-                <SolidMicIcon className="w-3.5 h-3.5" />
-              ) : (
-                <SolidUserIcon className="w-3.5 h-3.5" />
-              )}
-              <span className="text-[13px] font-medium leading-none whitespace-nowrap">
-                {selectionLabel}
-              </span>
-              <div className="w-[1px] h-3.5 bg-white/50 mx-0.5" />
-              <div className="w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[5px] border-b-white" />
-            </button>
+        
+        <div className="absolute top-3 right-4 z-[60] flex items-center gap-2">
+          <button
+            onClick={handleAllOnMic}
+            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
+              selectionLabel === "All"
+                ? "border-[#3b82f6] bg-[#3b82f6]/15 text-[#3b82f6]"
+                : "border-gray-500 bg-[#282d32] text-white"
+            }`}
+          >
+            <SolidMicIcon className="w-[18px] h-[18px]" />
+            <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
+              selectionLabel === "All" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+            }`}>
+              All
+            </div>
+          </button>
 
-            {showTargetMenu && (
-              <div className="absolute top-full right-0 mt-2 bg-[#0c1418] rounded-md shadow-2xl border border-white/5 w-[140px] z-[70]">
-                <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#0c1418] border-t border-l border-white/5 rotate-45" />
-                <div className="relative z-10 flex flex-col py-1.5">
-                  <button
-                    onClick={handleAllOnMic}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-[#3b82f6] w-full text-left"
-                  >
-                    <SolidMicIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">All on mic</span>
-                  </button>
-                  <button
-                    onClick={handleAllInRoom}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors text-white w-full text-left"
-                  >
-                    <SolidUserIcon className="w-4 h-4" />
-                    <span className="text-[14px] tracking-wide font-medium">All in room</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={handleAllInRoom}
+            className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
+              selectionLabel === "All room"
+                ? "border-[#3b82f6] bg-[#3b82f6]/15 text-[#3b82f6]"
+                : "border-gray-500 bg-[#282d32] text-white"
+            }`}
+          >
+            <SolidUserIcon className="w-[18px] h-[18px]" />
+            <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
+              selectionLabel === "All room" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+            }`}>
+              All
+            </div>
+          </button>
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-24 pt-0 pb-2 -mt-2 min-h-[52px]">
+        <div className="flex items-center gap-3 overflow-x-auto scrollbar-none pr-28 pt-0 pb-2 -mt-2 min-h-[52px]">
           {seats
             .filter((seat) => seat.isOccupied && seat.user)
             .map((seat) => {
@@ -844,11 +816,11 @@ export default function GiftPicker({
                   />
                 </div>
 
-                <span className="text-gray-300 font-medium text-[10px] truncate w-full text-center">
+                <span className="text-white font-medium text-[10px] truncate w-full text-center">
                   {gift.name}
                 </span>
 
-                <span className="text-yellow-400 flex items-center gap-0.5 mt-0.5 text-[9px]">
+                <span className="text-gray-400 flex items-center justify-center gap-0.5 mt-0.5 text-[9px]">
                   <div className="w-2.5 h-2.5 relative overflow-hidden rounded-full">
                     <Image
                       src="/file_00000000e56882119c217d508b6733dc.png"
@@ -866,8 +838,12 @@ export default function GiftPicker({
         </div>
 
         <div className="flex items-center justify-between pt-2 relative">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 relative overflow-hidden rounded-full">
+          
+          <div 
+            className="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
+            onClick={handleOpenWallet}
+          >
+            <div className="w-5 h-5 relative overflow-hidden rounded-full flex-shrink-0">
               <Image
                 src="/file_00000000e56882119c217d508b6733dc.png"
                 alt="Coins"
@@ -876,14 +852,15 @@ export default function GiftPicker({
                 sizes="20px"
               />
             </div>
-            <span className="text-[11px] font-bold text-yellow-300 tracking-wide">
+            <span className="text-[11px] font-bold text-white tracking-wide">
               {walletBalance.toLocaleString()}
             </span>
+            <ChevronRight className="w-4 h-4 text-white" />
           </div>
 
           <div className="flex items-center gap-2 relative">
             {showMultipliers && (
-              <div className="absolute bottom-10 right-0 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-zinc-900 border border-white/10">
+              <div className="absolute bottom-[calc(100%+8px)] left-0 w-full rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-black border border-white/10">
                 {multipliers.map((num) => (
                   <button
                     key={num}
@@ -904,7 +881,7 @@ export default function GiftPicker({
             )}
 
             <div
-              className="flex items-center rounded-full border border-[#3b82f6] overflow-hidden"
+              className="flex items-center rounded-full border border-[#3b82f6] overflow-hidden relative"
               style={{ background: "transparent" }}
             >
               <button
@@ -929,183 +906,13 @@ export default function GiftPicker({
                 {sending ? "..." : "Send"}
               </button>
             </div>
-
           </div>
         </div>
        </div>
       </div>
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
-      <BigWinOrb roomId={String(roomId || "")} />
       <LuckyComboButton />
     </div>
-  );
-}
-
-// ==========================================================
-// 🎇 BIG WIN ORB
-export function BigWinOrb({ roomId }: { roomId: string }) {
-  const [orbData, setOrbData] = useState<{ amount: number, times: number, avatar: string, id: string, isExiting: boolean } | null>(null);
-
-  useEffect(() => {
-    const handleOrb = (e: any) => {
-      const data = e.detail;
-      if (String(data.roomId || "") !== String(roomId || "")) return;
-      if (data.luckyGift !== true) return;
-      
-      const winTimes = Number(data.winTimes) || 0;
-      const winAmount = Number(data.luckyReturnAmount) || 0;
-
-      if (winAmount > 0 && winTimes >= 10) {
-        const newId = `orb-${Date.now()}-${Math.random()}`;
-        setOrbData({
-          amount: winAmount,
-          times: winTimes,
-          avatar: data.senderImage || "/default-avatar.png",
-          id: newId,
-          isExiting: false
-        });
-      }
-    };
-
-    window.addEventListener("hurry:lucky-slider", handleOrb);
-    return () => window.removeEventListener("hurry:lucky-slider", handleOrb);
-  }, [roomId]);
-
-  useEffect(() => {
-    if (orbData?.isExiting) {
-      const t = setTimeout(() => setOrbData(null), 600);
-      return () => clearTimeout(t);
-    }
-  }, [orbData?.isExiting]);
-
-  if (!orbData) return null;
-
-  return (
-    <>
-      <style>{`
-        @keyframes orbFadeIn {
-          0% { opacity: 0; }
-          100% { opacity: 1; }
-        }
-        @keyframes orbFadeOut {
-          0% { opacity: 1; }
-          100% { opacity: 0; }
-        }
-      `}</style>
-
-      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
-        <filter id="remove-black" colorInterpolationFilters="sRGB">
-          <feColorMatrix type="matrix" values="
-            1 0 0 0 0
-            0 1 0 0 0
-            0 0 1 0 0
-            1.5 1.5 1.5 0 -0.2
-          " />
-        </filter>
-      </svg>
-
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 2147483005,
-          pointerEvents: "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: 1,
-          animation: orbData.isExiting
-            ? "orbFadeOut 0.6s ease-out forwards"
-            : "orbFadeIn 0.3s ease-out forwards",
-        }}
-      >
-        <video
-          key={orbData.id}
-          src="/VID_20260927_033315_204_bsl.mp4"
-          autoPlay
-          muted
-          playsInline
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          onEnded={() => {
-            setOrbData(prev => (prev ? { ...prev, isExiting: true } : prev));
-          }}
-          style={{
-            position: "absolute",
-            top: "-25Vh",
-            left: 0,
-            width: "100vw",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center top",
-            backgroundColor: "transparent",
-            pointerEvents: "none",
-            zIndex: 1,
-            mixBlendMode: "screen",
-            filter: "url(#remove-black)",
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative",
-            zIndex: 5,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            transform: "translateY(-25vh)",
-          }}
-        >
-          <div
-            style={{
-              width: 60,
-              height: 60,
-              overflow: "hidden",
-              marginBottom: 12,
-            }}
-          >
-            <img
-              src={orbData.avatar}
-              alt=""
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-                display: "block",
-              }}
-            />
-          </div>
-
-          <span
-            style={{
-              color: "#ffe800",
-              fontSize: 34,
-              fontWeight: "900",
-              textShadow: "0 3px 6px rgba(0,0,0,0.9), 0 0 20px rgba(255,232,0,0.9)",
-              letterSpacing: "1.5px",
-            }}
-          >
-            Win {orbData.amount}
-          </span>
-          <span
-            style={{
-              color: "#00ffcc",
-              fontSize: 22,
-              fontWeight: "800",
-              textShadow: "0 3px 6px rgba(0,0,0,0.9)",
-              marginTop: 6,
-            }}
-          >
-            {orbData.times} Times
-          </span>
-        </div>
-      </div>
-    </>
   );
 }
 
@@ -1120,6 +927,7 @@ interface LuckyNotice {
   giftImage: string;
   multiplier: number;
   totalWinAmount: number;
+  maxWinTimes: number;
   isExiting: boolean;
 }
 
@@ -1139,14 +947,17 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const senderImage = String(data.senderImage || "/default-avatar.png");
       const giftImage = String(data.luckyImage || data.giftImage || "");
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
-      const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0); 
+      const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0);
+      const incomingWinTimes = Number(data.winTimes) || 0;
 
       setNotice((prev) => {
         if (prev && prev.senderId === senderId && prev.giftImage === giftImage) {
-          if (multiplier > prev.multiplier) {
-            return { ...prev, multiplier, isExiting: false }; 
-          }
-          return { ...prev, isExiting: false }; 
+          return {
+            ...prev,
+            multiplier: Math.max(multiplier, prev.multiplier),
+            maxWinTimes: Math.max(incomingWinTimes, prev.maxWinTimes || 0),
+            isExiting: false
+          };
         }
         return {
           id: `notify-${Date.now()}-${Math.random()}`,
@@ -1157,6 +968,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           giftImage,
           multiplier,
           totalWinAmount: 0,
+          maxWinTimes: incomingWinTimes,
           isExiting: false
         };
       });
@@ -1177,13 +989,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
         setTimeout(() => {
           setFloatingWins(prev => prev.filter(f => f.id !== floatId));
-        }, 1200);
+        }, 1500);
       }
 
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         setNotice(prev => (prev ? { ...prev, isExiting: true } : null));
-      }, 5500); 
+      }, 4500); 
     };
 
     socket.on("coin_transfer_received", processNotice);
@@ -1217,17 +1029,28 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   return (
     <>
       <style>{`
-        @keyframes noticeSlideIn {
-          0% { transform: translate3d(115vw, 0, 0); opacity: 0; }
-          100% { transform: translate3d(0, 0, 0); opacity: 1; }
+        @keyframes slideInLeft {
+          0% { transform: translateX(-100%); opacity: 0; }
+          100% { transform: translateX(0); opacity: 1; }
         }
-        @keyframes noticeSlideOut {
-          0% { transform: translate3d(0, 0, 0); opacity: 1; }
-          100% { transform: translate3d(-115vw, 0, 0); opacity: 0; }
+        @keyframes slideOutLeft {
+          0% { transform: translateX(0); opacity: 1; }
+          100% { transform: translateX(-120%); opacity: 0; }
         }
-        @keyframes floatUpFade {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+        @keyframes popGift {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.4); }
+          100% { transform: scale(1); }
+        }
+        @keyframes dropWin {
+          0% { transform: translateY(-40px) scale(0.8); opacity: 0; }
+          20% { transform: translateY(0) scale(1); opacity: 1; }
+          80% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(20px) scale(0.8); opacity: 0; }
+        }
+        @keyframes smoothDrop {
+          0% { transform: translateY(-10px) scale(0.8); opacity: 0; }
+          100% { transform: translateY(0) scale(1); opacity: 1; }
         }
       `}</style>
 
@@ -1235,119 +1058,82 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
         key={notice.id}
         style={{
           position: "fixed",
-          left: 8,
-          right: 8,
-          bottom: "40vh", 
+          left: 0,
+          top: "28vh", 
           zIndex: 2147483000,
           pointerEvents: "none",
           display: "flex",
-          justifyContent: "center",
+          alignItems: "center",
           animation: notice.isExiting 
-            ? "noticeSlideOut 0.4s ease-in forwards" 
-            : "noticeSlideIn 0.4s ease-out forwards",
+            ? "slideOutLeft 0.4s ease-in forwards" 
+            : "slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
         }}
       >
         <div
           style={{
             position: "relative",
-            width: "min(94vw, 420px)",
-            height: 88,
-            backgroundImage: "url('/file_000000006f008211bade0d2ed6277792.png')",
-            backgroundSize: "100% 100%",
-            backgroundRepeat: "no-repeat",
+            display: "flex",
+            alignItems: "center",
+            background: "linear-gradient(90deg, #ffc107 0%, rgba(255, 193, 7, 0.8) 50%, rgba(255, 193, 7, 0) 100%)",
+            borderRadius: "50px 0 0 50px",
+            padding: "4px 40px 4px 4px",
+            minWidth: "240px",
+            maxWidth: "85vw"
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              left: 9,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 52,
-              height: 52,
-              zIndex: 10,
-            }}
-          >
+          {/* Big Win >= 10x top image element */}
+          {notice.maxWinTimes >= 10 && (
+            <img
+              src="/File_00000000791c820ba530d68b8c0ade38.png"
+              alt="Big Win"
+              style={{
+                position: "absolute",
+                top: -30,
+                right: 30,
+                height: 48,
+                objectFit: "contain",
+                animation: "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+                zIndex: -1
+              }}
+              draggable={false}
+            />
+          )}
+
+          {/* Sender Avatar - No border */}
+          <div style={{ flexShrink: 0, zIndex: 1 }}>
             <img
               src={notice.senderImage}
-              alt=""
+              alt={notice.senderName}
               style={{
-                width: "100%",
-                height: "100%",
+                width: 44,
+                height: 44,
                 borderRadius: "50%",
                 objectFit: "cover",
                 display: "block",
               }}
               draggable={false}
             />
-            <img
-              src="/file_00000000fc488211afad439cacecc7c5.png"
-              alt=""
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "135%",
-                height: "135%",
-                maxWidth: "none",
-                objectFit: "contain",
-                pointerEvents: "none",
-                zIndex: 20,
-              }}
-              draggable={false}
-            />
           </div>
 
-          <div
-            style={{
-              position: "absolute",
-              left: 70, 
-              top: "50%",
-              transform: "translateY(-50%)",
-              display: "flex",
-              flexDirection: "column",
-              maxWidth: "75px", 
-              zIndex: 10,
-            }}
-          >
-            <span
-              style={{
-                color: "white",
-                fontSize: 12,
-                fontWeight: "bold",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                lineHeight: 1.2
-              }}
-            >
+          {/* Names Info */}
+          <div style={{ marginLeft: 8, display: "flex", flexDirection: "column", maxWidth: 90, zIndex: 1 }}>
+            <span style={{ color: "#fff", fontSize: 13, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2, textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
               {notice.senderName}
             </span>
-            <span
-              style={{
-                color: "#ffd700", 
-                fontSize: 10,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                lineHeight: 1.2
-              }}
-            >
+            <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
               To {notice.recipientName}
             </span>
           </div>
 
+          {/* Gift Image & Multiplier - Using Key to Trigger Pop Animation */}
           <div
+            key={notice.multiplier}
             style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
               display: "flex",
               alignItems: "center",
-              gap: 6,
-              zIndex: 10,
+              marginLeft: 8,
+              animation: "popGift 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              zIndex: 1
             }}
           >
             {notice.giftImage && (
@@ -1355,11 +1141,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 src={notice.giftImage}
                 alt=""
                 style={{
-                  width: 42,
-                  height: 42, 
+                  width: 38,
+                  height: 38, 
                   objectFit: "contain",
                   display: "block",
-                  opacity: 1
                 }}
                 draggable={false}
               />
@@ -1367,9 +1152,11 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             <span
               style={{
                 color: "#fff",
-                fontWeight: 800,
+                fontWeight: 900,
                 fontSize: 22,
-                textShadow: "0 2px 4px rgba(0,0,0,0.85)",
+                fontStyle: "italic",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                marginLeft: 4,
                 lineHeight: 1,
               }}
             >
@@ -1377,121 +1164,51 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          <div
-            style={{
-              position: "absolute",
-              right: -8, 
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 85,
-              height: 85,
-              zIndex: 10,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              overflow: "visible",
-            }}
-          >
+          {/* Winning Drops Display on the Right Side */}
+          <div style={{ position: "absolute", right: -50, top: -10, display: "flex", justifyContent: "center", zIndex: 2 }}>
             {floatingWins.map(fw => (
               <div
                 key={fw.id}
                 style={{
                   position: "absolute",
-                  top: -15,
-                  right: 0,
+                  width: 70,
+                  height: 70,
+                  animation: "dropWin 1.4s forwards",
                   display: "flex",
                   alignItems: "center",
-                  gap: "3px",
-                  animation: "floatUpFade 1.2s ease-out forwards",
-                  zIndex: 20,
-                  whiteSpace: "nowrap",
+                  justifyContent: "center",
+                  zIndex: 10
                 }}
               >
                 <img
-                  src="/file_00000000e56882119c217d508b6733dc.png"
-                  alt="Coins"
+                  src="/file_00000000a9e48211aee262c0df0c36bc.png"
+                  alt=""
                   style={{
-                    width: 20,
-                    height: 20,
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    filter: "drop-shadow(0px 2px 2px rgba(0,0,0,0.9))",
-                  }}
-                />
-                <span
-                  style={{
-                    color: "#ffff00", 
-                    fontWeight: "900",
-                    fontSize: 18,
-                    textShadow: "-1px -1px 0 #d9381e, 1px -1px 0 #d9381e, -1px 1px 0 #d9381e, 1px 1px 0 #d9381e, 0px 4px 6px rgba(0,0,0,0.9)", 
-                  }}
-                >
-                  +{fw.amount}
-                </span>
-              </div>
-            ))}
-
-            <img
-              src="/file_00000000a9e48211aee262c0df0c36bc.png"
-              alt=""
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "contain", 
-                display: "block",
-                zIndex: 1,
-                opacity: 1
-              }}
-              draggable={false}
-            />
-            
-            <div
-              style={{
-                position: "relative",
-                zIndex: 2,
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                marginTop: 2
-              }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  overflow: "hidden",
-                  flexShrink: 0,
-                }}
-              >
-                <img
-                  src="/file_00000000e56882119c217d508b6733dc.png"
-                  alt="Coins"
-                  style={{
+                    position: "absolute",
+                    inset: 0,
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover",
+                    objectFit: "contain", 
                     display: "block",
+                    zIndex: 1,
                   }}
                   draggable={false}
                 />
+                <span
+                  style={{
+                    position: "relative",
+                    zIndex: 2,
+                    color: "#fff0b3",
+                    fontWeight: "900",
+                    fontSize: 16, 
+                    textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
+                    letterSpacing: "0.5px"
+                  }}
+                >
+                  {fw.amount}
+                </span>
               </div>
-              <span
-                style={{
-                  color: "#fff0b3",
-                  fontWeight: "900",
-                  fontSize: 16, 
-                  textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)", 
-                  letterSpacing: "0.5px"
-                }}
-              >
-                {notice.totalWinAmount.toLocaleString()}
-              </span>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1500,7 +1217,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON
+// ⭕ COMBO BUTTON (Golden Theme)
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -1594,7 +1311,6 @@ export function LuckyComboButton() {
       timestamp: Date.now(),
     });
 
-    // 🔥 SELF-CREDIT for combo
     const isSelfRecipient = comboData.recipientIds.some((id: string) => String(id) === String(comboData.senderId));
     if (isSelfRecipient) {
       await addDiamondsToLocalDB(totalCost);
@@ -1625,16 +1341,16 @@ export function LuckyComboButton() {
   return (
     <>
       <style>{`
-        @keyframes comboPulseRed {
+        @keyframes comboPulseGold {
           0% { transform: scale(1); opacity: 0.5; }
           100% { transform: scale(1.5); opacity: 0; }
         }
-        .combo-wave-red {
+        .combo-wave-gold {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 51, 102, 0.6) 0%, rgba(255, 51, 102, 0.1) 100%);
-          animation: comboPulseRed 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
+          background: radial-gradient(circle, rgba(255, 193, 7, 0.6) 0%, rgba(255, 193, 7, 0.1) 100%);
+          animation: comboPulseGold 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
           pointer-events: none;
           z-index: 1;
         }
@@ -1654,8 +1370,8 @@ export function LuckyComboButton() {
       >
         <div style={{ position: "relative", width: 104, height: 104, display: "flex", alignItems: "center", justifyContent: "center" }}>
           
-          <div className="combo-wave-red" style={{ animationDelay: "0s" }} />
-          <div className="combo-wave-red" style={{ animationDelay: "0.6s" }} />
+          <div className="combo-wave-gold" style={{ animationDelay: "0s" }} />
+          <div className="combo-wave-gold" style={{ animationDelay: "0.6s" }} />
 
           <button
             onClick={handleComboClick}
@@ -1671,8 +1387,8 @@ export function LuckyComboButton() {
               border: "none",
               outline: "none",
               cursor: "pointer",
-              background: "radial-gradient(circle at center, #ff4d79 0%, #ff1a4d 100%)",
-              boxShadow: "0 6px 26px rgba(255, 26, 77, 0.75)",
+              background: "radial-gradient(circle at center, #ffe066 0%, #ffb300 100%)",
+              boxShadow: "0 6px 26px rgba(255, 179, 0, 0.75)",
               zIndex: 2,
             }}
           >
@@ -1826,6 +1542,7 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
       userSelect: "none",
       zIndex: "2147483647",
       opacity: "1",
+      transformOrigin: "bottom center",
       transform: `translate3d(${startX - half}px,${startY - half}px,0) scale(1)`,
       willChange: "transform",
     });
@@ -1850,8 +1567,9 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
             }
 
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
+            // Tweak target scale so it doesn't shrink too much
             flyer.style.transform =
-              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.12)`;
+              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.55)`;
 
             window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
           }, 700);
@@ -1887,4 +1605,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-  }
+}
