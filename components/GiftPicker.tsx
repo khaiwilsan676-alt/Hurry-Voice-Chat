@@ -1378,17 +1378,16 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               ×{notice.multiplier}
             </span>
           </div>
-          {/* 🏆 WIN OVERLAY — COLUMN, LEFT, NICHE */}
-<div
+            <div
   style={{
     position: "absolute",
-    right: 60,
-    bottom: 0,
+    right: 120,
+    bottom: -26,
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
     justifyContent: "flex-end",
-    gap: "4px",
+    gap: 0,
     zIndex: 22,
     pointerEvents: "none",
   }}
@@ -1399,59 +1398,71 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       style={{
         position: "relative",
         display: "flex",
-        alignItems: "center",
+        flexDirection: "column",
+        alignItems: "flex-start",
         justifyContent: "flex-start",
+        gap: 0,
         whiteSpace: "nowrap",
         animation: "dropWinCoins 1.4s forwards",
+        marginBottom: -20,
       }}
     >
-      {/* 🏆 Big Win image — BADI, patti se chipki, value ke peeche */}
+      {/* 🏆 Big Win image — FIXED SIZE */}
       {notice.maxWinTimes >= 10 && (
         <img
           src="/file_000000004e18820b810ae49258003b98.png"
           alt="Big Win"
           draggable={false}
           style={{
-            position: "absolute",
-            bottom: -20,
-            left: 0,
-            height: 140,
+            width: 220,
+            height: 150,
+            minWidth: 220,
+            minHeight: 150,
+            maxWidth: 220,
+            maxHeight: 150,
             objectFit: "contain",
             pointerEvents: "none",
             zIndex: 1,
+            display: "block",
+            marginBottom: -50,
+            flexShrink: 0,
           }}
         />
       )}
 
-      {/* 🪙 Coin + Value — same ROW, image ke upar overlap */}
-      <img
-        src="/file_00000000e56882119c217d508b6733dc.png"
-        alt="Coins"
+      {/* 🪙 Coin + Value — same ROW, image ke UPAR overlap */}
+      <div
         style={{
-          width: 22,
-          height: 22,
-          objectFit: "cover",
-          borderRadius: "50%",
-          filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+          display: "flex",
+          alignItems: "center",
+          gap: 0,
           position: "relative",
           zIndex: 10,
-          marginLeft: 6,
-        }}
-      />
-      <span
-        style={{
-          color: "#fff0b3",
-          fontWeight: "900",
-          fontSize: 18,
-          textShadow:
-            "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
-          position: "relative",
-          zIndex: 10,
-          marginLeft: 4,
         }}
       >
-        {fw.amount}
-      </span>
+        <img
+          src="/file_00000000e56882119c217d508b6733dc.png"
+          alt="Coins"
+          style={{
+            width: 22,
+            height: 22,
+            objectFit: "cover",
+            borderRadius: "50%",
+            filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+          }}
+        />
+        <span
+          style={{
+            color: "#fff0b3",
+            fontWeight: "900",
+            fontSize: 18,
+            textShadow:
+              "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
+          }}
+        >
+          {fw.amount}
+        </span>
+      </div>
     </div>
   ))}
 </div>
