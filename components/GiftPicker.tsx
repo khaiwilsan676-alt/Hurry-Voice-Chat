@@ -186,18 +186,18 @@ interface Seat {
   user?: { name: string; image: string; accountId: string };
 }
 
-// ✅ Recipient mode for notification band
 type RecipientMode = "mic" | "room" | "single";
 
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.999) return 30;
-  if (luck > 0.995) return 15;
-  if (luck > 0.985) return 10;
-  if (luck > 0.960) return 5;
-  if (luck > 0.900) return 2;
-  return 0;
+  if (luck > 0.99) return 30;    // 1%   (pehle 0.1%)
+  if (luck > 0.97) return 15;    // 2%   (pehle 0.4%)
+  if (luck > 0.93) return 10;    // 4%   (pehle 1%)
+  if (luck > 0.85) return 5;     // 8%   (pehle 2.5%)
+  if (luck > 0.70) return 2;     // 15%  (pehle 6%)
+  return 0;                      // 70% no return
 }
+
 
 export default function GiftPicker({
   open = true,
@@ -252,7 +252,7 @@ export default function GiftPicker({
         Balloon: "/IMG_20260927_214220.png",
         Dragon: "/IMG_20260927_221521.png",
         "Nine Hands": "/IMG_20260927_221544.png",
-        Coffee: "/IMG_20260927_221559.png",
+        Coffin: "/IMG_20260927_221559.png",
         Sword: "/IMG_20260927_221615.png",
         "Love lock": "/IMG_20260927_221637.png",
         Lantern: "/IMG_20260927_221654.png",
@@ -303,7 +303,6 @@ export default function GiftPicker({
   const sheetRef = useRef<HTMLDivElement>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
-  // ✅ Track recipient mode explicitly
   const [recipientMode, setRecipientMode] = useState<RecipientMode>("mic");
   const videoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sendingSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -349,7 +348,7 @@ export default function GiftPicker({
     { id: 106, name: "Balloon", coins: 4000, image: "/IMG_20260927_214220.png", noMask: true },
     { id: 107, name: "Dragon", coins: 7000, image: "/IMG_20260927_221521.png", noMask: true },
     { id: 108, name: "Nine Hands", coins: 10999, image: "/IMG_20260927_221544.png", noMask: true },
-    { id: 109, name: "Coffee", coins: 8999, image: "/IMG_20260927_221559.png", noMask: true },
+    { id: 109, name: "Coffin", coins: 8999, image: "/IMG_20260927_221559.png", noMask: true },
     { id: 110, name: "Sword", coins: 9999, image: "/IMG_20260927_221615.png", noMask: true },
     { id: 111, name: "Love lock", coins: 5000, image: "/IMG_20260927_221637.png", noMask: true },
     { id: 112, name: "Lantern", coins: 6999, image: "/IMG_20260927_221654.png", noMask: true },
@@ -541,7 +540,6 @@ export default function GiftPicker({
         transferId: uniqueTransferId,
         eventId: uniqueTransferId,
         timestamp: Date.now(),
-        // ✅ NEW — recipient mode
         recipientMode,
       });
 
@@ -568,7 +566,6 @@ export default function GiftPicker({
             luckyGift: true,
             luckyReturnAmount: luckyReturnAmount,
             winTimes: winTimes,
-            // ✅ NEW
             recipientMode,
           }
         }));
@@ -604,7 +601,6 @@ export default function GiftPicker({
           giftImage: selectedGiftObj.image,
           giftCoins: selectedGiftObj.coins,
           initialMultiplier: parseMultiplier(selectedMultiplier),
-          // ✅ NEW — carry the mode into combo
           recipientMode,
         },
       }));
@@ -636,13 +632,13 @@ export default function GiftPicker({
       .map((s) => s.user!.accountId);
     setSelectedTargets(micUsers);
     setSelectionLabel("All");
-    setRecipientMode("mic");   // ✅
+    setRecipientMode("mic");
   };
 
   const handleAllInRoom = () => {
     setSelectedTargets([]);
     setSelectionLabel("All room");
-    setRecipientMode("room");  // ✅
+    setRecipientMode("room");
   };
 
   const handleOpenWallet = () => {
@@ -654,7 +650,7 @@ export default function GiftPicker({
       if (prev.includes(accountId)) return prev.filter((id) => id !== accountId);
       return [...prev, accountId];
     });
-    setRecipientMode("single");   // ✅
+    setRecipientMode("single");
     if (selectionLabel === "All room") setSelectionLabel("All");
   };
 
@@ -764,7 +760,9 @@ export default function GiftPicker({
         video::-webkit-media-controls-panel,
         video::-webkit-media-controls-overlay-play-button,
         video::-webkit-media-controls-start-playback-button { display: none !important; opacity: 0 !important; }
-        .main-container { background: rgba(0, 0, 0, 0.95); }
+        .main-container { 
+          background: rgba(0, 0, 0, 0.92); 
+        }
         .gift-item {
           background: transparent;
           border: 2px solid transparent;
@@ -821,13 +819,13 @@ export default function GiftPicker({
             onClick={handleAllInRoom}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
               recipientMode === "room"
-                ? "border-[#3b82f6] bg-[#3b82f6]/20"
-                : "border-gray-500 bg-[#282d32]"
+                ? "border-[#3b82f6] bg-[#3b82f6]/20 text-[#3b82f6]"
+                : "border-gray-500 bg-[#282d32] text-white"
             }`}
           >
             <HoundIcon
               className={`w-[20px] h-[20px] transition-colors ${
-                recipientMode === "room" ? "text-[#3b82f6]" : "text-[#10b981]"
+                recipientMode === "room" ? "text-[#3b82f6]" : "text-gray-400"
               }`}
             />
             <div
@@ -1062,7 +1060,7 @@ interface LuckyNotice {
   totalWinAmount: number;
   maxWinTimes: number;
   isExiting: boolean;
-  recipientMode: RecipientMode;   // ✅
+  recipientMode: RecipientMode;
 }
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
@@ -1171,7 +1169,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
   if (!notice) return null;
 
-  // ✅ Top + bottom text based on mode
   const isBroadcast = notice.recipientMode === "mic" || notice.recipientMode === "room";
   const topText = notice.recipientMode === "mic"
     ? "Sent to All Mic"
@@ -1321,11 +1318,12 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
+          {/* ✅ Big Win — new image on top border, coins + value below */}
           <div
             style={{
               position: "absolute",
               right: 20,
-              top: -35,
+              top: -40,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -1334,10 +1332,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           >
             {notice.maxWinTimes >= 10 && (
               <img
-                src="/file_00000000a9e48211aee262c0df0c36bc.png"
+                src="/file_000000004e18820b810ae49258003b98.png"
                 alt="Big Win"
                 style={{
-                  height: 56,
+                  height: 64,
                   objectFit: "contain",
                   animation: "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
                   zIndex: 20,
@@ -1353,7 +1351,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 height: "0px",
                 display: "flex",
                 justifyContent: "center",
-                marginTop: notice.maxWinTimes >= 10 ? -5 : 20,
+                marginTop: notice.maxWinTimes >= 10 ? 2 : 22,
               }}
             >
               {floatingWins.map((fw) => (
@@ -1405,7 +1403,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON
+// ⭕ COMBO BUTTON — reverted to original red theme
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -1498,7 +1496,7 @@ export function LuckyComboButton() {
       transferId: comboTransferId,
       eventId: comboTransferId,
       timestamp: Date.now(),
-      recipientMode: comboData.recipientMode || "single",   // ✅
+      recipientMode: comboData.recipientMode || "single",
     });
 
     const isSelfRecipient = comboData.recipientIds.some((id: string) => String(id) === String(comboData.senderId));
@@ -1523,7 +1521,7 @@ export function LuckyComboButton() {
         luckyGift: true,
         luckyReturnAmount: luckyReturnAmount,
         winTimes: winTimes,
-        recipientMode: comboData.recipientMode || "single",   // ✅
+        recipientMode: comboData.recipientMode || "single",
       },
     }));
 
@@ -1535,16 +1533,16 @@ export function LuckyComboButton() {
   return (
     <>
       <style>{`
-        @keyframes comboPulseGold {
+        @keyframes comboPulseRed {
           0% { transform: scale(1); opacity: 0.5; }
           100% { transform: scale(1.5); opacity: 0; }
         }
-        .combo-wave-gold {
+        .combo-wave-red {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(139, 90, 43, 0.5) 0%, rgba(255, 193, 7, 0.1) 100%);
-          animation: comboPulseGold 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
+          background: radial-gradient(circle, rgba(255, 51, 102, 0.6) 0%, rgba(255, 51, 102, 0.1) 100%);
+          animation: comboPulseRed 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
           pointer-events: none;
           z-index: 1;
         }
@@ -1562,18 +1560,10 @@ export function LuckyComboButton() {
           gap: 4,
         }}
       >
-        <div
-          style={{
-            position: "relative",
-            width: 100,
-            height: 100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <div className="combo-wave-gold" style={{ animationDelay: "0s" }} />
-          <div className="combo-wave-gold" style={{ animationDelay: "0.6s" }} />
+        <div style={{ position: "relative", width: 104, height: 104, display: "flex", alignItems: "center", justifyContent: "center" }}>
+
+          <div className="combo-wave-red" style={{ animationDelay: "0s" }} />
+          <div className="combo-wave-red" style={{ animationDelay: "0.6s" }} />
 
           <button
             onClick={handleComboClick}
@@ -1583,28 +1573,28 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 90,
-              height: 90,
+              width: 96,
+              height: 96,
               borderRadius: "50%",
-              border: "3px solid #8b5a2b",
+              border: "none",
               outline: "none",
               cursor: "pointer",
-              background: "radial-gradient(circle at center, #ffe066 0%, #ffb300 100%)",
-              boxShadow: "0 6px 22px rgba(139, 90, 43, 0.7), inset 0 0 10px rgba(139,90,43,0.4)",
+              background: "radial-gradient(circle at center, #ff4d79 0%, #ff1a4d 100%)",
+              boxShadow: "0 6px 26px rgba(255, 26, 77, 0.75)",
               zIndex: 2,
             }}
           >
             <span
               style={{
-                color: "#5d3a1a",
-                fontWeight: 900,
-                fontSize: 28,
-                fontStyle: "italic",
-                textShadow: "0 1px 0 #fff4d6, 0 2px 3px rgba(0,0,0,0.35)",
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: 18,
+                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
+                letterSpacing: "0.5px",
                 zIndex: 3,
               }}
             >
-              ×{comboMultiplier}
+              Combo
             </span>
 
             <svg
@@ -1617,7 +1607,7 @@ export function LuckyComboButton() {
                 transform: "rotate(-90deg)",
                 pointerEvents: "none",
                 zIndex: 3,
-                padding: 6,
+                padding: 8,
                 boxSizing: "border-box",
               }}
             >
@@ -1626,16 +1616,16 @@ export function LuckyComboButton() {
                 cy="48"
                 r="42"
                 fill="none"
-                stroke="rgba(139, 90, 43, 0.35)"
-                strokeWidth="2.5"
+                stroke="rgba(255, 255, 255, 0.35)"
+                strokeWidth="1.5"
               />
               <circle
                 cx="48"
                 cy="48"
                 r="42"
                 fill="none"
-                stroke="#8b5a2b"
-                strokeWidth="2.5"
+                stroke="#ffffff"
+                strokeWidth="1.5"
                 strokeDasharray="263.89"
                 strokeDashoffset={263.89 - (263.89 * timeLeft) / 5}
                 strokeLinecap="round"
@@ -1807,4 +1797,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-                                     }
+}
