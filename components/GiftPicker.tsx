@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronUp, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import socket from "../src/lib/socket";
@@ -163,6 +163,12 @@ const SolidMicIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+const HoundIcon = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
+    <path d="M9 21c-2.8 0-5-1.5-5-3.5 0-1.2.7-2.3 1.8-3-.7-1-1.3-2.5-1.3-4.5 0-4.4 3.6-8 8-8 3.2 0 6 1.9 7.3 4.7.4.9.7 1.9.7 3 0 1.4-.4 2.6-1 3.6 1 .7 1.5 1.7 1.5 2.7 0 2-2.2 3-5 3H9z" />
+  </svg>
+);
+
 export interface Gift {
   id: number;
   name: string;
@@ -180,13 +186,16 @@ interface Seat {
   user?: { name: string; image: string; accountId: string };
 }
 
+// ✅ Recipient mode for notification band
+type RecipientMode = "mic" | "room" | "single";
+
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.997) return 50;
-  if (luck > 0.990) return 30;
-  if (luck > 0.960) return 15;
-  if (luck > 0.880) return 10;
-  if (luck > 0.680) return 2;
+  if (luck > 0.999) return 30;
+  if (luck > 0.995) return 15;
+  if (luck > 0.985) return 10;
+  if (luck > 0.960) return 5;
+  if (luck > 0.900) return 2;
   return 0;
 }
 
@@ -217,9 +226,17 @@ export default function GiftPicker({
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [sending, setSending] = useState(false);
-
-  // Wallet Modal state
   const [isWalletOpen, setIsWalletOpen] = useState(false);
+
+  const [showInsufficient, setShowInsufficient] = useState(false);
+  const [insufficientText, setInsufficientText] = useState("Insufficient Balance");
+  const insufficientTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const walletOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const seatsKey = useMemo(
+    () => (Array.isArray(seats) ? seats.map((s) => `${s.number}:${s.user?.accountId || ""}`).join("|") : ""),
+    [seats]
+  );
 
   useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
@@ -276,7 +293,8 @@ export default function GiftPicker({
     }) as typeof socket.emit;
     (socket as any).emit = patchedEmit;
     return () => { (socket as any).emit = originalEmit; };
-  }, [seats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seatsKey]);
 
   const [playingVideo, setPlayingVideo] = useState<
     { src: string; style: "fade" | "pure" } | null
@@ -285,7 +303,10 @@ export default function GiftPicker({
   const sheetRef = useRef<HTMLDivElement>(null);
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [selectionLabel, setSelectionLabel] = useState<"All" | "All room">("All");
+  // ✅ Track recipient mode explicitly
+  const [recipientMode, setRecipientMode] = useState<RecipientMode>("mic");
   const videoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sendingSafetyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const tabs = ["Hot", "Lucky", "Luxury", "Event"];
   const multipliers = ["1×", "10×", "299×", "599×", "999×"];
@@ -369,10 +390,51 @@ export default function GiftPicker({
   }, [onClose, playingVideo, open, isWalletOpen]);
 
   useEffect(() => {
+    if (!open) {
+      if (insufficientTimerRef.current) {
+        clearTimeout(insufficientTimerRef.current);
+        insufficientTimerRef.current = null;
+      }
+      if (walletOpenTimerRef.current) {
+        clearTimeout(walletOpenTimerRef.current);
+        walletOpenTimerRef.current = null;
+      }
+      setShowInsufficient(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
     return () => {
       if (videoTimeoutRef.current) clearTimeout(videoTimeoutRef.current);
+      if (insufficientTimerRef.current) clearTimeout(insufficientTimerRef.current);
+      if (walletOpenTimerRef.current) clearTimeout(walletOpenTimerRef.current);
+      if (sendingSafetyRef.current) clearTimeout(sendingSafetyRef.current);
     };
   }, []);
+
+  const triggerInsufficient = (message: string = "Insufficient Balance", openWalletAfter: boolean = true) => {
+    setInsufficientText(message);
+    setShowInsufficient(true);
+    if (insufficientTimerRef.current) clearTimeout(insufficientTimerRef.current);
+    if (walletOpenTimerRef.current) clearTimeout(walletOpenTimerRef.current);
+
+    insufficientTimerRef.current = setTimeout(() => {
+      setShowInsufficient(false);
+      if (openWalletAfter) {
+        walletOpenTimerRef.current = setTimeout(() => setIsWalletOpen(true), 80);
+      }
+    }, 2000);
+  };
+
+  useEffect(() => {
+    const handler = () => {
+      if (!open) return;
+      triggerInsufficient("Insufficient Balance", true);
+    };
+    window.addEventListener("hurry:insufficient", handler);
+    return () => window.removeEventListener("hurry:insufficient", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const parseMultiplier = (m: string) => parseInt(m.replace("×", ""), 10) || 1;
   const selectedGiftObj = currentGifts.find((g) => g.id === selectedGift);
@@ -423,8 +485,22 @@ export default function GiftPicker({
   const handleSend = async () => {
     if (isWalletOpen) return;
     if (!selectedGiftObj || sending) return;
+
+    if (recipientCount === 0) {
+      triggerInsufficient("Select Recipient", false);
+      return;
+    }
+
+    if (totalSendCost > walletBalance) {
+      triggerInsufficient("Insufficient Balance", true);
+      return;
+    }
+
     if (!canAfford) return;
     setSending(true);
+
+    if (sendingSafetyRef.current) clearTimeout(sendingSafetyRef.current);
+    sendingSafetyRef.current = setTimeout(() => setSending(false), 10000);
 
     let luckyReturnAmount = 0;
     let luckyReturnPercent = 0;
@@ -465,13 +541,18 @@ export default function GiftPicker({
         transferId: uniqueTransferId,
         eventId: uniqueTransferId,
         timestamp: Date.now(),
+        // ✅ NEW — recipient mode
+        recipientMode,
       });
 
       const isSelfRecipient = recipientIds.some(id => String(id) === String(currentUserAccountId));
-      if (isSelfRecipient) {
-        await addDiamondsToLocalDB(totalCost);
-        await recordDiamondTransaction("Diamonds received — " + selectedGiftObj.name, totalCost);
-        window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: totalCost } }));
+      if (isSelfRecipient && isLuckyGiftTab) {
+        const diamondCredit = Math.floor(totalCost * 0.1);
+        if (diamondCredit > 0) {
+          await addDiamondsToLocalDB(diamondCredit);
+          await recordDiamondTransaction("Diamonds received — " + selectedGiftObj.name, diamondCredit);
+          window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: diamondCredit } }));
+        }
       }
 
       if (isLuckyGiftTab) {
@@ -486,7 +567,9 @@ export default function GiftPicker({
             multiplier: parseMultiplier(selectedMultiplier),
             luckyGift: true,
             luckyReturnAmount: luckyReturnAmount,
-            winTimes: winTimes
+            winTimes: winTimes,
+            // ✅ NEW
+            recipientMode,
           }
         }));
       }
@@ -521,8 +604,11 @@ export default function GiftPicker({
           giftImage: selectedGiftObj.image,
           giftCoins: selectedGiftObj.coins,
           initialMultiplier: parseMultiplier(selectedMultiplier),
+          // ✅ NEW — carry the mode into combo
+          recipientMode,
         },
       }));
+      if (sendingSafetyRef.current) clearTimeout(sendingSafetyRef.current);
       setSending(false);
       onClose();
       return;
@@ -538,6 +624,7 @@ export default function GiftPicker({
         finishVideo();
       }, 10000);
     } else {
+      if (sendingSafetyRef.current) clearTimeout(sendingSafetyRef.current);
       setSending(false);
       onClose();
     }
@@ -549,11 +636,13 @@ export default function GiftPicker({
       .map((s) => s.user!.accountId);
     setSelectedTargets(micUsers);
     setSelectionLabel("All");
+    setRecipientMode("mic");   // ✅
   };
 
   const handleAllInRoom = () => {
     setSelectedTargets([]);
     setSelectionLabel("All room");
+    setRecipientMode("room");  // ✅
   };
 
   const handleOpenWallet = () => {
@@ -565,6 +654,7 @@ export default function GiftPicker({
       if (prev.includes(accountId)) return prev.filter((id) => id !== accountId);
       return [...prev, accountId];
     });
+    setRecipientMode("single");   // ✅
     if (selectionLabel === "All room") setSelectionLabel("All");
   };
 
@@ -692,6 +782,15 @@ export default function GiftPicker({
         }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes insufficientIn {
+          0% { transform: scale(0.85) translateY(10px); opacity: 0; }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes insufficientOut {
+          0% { transform: scale(1) translateY(0); opacity: 1; }
+          100% { transform: scale(0.9) translateY(-8px); opacity: 0; }
+        }
       `}</style>
 
       <div
@@ -703,15 +802,17 @@ export default function GiftPicker({
           <button
             onClick={handleAllOnMic}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
-              selectionLabel === "All"
-                ? "border-gray-300 bg-gray-500/30 text-white"
+              recipientMode === "mic"
+                ? "border-[#3b82f6] bg-[#3b82f6]/20 text-white"
                 : "border-gray-500 bg-[#282d32] text-white"
             }`}
           >
             <SolidMicIcon className="w-[18px] h-[18px]" />
-            <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
-              selectionLabel === "All" ? "bg-gray-400 text-white" : "bg-gray-400 text-white"
-            }`}>
+            <div
+              className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
+                recipientMode === "mic" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+              }`}
+            >
               All
             </div>
           </button>
@@ -719,19 +820,21 @@ export default function GiftPicker({
           <button
             onClick={handleAllInRoom}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
-              selectionLabel === "All room"
-                ? "border-[#10b981] bg-[#10b981]/20"
+              recipientMode === "room"
+                ? "border-[#3b82f6] bg-[#3b82f6]/20"
                 : "border-gray-500 bg-[#282d32]"
             }`}
           >
-            <img
-              src="/file_000000004e18820b810ae49258003b98.png"
-              className="w-[20px] h-[20px] object-contain"
-              alt="Hound Icon"
+            <HoundIcon
+              className={`w-[20px] h-[20px] transition-colors ${
+                recipientMode === "room" ? "text-[#3b82f6]" : "text-[#10b981]"
+              }`}
             />
-            <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
-              selectionLabel === "All room" ? "bg-[#10b981] text-white" : "bg-gray-400 text-white"
-            }`}>
+            <div
+              className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
+                recipientMode === "room" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+              }`}
+            >
               All
             </div>
           </button>
@@ -836,8 +939,6 @@ export default function GiftPicker({
         </div>
 
         <div className="flex items-center justify-between pt-2 relative">
-
-          {/* Wallet Balance with Arrow */}
           <div
             className="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
             onClick={handleOpenWallet}
@@ -891,13 +992,13 @@ export default function GiftPicker({
 
               <button
                 onClick={handleSend}
-                disabled={!selectedGift || !canAfford || sending}
+                disabled={!selectedGift || sending}
                 className="text-white font-bold text-xs px-6 py-1.5 rounded-r-full transition-all active:scale-95"
                 style={{
                   background: "linear-gradient(135deg, #3b82f6, #2563eb)",
                   boxShadow: "0 2px 10px rgba(59,130,246,0.35)",
-                  opacity: sending ? 0.85 : 1,
-                  cursor: !selectedGift || !canAfford || sending ? "not-allowed" : "pointer",
+                  opacity: !selectedGift || sending ? 0.55 : 1,
+                  cursor: !selectedGift || sending ? "not-allowed" : "pointer",
                 }}
               >
                 {sending ? "..." : "Send"}
@@ -908,7 +1009,31 @@ export default function GiftPicker({
        </div>
       </div>
 
-      {/* Wallet Component Modal Overlay */}
+      {open && showInsufficient && (
+        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center pointer-events-none">
+          <div
+            className="rounded-2xl px-6 py-3.5 border border-white/10 shadow-2xl flex items-center gap-2.5"
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              animation: "insufficientIn 0.25s ease-out forwards",
+            }}
+          >
+            <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+              <img
+                src="/file_00000000e56882119c217d508b6733dc.png"
+                alt="Coins"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span className="text-white font-bold text-[15px] tracking-wide">
+              {insufficientText}
+            </span>
+          </div>
+        </div>
+      )}
+
       {isWalletOpen && (
         <div
           className="fixed inset-0 z-[2147483647] bg-black/80 flex items-center justify-center"
@@ -937,6 +1062,7 @@ interface LuckyNotice {
   totalWinAmount: number;
   maxWinTimes: number;
   isExiting: boolean;
+  recipientMode: RecipientMode;   // ✅
 }
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
@@ -958,6 +1084,9 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const multiplier = Math.max(1, Number(data.multiplier) || 1);
       const incomingWin = Math.floor(Number(data.luckyReturnAmount) || 0);
       const incomingWinTimes = Number(data.winTimes) || 0;
+      const rawMode = String(data.recipientMode || "single");
+      const recipientMode: RecipientMode =
+        rawMode === "mic" || rawMode === "room" || rawMode === "single" ? (rawMode as RecipientMode) : "single";
 
       setNotice((prev) => {
         if (prev && prev.senderId === senderId && prev.giftImage === giftImage) {
@@ -965,6 +1094,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             ...prev,
             multiplier: Math.max(multiplier, prev.multiplier),
             maxWinTimes: Math.max(incomingWinTimes, prev.maxWinTimes || 0),
+            recipientMode,
+            recipientName,
             isExiting: false,
           };
         }
@@ -979,10 +1110,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           totalWinAmount: 0,
           maxWinTimes: incomingWinTimes,
           isExiting: false,
+          recipientMode,
         };
       });
 
-      // Bump pop tick whenever multiplier changes so ×N replays even if same value
       setPopTick((t) => t + 1);
 
       if (incomingWin > 0) {
@@ -1040,6 +1171,17 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
   if (!notice) return null;
 
+  // ✅ Top + bottom text based on mode
+  const isBroadcast = notice.recipientMode === "mic" || notice.recipientMode === "room";
+  const topText = notice.recipientMode === "mic"
+    ? "Sent to All Mic"
+    : notice.recipientMode === "room"
+      ? "Sent to All in room"
+      : notice.senderName;
+  const bottomText = isBroadcast
+    ? notice.senderName
+    : `To ${notice.recipientName}`;
+
   return (
     <>
       <style>{`
@@ -1089,14 +1231,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             display: "flex",
             alignItems: "center",
             background:
-              "linear-gradient(90deg, #ffc107 0%, rgba(255, 193, 7, 0.8) 60%, rgba(255, 193, 7, 0.1) 100%)",
+              "linear-gradient(90deg, #ffc107 0%, #ffc107 22%, rgba(255,193,7,0.85) 42%, rgba(255,193,7,0.45) 65%, rgba(255,193,7,0.15) 85%, rgba(255,193,7,0) 100%)",
             borderRadius: "50px 0 0 50px",
             padding: "4px 60px 4px 4px",
             minWidth: "280px",
             maxWidth: "90vw",
           }}
         >
-          {/* Sender Avatar - No border */}
           <div style={{ flexShrink: 0, zIndex: 1 }}>
             <img
               src={notice.senderImage}
@@ -1112,8 +1253,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             />
           </div>
 
-          {/* Names Info */}
-          <div style={{ marginLeft: 8, display: "flex", flexDirection: "column", maxWidth: 90, zIndex: 1 }}>
+          <div style={{ marginLeft: 8, display: "flex", flexDirection: "column", maxWidth: 110, zIndex: 1 }}>
             <span
               style={{
                 color: "#fff",
@@ -1126,7 +1266,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 textShadow: "0 1px 2px rgba(0,0,0,0.4)",
               }}
             >
-              {notice.senderName}
+              {topText}
             </span>
             <span
               style={{
@@ -1139,11 +1279,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 textShadow: "0 1px 2px rgba(0,0,0,0.3)",
               }}
             >
-              To {notice.recipientName}
+              {bottomText}
             </span>
           </div>
 
-          {/* Gift Image & Multiplier - Using Key to Trigger Pop Animation */}
           <div
             key={`${notice.multiplier}-${popTick}`}
             style={{
@@ -1182,7 +1321,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* Big Win Image & Dropping Coins container (Right side layout) */}
           <div
             style={{
               position: "absolute",
@@ -1194,10 +1332,9 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               zIndex: 22,
             }}
           >
-            {/* Conditional Big Win Banner */}
             {notice.maxWinTimes >= 10 && (
               <img
-                src="/File_00000000791c820ba530d68b8c0ade38.png"
+                src="/file_00000000a9e48211aee262c0df0c36bc.png"
                 alt="Big Win"
                 style={{
                   height: 56,
@@ -1209,7 +1346,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               />
             )}
 
-            {/* Dropping Coin Icon and Value Text */}
             <div
               style={{
                 position: "relative",
@@ -1269,7 +1405,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON (Golden Theme & Smaller Size)
+// ⭕ COMBO BUTTON
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -1331,6 +1467,7 @@ export function LuckyComboButton() {
 
     const bal = await loadWalletBalance();
     if (bal < finalDeductionCost) {
+      window.dispatchEvent(new CustomEvent("hurry:insufficient"));
       setBusy(false);
       setComboData(null);
       return;
@@ -1361,13 +1498,17 @@ export function LuckyComboButton() {
       transferId: comboTransferId,
       eventId: comboTransferId,
       timestamp: Date.now(),
+      recipientMode: comboData.recipientMode || "single",   // ✅
     });
 
     const isSelfRecipient = comboData.recipientIds.some((id: string) => String(id) === String(comboData.senderId));
     if (isSelfRecipient) {
-      await addDiamondsToLocalDB(totalCost);
-      await recordDiamondTransaction("Diamonds received — " + comboData.giftName, totalCost);
-      window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: totalCost } }));
+      const diamondCredit = Math.floor(totalCost * 0.1);
+      if (diamondCredit > 0) {
+        await addDiamondsToLocalDB(diamondCredit);
+        await recordDiamondTransaction("Diamonds received — " + comboData.giftName, diamondCredit);
+        window.dispatchEvent(new CustomEvent("hurry:diamonds-updated", { detail: { amount: diamondCredit } }));
+      }
     }
 
     window.dispatchEvent(new CustomEvent("hurry:lucky-slider", {
@@ -1382,6 +1523,7 @@ export function LuckyComboButton() {
         luckyGift: true,
         luckyReturnAmount: luckyReturnAmount,
         winTimes: winTimes,
+        recipientMode: comboData.recipientMode || "single",   // ✅
       },
     }));
 
@@ -1401,7 +1543,7 @@ export function LuckyComboButton() {
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 193, 7, 0.6) 0%, rgba(255, 193, 7, 0.1) 100%);
+          background: radial-gradient(circle, rgba(139, 90, 43, 0.5) 0%, rgba(255, 193, 7, 0.1) 100%);
           animation: comboPulseGold 1.8s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
           pointer-events: none;
           z-index: 1;
@@ -1423,8 +1565,8 @@ export function LuckyComboButton() {
         <div
           style={{
             position: "relative",
-            width: 80,
-            height: 80,
+            width: 100,
+            height: 100,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1441,24 +1583,24 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 72,
-              height: 72,
+              width: 90,
+              height: 90,
               borderRadius: "50%",
-              border: "none",
+              border: "3px solid #8b5a2b",
               outline: "none",
               cursor: "pointer",
               background: "radial-gradient(circle at center, #ffe066 0%, #ffb300 100%)",
-              boxShadow: "0 6px 20px rgba(255, 179, 0, 0.75)",
+              boxShadow: "0 6px 22px rgba(139, 90, 43, 0.7), inset 0 0 10px rgba(139,90,43,0.4)",
               zIndex: 2,
             }}
           >
             <span
               style={{
-                color: "#ffffff",
+                color: "#5d3a1a",
                 fontWeight: 900,
-                fontSize: 24,
+                fontSize: 28,
                 fontStyle: "italic",
-                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                textShadow: "0 1px 0 #fff4d6, 0 2px 3px rgba(0,0,0,0.35)",
                 zIndex: 3,
               }}
             >
@@ -1484,7 +1626,7 @@ export function LuckyComboButton() {
                 cy="48"
                 r="42"
                 fill="none"
-                stroke="rgba(255, 255, 255, 0.35)"
+                stroke="rgba(139, 90, 43, 0.35)"
                 strokeWidth="2.5"
               />
               <circle
@@ -1492,7 +1634,7 @@ export function LuckyComboButton() {
                 cy="48"
                 r="42"
                 fill="none"
-                stroke="#ffffff"
+                stroke="#8b5a2b"
                 strokeWidth="2.5"
                 strokeDasharray="263.89"
                 strokeDashoffset={263.89 - (263.89 * timeLeft) / 5}
@@ -1665,4 +1807,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-        }
+                                     }
