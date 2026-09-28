@@ -180,7 +180,6 @@ const HoundIcon = ({ className }: { className?: string }) => {
         stroke="currentColor"
         strokeWidth="17"
       />
-
       <path
         fill="currentColor"
         fillRule="evenodd"
@@ -209,27 +208,6 @@ const HoundIcon = ({ className }: { className?: string }) => {
           Z
         "
       />
-
-      <rect
-        x="305"
-        y="325"
-        width="190"
-        height="135"
-        rx="25"
-        fill="currentColor"
-      />
-
-      <text
-        x="400"
-        y="415"
-        fontFamily="Arial,sans-serif"
-        fontSize="67"
-        fontWeight="600"
-        textAnchor="middle"
-        fill="#F1F2F2"
-      >
-        All
-      </text>
     </svg>
   );
 };
@@ -349,6 +327,8 @@ export default function GiftPicker({
           luckyGift: true,
           targetName: String(seat.user?.name || ""),
           user: { name: "Lucky Gift", image, accountId: targetId },
+          winTimes: data.winTimes, 
+          returnAmount: data.luckyReturnAmount
         };
         window.dispatchEvent(new CustomEvent("hurry:lucky-image", { detail: luckyEvent }));
         originalEmit("room_seat_action", luckyEvent);
@@ -1755,21 +1735,19 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const rect = target.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const flyer = document.createElement("img");
-    flyer.src = src;
-    flyer.alt = "";
-    flyer.setAttribute("aria-hidden", "true");
-    flyer.draggable = false;
-
-    const size = Math.max(48, Math.min(82, Math.round(rect.width * 1.35)));
+    const flyer = document.createElement("div");
+    
+    // Yahan Size ekdum Fixed kar diya, change nahi hoga (No dynamic math)
+    const size = 110; 
     const half = size / 2;
 
     const startX = window.innerWidth / 2;
     const startY = window.innerHeight - Math.max(18, size / 2);
     const middleX = window.innerWidth / 2;
     const middleY = window.innerHeight * 0.52;
+    
     const endX = rect.left + rect.width / 2;
-    const endY = rect.top + rect.height / 2;
+    const endY = rect.top; // Seat ke ekdum top pe
 
     const travelDuration =
       Number(data?.duration) > 0
@@ -1782,15 +1760,79 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
       top: "0",
       width: `${size}px`,
       height: `${size}px`,
-      objectFit: "contain",
       pointerEvents: "none",
       userSelect: "none",
       zIndex: "2147483647",
       opacity: "1",
-      transformOrigin: "bottom center",
+      transformOrigin: "center center",
       transform: `translate3d(${startX - half}px,${startY - half}px,0) scale(1)`,
-      willChange: "transform",
+      willChange: "transform, opacity",
     });
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "";
+    img.draggable = false;
+    Object.assign(img.style, {
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      position: "absolute",
+      top: "0",
+      left: "0",
+      display: "block"
+    });
+    flyer.appendChild(img);
+
+    // Ye raha tera exact Screenshot (1000203495.jpg) wala Brown Pill design
+    const winVal = Number(data?.returnAmount) || Number(data?.winTimes) || 0;
+    if (winVal > 0) {
+      const valBadge = document.createElement("div");
+      Object.assign(valBadge.style, {
+        position: "absolute",
+        bottom: "6px", // Image ke andar bottom me
+        left: "50%",
+        transform: "translateX(-50%)",
+        backgroundColor: "#591c04", // Brown background from image
+        border: "1.5px solid #ffcc00", // Gold border from image
+        borderRadius: "20px",
+        padding: "2px 8px 2px 4px", // Coin space left pe
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "4px",
+        zIndex: "2",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
+        maxWidth: "90%" // Agar number bohot bada aya toh box manage kar lega
+      });
+
+      // Coin Icon
+      const coinImg = document.createElement("img");
+      coinImg.src = "/file_00000000e56882119c217d508b6733dc.png";
+      Object.assign(coinImg.style, {
+        width: "14px",
+        height: "14px",
+        objectFit: "contain",
+        flexShrink: "0"
+      });
+      valBadge.appendChild(coinImg);
+
+      // Value text
+      const valText = document.createElement("span");
+      valText.innerText = data?.returnAmount > 0 ? `${data.returnAmount}` : `x${data.winTimes}`;
+      Object.assign(valText.style, {
+        color: "#fff",
+        fontWeight: "900",
+        fontSize: "14px",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis", // Agar bada hoga toh "..." nahi ayega but shrink fit ke liye support hai
+        textShadow: "0px 1px 2px rgba(0,0,0,0.8)"
+      });
+      valBadge.appendChild(valText);
+
+      flyer.appendChild(valBadge);
+    }
 
     const start = () => {
       if (cancelled) {
@@ -1812,18 +1854,26 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
             }
 
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
+            // Ye (endY - size + 10) ensures ki ye patti ke top edge se perfect chipka ho
             flyer.style.transform =
-              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.55)`;
+              `translate3d(${endX - half}px,${endY - size + 10}px,0) scale(1)`;
 
-            window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
+            window.setTimeout(() => {
+                flyer.style.transition = "opacity 0.4s ease-out";
+                flyer.style.opacity = "0";
+                window.setTimeout(() => flyer.remove(), 400);
+            }, 3500); 
+
           }, 700);
         });
       });
     };
 
-    flyer.onload = start;
-    flyer.onerror = () => flyer.remove();
-    if (flyer.complete && flyer.naturalWidth > 0) start();
+    const dummyLoad = new window.Image();
+    dummyLoad.src = src;
+    dummyLoad.onload = start;
+    dummyLoad.onerror = () => flyer.remove();
+    if (dummyLoad.complete) start();
   };
 
   requestAnimationFrame(findAndRun);
