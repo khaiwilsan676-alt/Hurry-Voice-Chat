@@ -1,4 +1,4 @@
-"use client";
+here"use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronUp, ChevronRight } from "lucide-react";
@@ -1735,19 +1735,19 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const rect = target.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
+    // Image aur container create kiya
     const flyer = document.createElement("div");
     
-    // Yahan Size ekdum Fixed kar diya, change nahi hoga (No dynamic math)
-    const size = 110; 
+    // Barri kerr Image logic (Image scale up kar diya hai thoda bada dikhne ke liye)
+    const size = Math.max(64, Math.min(100, Math.round(rect.width * 1.6)));
     const half = size / 2;
 
     const startX = window.innerWidth / 2;
     const startY = window.innerHeight - Math.max(18, size / 2);
     const middleX = window.innerWidth / 2;
     const middleY = window.innerHeight * 0.52;
-    
     const endX = rect.left + rect.width / 2;
-    const endY = rect.top; // Seat ke ekdum top pe
+    const endY = rect.top; // Seat/Patti ka top edge
 
     const travelDuration =
       Number(data?.duration) > 0
@@ -1784,53 +1784,23 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     });
     flyer.appendChild(img);
 
-    // Ye raha tera exact Screenshot (1000203495.jpg) wala Brown Pill design
+    // Ye value image k upar (bottom par) chipki rahegi, bahar nahi niklegi
     const winVal = Number(data?.returnAmount) || Number(data?.winTimes) || 0;
     if (winVal > 0) {
       const valBadge = document.createElement("div");
+      valBadge.innerText = data?.returnAmount > 0 ? `+${data.returnAmount}` : `x${data.winTimes}`;
       Object.assign(valBadge.style, {
         position: "absolute",
-        bottom: "6px", // Image ke andar bottom me
+        bottom: "4px", // Image border ke bilkul bottom mein andar
         left: "50%",
         transform: "translateX(-50%)",
-        backgroundColor: "#591c04", // Brown background from image
-        border: "1.5px solid #ffcc00", // Gold border from image
-        borderRadius: "20px",
-        padding: "2px 8px 2px 4px", // Coin space left pe
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "4px",
-        zIndex: "2",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.5)",
-        maxWidth: "90%" // Agar number bohot bada aya toh box manage kar lega
-      });
-
-      // Coin Icon
-      const coinImg = document.createElement("img");
-      coinImg.src = "/file_00000000e56882119c217d508b6733dc.png";
-      Object.assign(coinImg.style, {
-        width: "14px",
-        height: "14px",
-        objectFit: "contain",
-        flexShrink: "0"
-      });
-      valBadge.appendChild(coinImg);
-
-      // Value text
-      const valText = document.createElement("span");
-      valText.innerText = data?.returnAmount > 0 ? `${data.returnAmount}` : `x${data.winTimes}`;
-      Object.assign(valText.style, {
         color: "#fff",
         fontWeight: "900",
-        fontSize: "14px",
+        fontSize: "15px",
+        textShadow: "0px 1px 3px rgba(0,0,0,0.8), 0px -1px 2px rgba(0,0,0,0.6)",
         whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis", // Agar bada hoga toh "..." nahi ayega but shrink fit ke liye support hai
-        textShadow: "0px 1px 2px rgba(0,0,0,0.8)"
+        zIndex: "2"
       });
-      valBadge.appendChild(valText);
-
       flyer.appendChild(valBadge);
     }
 
@@ -1854,15 +1824,16 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
             }
 
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
-            // Ye (endY - size + 10) ensures ki ye patti ke top edge se perfect chipka ho
+            // (endY - size) bottom of flyer ko top edge pe layega, +(size*0.15) halka overlap (chipka) feel dega top edge par
             flyer.style.transform =
-              `translate3d(${endX - half}px,${endY - size + 10}px,0) scale(1)`;
+              `translate3d(${endX - half}px,${endY - size + (size * 0.15)}px,0) scale(1)`;
 
+            // Gifts ek ke upar ek stack honge (Time badha diya hai remove karne ka)
             window.setTimeout(() => {
                 flyer.style.transition = "opacity 0.4s ease-out";
                 flyer.style.opacity = "0";
                 window.setTimeout(() => flyer.remove(), 400);
-            }, 3500); 
+            }, 3500); // 3.5 sec stack stay time
 
           }, 700);
         });
