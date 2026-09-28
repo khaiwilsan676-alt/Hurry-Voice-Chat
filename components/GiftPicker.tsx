@@ -1407,45 +1407,70 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
         marginBottom: -20,
       }}
     >
-      {/* 🏆 Big Win image — FIXED SIZE */}
+         {/* 🏆 WIN VALUE OVERLAY — Image ke UPAR, patti se chipki */}
+<div
+  style={{
+    position: "absolute",
+    right: 20,
+    top: -100,
+    height: 100,
+    display: "flex",
+    alignItems: "flex-end",
+    justifyContent: "center",
+    zIndex: 22,
+    pointerEvents: "none",
+  }}
+>
+  {floatingWins.map((fw) => (
+    <div
+      key={fw.id}
+      style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "4px",
+        whiteSpace: "nowrap",
+        animation: "dropWinCoins 1.4s forwards",
+      }}
+    >
+      {/* 🏆 Big Win image — Choti kar di, Center mein hai, aur bottom -25 kar diya */}
       {notice.maxWinTimes >= 10 && (
         <img
           src="/file_000000004e18820b810ae49258003b98.png"
           alt="Big Win"
           draggable={false}
           style={{
-            width: 220,
-            height: 150,
-            minWidth: 220,
-            minHeight: 150,
-            maxWidth: 220,
-            maxHeight: 150,
+            position: "absolute",
+            bottom: -25, /* ⬅️ Tere kehne par -25 kar diya */
+            left: "50%",
+            transform: "translateX(-50%)",
+            height: 110, /* ⬅️ Image choti kar di (pehle 180 thi) */
             objectFit: "contain",
             pointerEvents: "none",
             zIndex: 1,
-            display: "block",
-            marginBottom: -50,
-            flexShrink: 0,
           }}
         />
       )}
 
-      {/* 🪙 Coin + Value — same ROW, image ke UPAR overlap */}
-      <div
+      {/* 🪙 Coin + Value — Wrapper lagaya taaki gap khatam ho aur properly overlap kare */}
+      <div 
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 0,
+          justifyContent: "center",
+          gap: "4px",
           position: "relative",
           zIndex: 10,
+          top: "12px", /* ⬅️ Isne gap khatam kar diya, ab yeh exactly image ke upar center mein aayega */
         }}
       >
         <img
           src="/file_00000000e56882119c217d508b6733dc.png"
           alt="Coins"
           style={{
-            width: 22,
-            height: 22,
+            width: 19,
+            height: 19,
             objectFit: "cover",
             borderRadius: "50%",
             filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
@@ -1466,6 +1491,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
     </div>
   ))}
 </div>
+
         </div>
       </div>
     </>
