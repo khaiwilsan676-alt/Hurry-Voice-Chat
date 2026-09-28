@@ -1380,9 +1380,9 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           <div
             style={{
               position: "absolute",
-              left: 45, // ⬅️ Theek tere Name wale section ke upar shift ho gaya
+              left: 37, // ⬅️ Theek tere Name wale section ke upar shift ho gaya
               bottom: "100%", // ⬅️ Patti ke theek top edge par rahega
-              marginBottom: -26, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
+              marginBottom: -29, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
               zIndex: 22,
               pointerEvents: "none",
             }}
@@ -1429,7 +1429,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     gap: "1.5px",
                     position: "relative",
                     zIndex: 10,
-                    top: -6, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
+                    top: 10, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
                   }}
                 >
                   <img
