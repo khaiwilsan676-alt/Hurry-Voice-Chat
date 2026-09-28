@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import socket from "../src/lib/socket";
+import Wallet from "../Components/Wallet";
 
 const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
@@ -162,12 +163,6 @@ const SolidMicIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const SolidUserIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
-    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-  </svg>
-);
-
 export interface Gift {
   id: number;
   name: string;
@@ -222,6 +217,9 @@ export default function GiftPicker({
   const [selectedGift, setSelectedGift] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [sending, setSending] = useState(false);
+
+  // Wallet Modal state
+  const [isWalletOpen, setIsWalletOpen] = useState(false);
 
   useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
@@ -361,13 +359,14 @@ export default function GiftPicker({
   useEffect(() => {
     if (playingVideo) return;
     const handler = (e: MouseEvent) => {
+      if (isWalletOpen) return;
       if (open && sheetRef.current && !sheetRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [onClose, playingVideo, open]);
+  }, [onClose, playingVideo, open, isWalletOpen]);
 
   useEffect(() => {
     return () => {
@@ -422,6 +421,7 @@ export default function GiftPicker({
   }, [roomId, currentUserAccountId]);
 
   const handleSend = async () => {
+    if (isWalletOpen) return;
     if (!selectedGiftObj || sending) return;
     if (!canAfford) return;
     setSending(true);
@@ -557,7 +557,7 @@ export default function GiftPicker({
   };
 
   const handleOpenWallet = () => {
-    window.location.href = "/wallet";
+    setIsWalletOpen(true);
   };
 
   const handleAvatarClick = (accountId: string) => {
@@ -698,19 +698,19 @@ export default function GiftPicker({
         ref={sheetRef}
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
-        
+
         <div className="absolute top-3 right-4 z-[60] flex items-center gap-2">
           <button
             onClick={handleAllOnMic}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
               selectionLabel === "All"
-                ? "border-[#3b82f6] bg-[#3b82f6]/15 text-[#3b82f6]"
+                ? "border-gray-300 bg-gray-500/30 text-white"
                 : "border-gray-500 bg-[#282d32] text-white"
             }`}
           >
             <SolidMicIcon className="w-[18px] h-[18px]" />
             <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
-              selectionLabel === "All" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+              selectionLabel === "All" ? "bg-gray-400 text-white" : "bg-gray-400 text-white"
             }`}>
               All
             </div>
@@ -720,13 +720,17 @@ export default function GiftPicker({
             onClick={handleAllInRoom}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all ${
               selectionLabel === "All room"
-                ? "border-[#3b82f6] bg-[#3b82f6]/15 text-[#3b82f6]"
-                : "border-gray-500 bg-[#282d32] text-white"
+                ? "border-[#10b981] bg-[#10b981]/20"
+                : "border-gray-500 bg-[#282d32]"
             }`}
           >
-            <SolidUserIcon className="w-[18px] h-[18px]" />
+            <img
+              src="/file_000000004e18820b810ae49258003b98.png"
+              className="w-[20px] h-[20px] object-contain"
+              alt="Hound Icon"
+            />
             <div className={`absolute -bottom-1 -right-1.5 px-1.5 py-0 rounded-full text-[9px] font-bold border-2 border-[#0c1418] leading-[1.2] ${
-              selectionLabel === "All room" ? "bg-[#3b82f6] text-white" : "bg-gray-400 text-white"
+              selectionLabel === "All room" ? "bg-[#10b981] text-white" : "bg-gray-400 text-white"
             }`}>
               All
             </div>
@@ -746,11 +750,10 @@ export default function GiftPicker({
                     isSelected ? "border-[#3b82f6]" : "border-transparent"
                   }`}
                 >
-                  <Image
+                  <img
                     src={seat.user!.image || "/default-avatar.png"}
                     alt={seat.user!.name}
-                    fill
-                    className="object-cover rounded-full"
+                    className="w-full h-full object-cover rounded-full"
                   />
                 </div>
               );
@@ -806,13 +809,10 @@ export default function GiftPicker({
                       : {}
                   }
                 >
-                  <Image
+                  <img
                     src={gift.image}
                     alt={gift.name}
-                    fill
-                    className={`${gift.noMask ? "object-contain" : "object-cover"} ${gift.sideFade ? "rounded-xl" : ""}`}
-                    sizes={gift.noMask ? "44px" : "64px"}
-                    priority={gift.id === 1}
+                    className={`w-full h-full ${gift.noMask ? "object-contain" : "object-cover"} ${gift.sideFade ? "rounded-xl" : ""}`}
                   />
                 </div>
 
@@ -822,12 +822,10 @@ export default function GiftPicker({
 
                 <span className="text-gray-400 flex items-center justify-center gap-0.5 mt-0.5 text-[9px]">
                   <div className="w-2.5 h-2.5 relative overflow-hidden rounded-full">
-                    <Image
+                    <img
                       src="/file_00000000e56882119c217d508b6733dc.png"
                       alt="Coins"
-                      fill
-                      className="coin-image object-cover"
-                      sizes="10px"
+                      className="coin-image w-full h-full object-cover"
                     />
                   </div>
                   {gift.coins.toLocaleString()}
@@ -838,18 +836,17 @@ export default function GiftPicker({
         </div>
 
         <div className="flex items-center justify-between pt-2 relative">
-          
-          <div 
+
+          {/* Wallet Balance with Arrow */}
+          <div
             className="flex items-center gap-1.5 cursor-pointer active:scale-95 transition-transform"
             onClick={handleOpenWallet}
           >
             <div className="w-5 h-5 relative overflow-hidden rounded-full flex-shrink-0">
-              <Image
+              <img
                 src="/file_00000000e56882119c217d508b6733dc.png"
                 alt="Coins"
-                fill
-                className="coin-image object-cover"
-                sizes="20px"
+                className="w-full h-full object-cover filter drop-shadow-[0_0_4px_rgba(255,215,0,0.4)]"
               />
             </div>
             <span className="text-[11px] font-bold text-white tracking-wide">
@@ -860,7 +857,7 @@ export default function GiftPicker({
 
           <div className="flex items-center gap-2 relative">
             {showMultipliers && (
-              <div className="absolute bottom-[calc(100%+8px)] left-0 w-full rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-black border border-white/10">
+              <div className="absolute bottom-[calc(100%+8px)] right-0 rounded-md p-1 shadow-xl flex flex-col gap-1 z-50 bg-[#0c1418] border border-white/10 min-w-[50px]">
                 {multipliers.map((num) => (
                   <button
                     key={num}
@@ -910,6 +907,17 @@ export default function GiftPicker({
         </div>
        </div>
       </div>
+
+      {/* Wallet Component Modal Overlay */}
+      {isWalletOpen && (
+        <div
+          className="fixed inset-0 z-[2147483647] bg-black/80 flex items-center justify-center"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <Wallet onClose={() => setIsWalletOpen(false)} />
+        </div>
+      )}
+
       <LuckyGiftNotificationSlider roomId={String(roomId || "")} />
       <LuckyComboButton />
     </div>
@@ -933,7 +941,8 @@ interface LuckyNotice {
 
 export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
   const [notice, setNotice] = useState<LuckyNotice | null>(null);
-  const [floatingWins, setFloatingWins] = useState<{id: string, amount: number}[]>([]);
+  const [floatingWins, setFloatingWins] = useState<{ id: string; amount: number }[]>([]);
+  const [popTick, setPopTick] = useState(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -956,7 +965,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             ...prev,
             multiplier: Math.max(multiplier, prev.multiplier),
             maxWinTimes: Math.max(incomingWinTimes, prev.maxWinTimes || 0),
-            isExiting: false
+            isExiting: false,
           };
         }
         return {
@@ -969,46 +978,51 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           multiplier,
           totalWinAmount: 0,
           maxWinTimes: incomingWinTimes,
-          isExiting: false
+          isExiting: false,
         };
       });
 
+      // Bump pop tick whenever multiplier changes so ×N replays even if same value
+      setPopTick((t) => t + 1);
+
       if (incomingWin > 0) {
         const floatId = `float-${Date.now()}-${Math.random()}`;
-        setFloatingWins(prev => [...prev, { id: floatId, amount: incomingWin }]);
+        setFloatingWins((prev) => [...prev, { id: floatId, amount: incomingWin }]);
 
         setTimeout(() => {
-          setNotice(currentNotice => {
+          setNotice((currentNotice) => {
             if (!currentNotice) return currentNotice;
-            return { 
-              ...currentNotice, 
-              totalWinAmount: currentNotice.totalWinAmount + incomingWin 
+            return {
+              ...currentNotice,
+              totalWinAmount: currentNotice.totalWinAmount + incomingWin,
             };
           });
         }, 600);
 
         setTimeout(() => {
-          setFloatingWins(prev => prev.filter(f => f.id !== floatId));
-        }, 1500);
+          setFloatingWins((prev) => prev.filter((f) => f.id !== floatId));
+        }, 1400);
       }
 
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        setNotice(prev => (prev ? { ...prev, isExiting: true } : null));
-      }, 4500); 
+        setNotice((prev) => (prev ? { ...prev, isExiting: true } : null));
+      }, 4500);
     };
 
     socket.on("coin_transfer_received", processNotice);
-    window.addEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
+
+    const localHandler = (e: any) => processNotice(e.detail);
+    window.addEventListener("hurry:lucky-slider", localHandler);
 
     const handleClose = () => {
-      setNotice(prev => (prev ? { ...prev, isExiting: true } : null));
+      setNotice((prev) => (prev ? { ...prev, isExiting: true } : null));
     };
     window.addEventListener("hurry:lucky-slider-close", handleClose);
 
     return () => {
       socket.off("coin_transfer_received", processNotice);
-      window.removeEventListener("hurry:lucky-slider", (e: any) => processNotice(e.detail));
+      window.removeEventListener("hurry:lucky-slider", localHandler);
       window.removeEventListener("hurry:lucky-slider-close", handleClose);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
@@ -1019,7 +1033,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
       const t = setTimeout(() => {
         setNotice(null);
         setFloatingWins([]);
-      }, 400); 
+      }, 400);
       return () => clearTimeout(t);
     }
   }, [notice?.isExiting]);
@@ -1042,14 +1056,14 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           50% { transform: scale(1.4); }
           100% { transform: scale(1); }
         }
-        @keyframes dropWin {
-          0% { transform: translateY(-40px) scale(0.8); opacity: 0; }
-          20% { transform: translateY(0) scale(1); opacity: 1; }
-          80% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(20px) scale(0.8); opacity: 0; }
+        @keyframes dropWinCoins {
+          0% { transform: translate(-50%, -20px) scale(0.8); opacity: 0; }
+          20% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+          80% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+          100% { transform: translate(-50%, 20px) scale(0.8); opacity: 0; }
         }
         @keyframes smoothDrop {
-          0% { transform: translateY(-10px) scale(0.8); opacity: 0; }
+          0% { transform: translateY(-15px) scale(0.8); opacity: 0; }
           100% { transform: translateY(0) scale(1); opacity: 1; }
         }
       `}</style>
@@ -1059,13 +1073,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
         style={{
           position: "fixed",
           left: 0,
-          top: "28vh", 
+          bottom: "36vh",
           zIndex: 2147483000,
           pointerEvents: "none",
           display: "flex",
           alignItems: "center",
-          animation: notice.isExiting 
-            ? "slideOutLeft 0.4s ease-in forwards" 
+          animation: notice.isExiting
+            ? "slideOutLeft 0.4s ease-in forwards"
             : "slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
         }}
       >
@@ -1074,31 +1088,14 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             position: "relative",
             display: "flex",
             alignItems: "center",
-            background: "linear-gradient(90deg, #ffc107 0%, rgba(255, 193, 7, 0.8) 50%, rgba(255, 193, 7, 0) 100%)",
+            background:
+              "linear-gradient(90deg, #ffc107 0%, rgba(255, 193, 7, 0.8) 60%, rgba(255, 193, 7, 0.1) 100%)",
             borderRadius: "50px 0 0 50px",
-            padding: "4px 40px 4px 4px",
-            minWidth: "240px",
-            maxWidth: "85vw"
+            padding: "4px 60px 4px 4px",
+            minWidth: "280px",
+            maxWidth: "90vw",
           }}
         >
-          {/* Big Win >= 10x top image element */}
-          {notice.maxWinTimes >= 10 && (
-            <img
-              src="/File_00000000791c820ba530d68b8c0ade38.png"
-              alt="Big Win"
-              style={{
-                position: "absolute",
-                top: -30,
-                right: 30,
-                height: 48,
-                objectFit: "contain",
-                animation: "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
-                zIndex: -1
-              }}
-              draggable={false}
-            />
-          )}
-
           {/* Sender Avatar - No border */}
           <div style={{ flexShrink: 0, zIndex: 1 }}>
             <img
@@ -1117,23 +1114,44 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 
           {/* Names Info */}
           <div style={{ marginLeft: 8, display: "flex", flexDirection: "column", maxWidth: 90, zIndex: 1 }}>
-            <span style={{ color: "#fff", fontSize: 13, fontWeight: "bold", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2, textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>
+            <span
+              style={{
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                lineHeight: 1.2,
+                textShadow: "0 1px 2px rgba(0,0,0,0.4)",
+              }}
+            >
               {notice.senderName}
             </span>
-            <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2, textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
+            <span
+              style={{
+                color: "rgba(255,255,255,0.9)",
+                fontSize: 11,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                lineHeight: 1.2,
+                textShadow: "0 1px 2px rgba(0,0,0,0.3)",
+              }}
+            >
               To {notice.recipientName}
             </span>
           </div>
 
           {/* Gift Image & Multiplier - Using Key to Trigger Pop Animation */}
           <div
-            key={notice.multiplier}
+            key={`${notice.multiplier}-${popTick}`}
             style={{
               display: "flex",
               alignItems: "center",
               marginLeft: 8,
               animation: "popGift 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-              zIndex: 1
+              zIndex: 1,
             }}
           >
             {notice.giftImage && (
@@ -1142,7 +1160,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 alt=""
                 style={{
                   width: 38,
-                  height: 38, 
+                  height: 38,
                   objectFit: "contain",
                   display: "block",
                 }}
@@ -1164,51 +1182,85 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* Winning Drops Display on the Right Side */}
-          <div style={{ position: "absolute", right: -50, top: -10, display: "flex", justifyContent: "center", zIndex: 2 }}>
-            {floatingWins.map(fw => (
-              <div
-                key={fw.id}
+          {/* Big Win Image & Dropping Coins container (Right side layout) */}
+          <div
+            style={{
+              position: "absolute",
+              right: 20,
+              top: -35,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              zIndex: 22,
+            }}
+          >
+            {/* Conditional Big Win Banner */}
+            {notice.maxWinTimes >= 10 && (
+              <img
+                src="/File_00000000791c820ba530d68b8c0ade38.png"
+                alt="Big Win"
                 style={{
-                  position: "absolute",
-                  width: 70,
-                  height: 70,
-                  animation: "dropWin 1.4s forwards",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 10
+                  height: 56,
+                  objectFit: "contain",
+                  animation: "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+                  zIndex: 20,
                 }}
-              >
-                <img
-                  src="/file_00000000a9e48211aee262c0df0c36bc.png"
-                  alt=""
+                draggable={false}
+              />
+            )}
+
+            {/* Dropping Coin Icon and Value Text */}
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "0px",
+                display: "flex",
+                justifyContent: "center",
+                marginTop: notice.maxWinTimes >= 10 ? -5 : 20,
+              }}
+            >
+              {floatingWins.map((fw) => (
+                <div
+                  key={fw.id}
                   style={{
                     position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain", 
-                    display: "block",
-                    zIndex: 1,
-                  }}
-                  draggable={false}
-                />
-                <span
-                  style={{
-                    position: "relative",
-                    zIndex: 2,
-                    color: "#fff0b3",
-                    fontWeight: "900",
-                    fontSize: 16, 
-                    textShadow: "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
-                    letterSpacing: "0.5px"
+                    top: 0,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    animation: "dropWinCoins 1.4s forwards",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    zIndex: 22,
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {fw.amount}
-                </span>
-              </div>
-            ))}
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
+                    alt="Coins"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                      filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "#fff0b3",
+                      fontWeight: "900",
+                      fontSize: 18,
+                      textShadow:
+                        "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
+                    }}
+                  >
+                    {fw.amount}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -1217,7 +1269,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON (Golden Theme)
+// ⭕ COMBO BUTTON (Golden Theme & Smaller Size)
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
@@ -1273,7 +1325,7 @@ export function LuckyComboButton() {
 
     winTimes = rollLuckyWin();
 
-    luckyReturnAmount = winTimes > 0 ? (totalCost * winTimes) : 0;
+    luckyReturnAmount = winTimes > 0 ? totalCost * winTimes : 0;
     luckyReturnPercent = winTimes > 0 ? winTimes : 0;
     const finalDeductionCost = totalCost - luckyReturnAmount;
 
@@ -1329,8 +1381,8 @@ export function LuckyComboButton() {
         multiplier: nextMultiplier,
         luckyGift: true,
         luckyReturnAmount: luckyReturnAmount,
-        winTimes: winTimes
-      }
+        winTimes: winTimes,
+      },
     }));
 
     setBusy(false);
@@ -1368,8 +1420,16 @@ export function LuckyComboButton() {
           gap: 4,
         }}
       >
-        <div style={{ position: "relative", width: 104, height: 104, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          
+        <div
+          style={{
+            position: "relative",
+            width: 80,
+            height: 80,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <div className="combo-wave-gold" style={{ animationDelay: "0s" }} />
           <div className="combo-wave-gold" style={{ animationDelay: "0.6s" }} />
 
@@ -1381,28 +1441,28 @@ export function LuckyComboButton() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 96,
-              height: 96,
+              width: 72,
+              height: 72,
               borderRadius: "50%",
               border: "none",
               outline: "none",
               cursor: "pointer",
               background: "radial-gradient(circle at center, #ffe066 0%, #ffb300 100%)",
-              boxShadow: "0 6px 26px rgba(255, 179, 0, 0.75)",
+              boxShadow: "0 6px 20px rgba(255, 179, 0, 0.75)",
               zIndex: 2,
             }}
           >
             <span
               style={{
                 color: "#ffffff",
-                fontWeight: 700,
-                fontSize: 18,
-                textShadow: "0 1px 3px rgba(0,0,0,0.5)",
-                letterSpacing: "0.5px",
+                fontWeight: 900,
+                fontSize: 24,
+                fontStyle: "italic",
+                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
                 zIndex: 3,
               }}
             >
-              Combo
+              ×{comboMultiplier}
             </span>
 
             <svg
@@ -1415,7 +1475,7 @@ export function LuckyComboButton() {
                 transform: "rotate(-90deg)",
                 pointerEvents: "none",
                 zIndex: 3,
-                padding: 8,
+                padding: 6,
                 boxSizing: "border-box",
               }}
             >
@@ -1425,7 +1485,7 @@ export function LuckyComboButton() {
                 r="42"
                 fill="none"
                 stroke="rgba(255, 255, 255, 0.35)"
-                strokeWidth="1.5"
+                strokeWidth="2.5"
               />
               <circle
                 cx="48"
@@ -1433,7 +1493,7 @@ export function LuckyComboButton() {
                 r="42"
                 fill="none"
                 stroke="#ffffff"
-                strokeWidth="1.5"
+                strokeWidth="2.5"
                 strokeDasharray="263.89"
                 strokeDashoffset={263.89 - (263.89 * timeLeft) / 5}
                 strokeLinecap="round"
@@ -1488,7 +1548,7 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
 
   const eventId = String(
     data?.eventId ||
-    `${data?.roomId || ""}-${data?.seatNumber || ""}-${data?.timestamp || ""}-${data?.src || ""}`
+      `${data?.roomId || ""}-${data?.seatNumber || ""}-${data?.timestamp || ""}-${data?.src || ""}`
   );
   if (embeddedSeenLuckyEvents.has(eventId)) return;
   embeddedSeenLuckyEvents.add(eventId);
@@ -1527,9 +1587,10 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const endX = rect.left + rect.width / 2;
     const endY = rect.top + rect.height / 2;
 
-    const travelDuration = Number(data?.duration) > 0
-      ? Math.min(1800, Math.max(600, Number(data.duration)))
-      : 900;
+    const travelDuration =
+      Number(data?.duration) > 0
+        ? Math.min(1800, Math.max(600, Number(data.duration)))
+        : 900;
 
     Object.assign(flyer.style, {
       position: "fixed",
@@ -1567,7 +1628,6 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
             }
 
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
-            // Tweak target scale so it doesn't shrink too much
             flyer.style.transform =
               `translate3d(${endX - half}px,${endY - half}px,0) scale(0.55)`;
 
@@ -1605,4 +1665,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-}
+        }
