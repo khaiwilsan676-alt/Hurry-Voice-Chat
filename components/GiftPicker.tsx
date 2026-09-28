@@ -861,7 +861,7 @@ export default function GiftPicker({
         className="main-container h-[50vh] w-full max-w-md mx-auto text-white flex flex-col rounded-t-md border-t border-white/10 shadow-2xl relative px-4 pt-3 pb-2"
       >
 
-        {/* 🎤 MIC + 🏠 HOUSE — dono -mt-2 */}
+        {/* 🎤 MIC + 🏠 HOUSE */}
         <div className="absolute top-3 right-4 z-[60] flex items-center gap-2">
           <button
             onClick={handleAllOnMic}
@@ -1262,10 +1262,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           80% { transform: translate(-50%, 0) scale(1); opacity: 1; }
           100% { transform: translate(-50%, 20px) scale(0.8); opacity: 0; }
         }
-        @keyframes smoothDrop {
-          0% { transform: translateY(-15px) scale(0.8); opacity: 0; }
-          100% { transform: translateY(0) scale(1); opacity: 1; }
-        }
       `}</style>
 
       <div
@@ -1378,120 +1374,84 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               ×{notice.multiplier}
             </span>
           </div>
-            <div
-  style={{
-    position: "absolute",
-    right: 120,
-    bottom: -26,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "flex-end",
-    gap: 0,
-    zIndex: 22,
-    pointerEvents: "none",
-  }}
->
-  {floatingWins.map((fw) => (
-    <div
-      key={fw.id}
-      style={{
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        justifyContent: "flex-start",
-        gap: 0,
-        whiteSpace: "nowrap",
-        animation: "dropWinCoins 1.4s forwards",
-        marginBottom: -20,
-      }}
-    >
-         {/* 🏆 WIN VALUE OVERLAY — Image ke UPAR, patti se chipki */}
-<div
-  style={{
-    position: "absolute",
-    right: 20,
-    top: -100,
-    height: 100,
-    display: "flex",
-    alignItems: "flex-end",
-    justifyContent: "center",
-    zIndex: 22,
-    pointerEvents: "none",
-  }}
->
-  {floatingWins.map((fw) => (
-    <div
-      key={fw.id}
-      style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "4px",
-        whiteSpace: "nowrap",
-        animation: "dropWinCoins 1.4s forwards",
-      }}
-    >
-      {/* 🏆 Big Win image — Choti kar di, Center mein hai, aur bottom -25 kar diya */}
-      {notice.maxWinTimes >= 10 && (
-        <img
-          src="/file_000000004e18820b810ae49258003b98.png"
-          alt="Big Win"
-          draggable={false}
-          style={{
-            position: "absolute",
-            bottom: -25, /* ⬅️ Tere kehne par -25 kar diya */
-            left: "50%",
-            transform: "translateX(-50%)",
-            height: 110, /* ⬅️ Image choti kar di (pehle 180 thi) */
-            objectFit: "contain",
-            pointerEvents: "none",
-            zIndex: 1,
-          }}
-        />
-      )}
 
-      {/* 🪙 Coin + Value — Wrapper lagaya taaki gap khatam ho aur properly overlap kare */}
-      <div 
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "4px",
-          position: "relative",
-          zIndex: 10,
-          top: "12px", /* ⬅️ Isne gap khatam kar diya, ab yeh exactly image ke upar center mein aayega */
-        }}
-      >
-        <img
-          src="/file_00000000e56882119c217d508b6733dc.png"
-          alt="Coins"
-          style={{
-            width: 19,
-            height: 19,
-            objectFit: "cover",
-            borderRadius: "50%",
-            filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
-          }}
-        />
-        <span
-          style={{
-            color: "#fff0b3",
-            fontWeight: "900",
-            fontSize: 18,
-            textShadow:
-              "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
-          }}
-        >
-          {fw.amount}
-        </span>
-      </div>
-    </div>
-  ))}
-</div>
+          {/* 🏆 BIG WIN & COINS OVERLAY — Ekdam clean aur patti se chipka hua */}
+          <div
+            style={{
+              position: "absolute",
+              right: 60, // Patti ke right side se set kiya hai
+              bottom: "85%", // Ekdam patti ke top par chipkega
+              zIndex: 22,
+              pointerEvents: "none",
+            }}
+          >
+            {floatingWins.map((fw) => (
+              <div
+                key={fw.id}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  whiteSpace: "nowrap",
+                  animation: "dropWinCoins 1.4s forwards",
+                }}
+              >
+                {/* 🏆 Big Win Image */}
+                {notice.maxWinTimes >= 10 && (
+                  <img
+                    src="/file_000000004e18820b810ae49258003b98.png"
+                    alt="Big Win"
+                    draggable={false}
+                    style={{
+                      height: 95, // ⬅️ Choti kar di taaki screen ke bahar na jaye
+                      objectFit: "contain",
+                      pointerEvents: "none",
+                      zIndex: 1,
+                      marginBottom: -35, // ⬅️ ISNE JAADU KIYA: Text ko upar khinch kar image par overlap karega
+                    }}
+                  />
+                )}
 
+                {/* 🪙 Coin + Value Wrapper */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "4px",
+                    position: "relative",
+                    zIndex: 10, // Text hamesha image ke upar dikhega
+                  }}
+                >
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
+                    alt="Coins"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                      filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+                    }}
+                  />
+                  <span
+                    style={{
+                      color: "#fff0b3",
+                      fontWeight: "900",
+                      fontSize: 20,
+                      textShadow:
+                        "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
+                    }}
+                  >
+                    {fw.amount}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </>
@@ -1893,4 +1853,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-        }
+}
