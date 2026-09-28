@@ -148,18 +148,14 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       {/* ================= RULES BOTTOM SHEET (30vh) ================= */}
       {showRules && (
         <div className="fixed inset-0 z-[400] flex flex-col justify-end">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setShowRules(false)}
           />
 
-          {/* Sheet */}
           <div className="relative w-full max-w-[440px] mx-auto h-[30vh] bg-black rounded-t-3xl flex flex-col animate-in slide-in-from-bottom duration-300">
-
             {/* Top Bar */}
             <div className="relative w-full flex items-center justify-center pt-4 pb-3 shrink-0">
-              {/* Left Arrow */}
               <button
                 onClick={() => setShowRules(false)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center active:scale-95 transition"
@@ -181,7 +177,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </svg>
               </button>
 
-              {/* Heading */}
               <h2 className="text-white font-bold text-[17px]">Rules</h2>
             </div>
 
@@ -205,7 +200,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       {/* ================= CLAIM DETAILS SHEET ================= */}
       {showClaim && (
         <div className="fixed inset-0 z-[300] flex flex-col bg-white animate-in slide-in-from-bottom duration-300">
-
           {/* Top Designed Header */}
           <div className="relative w-full shrink-0">
             <svg
@@ -252,20 +246,20 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               />
             </svg>
 
-            {/* Left Arrow Icon - Top Left Corner */}
+            {/* Back Arrow - No Card, Only Icon */}
             <button
               onClick={() => setShowClaim(false)}
-              className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/25 transition"
+              className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center active:scale-95 transition"
               aria-label="Back"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="22"
-                height="22"
+                width="26"
+                height="26"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="#FFFFFF"
-                strokeWidth="2.5"
+                strokeWidth="2.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -274,7 +268,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </svg>
             </button>
 
-            {/* Claim details Heading - Middle */}
+            {/* Claim details Heading */}
             <h1
               className="absolute left-0 right-0 text-center text-white font-bold text-[22px] tracking-wide pointer-events-none drop-shadow-sm"
               style={{ top: '35%' }}
@@ -289,4 +283,4 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       )}
     </>
   )
-}
+              }
