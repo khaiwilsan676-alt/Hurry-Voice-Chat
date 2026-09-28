@@ -8,7 +8,7 @@ import Wallet from "./Wallet";
 
 const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
-const DEFAULT_BALANCE = 82927;
+const DEFAULT_BALANCE = 0;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -163,11 +163,72 @@ const SolidMicIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-const HoundIcon = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" className={className} fill="currentColor" stroke="none">
-    <path d="M9 21c-2.8 0-5-1.5-5-3.5 0-1.2.7-2.3 1.8-3-.7-1-1.3-2.5-1.3-4.5 0-4.4 3.6-8 8-8 3.2 0 6 1.9 7.3 4.7.4.9.7 1.9.7 3 0 1.4-.4 2.6-1 3.6 1 .7 1.5 1.7 1.5 2.7 0 2-2.2 3-5 3H9z" />
-  </svg>
-);
+const HoundIcon = ({ className }: { className?: string }) => {
+  const maskId = React.useId();
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      className={className}
+      fill="currentColor"
+      stroke="none"
+    >
+      <circle
+        cx="256"
+        cy="256"
+        r="208"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="17"
+      />
+
+      <defs>
+        <mask id={maskId}>
+          <rect width="512" height="512" fill="white" />
+          <rect x="225" y="282" width="62" height="88" rx="4" fill="black" />
+        </mask>
+      </defs>
+
+      <path
+        d="
+          M155 260
+          Q155 255 160 250
+          L238 176
+          Q256 157 274 176
+          L352 250
+          Q357 255 357 260
+          V353
+          Q357 370 340 370
+          H172
+          Q155 370 155 353
+          Z"
+        fill="currentColor"
+        mask={`url(#${maskId})`}
+      />
+
+      <rect
+        x="305"
+        y="325"
+        width="190"
+        height="135"
+        rx="25"
+        fill="currentColor"
+      />
+
+      <text
+        x="400"
+        y="415"
+        fontFamily="Arial,sans-serif"
+        fontSize="67"
+        fontWeight="600"
+        textAnchor="middle"
+        fill="#F1F2F2"
+      >
+        All
+      </text>
+    </svg>
+  );
+};
 
 export interface Gift {
   id: number;
@@ -190,14 +251,13 @@ type RecipientMode = "mic" | "room" | "single";
 
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.99) return 30;    // 1%   (pehle 0.1%)
-  if (luck > 0.97) return 15;    // 2%   (pehle 0.4%)
-  if (luck > 0.93) return 10;    // 4%   (pehle 1%)
-  if (luck > 0.85) return 5;     // 8%   (pehle 2.5%)
-  if (luck > 0.70) return 2;     // 15%  (pehle 6%)
-  return 0;                      // 70% no return
+  if (luck > 0.995) return 30;   // 0.5%
+  if (luck > 0.980) return 15;   // 1.5%
+  if (luck > 0.950) return 10;   // 3%
+  if (luck > 0.900) return 5;    // 5%
+  if (luck > 0.800) return 2;    // 10%
+  return 0;                       // 80% ✅
 }
-
 
 export default function GiftPicker({
   open = true,
@@ -1318,7 +1378,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* ✅ Big Win — new image on top border, coins + value below */}
           <div
             style={{
               position: "absolute",
@@ -1330,20 +1389,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               zIndex: 22,
             }}
           >
-            {notice.maxWinTimes >= 10 && (
-              <img
-                src="/file_000000004e18820b810ae49258003b98.png"
-                alt="Big Win"
-                style={{
-                  height: 64,
-                  objectFit: "contain",
-                  animation: "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
-                  zIndex: 20,
-                }}
-                draggable={false}
-              />
-            )}
-
             <div
               style={{
                 position: "relative",
@@ -1351,7 +1396,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 height: "0px",
                 display: "flex",
                 justifyContent: "center",
-                marginTop: notice.maxWinTimes >= 10 ? 2 : 22,
+                marginTop: 22,
               }}
             >
               {floatingWins.map((fw) => (
@@ -1370,6 +1415,25 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     whiteSpace: "nowrap",
                   }}
                 >
+                  {notice.maxWinTimes >= 10 && (
+                    <img
+                      src="/file_000000004e18820b810ae49258003b98.png"
+                      alt="Big Win"
+                      draggable={false}
+                      style={{
+                        position: "absolute",
+                        top: -46,
+                        left: -34,
+                        height: 68,
+                        objectFit: "contain",
+                        pointerEvents: "none",
+                        zIndex: 25,
+                        animation:
+                          "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
+                      }}
+                    />
+                  )}
+
                   <img
                     src="/file_00000000e56882119c217d508b6733dc.png"
                     alt="Coins"
@@ -1403,7 +1467,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
 }
 
 // ==========================================================
-// ⭕ COMBO BUTTON — reverted to original red theme
+// ⭕ COMBO BUTTON
 export function LuckyComboButton() {
   const [comboData, setComboData] = useState<any>(null);
   const [comboMultiplier, setComboMultiplier] = useState(1);
