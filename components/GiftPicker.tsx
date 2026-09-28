@@ -164,7 +164,6 @@ const SolidMicIcon = ({ className }: { className?: string }) => (
 );
 
 const HoundIcon = ({ className }: { className?: string }) => {
-  const maskId = React.useId();
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -182,28 +181,33 @@ const HoundIcon = ({ className }: { className?: string }) => {
         strokeWidth="17"
       />
 
-      <defs>
-        <mask id={maskId}>
-          <rect width="512" height="512" fill="white" />
-          <rect x="225" y="282" width="62" height="88" rx="4" fill="black" />
-        </mask>
-      </defs>
-
       <path
-        d="
-          M155 260
-          Q155 255 160 250
-          L238 176
-          Q256 157 274 176
-          L352 250
-          Q357 255 357 260
-          V353
-          Q357 370 340 370
-          H172
-          Q155 370 155 353
-          Z"
         fill="currentColor"
-        mask={`url(#${maskId})`}
+        fillRule="evenodd"
+        d="
+          M 80 235
+          L 222 105
+          Q 256 75 290 105
+          L 432 235
+          Q 445 247 432 260
+          L 405 290
+          L 405 405
+          Q 405 425 385 425
+          L 127 425
+          Q 107 425 107 405
+          L 107 290
+          L 80 260
+          Q 67 247 80 235
+          Z
+
+          M 210 425
+          L 210 300
+          Q 210 280 230 280
+          L 282 280
+          Q 302 280 302 300
+          L 302 425
+          Z
+        "
       />
 
       <rect
@@ -251,12 +255,12 @@ type RecipientMode = "mic" | "room" | "single";
 
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.995) return 30;   // 0.5%
-  if (luck > 0.980) return 15;   // 1.5%
-  if (luck > 0.950) return 10;   // 3%
-  if (luck > 0.900) return 5;    // 5%
-  if (luck > 0.800) return 2;    // 10%
-  return 0;                       // 80% ✅
+  if (luck > 0.995) return 30;
+  if (luck > 0.980) return 15;
+  if (luck > 0.950) return 10;
+  if (luck > 0.700) return 5;
+  if (luck > 0.900) return 2;
+  return 0;
 }
 
 export default function GiftPicker({
@@ -1059,7 +1063,7 @@ export default function GiftPicker({
                   cursor: !selectedGift || sending ? "not-allowed" : "pointer",
                 }}
               >
-                {sending ? "..." : "Send"}
+                {sending ? "send" : "Send"}
               </button>
             </div>
           </div>
@@ -1070,22 +1074,13 @@ export default function GiftPicker({
       {open && showInsufficient && (
         <div className="fixed inset-0 z-[2147483646] flex items-center justify-center pointer-events-none">
           <div
-            className="rounded-2xl px-6 py-3.5 border border-white/10 shadow-2xl flex items-center gap-2.5"
+            className="rounded-full px-4 py-1.5 flex items-center"
             style={{
-              background: "rgba(0,0,0,0.3)",
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
+              background: "rgba(0,0,0,0.75)",
               animation: "insufficientIn 0.25s ease-out forwards",
             }}
           >
-            <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
-              <img
-                src="/file_00000000e56882119c217d508b6733dc.png"
-                alt="Coins"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <span className="text-white font-bold text-[15px] tracking-wide">
+            <span className="text-white font-bold text-[13px] tracking-wide">
               {insufficientText}
             </span>
           </div>
@@ -1382,83 +1377,76 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             style={{
               position: "absolute",
               right: 20,
-              top: -40,
+              top: -100,
+              height: 100,
               display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              alignItems: "flex-end",
+              justifyContent: "center",
               zIndex: 22,
+              pointerEvents: "none",
             }}
           >
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                height: "0px",
-                display: "flex",
-                justifyContent: "center",
-                marginTop: 22,
-              }}
-            >
-              {floatingWins.map((fw) => (
-                <div
-                  key={fw.id}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    animation: "dropWinCoins 1.4s forwards",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    zIndex: 22,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {notice.maxWinTimes >= 10 && (
-                    <img
-                      src="/file_000000004e18820b810ae49258003b98.png"
-                      alt="Big Win"
-                      draggable={false}
-                      style={{
-                        position: "absolute",
-                        top: -46,
-                        left: -34,
-                        height: 68,
-                        objectFit: "contain",
-                        pointerEvents: "none",
-                        zIndex: 25,
-                        animation:
-                          "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
-                      }}
-                    />
-                  )}
-
+            {floatingWins.map((fw) => (
+              <div
+                key={fw.id}
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "4px",
+                  whiteSpace: "nowrap",
+                  animation: "dropWinCoins 1.4s forwards",
+                }}
+              >
+                {notice.maxWinTimes >= 10 && (
                   <img
-                    src="/file_00000000e56882119c217d508b6733dc.png"
-                    alt="Coins"
+                    src="/file_000000004e18820b810ae49258003b98.png"
+                    alt="Big Win"
+                    draggable={false}
                     style={{
-                      width: 22,
-                      height: 22,
-                      objectFit: "cover",
-                      borderRadius: "50%",
-                      filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+                      position: "absolute",
+                      bottom: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      height: 100,
+                      objectFit: "contain",
+                      pointerEvents: "none",
+                      zIndex: 1,
+                      animation:
+                        "smoothDrop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards",
                     }}
                   />
-                  <span
-                    style={{
-                      color: "#fff0b3",
-                      fontWeight: "900",
-                      fontSize: 18,
-                      textShadow:
-                        "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
-                    }}
-                  >
-                    {fw.amount}
-                  </span>
-                </div>
-              ))}
-            </div>
+                )}
+
+                <img
+                  src="/file_00000000e56882119c217d508b6733dc.png"
+                  alt="Coins"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                    filter: "drop-shadow(0 0 2px rgba(0,0,0,0.5))",
+                    position: "relative",
+                    zIndex: 10,
+                  }}
+                />
+                <span
+                  style={{
+                    color: "#fff0b3",
+                    fontWeight: "900",
+                    fontSize: 18,
+                    textShadow:
+                      "-1px -1px 0 #7a0000, 1px -1px 0 #7a0000, -1px 1px 0 #7a0000, 1px 1px 0 #7a0000, 0px 3px 5px rgba(0,0,0,1)",
+                    position: "relative",
+                    zIndex: 10,
+                  }}
+                >
+                  {fw.amount}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
