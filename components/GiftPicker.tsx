@@ -1358,17 +1358,18 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           >
             {floatingWins.map((fw) => (
               <div
-                key={fw.id}
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "4px",
-                  whiteSpace: "nowrap",
-                  animation: "dropWinCoins 1.4s forwards",
-                }}
-              >
+  style={{
+    position: "absolute",
+    top: 12,
+    left: "50%",
+    transform: "translateX(-50%)",
+    display: "flex",
+    flexDirection: "column",     // 👈 YEH — vertical stack
+    alignItems: "center",
+    justifyContent: "center",
+    animation: "dropWinCoins 1.4s forwards",
+  }}
+>
                 {notice.maxWinTimes >= 10 && (
                   <img
                     src="/file_000000004e18820b810ae49258003b98.png"
@@ -1377,9 +1378,9 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     style={{
                       position: "absolute",
                       bottom: 0,
-                      left: "50%",
+                      left: "30%",
                       transform: "translateX(-50%)",
-                      height: 100,
+                      height: 150,
                       objectFit: "contain",
                       pointerEvents: "none",
                       zIndex: 1,
