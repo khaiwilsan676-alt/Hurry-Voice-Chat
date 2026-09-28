@@ -1,4 +1,4 @@
-here"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronUp, ChevronRight } from "lucide-react";
@@ -172,14 +172,6 @@ const HoundIcon = ({ className }: { className?: string }) => {
       fill="currentColor"
       stroke="none"
     >
-      <circle
-        cx="256"
-        cy="256"
-        r="208"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="17"
-      />
       <path
         fill="currentColor"
         fillRule="evenodd"
@@ -327,8 +319,6 @@ export default function GiftPicker({
           luckyGift: true,
           targetName: String(seat.user?.name || ""),
           user: { name: "Lucky Gift", image, accountId: targetId },
-          winTimes: data.winTimes, 
-          returnAmount: data.luckyReturnAmount
         };
         window.dispatchEvent(new CustomEvent("hurry:lucky-image", { detail: luckyEvent }));
         originalEmit("room_seat_action", luckyEvent);
@@ -1735,11 +1725,13 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const rect = target.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    // Image aur container create kiya
-    const flyer = document.createElement("div");
-    
-    // Barri kerr Image logic (Image scale up kar diya hai thoda bada dikhne ke liye)
-    const size = Math.max(64, Math.min(100, Math.round(rect.width * 1.6)));
+    const flyer = document.createElement("img");
+    flyer.src = src;
+    flyer.alt = "";
+    flyer.setAttribute("aria-hidden", "true");
+    flyer.draggable = false;
+
+    const size = Math.max(48, Math.min(82, Math.round(rect.width * 1.35)));
     const half = size / 2;
 
     const startX = window.innerWidth / 2;
@@ -1747,7 +1739,7 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
     const middleX = window.innerWidth / 2;
     const middleY = window.innerHeight * 0.52;
     const endX = rect.left + rect.width / 2;
-    const endY = rect.top; // Seat/Patti ka top edge
+    const endY = rect.top + rect.height / 2;
 
     const travelDuration =
       Number(data?.duration) > 0
@@ -1760,49 +1752,15 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
       top: "0",
       width: `${size}px`,
       height: `${size}px`,
+      objectFit: "contain",
       pointerEvents: "none",
       userSelect: "none",
       zIndex: "2147483647",
       opacity: "1",
-      transformOrigin: "center center",
+      transformOrigin: "bottom center",
       transform: `translate3d(${startX - half}px,${startY - half}px,0) scale(1)`,
-      willChange: "transform, opacity",
+      willChange: "transform",
     });
-
-    const img = document.createElement("img");
-    img.src = src;
-    img.alt = "";
-    img.draggable = false;
-    Object.assign(img.style, {
-      width: "100%",
-      height: "100%",
-      objectFit: "contain",
-      position: "absolute",
-      top: "0",
-      left: "0",
-      display: "block"
-    });
-    flyer.appendChild(img);
-
-    // Ye value image k upar (bottom par) chipki rahegi, bahar nahi niklegi
-    const winVal = Number(data?.returnAmount) || Number(data?.winTimes) || 0;
-    if (winVal > 0) {
-      const valBadge = document.createElement("div");
-      valBadge.innerText = data?.returnAmount > 0 ? `+${data.returnAmount}` : `x${data.winTimes}`;
-      Object.assign(valBadge.style, {
-        position: "absolute",
-        bottom: "4px", // Image border ke bilkul bottom mein andar
-        left: "50%",
-        transform: "translateX(-50%)",
-        color: "#fff",
-        fontWeight: "900",
-        fontSize: "15px",
-        textShadow: "0px 1px 3px rgba(0,0,0,0.8), 0px -1px 2px rgba(0,0,0,0.6)",
-        whiteSpace: "nowrap",
-        zIndex: "2"
-      });
-      flyer.appendChild(valBadge);
-    }
 
     const start = () => {
       if (cancelled) {
@@ -1824,27 +1782,18 @@ function animateEmbeddedLuckyGift(data: any, roomId: string) {
             }
 
             flyer.style.transition = `transform ${Math.round(travelDuration / 2)}ms cubic-bezier(.18,.72,.32,1)`;
-            // (endY - size) bottom of flyer ko top edge pe layega, +(size*0.15) halka overlap (chipka) feel dega top edge par
             flyer.style.transform =
-              `translate3d(${endX - half}px,${endY - size + (size * 0.15)}px,0) scale(1)`;
+              `translate3d(${endX - half}px,${endY - half}px,0) scale(0.55)`;
 
-            // Gifts ek ke upar ek stack honge (Time badha diya hai remove karne ka)
-            window.setTimeout(() => {
-                flyer.style.transition = "opacity 0.4s ease-out";
-                flyer.style.opacity = "0";
-                window.setTimeout(() => flyer.remove(), 400);
-            }, 3500); // 3.5 sec stack stay time
-
+            window.setTimeout(() => flyer.remove(), Math.round(travelDuration / 2) + 120);
           }, 700);
         });
       });
     };
 
-    const dummyLoad = new window.Image();
-    dummyLoad.src = src;
-    dummyLoad.onload = start;
-    dummyLoad.onerror = () => flyer.remove();
-    if (dummyLoad.complete) start();
+    flyer.onload = start;
+    flyer.onerror = () => flyer.remove();
+    if (flyer.complete && flyer.naturalWidth > 0) start();
   };
 
   requestAnimationFrame(findAndRun);
@@ -1870,4 +1819,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-}
+        }
