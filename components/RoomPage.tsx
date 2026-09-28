@@ -2757,12 +2757,49 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
         <div className={`w-[var(--seat-size)] h-[var(--seat-size)] rounded-full flex items-center justify-center shrink-0 relative z-10 transition-all duration-300 hover:scale-105 pointer-events-auto overflow-visible ${activeSpeaking ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)]' : ''}`}>
           {isLocked ? (
             <div className="w-full h-full flex items-center justify-center overflow-visible">
-              <img
-                src="/file_00000000d2f08211baedcbfa57f4c3e6.png"
-                alt="Locked Seat"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 1024 1024"
                 className="w-full h-full object-contain pointer-events-none"
-                draggable={false}
-              />
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <defs>
+                  <mask id={`lockMask-${seatNumber}`}>
+                    <rect width="1024" height="1024" fill="white" />
+                    <path
+                      d="M482 587
+                         A28 28 0 1 0 482 643
+                         A28 28 0 0 0 482 587
+                         M467 637 H497 L506 687 H458 Z"
+                      fill="black"
+                    />
+                  </mask>
+                </defs>
+
+                <circle
+                  cx="482"
+                  cy="562"
+                  r="320"
+                  fill="#FFFFFF"
+                  fillOpacity="0.1"
+                  stroke="#FFFFFF"
+                  strokeOpacity="0.1"
+                  strokeWidth="3"
+                />
+
+                <g fill="#FFFFFF" mask={`url(#lockMask-${seatNumber})`}>
+                  <path
+                    d="M392 547 V482
+                       C392 372 572 372 572 482
+                       V547"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeWidth="38"
+                    strokeLinecap="round"
+                  />
+                  <rect x="352" y="527" width="260" height="195" rx="48" />
+                </g>
+              </svg>
             </div>
           ) : isOccupied && user ? (
             <div className="relative w-full h-full flex items-center justify-center overflow-visible">
@@ -2853,12 +2890,34 @@ function SeatItem({ seatNumber, seatData, onClick, onAvatarClick, accountId, roo
             </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center relative pointer-events-none">
-              <img
-                src="/file_00000000d23082118655299af1610f9c.png"
-                alt="Empty Seat"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 1024 1024"
                 className="w-full h-full object-contain pointer-events-none"
-                draggable={false}
-              />
+                preserveAspectRatio="xMidYMid meet"
+              >
+                {/* White/10 Circle Card with White Border */}
+                <circle cx="482" cy="562" r="320"
+                  fill="#FFFFFF" fillOpacity="0.1"
+                  stroke="#FFFFFF" strokeOpacity="0.5"
+                  strokeWidth="3" />
+
+                {/* White Mic */}
+                <g fill="#FFFFFF">
+                  <rect x="427" y="405" width="110" height="205" rx="55" />
+
+                  <path d="M370 535 V555
+                           C370 625 420 675 482 675
+                           C544 675 594 625 594 555
+                           V535 H550 V555
+                           C550 600 520 630 482 630
+                           C444 630 414 600 414 555
+                           V535 Z" />
+
+                  <rect x="462" y="650" width="40" height="65" rx="8" />
+                  <rect x="425" y="705" width="114" height="20" rx="10" />
+                </g>
+              </svg>
               {isMuted && (
                 <div
                   className="absolute right-1 bottom-1.5 rounded-full bg-red-500 flex items-center justify-center shadow-md z-30"
@@ -2942,8 +3001,7 @@ function RoomSideBanner() {
       </div>
     </div>
   );
-}
-
+                  }
 function GreenColorRemovalShader({ imageSrc, threshold = 0.5, className = "", style = {} }: any) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
