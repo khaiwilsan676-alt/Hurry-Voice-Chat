@@ -1256,11 +1256,12 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           50% { transform: scale(1.4); }
           100% { transform: scale(1); }
         }
-        @keyframes dropWinCoins {
-          0% { transform: translate(-50%, -20px) scale(0.8); opacity: 0; }
-          20% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-          80% { transform: translate(-50%, 0) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, 20px) scale(0.8); opacity: 0; }
+        /* YEH NAYI ANIMATION HAI JISSE SIZE KHARAB NAHI HOGA */
+        @keyframes dropWinCoinsLeft {
+          0% { transform: translateY(-15px) scale(0.8); opacity: 0; }
+          20% { transform: translateY(0) scale(1); opacity: 1; }
+          80% { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(15px) scale(0.8); opacity: 0; }
         }
       `}</style>
 
@@ -1375,12 +1376,13 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
             </span>
           </div>
 
-          {/* 🏆 BIG WIN & COINS OVERLAY — Ekdam clean aur patti se chipka hua */}
+          {/* 🏆 BIG WIN & COINS OVERLAY — Left main shift kiya, Name ke upar */}
           <div
             style={{
               position: "absolute",
-              right: 60, // Patti ke right side se set kiya hai
-              bottom: "85%", // Ekdam patti ke top par chipkega
+              left: 45, // ⬅️ Theek tere Name wale section ke upar shift ho gaya
+              bottom: "100%", // ⬅️ Patti ke theek top edge par rahega
+              marginBottom: -20, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
               zIndex: 22,
               pointerEvents: "none",
             }}
@@ -1391,31 +1393,34 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                 style={{
                   position: "absolute",
                   bottom: 0,
+                  left: 0,
+                  width: 140, // ⬅️ Fixed size, kitni bhi value ho shape change nahi hogi
+                  height: 140, // ⬅️ Image ka fixed height (Pehle 95 thi, ab badi kardi)
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "flex-end",
+                  justifyContent: "center", // Text ko center me laane ke liye
                   whiteSpace: "nowrap",
-                  animation: "dropWinCoins 1.4s forwards",
+                  animation: "dropWinCoinsLeft 1.4s forwards",
                 }}
               >
-                {/* 🏆 Big Win Image */}
+                {/* 🏆 Big Win Image — Size Fixed & No shifting */}
                 {notice.maxWinTimes >= 10 && (
                   <img
                     src="/file_000000004e18820b810ae49258003b98.png"
                     alt="Big Win"
                     draggable={false}
                     style={{
-                      height: 95, // ⬅️ Choti kar di taaki screen ke bahar na jaye
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
                       objectFit: "contain",
-                      pointerEvents: "none",
                       zIndex: 1,
-                      marginBottom: -35, // ⬅️ ISNE JAADU KIYA: Text ko upar khinch kar image par overlap karega
                     }}
                   />
                 )}
 
-                {/* 🪙 Coin + Value Wrapper */}
+                {/* 🪙 Coin + Value Wrapper — IMAGE KE ANDAR AUR UPAR */}
                 <div
                   style={{
                     display: "flex",
@@ -1423,7 +1428,8 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     justifyContent: "center",
                     gap: "4px",
                     position: "relative",
-                    zIndex: 10, // Text hamesha image ke upar dikhega
+                    zIndex: 10,
+                    top: -15, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
                   }}
                 >
                   <img
