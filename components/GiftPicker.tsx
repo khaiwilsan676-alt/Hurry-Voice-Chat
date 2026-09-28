@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { ChevronUp, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import socket from "../src/lib/socket";
-import Wallet from "../Wallet";
+import Wallet from "./Wallet";
 
 const SHARED_DB = "FruitPartyDB";
 const SHARED_STORE = "GameState";
