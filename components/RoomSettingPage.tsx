@@ -156,8 +156,8 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 // ------------------------------------------------------------
 
 export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave }: RoomSettingPageProps) {
-  const [roomDp, setRoomDp] = useState<string>(roomData?.roomDp || '/1784533036732~2.jpg')
-  const [roomName, setRoomName] = useState<string>(roomData?.roomName || '')
+  const [roomDp, setRoomDp] = useState<string>(roomData?.roomDp || '/default-avatar.png')
+  const [roomName, setRoomName] = useState<string>(roomData?.roomName || 'Room')
   const [announcement, setAnnouncement] = useState<string>(roomData?.announcement || '')
   const [isLocked, setIsLocked] = useState<boolean>(roomData?.isLocked || false)
   const [selectedMicMode, setSelectedMicMode] = useState<number>(roomData?.micMode || 10)
