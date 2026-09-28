@@ -42,7 +42,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           {/* ===== Top-Left Corner Document Icon (with Y) ===== */}
           <button
             onClick={() => setShowClaim(true)}
-            className="absolute top-3 left-3 z-30 w-10 h-10 active:scale-95 transition"
+            className="absolute top-7 left-4 z-30 w-7 h-7 active:scale-95 transition"
             aria-label="Open claim details"
           >
             <svg
@@ -315,4 +315,4 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       )}
     </>
   )
-                }
+}
