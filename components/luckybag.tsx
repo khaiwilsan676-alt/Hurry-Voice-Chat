@@ -39,6 +39,44 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             backgroundRepeat: 'no-repeat',
           }}
         >
+          {/* ===== Top-Left Corner Document Icon (with Y) ===== */}
+          <button
+            onClick={() => setShowClaim(true)}
+            className="absolute top-3 left-3 z-30 w-10 h-10 active:scale-95 transition"
+            aria-label="Open claim details"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="512"
+              height="512"
+              viewBox="0 0 512 512"
+              className="w-full h-full"
+            >
+              <g
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth="18"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="94" y="76" width="324" height="360" rx="48" />
+                <path d="M174 194 H292" />
+                <path d="M174 256 H338" />
+                <path d="M174 318 H338" />
+              </g>
+
+              {/* "Y" in top-left corner */}
+              <path
+                d="M6 6 L26 26 L46 6 M26 26 L26 46"
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
           <div className="w-full h-full p-4 flex flex-col relative z-20">
 
             {/* Top Right - Question Mark Icon */}
@@ -145,7 +183,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
         </div>
       </div>
 
-      {/* ================= RULES BOTTOM SHEET (30vh) ================= */}
+      {/* ================= RULES BOTTOM SHEET ================= */}
       {showRules && (
         <div className="fixed inset-0 z-[400] flex flex-col justify-end">
           <div
@@ -154,7 +192,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           />
 
           <div className="relative w-full max-w-[440px] mx-auto h-[30vh] bg-black rounded-t-3xl flex flex-col animate-in slide-in-from-bottom duration-300">
-            {/* Top Bar */}
             <div className="relative w-full flex items-center justify-center pt-4 pb-3 shrink-0">
               <button
                 onClick={() => setShowRules(false)}
@@ -180,7 +217,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               <h2 className="text-white font-bold text-[17px]">Rules</h2>
             </div>
 
-            {/* Rules List */}
             <div className="flex-1 overflow-y-auto px-5 pb-5">
               <ul className="space-y-3">
                 {rules.map((rule, idx) => (
@@ -200,7 +236,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
       {/* ================= CLAIM DETAILS SHEET ================= */}
       {showClaim && (
         <div className="fixed inset-0 z-[300] flex flex-col bg-white animate-in slide-in-from-bottom duration-300">
-          {/* Top Designed Header */}
           <div className="relative w-full shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -246,7 +281,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               />
             </svg>
 
-            {/* Back Arrow - No Card, Only Icon */}
             <button
               onClick={() => setShowClaim(false)}
               className="absolute top-4 left-4 w-9 h-9 flex items-center justify-center active:scale-95 transition"
@@ -268,7 +302,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </svg>
             </button>
 
-            {/* Claim details Heading */}
             <h1
               className="absolute left-0 right-0 text-center text-white font-bold text-[22px] tracking-wide pointer-events-none drop-shadow-sm"
               style={{ top: '35%' }}
@@ -277,10 +310,9 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </h1>
           </div>
 
-          {/* Rest of Sheet - Full White */}
           <div className="flex-1 bg-white" />
         </div>
       )}
     </>
   )
-              }
+                }
