@@ -958,10 +958,30 @@ export default function GiftPicker({
               <div
                 key={gift.id}
                 onClick={() => setSelectedGift(gift.id)}
-                className={`gift-item flex flex-col items-center justify-center transition cursor-pointer active:scale-95 ${
+                className={`gift-item relative flex flex-col items-center justify-center transition cursor-pointer active:scale-95 ${
                   selectedGift === gift.id ? "selected" : ""
                 }`}
               >
+                {/* 🏷️ Lucky Tab — har card ke Top-Left corner me badge */}
+                {activeTab === "Lucky" && (
+                  <img
+                    src="/IMG_20260928_172454.png"
+                    alt=""
+                    draggable={false}
+                    className="absolute top-0 left-0 w-4 h-4 object-contain pointer-events-none z-10"
+                  />
+                )}
+
+                {/* 🏷️ Hot Tab — sirf Arab King (id:3) card ke Top-Left corner me badge */}
+                {activeTab === "Hot" && gift.id === 3 && (
+                  <img
+                    src="/IMG_20260928_172516.png"
+                    alt=""
+                    draggable={false}
+                    className="absolute top-0 left-0 w-4 h-4 object-contain pointer-events-none z-10"
+                  />
+                )}
+
                 <div
                   className={`relative mb-1 overflow-hidden ${
                     gift.noMask ? "w-15 h-15" : "w-16 h-16"
@@ -1380,9 +1400,9 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
           <div
             style={{
               position: "absolute",
-              left: 35, // ⬅️ Theek tere Name wale section ke upar shift ho gaya
-              bottom: "100%", // ⬅️ Patti ke theek top edge par rahega
-              marginBottom: -33, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
+              left: 35,
+              bottom: "100%",
+              marginBottom: -33,
               zIndex: 22,
               pointerEvents: "none",
             }}
@@ -1394,17 +1414,16 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                   position: "absolute",
                   bottom: 0,
                   left: 0,
-                  width: 140, // ⬅️ Fixed size, kitni bhi value ho shape change nahi hogi
-                  height: 140, // ⬅️ Image ka fixed height (Pehle 95 thi, ab badi kardi)
+                  width: 140,
+                  height: 140,
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  justifyContent: "center", // Text ko center me laane ke liye
+                  justifyContent: "center",
                   whiteSpace: "nowrap",
                   animation: "dropWinCoinsLeft 1.4s forwards",
                 }}
               >
-                {/* 🏆 Big Win Image — Size Fixed & No shifting */}
                 {notice.maxWinTimes >= 10 && (
                   <img
                     src="/file_000000004e18820b810ae49258003b98.png"
@@ -1420,7 +1439,6 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                   />
                 )}
 
-                {/* 🪙 Coin + Value Wrapper — IMAGE KE ANDAR AUR UPAR */}
                 <div
                   style={{
                     display: "flex",
@@ -1429,7 +1447,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     gap: "1.5px",
                     position: "relative",
                     zIndex: 10,
-                    top: 25, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
+                    top: 25,
                   }}
                 >
                   <img
@@ -1859,4 +1877,4 @@ export function LuckyGiftAnimation({ roomId }: LuckyGiftAnimationProps) {
   }, []);
 
   return null;
-}
+  }
