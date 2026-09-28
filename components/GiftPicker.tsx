@@ -225,11 +225,11 @@ type RecipientMode = "mic" | "room" | "single";
 
 function rollLuckyWin(): number {
   const luck = Math.random();
-  if (luck > 0.995) return 30;
+  if (luck > 0.999) return 30;
   if (luck > 0.980) return 15;
-  if (luck > 0.950) return 10;
-  if (luck > 0.700) return 5;
-  if (luck > 0.900) return 2;
+  if (luck > 0.966) return 10;
+  if (luck > 0.900) return 5;
+  if (luck > 0.910) return 2;
   return 0;
 }
 
@@ -862,7 +862,7 @@ export default function GiftPicker({
       >
 
         {/* 🎤 MIC + 🏠 HOUSE */}
-        <div className="absolute top-3 right-4 z-[60] flex items-center gap-2">
+        <div className="absolute top-3 right-3 z-[60] flex items-center gap-2">
           <button
             onClick={handleAllOnMic}
             className={`relative w-[38px] h-[38px] rounded-full border-2 flex items-center justify-center transition-all -mt-2 ${
@@ -1382,7 +1382,7 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
               position: "absolute",
               left: 45, // ⬅️ Theek tere Name wale section ke upar shift ho gaya
               bottom: "100%", // ⬅️ Patti ke theek top edge par rahega
-              marginBottom: -20, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
+              marginBottom: -26, // ⬅️ Isse dono ekdum CHIPAK jayenge strict overlap without gap
               zIndex: 22,
               pointerEvents: "none",
             }}
@@ -1426,10 +1426,10 @@ export function LuckyGiftNotificationSlider({ roomId }: { roomId: string }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "4px",
+                    gap: "1.5px",
                     position: "relative",
                     zIndex: 10,
-                    top: -15, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
+                    top: -6, // ⬅️ Jadu yaha hai: Ye tere text ko Image ke theek center aur thoda Upar bhej dega!
                   }}
                 >
                   <img
