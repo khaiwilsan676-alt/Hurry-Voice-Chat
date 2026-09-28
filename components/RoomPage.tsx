@@ -957,7 +957,7 @@ function RoomContent({
     if (joinMessageSentRef.current || userAccountId === "guest") return;
     joinMessageSentRef.current = true;
     sendMessageToSocket('Enter the Room', undefined, 'join');
-  }, [userAccountId, currentUser.name, roomId]);
+  }, [userAccountId, roomId]);
 
   useEffect(() => {
     if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });

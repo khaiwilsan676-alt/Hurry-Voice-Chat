@@ -504,6 +504,7 @@ app.put("/api/rooms", async (req, res) => {
       country: data.country || data.Country || "🇮🇳",
       message: data.message || data.announcement || "",
       theme: data.theme || "default",
+      micMode: data.micMode !== undefined ? Number(data.micMode) : 15,
       isLocked: Boolean(data.isLocked),
       roomPassword: data.roomPassword || null,
       updatedAt: Date.now()
