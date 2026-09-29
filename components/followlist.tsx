@@ -120,7 +120,8 @@ export function VisitorsPage({ onBack }: VisitorsProps) {
       style={{
         background:
           'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 15%, #f3f4f6 29%, #f3f4f6 100%)',
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+        paddingTop:
+          'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
