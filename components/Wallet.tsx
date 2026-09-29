@@ -337,6 +337,7 @@ function WhiteColorRemovalShader({
 
 // ==========================================
 // Details Page — split by type (Coins / Diamonds)
+// History Limit & 24hr Reset Logic
 // ==========================================
 function DetailsPage({
   onBack,
@@ -352,15 +353,26 @@ function DetailsPage({
     const fetchTransactions = async () => {
       try {
         const db = await initDB();
-        const tx = db.transaction('transactions', 'readonly');
+        const tx = db.transaction('transactions', 'readwrite');
         const store = tx.objectStore('transactions');
         const req = store.getAll();
+        
         req.onsuccess = () => {
+          const now = Date.now();
+          const cutoffTime = now - 24 * 60 * 60 * 1000;
+          const allData = req.result || [];
+
+          allData.forEach((t: any) => {
+            if (t.timestamp < cutoffTime && t.id) {
+              store.delete(t.id);
+            }
+          });
+
           if (isMounted) {
-            const data = (req.result || [])
-              .filter((t: any) => (t.type ?? 'coin') === type)
-              .sort((a: any, b: any) => b.timestamp - a.timestamp);
-            setTransactions(data);
+            let validData = allData.filter((t: any) => t.timestamp >= cutoffTime && (t.type ?? 'coin') === type);
+            validData.sort((a: any, b: any) => b.timestamp - a.timestamp);
+            validData = validData.slice(0, 20);
+            setTransactions(validData);
           }
         };
       } catch (e) {
@@ -394,22 +406,28 @@ function DetailsPage({
 
       <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
         <div className="flex flex-col">
-          {transactions.map((tx, index) => (
-            <div
-              key={tx.id}
-              className={`flex justify-between items-start py-4 ${
-                index !== transactions.length - 1 ? 'border-b border-gray-100' : ''
-              }`}
-            >
-              <div className="flex flex-col gap-1">
-                <span className="text-[15px] font-semibold text-gray-900">{tx.title}</span>
-                <span className="text-[13px] text-gray-400">{tx.date}</span>
-              </div>
-              <span className={`text-[15px] font-bold ${valueColor}`}>
-                {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()}
-              </span>
+          {transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-gray-400 text-sm font-medium">
+              No recent history
             </div>
-          ))}
+          ) : (
+            transactions.map((tx, index) => (
+              <div
+                key={tx.id}
+                className={`flex justify-between items-start py-4 ${
+                  index !== transactions.length - 1 ? 'border-b border-gray-100' : ''
+                }`}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="text-[15px] font-semibold text-gray-900">{tx.title}</span>
+                  <span className="text-[13px] text-gray-400">{tx.date}</span>
+                </div>
+                <span className={`text-[15px] font-bold ${valueColor}`}>
+                  {tx.amount > 0 ? `+${tx.amount.toLocaleString()}` : tx.amount.toLocaleString()}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
@@ -436,6 +454,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   const [walletBalance, setWalletBalance] = useState<number | null>(null)
   const [diamondBalance, setDiamondBalance] = useState<number | null>(null)
+
+  // Sheet States
+  const [showPaymentSheet, setShowPaymentSheet] = useState(false)
+  const [showPayUsingSheet, setShowPayUsingSheet] = useState(false)
+  const [selectedAmountToBuy, setSelectedAmountToBuy] = useState<{coins: number, price: number} | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -483,11 +506,18 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     setCoins(selectedCoins > 0 ? String(selectedCoins) : '')
   }
 
-  const handleBuyCoins = async (amount: number) => {
+  const executeBuyCoins = async () => {
+    if(!selectedAmountToBuy) return;
+    const amount = selectedAmountToBuy.coins;
+    
     setWalletBalance((prev) => (prev ?? 0) + amount)
     await addCoinsToDB(amount)
     await recordTransaction('Buy Coins', amount, 'coin')
     setWalletBalance(await loadBalanceFromDB())
+
+    setShowPayUsingSheet(false)
+    setShowPaymentSheet(false)
+    setSelectedAmountToBuy(null)
   }
 
   const handleExchange = async () => {
@@ -532,12 +562,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         }
       `}</style>
 
-      {/* Top Blue Blur Mixing Background */}
-      <div className="absolute top-0 left-0 right-0 h-48 bg-blue-300/40 blur-[50px] pointer-events-none z-0" />
+      {/* Real vibrant Blue 🔵 color background with blur */}
+      <div className="absolute top-0 left-0 right-0 h-[220px] bg-[#0044FF]/60 blur-[60px] pointer-events-none z-0" />
 
       {/* TOP HEADER */}
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
-        {/* Back Icon - shifted slightly right (ml-1) */}
         <button
           onClick={onBack}
           className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 ml-1"
@@ -553,7 +582,6 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           Recharge
         </h1>
 
-        {/* Doc/History Icon */}
         <button
           onClick={() => setShowDetails(activeTab === 'wallet' ? 'coin' : 'diamond')}
           className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900"
@@ -569,73 +597,104 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         </button>
       </div>
 
-      {/* MAIN TABS (Pill Style) */}
-      <div className="bg-gray-200/60 p-1 mx-4 mt-2 rounded-full flex relative items-center flex-shrink-0 z-20">
-        {[
-          { id: 'wallet', label: 'Coins' },
-          { id: 'diamonds', label: 'Diamonds' },
-          { id: 'offline', label: 'Offline' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as TabType)}
-            className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
-              activeTab === tab.id 
-                ? 'bg-white text-gray-950 shadow-sm' 
-                : 'text-gray-500'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* SCROLLABLE BODY */}
       <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
-        {activeTab === 'wallet' && (
-          /* ================= COINS TAB ================= */
-          <div className="flex flex-col">
-            
-            {/* Coins Banner with Direct Background Image */}
-            <div className="relative w-full rounded-xl overflow-hidden mt-4 min-h-[140px] px-6 py-5 flex flex-col justify-start">
-              <img
-                src="/file_00000000f3d88211964f0057da4bc797.png"
-                alt="Coins Banner Background"
-                className="absolute inset-0 w-full h-full object-cover z-0"
-                draggable={false}
-              />
-              <div className="relative z-10 flex flex-col gap-1 mt-1">
-                <span className="text-gray-200 font-medium text-sm">
-                  My Coins
+        
+        {/* Dynamic Banners - Coins Banner for Wallet AND Offline */}
+        {(activeTab === 'wallet' || activeTab === 'offline') && (
+          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-sm">
+            <img
+              src="/file_00000000f3d88211964f0057da4bc797.png"
+              alt="Coins Banner Background"
+              className="w-full h-auto block"
+              draggable={false}
+            />
+            <div className="absolute inset-0 px-6 py-5 flex flex-col justify-start">
+              <span className="text-gray-200 font-medium text-sm">
+                My Coins
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
+                  {walletBalance === null ? '—' : walletBalance.toLocaleString()}
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
-                    {walletBalance === null ? '—' : walletBalance.toLocaleString()}
-                  </span>
-                  <img
-                    src="/file_00000000e56882119c217d508b6733dc.png"
-                    className="w-6 h-6 object-contain drop-shadow-sm"
-                    alt="coin icon"
-                    draggable={false}
-                  />
-                </div>
+                <img
+                  src="/file_00000000e56882119c217d508b6733dc.png"
+                  className="w-6 h-6 object-contain drop-shadow-sm"
+                  alt="coin icon"
+                  draggable={false}
+                />
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Single Recharge Card - No border, No shadow */}
-            <div className="mt-5">
+        {/* Diamonds Banner */}
+        {activeTab === 'diamonds' && (
+          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-sm">
+            <img
+              src="/file_000000004ec482088add2cf9e002cade.png"
+              alt="Diamonds Banner Background"
+              className="w-full h-auto block"
+              draggable={false}
+            />
+            <div className="absolute inset-0 px-6 py-5 flex flex-col justify-start">
+              <span className="text-gray-200 font-medium text-sm">
+                My Diamonds
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
+                  {diamondBalance === null ? '—' : diamondBalance.toLocaleString()}
+                </span>
+                <WhiteColorRemovalShader
+                  imageSrc="/1787321690452.png"
+                  className="w-6 h-6 object-contain"
+                  threshold={0.88}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Pill Tabs completely UNDER the banner */}
+        <div className="bg-gray-200/60 p-1 mt-5 rounded-full flex relative items-center">
+          {[
+            { id: 'wallet', label: 'Coins' },
+            { id: 'diamonds', label: 'Diamonds' },
+            { id: 'offline', label: 'Offline' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`flex-1 py-2.5 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-white text-gray-950 shadow-sm' 
+                  : 'text-gray-500'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TAB SPECIFIC CONTENT */}
+        {activeTab === 'wallet' && (
+          <div className="flex flex-col mt-5">
+            <div className="flex justify-start">
               <button
-                onClick={() => handleBuyCoins(1000000)}
-                className="w-full bg-white rounded-md py-5 flex flex-col items-center justify-center border-0 shadow-none outline-none active:scale-95 transition-transform"
+                onClick={() => {
+                  setSelectedAmountToBuy({ coins: 1000000, price: 100 });
+                  setShowPaymentSheet(true);
+                }}
+                className="w-[140px] h-[130px] bg-white rounded-[16px] flex flex-col items-center justify-center outline-none active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
               >
-                <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="flex items-center gap-1.5 mb-2">
                   <img
                     src="/file_00000000e56882119c217d508b6733dc.png"
                     className="w-5 h-5 object-contain"
                     alt="coin"
                     draggable={false}
                   />
-                  <span className="text-gray-900 font-semibold text-lg">
+                  <span className="text-gray-900 font-semibold text-[17px]">
                     1,000,000
                   </span>
                 </div>
@@ -644,147 +703,268 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 </span>
               </button>
             </div>
+          </div>
+        )}
 
+        {/* Offline Specific Content (User Card with Avatar and Chat Icon) */}
+        {activeTab === 'offline' && (
+          <div className="flex flex-col mt-5">
+            <div className="w-full bg-white rounded-[16px] p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+              {/* Left Side: Avatar and Name */}
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-400">
+                  {/* Generic Dummy SVG Avatar */}
+                  <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                    <circle cx="18" cy="12" r="6" fill="currentColor"/>
+                    <path d="M18 20C11.3726 20 6 25.3726 6 32H30C30 25.3726 24.6274 20 18 20Z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <span className="text-gray-900 font-bold text-[16px]">
+                  Agent Anmol
+                </span>
+              </div>
+              
+              {/* Right Side: Chat Icon */}
+              <button className="w-10 h-10 bg-[#0044FF]/10 text-[#0044FF] rounded-full flex items-center justify-center active:scale-95 transition-transform">
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                 </svg>
+              </button>
+            </div>
           </div>
         )}
 
         {activeTab === 'diamonds' && (
-          /* ================= DIAMONDS TAB ================= */
-          <div className="flex flex-col justify-between min-h-[calc(100vh-140px)]">
-            <div className="space-y-4">
-              
-              {/* Diamonds Banner */}
-              <div className="relative w-full rounded-xl overflow-hidden mt-4 min-h-[140px] px-6 py-5 flex flex-col justify-start">
-                 <img
-                  src="/file_000000004ec482088add2cf9e002cade.png"
-                  alt="Diamonds Banner Background"
-                  className="absolute inset-0 w-full h-full object-cover z-0"
-                  draggable={false}
-                />
-                <div className="relative z-10 flex flex-col gap-1 mt-1">
-                  <span className="text-gray-200 font-medium text-sm">
-                    My Diamonds
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
-                      {diamondBalance === null ? '—' : diamondBalance.toLocaleString()}
-                    </span>
+          <div className="flex flex-col mt-5 space-y-4">
+            <div
+              className="rounded-xl p-4"
+              style={{
+                background: 'linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%)',
+                border: '1px solid #E0EFFF',
+                boxShadow: '0 2px 10px rgba(59, 130, 246, 0.1)',
+              }}
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs font-bold text-gray-800">Exchange</h3>
+                <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
+                  <span>100 =</span>
+                  <div className="w-3.5 h-3.5 inline-block align-middle">
                     <img
-                      src="/1787321690452.png"
-                      className="w-6 h-6 object-contain"
-                      alt="diamond icon"
+                      src="/file_00000000e56882119c217d508b6733dc.png"
+                      className="w-full h-full object-contain"
+                      alt=""
+                      draggable={false}
+                    />
+                  </div>
+                  <span>33</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-blue-100 shadow-inner">
+                  <div className="w-4 h-4 flex-shrink-0">
+                    <WhiteColorRemovalShader
+                      imageSrc="/1787321690452.png"
+                      className="w-full h-full object-contain"
+                      threshold={0.88}
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    value={diamonds}
+                    onChange={(e) => handleDiamondChange(e.target.value)}
+                    className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs placeholder:text-gray-400"
+                    placeholder="Input multiple"
+                  />
+                  <span className="text-[11px] font-bold text-gray-400">x100</span>
+                </div>
+
+                <span className="text-gray-300 font-bold">=</span>
+
+                <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
+                  <input
+                    type="number"
+                    value={coins}
+                    onChange={(e) => handleCoinChange(e.target.value)}
+                    className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs text-right placeholder:text-gray-400"
+                    placeholder="Coins"
+                  />
+                  <div className="w-4 h-4 flex-shrink-0 ml-1.5">
+                    <img
+                      src="/file_00000000e56882119c217d508b6733dc.png"
+                      className="w-full h-full object-contain"
+                      alt=""
                       draggable={false}
                     />
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Exchange Section Box */}
-              <div
-                className="rounded-xl p-4 mt-2"
-                style={{
-                  background: 'linear-gradient(180deg, #FFF0F3 0%, #FFFFFF 100%)',
-                  border: '1px solid #FFE4E8',
-                  boxShadow: '0 2px 10px rgba(255, 182, 193, 0.15)',
-                }}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xs font-bold text-gray-800">Exchange</h3>
-                  <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-                    <span>100 =</span>
-                    <div className="w-3.5 h-3.5 inline-block align-middle">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                    <span>33</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-pink-100 shadow-inner">
-                    <div className="w-4 h-4 flex-shrink-0">
-                      <WhiteColorRemovalShader
-                        imageSrc="/1787321690452.png"
-                        className="w-full h-full object-contain"
-                        threshold={0.88}
-                      />
-                    </div>
-                    <input
-                      type="number"
-                      value={diamonds}
-                      onChange={(e) => handleDiamondChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs placeholder:text-gray-400"
-                      placeholder="Input multiple"
-                    />
-                    <span className="text-[11px] font-bold text-gray-400">x100</span>
-                  </div>
-
-                  <span className="text-gray-300 font-bold">=</span>
-
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
-                    <input
-                      type="number"
-                      value={coins}
-                      onChange={(e) => handleCoinChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs text-right placeholder:text-gray-400"
-                      placeholder="Coins"
-                    />
-                    <div className="w-4 h-4 flex-shrink-0 ml-1.5">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Exchange Rate Percentages */}
-              <div className="space-y-2 pt-1">
-                <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
-                    <button
-                      key={pct}
-                      onClick={() => handlePercentageSelect(pct)}
-                      className={`py-2 rounded-xl text-xs font-bold transition-all border ${
-                        selectedPercentage === pct
-                          ? 'bg-cyan-400 text-white border-cyan-400 shadow-xs'
-                          : 'bg-white text-cyan-500 border-cyan-200'
-                      }`}
-                    >
-                      {pct}
-                    </button>
-                  ))}
-                </div>
+            <div className="space-y-2 pt-1">
+              <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() => handlePercentageSelect(pct)}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                      selectedPercentage === pct
+                        ? 'bg-[#0044FF] text-white border-[#0044FF] shadow-xs'
+                        : 'bg-white text-[#0044FF] border-blue-200'
+                    }`}
+                  >
+                    {pct}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Bottom Exchange Button */}
-            <div className="pt-6 pb-2">
+            <div className="pt-3 pb-2 flex justify-center mt-2">
               <button
                 onClick={handleExchange}
-                className="w-full py-3 rounded-xl font-bold text-white bg-pink-400 hover:bg-pink-500 text-sm shadow-xs active:scale-95 transition-transform"
+                className="w-[75%] py-4 rounded-full font-bold text-white bg-pink-400 hover:bg-pink-500 text-[15px] shadow-sm active:scale-95 transition-transform"
               >
                 Exchange
               </button>
             </div>
           </div>
         )}
-
-        {activeTab === 'offline' && (
-          /* ================= OFFLINE RECHARGE TAB ================= */
-          <div className="flex flex-col items-center justify-center mt-20 text-gray-500">
-            <p className="font-semibold text-sm">Offline Recharge Options Available Soon</p>
-          </div>
-        )}
       </div>
+
+      {/* OVERLAY FOR SHEETS */}
+      {(showPaymentSheet || showPayUsingSheet) && (
+        <div 
+          className="fixed inset-0 bg-black/40 z-40 transition-opacity"
+          onClick={() => {
+            setShowPaymentSheet(false);
+            setShowPayUsingSheet(false);
+          }}
+        />
+      )}
+
+      {/* ================================================== */}
+      {/* 1. PAYMENT METHOD SHEET */}
+      {/* ================================================== */}
+      <div 
+        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out flex flex-col`}
+        style={{
+          transform: showPaymentSheet ? 'translateY(0)' : 'translateY(100%)',
+          minHeight: '35vh' 
+        }}
+      >
+        <div className="flex items-center justify-center py-4 relative border-b border-gray-100">
+          <h2 className="text-lg font-bold text-gray-900">Payment Method</h2>
+          
+          <div className="absolute right-5 flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md">
+            <span className="text-[12px]">🇮🇳</span>
+            <span className="text-[13px] font-medium text-gray-700">in</span>
+          </div>
+        </div>
+
+        <div className="px-5 py-4 flex-1">
+          <div className="bg-[#F8F9FA] rounded-xl p-4 flex justify-between items-center mb-6">
+            <div className="flex flex-col gap-1">
+              <span className="text-[13px] text-gray-500 font-medium">Coins</span>
+              <div className="flex items-center gap-1.5">
+                <img src="/file_00000000e56882119c217d508b6733dc.png" className="w-5 h-5 object-contain" alt="" />
+                <span className="text-lg font-bold text-gray-900">
+                  {selectedAmountToBuy?.coins.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[13px] text-gray-500 font-medium">Price</span>
+              <span className="text-lg font-bold text-gray-900">
+                ₹{selectedAmountToBuy?.price.toLocaleString('en-IN', {minimumFractionDigits: 2})}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 mb-6">
+            <span className="text-[13px] text-gray-500 font-medium">Select payment method</span>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <span className="font-black italic text-gray-800 text-lg tracking-tighter">UPI</span>
+                 <span className="font-bold text-blue-500 text-lg">G</span>
+                 <span className="font-bold text-purple-600 bg-purple-100 rounded-full px-1 text-sm">पे</span>
+                 <span className="font-bold text-blue-400 text-sm">Paytm</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <img src="/file_00000000e56882119c217d508b6733dc.png" className="w-4 h-4 object-contain" alt="" />
+                  <span className="text-sm font-semibold text-gray-900">
+                    {selectedAmountToBuy?.coins.toLocaleString()}
+                  </span>
+                </div>
+                <div className="w-5 h-5 rounded-full border-2 border-green-500 flex items-center justify-center">
+                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setShowPaymentSheet(false);
+              setTimeout(() => setShowPayUsingSheet(true), 300);
+            }}
+            className="w-full bg-[#0044FF] text-white font-bold text-[16px] py-3.5 rounded-xl active:scale-95 transition-transform"
+          >
+            Recharge
+          </button>
+        </div>
+      </div>
+
+
+      {/* ================================================== */}
+      {/* 2. PAY USING SHEET */}
+      {/* ================================================== */}
+      <div 
+        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out flex flex-col`}
+        style={{
+          transform: showPayUsingSheet ? 'translateY(0)' : 'translateY(100%)',
+          minHeight: '40vh' 
+        }}
+      >
+        <div className="flex items-center justify-center py-4 relative border-b border-gray-100">
+          <h2 className="text-[17px] font-bold text-gray-900">Pay Using</h2>
+          <button 
+            onClick={() => setShowPayUsingSheet(false)}
+            className="absolute right-4 p-2"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-5 py-2 flex-1 flex flex-col">
+          {[
+            { id: 'gpay', name: 'GPay', icon: <span className="font-bold text-blue-500 text-xl">G</span> },
+            { id: 'phonepe', name: 'PhonePe', icon: <span className="font-bold text-white text-lg">पे</span>, bg: 'bg-[#5f259f]' },
+            { id: 'paytm', name: 'Paytm', icon: <span className="font-bold text-white text-xs">Paytm</span>, bg: 'bg-[#002e6e]' },
+            { id: 'other', name: 'Other', icon: <span className="font-black text-gray-400 tracking-widest leading-none mb-1">...</span>, bg: 'bg-gray-200' },
+          ].map((app, idx) => (
+            <button
+              key={app.id}
+              onClick={executeBuyCoins} 
+              className={`flex items-center gap-4 py-4 w-full text-left active:bg-gray-50 transition-colors ${
+                idx !== 3 ? 'border-b border-gray-50' : ''
+              }`}
+            >
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${app.bg || 'bg-white border border-gray-200'}`}>
+                {app.icon}
+              </div>
+              <span className="text-[16px] font-medium text-gray-900">{app.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      
     </div>
   )
 }
