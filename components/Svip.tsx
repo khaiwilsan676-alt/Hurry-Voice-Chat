@@ -85,7 +85,8 @@ export default function Svip({ onBack }: SvipProps) {
           <header
             className="relative z-30 flex items-center justify-between w-full px-3 py-2"
             style={{
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 15px)',
+              paddingTop:
+                'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 6px)',
             }}
           >
             {/* Left: Back arrow */}
@@ -114,7 +115,7 @@ export default function Svip({ onBack }: SvipProps) {
               className="absolute left-1/2 -translate-x-1/2 font-black text-white text-[20px] tracking-wider"
               style={{
                 top:
-                  'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 15px)',
+                  'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)',
               }}
             >
               SVIP
