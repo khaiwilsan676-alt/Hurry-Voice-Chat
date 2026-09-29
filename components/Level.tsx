@@ -324,13 +324,13 @@ export default function Level({ onBack }: LevelProps) {
         {/* Top App Bar */}
         <div
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 29px)' }}
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
         >
           {/* Back Button - Ekdam Strict Corner Left */}
           <button
             onClick={onBack}
             className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
-            style={{ top: 'auto' }}
+            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>

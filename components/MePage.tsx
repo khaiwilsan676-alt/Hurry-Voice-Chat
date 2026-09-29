@@ -702,7 +702,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
       <div className="min-h-screen bg-gray-50 flex flex-col pb-[8vh]">
         <div
           className="flex items-center p-4 bg-white"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 38px)' }}
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 16px) + 12px)' }}
         >
           <button
             onClick={() => {
@@ -835,7 +835,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         className="px-4 pb-4 relative safe-top"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #f9fafb 100%)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 38px)'
+          paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px) + 24px)'
         }}
       >
         <div className="flex items-start justify-between mb-6">

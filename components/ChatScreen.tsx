@@ -446,7 +446,7 @@ export default function ChatScreen({
   return (
     <>
       <div className="fixed inset-0 z-50 bg-[#f0f2f5] flex flex-col">
-        <div className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10" style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 27px)' }}>
+        <div className="px-2 pb-3 flex items-center justify-between sticky top-0 z-10" style={{ background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}>
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <button onClick={onClose} className="flex-shrink-0 hover:bg-white/30 rounded-full p-2"><ArrowLeft size={24} className="text-gray-800" /></button>
             <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"><img src={targetUser.photo || '/default-avatar.png'} alt={targetUser.name} className="w-full h-full object-cover" /></div>

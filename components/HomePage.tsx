@@ -485,7 +485,7 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
 
       <header
         className="relative z-50 flex flex-col w-full"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 34px)' }}
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px))' }}
       >
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
           <button

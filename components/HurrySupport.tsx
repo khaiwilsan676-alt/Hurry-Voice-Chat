@@ -533,7 +533,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
   return (
     <div className="flex flex-col h-[100dvh] bg-slate-50 absolute inset-0 z-50 w-full">
       {/* HEADER */}
-      <header className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-sky-400 text-white shadow-md pt-[calc(env(safe-area-inset-top,0px)+30px)]">
+      <header className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-sky-400 text-white shadow-md pt-[calc(env(safe-area-inset-top)+12px)]">
         <div className="flex items-center gap-3">
           <button onClick={onBack || (() => window.history.back())} className="p-1 hover:bg-white/20 rounded-full transition">
             <ArrowLeft className="w-6 h-6" />

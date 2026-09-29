@@ -321,7 +321,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
       <div className="w-full min-h-screen bg-white font-sans text-gray-800 flex flex-col">
         <div className="bg-white sticky top-0 z-50">
           <div className="w-full h-[env(safe-area-inset-top)] bg-white"></div>
-          <div className="flex items-center px-4 pt-[24px] pb-3">
+          <div className="flex items-center px-4 py-3">
             <button onClick={() => setCurrentView('seller')} className="p-1 cursor-pointer">
               <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-black fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
                 <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -392,7 +392,7 @@ export default function SellerCenter({ onBack }: SellerCenterProps) {
     <div className="w-full min-h-screen bg-white font-sans text-gray-800 flex flex-col">
       <div className="bg-white sticky top-0 z-50">
         <div className="w-full h-[env(safe-area-inset-top)] bg-white"></div>
-        <div className="flex items-center px-4 pt-[24px] pb-3">
+        <div className="flex items-center px-4 py-3">
           <button onClick={onBack} className="p-1 cursor-pointer">
             <svg viewBox="0 0 24 24" className="w-6 h-6 stroke-black fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
               <line x1="19" y1="12" x2="5" y2="12"></line>

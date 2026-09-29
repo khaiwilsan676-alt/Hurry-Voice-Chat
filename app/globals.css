@@ -147,7 +147,7 @@ html, body {
 }
 
 .safe-top {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+  padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 12px);
 }
 
 .safe-bottom {
