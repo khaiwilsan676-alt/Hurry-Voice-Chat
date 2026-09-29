@@ -583,7 +583,7 @@ export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, on
         className="w-full sticky top-0 z-30"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #dbeafe 65%, #ffffff 100%)',
-          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingTop: 'max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px)',
           WebkitTapHighlightColor: 'transparent',
         }}
       >
