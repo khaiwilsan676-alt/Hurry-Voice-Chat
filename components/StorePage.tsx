@@ -12,14 +12,14 @@ interface StoreItem {
   removeGreen?: boolean;
   tab: string;
   stars: number;
-  price: string; // Base price for 3 days
+  price: string;
   duration: string;
   isOwned?: boolean;
   dailyReward?: boolean;
 }
 
 // ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// SHARED WALLET DB
 // ==========================================
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
@@ -85,7 +85,6 @@ const saveItemExpiry = (item: StoreItem, customDurationDays?: number) => {
   const durationStr = customDurationDays ? `${customDurationDays}D` : item.duration;
   const ms = durationToMs(durationStr);
   if (ms <= 0 || typeof window === "undefined") return;
-  // Extend from current expiry if it exists and is active, otherwise from now
   const currentExpiry = getStoredExpiry(item.id);
   const baseTime = currentExpiry && currentExpiry > Date.now() ? currentExpiry : Date.now();
   localStorage.setItem(getExpiryKey(item.id), String(baseTime + ms));
@@ -216,7 +215,7 @@ const allStoreItems: StoreItem[] = [
 ];
 
 // ==========================================
-// WebGL Helpers (Preserved from original)
+// WebGL Helpers
 // ==========================================
 const processedCache = new Map<string, Promise<string>>();
 let glCanvas: HTMLCanvasElement | null = null;
@@ -546,10 +545,10 @@ export default function StorePage({
   }, []);
 
   const parsePrice = (p: string) => parseInt(p.replace(/,/g, ''), 10) || 0;
-  
+
   const getPriceForDuration = (basePriceStr: string, days: number) => {
     const basePrice = parsePrice(basePriceStr);
-    if (days === 7) return basePrice * 2; 
+    if (days === 7) return basePrice * 2;
     return basePrice;
   };
 
@@ -575,7 +574,7 @@ export default function StorePage({
     await addOwnedItemToDB(item.id);
 
     setBuying(null);
-    setPurchaseItem(null); 
+    setPurchaseItem(null);
   };
 
   const handleEquipToggle = async (item: StoreItem) => {
@@ -653,11 +652,29 @@ export default function StorePage({
     ));
   };
 
-  const getDisplayImage = (item: StoreItem) => {
-    if (item.image.endsWith('.mp4')) {
-      return "/default_avatar.png";
+  // ==========================================
+  // Preview renderer — sheet ke andar animation dikhane ke liye
+  // ==========================================
+  const renderPreviewAsset = (item: StoreItem, className = "w-full h-full object-contain") => {
+    // Priority: tryVideo > mp4 image > removeGreen > static image
+    if (item.tryVideo) {
+      return <WebGLVideoAvatar src={item.tryVideo} isVehicleModal={item.tab === "Vehicle"} />;
     }
-    return item.image;
+    if (item.image && item.image.endsWith(".mp4")) {
+      return <WebGLVideoAvatar src={item.image} isVehicleModal={item.tab === "Vehicle"} />;
+    }
+    if (item.removeGreen) {
+      return <WebGLImageAvatar src={item.image} className={className} />;
+    }
+    return (
+      <Image
+        src={item.image}
+        alt={item.name}
+        fill
+        className="object-cover"
+        sizes="200px"
+      />
+    );
   };
 
   return (
@@ -706,10 +723,6 @@ export default function StorePage({
                 const isTheme = item.tab === "Theme";
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
-                const isOwned = ownedIds.has(item.id);
-                
-                // Note: We still calculate isEquipped for potential styling, but button text is forced to Buy
-                const isEquipped = equippedIds.has(item.id);
 
                 return (
                   <div key={item.id} className={`relative bg-white rounded-md p-1 flex flex-col items-center justify-between shadow-sm overflow-hidden ${isTheme ? "min-h-[200px]" : "h-auto"}`}>
@@ -749,12 +762,10 @@ export default function StorePage({
                     </div>
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
                       <button type="button" className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50">Send</button>
-                      
-                      {/* Changed: Always show 'Buy' and open purchase sheet */}
-                      <button 
-                        type="button" 
-                        onClick={() => { setPurchaseItem(item); setSelectedDuration(3); }} 
-                        disabled={buying === item.id} 
+                      <button
+                        type="button"
+                        onClick={() => { setPurchaseItem(item); setSelectedDuration(3); }}
+                        disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         {buying === item.id ? '...' : 'Buy'}
@@ -779,32 +790,27 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          PURCHASE BOTTOM SHEET
+          PURCHASE BOTTOM SHEET (with ANIMATED preview)
          ========================================== */}
       {purchaseItem && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-[1px]" onClick={() => setPurchaseItem(null)}>
-          <div 
+          <div
             className="w-full max-w-md bg-white rounded-t-[30px] p-5 pb-8 flex flex-col items-center animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Title */}
             <h2 className="text-[20px] font-bold text-gray-900 mb-6">Purchase</h2>
 
-            {/* Avatar with Glowing Border & Store Item Image */}
+            {/* Avatar with Glowing Border & ANIMATED Store Item */}
             <div className="relative w-[140px] h-[140px] flex items-center justify-center mb-4">
               <div className="absolute inset-[-10px] rounded-full border-[4px] border-blue-400 opacity-50 blur-[4px]"></div>
               <div className="absolute inset-[-5px] rounded-full border-[3px] border-pink-400 opacity-60 blur-[2px]"></div>
               <div className="absolute inset-0 rounded-full border-[3px] border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]"></div>
-              
+
               <div className="relative w-[130px] h-[130px] rounded-full overflow-hidden border-[2px] border-white z-10 bg-gray-200 flex items-center justify-center">
-                <img 
-                  src={getDisplayImage(purchaseItem)} 
-                  alt={purchaseItem.name} 
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.currentTarget.src = "/default_avatar.png"; }}
-                />
+                {/* Animated preview: video / WebGL frame / static */}
+                {renderPreviewAsset(purchaseItem, "w-full h-full object-contain")}
               </div>
-              
+
               <div className="absolute bottom-0 right-0 z-20 w-10 h-10 pointer-events-none">
                 <span className="text-3xl drop-shadow-md">🎀</span>
               </div>
@@ -823,14 +829,13 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Duration Selection (3 Days & 7 Days) */}
+            {/* Duration Selection */}
             <div className="w-full flex gap-3 mb-8">
-              {/* 3 Days Button */}
               <button
                 onClick={() => setSelectedDuration(3)}
                 className={`flex-1 py-3 rounded-xl font-bold text-[16px] transition-all relative overflow-hidden ${
-                  selectedDuration === 3 
-                    ? "bg-orange-50 text-orange-500 border-2 border-orange-400" 
+                  selectedDuration === 3
+                    ? "bg-orange-50 text-orange-500 border-2 border-orange-400"
                     : "bg-gray-50 text-gray-400 border-2 border-transparent"
                 }`}
               >
@@ -841,13 +846,12 @@ export default function StorePage({
                 )}
                 3days
               </button>
-              
-              {/* 7 Days Button */}
+
               <button
                 onClick={() => setSelectedDuration(7)}
                 className={`flex-1 py-3 rounded-xl font-bold text-[16px] transition-all relative overflow-hidden ${
-                  selectedDuration === 7 
-                    ? "bg-orange-50 text-orange-500 border-2 border-orange-400" 
+                  selectedDuration === 7
+                    ? "bg-orange-50 text-orange-500 border-2 border-orange-400"
                     : "bg-gray-50 text-gray-400 border-2 border-transparent"
                 }`}
               >
@@ -862,13 +866,13 @@ export default function StorePage({
 
             {/* Action Buttons */}
             <div className="w-full flex gap-3">
-              <button 
+              <button
                 onClick={() => setPurchaseItem(null)}
                 className="flex-1 py-3.5 bg-cyan-50 text-cyan-500 font-bold text-[16px] rounded-full hover:bg-cyan-100 transition-colors"
               >
                 Send
               </button>
-              <button 
+              <button
                 onClick={() => handleBuy(purchaseItem)}
                 disabled={buying === purchaseItem.id}
                 className="flex-1 py-3.5 bg-cyan-400 text-white font-bold text-[16px] rounded-full hover:bg-cyan-500 transition-colors disabled:opacity-50"
@@ -880,7 +884,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ... Existing Try Modals (Vehicle/Frame/Theme) ... */}
+      {/* Existing Try Modals (Vehicle/Frame/Theme) */}
       {tryCenterItem && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer" onClick={() => setTryCenterItem(null)}>
           <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
