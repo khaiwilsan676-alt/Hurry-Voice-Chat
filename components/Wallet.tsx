@@ -373,7 +373,7 @@ function DetailsPage({
   }, [type]);
 
   // Coin → golden, Diamond → blue
-  const valueColor = type === 'diamond' ? 'text-blue-500' : 'text-yellow-500';
+  const valueColor = type === 'diamond' ? 'text-blue-500' : 'text-amber-500';
 
   return (
     <div className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col bg-white pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)]">
@@ -545,8 +545,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
-        // Top Color Blue mixing in Grey (Ekdam edge-to-edge full background)
-        background: 'linear-gradient(180deg, #DBEAFE 0%, #F3F4F6 25%, #F3F4F6 100%)',
+        background:
+          'linear-gradient(180deg, #6EB6FF 0%, #A8B5C7 30%, #E5E7EB 60%, #F3F4F6 100%)',
       }}
     >
       <style>{`
@@ -559,7 +559,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
       {/* TOP HEADER */}
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
-        {/* Back button */}
+        {/* Back button — classic left arrow, ekdam left corner */}
         <button
           onClick={onBack}
           className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-1"
@@ -584,7 +584,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           Wallet
         </h1>
 
-        {/* History Button */}
+        {/* History Button — opens Details matching the active tab */}
         <button
           onClick={() => setShowDetails(activeTab === 'wallet' ? 'coin' : 'diamond')}
           className="w-8 h-8 flex items-center justify-center active:scale-90 transition-all text-gray-900"
@@ -636,73 +636,118 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {activeTab === 'wallet' ? (
           /* ================= COINS TAB ================= */
           <div className="flex flex-col space-y-4">
-            
-            {/* New Clean Current Balance Banner */}
-            <div className="bg-white rounded-xl p-5 shadow-sm relative mt-4 flex flex-col justify-center border border-gray-100 min-h-[90px]">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                My Coins
-              </span>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="w-8 h-8 flex-shrink-0">
+            {/* === Banner — Y image hi card hai, edge-to-edge, values image ke upar === */}
+            <div className="relative w-full mt-8">
+              <img
+                src="/file_00000000f3d88211964f0057da4bc797.png"
+                className="w-full h-auto block select-none"
+                alt=""
+                draggable={false}
+              />
+              <div className="absolute inset-0 flex flex-col justify-center pl-5 pr-24">
+                <span className="text-xs font-extrabold text-gray-500 tracking-wider mb-1">
+                  My Coins
+                </span>
+                <div className="flex items-center gap-2">
                   <img
                     src="/file_00000000e56882119c217d508b6733dc.png"
-                    className="w-full h-full object-contain"
-                    alt="coin"
+                    className="w-6 h-6 object-contain"
+                    alt=""
                     draggable={false}
                   />
+                  <p className="text-3xl font-black text-yellow-400 tracking-tight drop-shadow-sm">
+                    {walletBalance === null ? '—' : walletBalance.toLocaleString()}
+                  </p>
                 </div>
-                <p className="text-3xl font-black text-yellow-500 tracking-tight">
-                  {walletBalance === null ? '—' : walletBalance.toLocaleString()}
-                </p>
               </div>
             </div>
 
-            {/* Product Card / Image Edge-to-Edge Container */}
+            {/* ===== Product Card — NEW horizontal design ===== */}
             <div className="pt-2">
-              <button
-                onClick={() => handleBuyCoins(1000000)}
-                className="w-full rounded-2xl overflow-hidden active:scale-95 transition-transform block border-none p-0 bg-transparent shadow-sm"
+              <div
+                className="rounded-2xl p-3 relative flex items-center gap-3"
+                style={{
+                  background: 'linear-gradient(135deg, #FFFFFF 0%, #F9FAFB 100%)',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                }}
               >
-                <img
-                  src="/file_00000000f3d88211964f0057da4bc797.png"
-                  className="w-full h-auto object-cover"
-                  alt="Buy Coins"
-                  draggable={false}
-                />
-              </button>
+                {/* Bonus tag */}
+                <div className="absolute -top-2 left-3 z-10 px-2 py-0.5 bg-red-500 text-white text-[9px] font-extrabold rounded-full shadow flex items-center gap-1">
+                  +20,000
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
+                    className="w-2.5 h-2.5 object-contain"
+                    alt=""
+                    draggable={false}
+                  />
+                </div>
+
+                {/* Coin image */}
+                <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center">
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
+                    className="w-full h-full object-contain"
+                    alt=""
+                    draggable={false}
+                  />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 flex flex-col gap-1 min-w-0">
+                  <span className="px-2 py-0.5 bg-red-400 text-white text-[9px] font-bold rounded-full self-start">
+                    First Recharge
+                  </span>
+                  <span className="text-gray-900 font-extrabold text-base truncate">
+                    1,000,000
+                  </span>
+                </div>
+
+                {/* Buy button */}
+                <button
+                  onClick={() => handleBuyCoins(1000000)}
+                  className="px-4 py-2.5 bg-amber-300 hover:bg-amber-400 font-bold text-amber-950 text-xs rounded-lg shadow-sm active:scale-95 transition-transform flex-shrink-0"
+                >
+                  USD 1
+                </button>
+              </div>
             </div>
           </div>
         ) : (
           /* ================= DIAMONDS TAB ================= */
           <div className="flex flex-col justify-between min-h-[calc(100vh-140px)]">
             <div className="space-y-4">
-              
-              {/* New Clean Diamonds Banner */}
-              <div className="bg-white rounded-xl p-5 shadow-sm relative mt-4 flex flex-col justify-center border border-gray-100 min-h-[90px]">
-                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  My Diamonds
-                </span>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-8 h-8 flex-shrink-0">
+              {/* === Banner — diamonds image hi card hai, values image ke upar === */}
+              <div className="relative w-full mt-8">
+                <WhiteColorRemovalShader
+                  imageSrc="/file_000000004ec482088add2cf9e002cade.png"
+                  className="w-full h-auto block"
+                  threshold={0.88}
+                />
+                <div className="absolute inset-0 flex flex-col justify-center pl-5 pr-24">
+                  <span className="text-xs font-extrabold text-gray-500 tracking-wider mb-1">
+                    My Diamonds
+                  </span>
+                  <div className="flex items-center gap-2">
                     <WhiteColorRemovalShader
-                      imageSrc="/file_000000004ec482088add2cf9e002cade.png"
-                      className="w-full h-full object-contain"
+                      imageSrc="/1787321690452.png"
+                      className="w-6 h-6 object-contain"
                       threshold={0.88}
                     />
+                    <p className="text-3xl font-black text-blue-500 tracking-tight drop-shadow-sm">
+                      {diamondBalance === null ? '—' : diamondBalance.toLocaleString()}
+                    </p>
                   </div>
-                  <p className="text-3xl font-black text-blue-500 tracking-tight">
-                    {diamondBalance === null ? '—' : diamondBalance.toLocaleString()}
-                  </p>
                 </div>
               </div>
 
-              {/* Exchange Section Box (logic and remaining untouched) */}
+              {/* Exchange Section Box */}
               <div
                 className="rounded-xl p-4"
                 style={{
-                  background: 'linear-gradient(180deg, #FFF0F3 0%, #FFFFFF 100%)',
-                  border: '1px solid #FFE4E8',
-                  boxShadow: '0 2px 10px rgba(255, 182, 193, 0.15)',
+                  background: 'linear-gradient(180deg, #FFFFFF 0%, #F9FAFB 100%)',
+                  border: '1px solid #E5E7EB',
+                  boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
                 }}
               >
                 <div className="flex justify-between items-center mb-3">
@@ -723,10 +768,10 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
                 <div className="flex items-center gap-2">
                   {/* Left Diamond Input Box */}
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-pink-100 shadow-inner">
+                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-gray-200 shadow-inner">
                     <div className="w-4 h-4 flex-shrink-0">
                       <WhiteColorRemovalShader
-                        imageSrc="/file_000000004ec482088add2cf9e002cade.png"
+                        imageSrc="/1787321690452.png"
                         className="w-full h-full object-contain"
                         threshold={0.88}
                       />
@@ -743,7 +788,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
                   <span className="text-gray-300 font-bold">=</span>
 
-                  {/* Right Coin Output Box */}
+                  {/* Right Coin Output Box — plain coin img */}
                   <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
                     <input
                       type="number"
@@ -799,4 +844,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       </div>
     </div>
   )
-}
+                 }
