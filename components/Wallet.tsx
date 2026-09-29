@@ -124,7 +124,7 @@ async function loadDiamondBalanceFromDB(): Promise<number> {
 async function addCoinsToDB(amountToAdd: number): Promise<void> {
   try {
     const db = await initDB();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
       const req = store.get('user_data');
@@ -378,7 +378,7 @@ function DetailsPage({
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12 bg-white">
         <button
           onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-1"
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 ml-1"
           aria-label="Back"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -416,20 +416,10 @@ function DetailsPage({
   )
 }
 
-// Recharge Data Array as per Image
-const rechargeOptions = [
-  { coins: 6000, price: '₹100.00' },
-  { coins: 18000, price: '₹300.00' },
-  { coins: 30000, price: '₹500.00' },
-  { coins: 60000, price: '₹1,000.00' },
-  { coins: 120000, price: '₹2,050.00' },
-];
-
 // ==========================================
 // Main Wallet Component
 // ==========================================
 type TabType = 'wallet' | 'diamonds' | 'offline';
-type SubTabType = 'normal' | 'service';
 
 interface WalletProps {
   onBack: () => void
@@ -438,7 +428,6 @@ interface WalletProps {
 
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
-  const [activeSubTab, setActiveSubTab] = useState<SubTabType>('normal') // New Sub-Tab state
   
   const [diamonds, setDiamonds] = useState('')
   const [coins, setCoins] = useState('')
@@ -527,14 +516,12 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   return (
     <div
-      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300"
+      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 bg-gray-100 relative"
       style={{
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
-        // Exact background match with screenshot (Light Green/Yellow fading to Grey)
-        background: 'linear-gradient(180deg, #E8F5E9 0%, #FFFDE7 15%, #F5F5F5 35%, #F5F5F5 100%)',
       }}
     >
       <style>{`
@@ -545,11 +532,15 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         }
       `}</style>
 
+      {/* Top Blue Blur Mixing Background */}
+      <div className="absolute top-0 left-0 right-0 h-48 bg-blue-300/40 blur-[50px] pointer-events-none z-0" />
+
       {/* TOP HEADER */}
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
+        {/* Back Icon - shifted slightly right (ml-1) */}
         <button
           onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 -ml-1"
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 ml-1"
           aria-label="Back"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -562,56 +553,53 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           Recharge
         </h1>
 
-        {/* Updated List Icon as per screenshot */}
+        {/* Doc/History Icon */}
         <button
           onClick={() => setShowDetails(activeTab === 'wallet' ? 'coin' : 'diamond')}
           className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900"
           aria-label="History"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
           </svg>
         </button>
       </div>
 
-      {/* 3 TABS BAR */}
-      <div className="flex justify-around items-center px-2 py-2 flex-shrink-0 z-20">
+      {/* MAIN TABS (Pill Style) */}
+      <div className="bg-gray-200/60 p-1 mx-4 mt-2 rounded-full flex relative items-center flex-shrink-0 z-20">
         {[
           { id: 'wallet', label: 'Coins' },
           { id: 'diamonds', label: 'Diamonds' },
-          { id: 'offline', label: 'Offline Recharge' }
+          { id: 'offline', label: 'Offline' }
         ].map((tab) => (
-          <div key={tab.id} className="flex flex-col items-center">
-            <button
-              onClick={() => setActiveTab(tab.id as TabType)}
-              className={`text-[15px] transition-all whitespace-nowrap px-2 ${
-                activeTab === tab.id ? 'text-gray-950 font-bold' : 'text-gray-500 font-semibold'
-              }`}
-            >
-              {tab.label}
-            </button>
-            {activeTab === tab.id && (
-              <div className="w-4 h-[3px] bg-gray-950 rounded-full mt-1.5" />
-            )}
-          </div>
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as TabType)}
+            className={`flex-1 py-2 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
+              activeTab === tab.id 
+                ? 'bg-white text-gray-950 shadow-sm' 
+                : 'text-gray-500'
+            }`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
       {/* SCROLLABLE BODY */}
-      <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative">
+      <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
         {activeTab === 'wallet' && (
           /* ================= COINS TAB ================= */
           <div className="flex flex-col">
             
             {/* Coins Banner with Direct Background Image */}
-            <div className="relative w-full rounded-xl overflow-hidden mt-2 min-h-[140px] px-6 py-5 flex flex-col justify-start">
+            <div className="relative w-full rounded-xl overflow-hidden mt-4 min-h-[140px] px-6 py-5 flex flex-col justify-start">
               <img
-                src="/public/file_00000000f3d88211964f0057da4bc797.png"
+                src="/file_00000000f3d88211964f0057da4bc797.png"
                 alt="Coins Banner Background"
                 className="absolute inset-0 w-full h-full object-cover z-0"
                 draggable={false}
@@ -634,59 +622,27 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            {/* Pill Toggle (Normal vs Service) */}
-            <div className="bg-gray-200/80 p-1 mt-5 rounded-full flex relative items-center">
+            {/* Single Recharge Card - No border, No shadow */}
+            <div className="mt-5">
               <button
-                onClick={() => setActiveSubTab('normal')}
-                className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-all ${
-                  activeSubTab === 'normal' 
-                    ? 'bg-white text-gray-950 shadow-sm' 
-                    : 'text-gray-500'
-                }`}
+                onClick={() => handleBuyCoins(1000000)}
+                className="w-full bg-white rounded-md py-5 flex flex-col items-center justify-center border-0 shadow-none outline-none active:scale-95 transition-transform"
               >
-                Normal Recharge
-              </button>
-              
-              <button
-                onClick={() => setActiveSubTab('service')}
-                className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-all relative ${
-                  activeSubTab === 'service' 
-                    ? 'bg-white text-gray-950 shadow-sm' 
-                    : 'text-gray-500'
-                }`}
-              >
-                Recharge Service
-                {/* Floating Extra 30% Badge */}
-                <span className="absolute -top-3 right-0 bg-[#00B761] text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold shadow-sm tracking-wide">
-                  Extra 30%
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <img
+                    src="/file_00000000e56882119c217d508b6733dc.png"
+                    className="w-5 h-5 object-contain"
+                    alt="coin"
+                    draggable={false}
+                  />
+                  <span className="text-gray-900 font-semibold text-lg">
+                    1,000,000
+                  </span>
+                </div>
+                <span className="text-gray-500 font-medium text-[14px]">
+                  ₹ 100
                 </span>
               </button>
-            </div>
-
-            {/* Product Cards Grid */}
-            <div className="grid grid-cols-2 gap-3 mt-5">
-              {rechargeOptions.map((opt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleBuyCoins(opt.coins)}
-                  className="bg-white rounded-[16px] py-4 flex flex-col items-center justify-center shadow-[0_2px_8px_rgba(0,0,0,0.04)] active:scale-95 transition-transform"
-                >
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <img
-                      src="/file_00000000e56882119c217d508b6733dc.png"
-                      className="w-5 h-5 object-contain"
-                      alt="coin"
-                      draggable={false}
-                    />
-                    <span className="text-gray-900 font-semibold text-lg">
-                      {opt.coins.toLocaleString()}
-                    </span>
-                  </div>
-                  <span className="text-gray-500 font-medium text-[13px]">
-                    {opt.price}
-                  </span>
-                </button>
-              ))}
             </div>
 
           </div>
@@ -698,9 +654,9 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             <div className="space-y-4">
               
               {/* Diamonds Banner */}
-              <div className="relative w-full rounded-xl overflow-hidden mt-2 min-h-[140px] px-6 py-5 flex flex-col justify-start">
+              <div className="relative w-full rounded-xl overflow-hidden mt-4 min-h-[140px] px-6 py-5 flex flex-col justify-start">
                  <img
-                  src="/public/file_000000004ec482088add2cf9e002cade.png"
+                  src="/file_000000004ec482088add2cf9e002cade.png"
                   alt="Diamonds Banner Background"
                   className="absolute inset-0 w-full h-full object-cover z-0"
                   draggable={false}
@@ -824,19 +780,10 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
         {activeTab === 'offline' && (
           /* ================= OFFLINE RECHARGE TAB ================= */
-          <div className="flex flex-col items-center justify-center mt-20 text-gray-400">
-            {/* Aap isme baad me apna offline recharge ka code daal lena */}
+          <div className="flex flex-col items-center justify-center mt-20 text-gray-500">
             <p className="font-semibold text-sm">Offline Recharge Options Available Soon</p>
           </div>
         )}
-      </div>
-
-      {/* Static Floating Image (50% Off Ad) like screenshot */}
-      <div className="absolute bottom-6 right-4 pointer-events-none z-30 opacity-90 drop-shadow-lg">
-        {/* Replace with your exact image path if you have it */}
-        <div className="w-[50px] h-[50px] rounded-full border-2 border-yellow-400 bg-black overflow-hidden flex items-center justify-center">
-          <span className="text-yellow-400 text-[10px] font-black uppercase text-center leading-tight">50%<br/>Off</span>
-        </div>
       </div>
     </div>
   )
