@@ -546,12 +546,14 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   return (
     <div
-      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 bg-gray-100 relative"
+      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 relative"
       style={{
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
+        // TOP 30VH BLUE MIXING IN 70VH GREY
+        background: 'linear-gradient(180deg, #0044FF 0%, #0044FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
       }}
     >
       <style>{`
@@ -562,14 +564,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         }
       `}</style>
 
-      {/* Real vibrant Blue 🔵 color background with blur */}
-      <div className="absolute top-0 left-0 right-0 h-[220px] bg-[#0044FF]/60 blur-[60px] pointer-events-none z-0" />
-
-      {/* TOP HEADER */}
+      {/* TOP HEADER (Text is white to be visible on blue) */}
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
         <button
           onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900 ml-1"
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-white ml-1"
           aria-label="Back"
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -578,13 +577,13 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           </svg>
         </button>
 
-        <h1 className="text-[17px] font-bold text-gray-950 tracking-tight">
+        <h1 className="text-[17px] font-bold text-white tracking-tight">
           Recharge
         </h1>
 
         <button
           onClick={() => setShowDetails(activeTab === 'wallet' ? 'coin' : 'diamond')}
-          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-gray-900"
+          className="w-10 h-10 flex items-center justify-center active:scale-90 transition-all text-white"
           aria-label="History"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -601,25 +600,27 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
         
         {/* Dynamic Banners - Coins Banner for Wallet AND Offline */}
+        {/* No borders, no outline, text/value shifted right (pl-10) and down (pt-8) */}
         {(activeTab === 'wallet' || activeTab === 'offline') && (
-          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-sm">
+          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
               src="/file_00000000f3d88211964f0057da4bc797.png"
               alt="Coins Banner Background"
               className="w-full h-auto block"
               draggable={false}
             />
-            <div className="absolute inset-0 px-6 py-5 flex flex-col justify-start">
+            <div className="absolute inset-0 pl-10 pt-8 pr-4 flex flex-col justify-start">
               <span className="text-gray-200 font-medium text-sm">
                 My Coins
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
+              <div className="flex items-center gap-2 mt-0.5">
+                {/* Value size reduced to 22px */}
+                <span className="text-[22px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
                   {walletBalance === null ? '—' : walletBalance.toLocaleString()}
                 </span>
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
-                  className="w-6 h-6 object-contain drop-shadow-sm"
+                  className="w-5 h-5 object-contain drop-shadow-sm"
                   alt="coin icon"
                   draggable={false}
                 />
@@ -630,24 +631,24 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
         {/* Diamonds Banner */}
         {activeTab === 'diamonds' && (
-          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-sm">
+          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
               src="/file_000000004ec482088add2cf9e002cade.png"
               alt="Diamonds Banner Background"
               className="w-full h-auto block"
               draggable={false}
             />
-            <div className="absolute inset-0 px-6 py-5 flex flex-col justify-start">
+            <div className="absolute inset-0 pl-10 pt-8 pr-4 flex flex-col justify-start">
               <span className="text-gray-200 font-medium text-sm">
                 My Diamonds
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-[28px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[22px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
                   {diamondBalance === null ? '—' : diamondBalance.toLocaleString()}
                 </span>
                 <WhiteColorRemovalShader
                   imageSrc="/1787321690452.png"
-                  className="w-6 h-6 object-contain"
+                  className="w-5 h-5 object-contain"
                   threshold={0.88}
                 />
               </div>
@@ -656,7 +657,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {/* Pill Tabs completely UNDER the banner */}
-        <div className="bg-gray-200/60 p-1 mt-5 rounded-full flex relative items-center">
+        <div className="bg-white/20 backdrop-blur-sm p-1 mt-5 rounded-full flex relative items-center border border-white/30">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
@@ -667,8 +668,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`flex-1 py-2.5 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id 
-                  ? 'bg-white text-gray-950 shadow-sm' 
-                  : 'text-gray-500'
+                  ? 'bg-white text-[#0044FF] shadow-sm' 
+                  : 'text-gray-800' // Darker text for readability if blue mixing ends early
               }`}
             >
               {tab.label}
@@ -680,25 +681,31 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {activeTab === 'wallet' && (
           <div className="flex flex-col mt-5">
             <div className="flex justify-start">
+              {/* ₹ Card: No Borders, No Shadows */}
               <button
                 onClick={() => {
                   setSelectedAmountToBuy({ coins: 1000000, price: 100 });
                   setShowPaymentSheet(true);
                 }}
-                className="w-[140px] h-[130px] bg-white rounded-[16px] flex flex-col items-center justify-center outline-none active:scale-95 transition-transform shadow-[0_2px_8px_rgba(0,0,0,0.04)]"
+                className="w-[140px] bg-transparent flex flex-col items-center justify-center outline-none border-0 shadow-none active:scale-95 transition-transform"
               >
-                <div className="flex items-center gap-1.5 mb-2">
-                  <img
-                    src="/file_00000000e56882119c217d508b6733dc.png"
-                    className="w-5 h-5 object-contain"
-                    alt="coin"
-                    draggable={false}
-                  />
-                  <span className="text-gray-900 font-semibold text-[17px]">
-                    1,000,000
-                  </span>
+                {/* 1st Row: Coins image */}
+                <img
+                  src="/file_00000000e56882119c217d508b6733dc.png"
+                  className="w-8 h-8 object-contain mb-1.5"
+                  alt="coin"
+                  draggable={false}
+                />
+                {/* 2nd Row: 1,000,000 */}
+                <span className="text-gray-900 font-bold text-[17px] leading-none mb-2">
+                  1,000,000
+                </span>
+                {/* 3rd Row: Red card with +Bounce 30,000 */}
+                <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-[4px] mb-2 leading-none shadow-sm">
+                  +Bounce 30,000
                 </div>
-                <span className="text-gray-500 font-medium text-[14px]">
+                {/* 4th Row: ₹ 100 */}
+                <span className="text-gray-500 font-medium text-[14px] leading-none">
                   ₹ 100
                 </span>
               </button>
@@ -709,25 +716,25 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {/* Offline Specific Content (User Card with Avatar and Chat Icon) */}
         {activeTab === 'offline' && (
           <div className="flex flex-col mt-5">
-            <div className="w-full bg-white rounded-[16px] p-4 flex items-center justify-between shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+            {/* Agent Anmol Card - No borders, no shadows */}
+            <div className="w-full bg-transparent p-2 flex items-center justify-between border-0 shadow-none">
               {/* Left Side: Avatar and Name */}
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center flex-shrink-0 text-gray-400">
-                  {/* Generic Dummy SVG Avatar */}
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 border-2 border-white flex items-center justify-center flex-shrink-0 text-gray-500 shadow-sm">
                   <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                     <circle cx="18" cy="12" r="6" fill="currentColor"/>
                     <path d="M18 20C11.3726 20 6 25.3726 6 32H30C30 25.3726 24.6274 20 18 20Z" fill="currentColor"/>
                   </svg>
                 </div>
-                <span className="text-gray-900 font-bold text-[16px]">
+                <span className="text-gray-900 font-bold text-[17px]">
                   Agent Anmol
                 </span>
               </div>
               
-              {/* Right Side: Chat Icon */}
-              <button className="w-10 h-10 bg-[#0044FF]/10 text-[#0044FF] rounded-full flex items-center justify-center active:scale-95 transition-transform">
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+              {/* Right Side: Chat Icon ONLY (Pure Blue, transparent dots) */}
+              <button className="flex-shrink-0 active:scale-90 transition-transform">
+                 <svg width="28" height="28" viewBox="0 0 24 24" fill="#0044FF" xmlns="http://www.w3.org/2000/svg">
+                   <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V16C22 17.1 21.1 18 20 18H6L2 22V4ZM7 11.5A1.5 1.5 0 1 0 7 8.5 1.5 1.5 0 0 0 7 11.5ZM13.5 10A1.5 1.5 0 1 1 10.5 10 1.5 1.5 0 0 1 13.5 10ZM17 11.5A1.5 1.5 0 1 0 17 8.5 1.5 1.5 0 0 0 17 11.5Z" />
                  </svg>
               </button>
             </div>
@@ -820,10 +827,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            <div className="pt-3 pb-2 flex justify-center mt-2">
+            {/* Exchange Button: Pure Blue, moved further down */}
+            <div className="pt-8 pb-2 flex justify-center mt-4">
               <button
                 onClick={handleExchange}
-                className="w-[75%] py-4 rounded-full font-bold text-white bg-pink-400 hover:bg-pink-500 text-[15px] shadow-sm active:scale-95 transition-transform"
+                className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
               >
                 Exchange
               </button>
@@ -911,7 +919,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               setShowPaymentSheet(false);
               setTimeout(() => setShowPayUsingSheet(true), 300);
             }}
-            className="w-full bg-[#0044FF] text-white font-bold text-[16px] py-3.5 rounded-xl active:scale-95 transition-transform"
+            className="w-full bg-[#0044FF] text-white font-bold text-[16px] py-3.5 rounded-xl active:scale-95 transition-transform shadow-md"
           >
             Recharge
           </button>
