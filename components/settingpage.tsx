@@ -118,7 +118,7 @@ export default function SettingPage({
         <div
           className="flex items-center px-4 py-3 bg-white relative"
           style={{
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)'
+            paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)'
           }}
         >
           <button 
