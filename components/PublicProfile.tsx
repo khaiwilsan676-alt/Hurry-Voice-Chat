@@ -2041,7 +2041,7 @@ export default function PublicProfile({
       )}
 
       {isOtherUser && showUserReport && targetUser && (
-        <div className="fixed inset-0 ]">
+        <div className="fixed inset-0 z-[200] bg-[#f0f2f5]">
           <UserReport
             currentUser={getCurrentUserData()}
             targetUser={targetUser}
