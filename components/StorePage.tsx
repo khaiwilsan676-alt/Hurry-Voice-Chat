@@ -12,14 +12,14 @@ interface StoreItem {
   removeGreen?: boolean;
   tab: string;
   stars: number;
-  price: string; // Base price for 3 days
+  price: string;
   duration: string;
   isOwned?: boolean;
   dailyReward?: boolean;
 }
 
 // ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// SHARED WALLET DB
 // ==========================================
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
@@ -486,11 +486,9 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
 // ==========================================
 export default function StorePage({
   onBack,
-  onOpenWallet, // Wallet open karne ke liye prop
   initialView = "store",
 }: {
   onBack: () => void;
-  onOpenWallet?: () => void;
   initialView?: "store" | "bag";
 }) {
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
@@ -555,11 +553,8 @@ export default function StorePage({
     const cost = getPriceForDuration(item.price, selectedDuration);
 
     if (balance < cost) {
-      if (onOpenWallet) {
-        onOpenWallet();
-      } else {
-        alert('Insufficient balance! Opening wallet...');
-      }
+      // Purana wala alert (Recharge hataya gaya)
+      alert('Insufficient balance');
       return;
     }
 
