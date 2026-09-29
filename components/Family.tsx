@@ -272,7 +272,7 @@ export default function Family({ onBack }: FamilyProps) {
 
         <div
           className="flex flex-row items-center w-full px-2 relative z-30"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
+          style={{ paddingTop: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 12px)' }}
         >
           <button
             type="button"
