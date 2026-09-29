@@ -539,7 +539,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
   return (
     <div
-      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300"
+      className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[env(safe-area-inset-top,12px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300"
       style={{
         touchAction: 'manipulation',
         WebkitUserSelect: 'none',
