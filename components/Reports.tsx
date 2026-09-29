@@ -144,7 +144,7 @@ export default function Reports() {
             className="relative pt-safe pb-4 flex items-center justify-center"
             style={{
               background: 'linear-gradient(to bottom, #3b82f6 0%, #f0f2f5 100%)',
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)'
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)'
             }}
           >
             <button
