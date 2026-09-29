@@ -39,7 +39,7 @@ const initWalletDB = (): Promise<IDBDatabase> =>
     request.onerror = () => reject(request.error);
   });
 
-const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]; equippedItems: string[] }> => {
+const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]; equippedItems: string[]; avatar: string }> => {
   try {
     const db = await initWalletDB();
     return new Promise((resolve) => {
@@ -51,12 +51,13 @@ const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]
           balance: typeof data?.balance === 'number' ? data.balance : DEFAULT_BALANCE,
           ownedItems: Array.isArray(data?.ownedItems) ? data.ownedItems : [],
           equippedItems: Array.isArray(data?.equippedItems) ? data.equippedItems : [],
+          avatar: typeof data?.avatar === 'string' && data.avatar ? data.avatar : "/default_avatar.png",
         });
       };
-      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [] });
+      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [], avatar: "/default_avatar.png" });
     });
   } catch {
-    return { balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [] };
+    return { balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [], avatar: "/default_avatar.png" };
   }
 };
 
@@ -508,14 +509,16 @@ export default function StorePage({
   );
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string>("/default_avatar.png");
 
   useEffect(() => {
     let alive = true;
     const sync = async () => {
       clearExpiredStoreItems(allStoreItems);
-      const { balance: bal, ownedItems, equippedItems } = await loadWalletData();
+      const { balance: bal, ownedItems, equippedItems, avatar } = await loadWalletData();
       if (!alive) return;
       setBalance(bal);
+      setUserAvatar(avatar);
       setOwnedIds((prev) => {
         const next = new Set(prev);
         ownedItems.forEach((id) => next.add(id));
@@ -572,6 +575,23 @@ export default function StorePage({
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
+
+    // Auto-equip after purchase
+    const next = new Set(equippedIds);
+    allStoreItems.forEach((it) => {
+      if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
+    });
+    next.add(item.id);
+    setEquippedIds(next);
+    await saveEquippedItemsToDB(Array.from(next));
+
+    if (item.tab === "Vehicle") {
+      const vehicleAsset = String(item.tryVideo || "").trim();
+      if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
+        localStorage.setItem("equipped_Vehicle", vehicleAsset);
+        window.dispatchEvent(new Event("hurry-vehicle-equipped"));
+      }
+    }
 
     setBuying(null);
     setPurchaseItem(null);
@@ -653,10 +673,40 @@ export default function StorePage({
   };
 
   // ==========================================
-  // Preview renderer — sheet ke andar animation dikhane ke liye
+  // Frame Preview — avatar ke peeche, frame overlay
   // ==========================================
-  const renderPreviewAsset = (item: StoreItem, className = "w-full h-full object-contain") => {
-    // Priority: tryVideo > mp4 image > removeGreen > static image
+  const renderFramePreview = (item: StoreItem) => {
+    const isFrame = item.tab === "Avatar Frame";
+    const isVideo = item.image?.endsWith(".mp4") || !!item.tryVideo;
+
+    if (isFrame) {
+      return (
+        <div className="relative w-[180px] h-[180px] flex items-center justify-center">
+          {/* Avatar behind frame */}
+          <div className="absolute w-[110px] h-[110px] rounded-full overflow-hidden bg-gray-300 border-2 border-white shadow-md">
+            <img
+              src={userAvatar}
+              alt="User Avatar"
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/default_avatar.png"; }}
+            />
+          </div>
+
+          {/* Frame overlay (video or image) */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {item.tryVideo ? (
+              <WebGLVideoAvatar src={item.tryVideo} />
+            ) : isVideo ? (
+              <WebGLVideoAvatar src={item.image} />
+            ) : (
+              <WebGLImageAvatar src={item.image} />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Non-frame items — simple animated preview
     if (item.tryVideo) {
       return <WebGLVideoAvatar src={item.tryVideo} isVehicleModal={item.tab === "Vehicle"} />;
     }
@@ -664,7 +714,7 @@ export default function StorePage({
       return <WebGLVideoAvatar src={item.image} isVehicleModal={item.tab === "Vehicle"} />;
     }
     if (item.removeGreen) {
-      return <WebGLImageAvatar src={item.image} className={className} />;
+      return <WebGLImageAvatar src={item.image} />;
     }
     return (
       <Image
@@ -790,7 +840,10 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          PURCHASE BOTTOM SHEET (with ANIMATED preview)
+          PURCHASE BOTTOM SHEET
+          - No outer glowing border
+          - Avatar behind, frame overlay
+          - Name above avatar
          ========================================== */}
       {purchaseItem && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-[1px]" onClick={() => setPurchaseItem(null)}>
@@ -798,34 +851,25 @@ export default function StorePage({
             className="w-full max-w-md bg-white rounded-t-[30px] p-5 pb-8 flex flex-col items-center animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[20px] font-bold text-gray-900 mb-6">Purchase</h2>
+            <h2 className="text-[20px] font-bold text-gray-900 mb-4">Purchase</h2>
 
-            {/* Avatar with Glowing Border & ANIMATED Store Item */}
-            <div className="relative w-[140px] h-[140px] flex items-center justify-center mb-4">
-              <div className="absolute inset-[-10px] rounded-full border-[4px] border-blue-400 opacity-50 blur-[4px]"></div>
-              <div className="absolute inset-[-5px] rounded-full border-[3px] border-pink-400 opacity-60 blur-[2px]"></div>
-              <div className="absolute inset-0 rounded-full border-[3px] border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.5)]"></div>
+            {/* Name above the preview */}
+            <span className="text-[22px] font-bold text-gray-900 mb-4 text-center">
+              {purchaseItem.name}
+            </span>
 
-              <div className="relative w-[130px] h-[130px] rounded-full overflow-hidden border-[2px] border-white z-10 bg-gray-200 flex items-center justify-center">
-                {/* Animated preview: video / WebGL frame / static */}
-                {renderPreviewAsset(purchaseItem, "w-full h-full object-contain")}
-              </div>
-
-              <div className="absolute bottom-0 right-0 z-20 w-10 h-10 pointer-events-none">
-                <span className="text-3xl drop-shadow-md">🎀</span>
-              </div>
+            {/* Preview — avatar behind, frame overlay (no outer border) */}
+            <div className="flex items-center justify-center mb-6">
+              {renderFramePreview(purchaseItem)}
             </div>
 
-            {/* Name and Price */}
-            <div className="w-full flex items-center justify-between px-2 mb-6">
-              <span className="text-[22px] font-bold text-gray-900">{purchaseItem.name}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-[22px] font-bold text-orange-400">
-                  {getPriceForDuration(purchaseItem.price, selectedDuration).toLocaleString()}
-                </span>
-                <div className="w-5 h-5 flex items-center justify-center">
-                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-                </div>
+            {/* Price */}
+            <div className="w-full flex items-center justify-end gap-1 px-2 mb-6">
+              <span className="text-[24px] font-bold text-orange-400">
+                {getPriceForDuration(purchaseItem.price, selectedDuration).toLocaleString()}
+              </span>
+              <div className="w-6 h-6 flex items-center justify-center">
+                <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
               </div>
             </div>
 
@@ -884,7 +928,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* Existing Try Modals (Vehicle/Frame/Theme) */}
+      {/* Existing Try Modals */}
       {tryCenterItem && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer" onClick={() => setTryCenterItem(null)}>
           <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
