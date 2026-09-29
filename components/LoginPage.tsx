@@ -751,6 +751,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     e.preventDefault();
     setAuthError(null);
     
+    // First, check ban before proceeding
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return; // show ban message, stop login
+    }
+
     if (!email || !password || password.length < 6) {
       setAuthError("Password must be at least 6 characters long.");
       return;
@@ -866,6 +872,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
     e.preventDefault();
     setAuthError(null);
     
+    // First, check ban before proceeding
+    const isBanned = await checkBanBeforeLogin();
+    if (isBanned) {
+      return; // show ban message, stop login
+    }
+
     if (!email || !password || password.length < 6) {
       setAuthError("Password must be at least 6 characters long.");
       return;

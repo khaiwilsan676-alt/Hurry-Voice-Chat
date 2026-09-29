@@ -154,7 +154,7 @@ export default function DailyCheckInModal({
                   index + 1 < currentDay
                     ? 'border-2 border-green-400'
                     : index + 1 === currentDay
-                    ? 'border-2 border-blue-500 animate-pulse'
+                    ? 'border-2 border-blue-500 '
                     : 'border-2 border-gray-200'
                 }`}
               >
@@ -182,7 +182,7 @@ export default function DailyCheckInModal({
                 5 < currentDay
                   ? 'border-2 border-green-400'
                   : 5 === currentDay
-                  ? 'border-2 border-blue-500 animate-pulse'
+                  ? 'border-2 border-blue-500 '
                   : 'border-2 border-gray-200'
               }`}
               style={{ height: '80px' }}
@@ -206,7 +206,7 @@ export default function DailyCheckInModal({
                 6 < currentDay
                   ? 'border-2 border-green-400'
                   : 6 === currentDay
-                  ? 'border-2 border-blue-500 animate-pulse'
+                  ? 'border-2 border-blue-500 '
                   : 'border-2 border-gray-200'
               }`}
               style={{ height: '80px' }}
@@ -232,7 +232,7 @@ export default function DailyCheckInModal({
                 7 < currentDay
                   ? 'border-2 border-green-400'
                   : 7 === currentDay
-                  ? 'border-2 border-blue-500 animate-pulse'
+                  ? 'border-2 border-blue-500 '
                   : 'border-2 border-gray-200'
               }`}
             >
@@ -288,13 +288,6 @@ export default function DailyCheckInModal({
         @keyframes modalFadeIn {
           0% { opacity: 0; transform: scale(0.9); }
           100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-        }
-        .animate-pulse {
-          animation: pulse 1.5s ease-in-out infinite;
         }
       `}</style>
     </div>
