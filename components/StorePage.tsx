@@ -24,6 +24,16 @@ interface StoreItem {
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
 const DEFAULT_BALANCE = 82927;
+const DEFAULT_USERNAME = "User123";
+const DEFAULT_AVATAR = "/default_avatar.png";
+
+interface UserData {
+  balance: number;
+  ownedItems: string[];
+  equippedItems: string[];
+  avatar: string;
+  username: string;
+}
 
 const initWalletDB = (): Promise<IDBDatabase> =>
   new Promise((resolve, reject) => {
@@ -39,25 +49,50 @@ const initWalletDB = (): Promise<IDBDatabase> =>
     request.onerror = () => reject(request.error);
   });
 
-const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]; equippedItems: string[]; avatar: string }> => {
+const loadUserData = async (): Promise<UserData> => {
   try {
     const db = await initWalletDB();
     return new Promise((resolve) => {
       const tx = db.transaction(SHARED_STORE, 'readonly');
       const req = tx.objectStore(SHARED_STORE).get('user_data');
       req.onsuccess = () => {
-        const data = req.result;
+        const data = req.result || {};
         resolve({
-          balance: typeof data?.balance === 'number' ? data.balance : DEFAULT_BALANCE,
-          ownedItems: Array.isArray(data?.ownedItems) ? data.ownedItems : [],
-          equippedItems: Array.isArray(data?.equippedItems) ? data.equippedItems : [],
-          avatar: typeof data?.avatar === 'string' && data.avatar ? data.avatar : "/default_avatar.png",
+          balance: typeof data.balance === 'number' ? data.balance : DEFAULT_BALANCE,
+          ownedItems: Array.isArray(data.ownedItems) ? data.ownedItems : [],
+          equippedItems: Array.isArray(data.equippedItems) ? data.equippedItems : [],
+          avatar:
+            data.avatar ||
+            data.profilePic ||
+            data.avatarUrl ||
+            data.dp ||
+            data.userAvatar ||
+            DEFAULT_AVATAR,
+          username:
+            data.username ||
+            data.userName ||
+            data.name ||
+            data.nickname ||
+            DEFAULT_USERNAME,
         });
       };
-      req.onerror = () => resolve({ balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [], avatar: "/default_avatar.png" });
+      req.onerror = () =>
+        resolve({
+          balance: DEFAULT_BALANCE,
+          ownedItems: [],
+          equippedItems: [],
+          avatar: DEFAULT_AVATAR,
+          username: DEFAULT_USERNAME,
+        });
     });
   } catch {
-    return { balance: DEFAULT_BALANCE, ownedItems: [], equippedItems: [], avatar: "/default_avatar.png" };
+    return {
+      balance: DEFAULT_BALANCE,
+      ownedItems: [],
+      equippedItems: [],
+      avatar: DEFAULT_AVATAR,
+      username: DEFAULT_USERNAME,
+    };
   }
 };
 
@@ -509,22 +544,24 @@ export default function StorePage({
   );
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
-  const [userAvatar, setUserAvatar] = useState<string>("/default_avatar.png");
+  const [userAvatar, setUserAvatar] = useState<string>(DEFAULT_AVATAR);
+  const [username, setUsername] = useState<string>(DEFAULT_USERNAME);
 
   useEffect(() => {
     let alive = true;
     const sync = async () => {
       clearExpiredStoreItems(allStoreItems);
-      const { balance: bal, ownedItems, equippedItems, avatar } = await loadWalletData();
+      const data = await loadUserData();
       if (!alive) return;
-      setBalance(bal);
-      setUserAvatar(avatar);
+      setBalance(data.balance);
+      setUserAvatar(data.avatar);
+      setUsername(data.username);
       setOwnedIds((prev) => {
         const next = new Set(prev);
-        ownedItems.forEach((id) => next.add(id));
+        data.ownedItems.forEach((id) => next.add(id));
         return next;
       });
-      const activeEquipped = equippedItems.filter((id) => {
+      const activeEquipped = data.equippedItems.filter((id) => {
         const item = allStoreItems.find((it) => it.id === id);
         return !item || isItemActive(item);
       });
@@ -597,66 +634,6 @@ export default function StorePage({
     setPurchaseItem(null);
   };
 
-  const handleEquipToggle = async (item: StoreItem) => {
-    const next = new Set(equippedIds);
-    const wasEquipped = next.has(item.id);
-
-    if (wasEquipped) {
-      next.delete(item.id);
-    } else {
-      allStoreItems.forEach((it) => {
-        if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
-      });
-      next.add(item.id);
-    }
-
-    setEquippedIds(next);
-    await saveEquippedItemsToDB(Array.from(next));
-
-    if (item.tab === "Chat Bubble") {
-      if (wasEquipped) {
-        localStorage.removeItem("equipped_Chat Bubble");
-        localStorage.removeItem("equipped_Chat Bubble_expiresAt");
-      } else {
-        localStorage.setItem("equipped_Chat Bubble", item.image);
-        const expiry = getStoredExpiry(item.id);
-        if (expiry) {
-          localStorage.setItem("equipped_Chat Bubble_expiresAt", String(expiry));
-        }
-      }
-      window.dispatchEvent(new Event("hurry-chat-bubble-equipped"));
-    }
-
-    if (item.tab === "Vehicle") {
-      if (wasEquipped) {
-        localStorage.removeItem("equipped_Vehicle");
-      } else {
-        const vehicleAsset = String(item.tryVideo || "").trim();
-        if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
-          localStorage.setItem("equipped_Vehicle", vehicleAsset);
-        } else {
-          localStorage.removeItem("equipped_Vehicle");
-          console.warn("Vehicle equip skipped: missing playable MP4", item.id);
-          return;
-        }
-      }
-      window.dispatchEvent(new Event("hurry-vehicle-equipped"));
-    }
-  };
-
-  useEffect(() => {
-    const equippedVehicleId = Array.from(equippedIds).find((id) => {
-      const item = allStoreItems.find((it) => it.id === id);
-      return item?.tab === "Vehicle";
-    });
-    const equippedVehicle = equippedVehicleId ? allStoreItems.find((it) => it.id === equippedVehicleId) : null;
-    if (equippedVehicle) {
-      localStorage.setItem("equipped_Vehicle", equippedVehicle.tryVideo || equippedVehicle.image);
-    } else {
-      localStorage.removeItem("equipped_Vehicle");
-    }
-  }, [equippedIds]);
-
   const displayedItems = allStoreItems.filter((item) => {
     const isOwned = ownedIds.has(item.id);
     const isActive = isItemActive(item);
@@ -673,26 +650,25 @@ export default function StorePage({
   };
 
   // ==========================================
-  // Frame Preview — avatar ke peeche, frame overlay
+  // Preview renderer — tab ke hisaab se alag dikhaye
   // ==========================================
-  const renderFramePreview = (item: StoreItem) => {
-    const isFrame = item.tab === "Avatar Frame";
-    const isVideo = item.image?.endsWith(".mp4") || !!item.tryVideo;
-
-    if (isFrame) {
+  const renderTabPreview = (item: StoreItem) => {
+    // ----- Avatar Frame: user DP + username + frame overlay -----
+    if (item.tab === "Avatar Frame") {
+      const isVideo = item.image?.endsWith(".mp4") || !!item.tryVideo;
       return (
-        <div className="relative w-[180px] h-[180px] flex items-center justify-center">
-          {/* Avatar behind frame */}
-          <div className="absolute w-[110px] h-[110px] rounded-full overflow-hidden bg-gray-300 border-2 border-white shadow-md">
+        <div className="relative w-[160px] h-[160px] flex items-center justify-center">
+          {/* Avatar circle (behind frame) */}
+          <div className="absolute w-[100px] h-[100px] rounded-full overflow-hidden bg-gray-300 shadow-inner">
             <img
               src={userAvatar}
-              alt="User Avatar"
+              alt={username}
               className="w-full h-full object-cover"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/default_avatar.png"; }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR; }}
             />
           </div>
 
-          {/* Frame overlay (video or image) */}
+          {/* Frame overlay (video/image) */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {item.tryVideo ? (
               <WebGLVideoAvatar src={item.tryVideo} />
@@ -706,12 +682,76 @@ export default function StorePage({
       );
     }
 
-    // Non-frame items — simple animated preview
+    // ----- Chat Bubble: bubble image with sample message + user info -----
+    if (item.tab === "Chat Bubble") {
+      return (
+        <div className="w-full flex flex-col items-center gap-3 px-3">
+          {/* User info row */}
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-300 shrink-0">
+              <img
+                src={userAvatar}
+                alt={username}
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR; }}
+              />
+            </div>
+            <span className="text-[14px] font-semibold text-gray-700">{username}</span>
+          </div>
+
+          {/* Bubble preview with sample message */}
+          <div className="relative w-[200px] h-[110px] flex items-center justify-center">
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              className="object-contain"
+              sizes="200px"
+            />
+            <span className="relative z-10 text-[13px] font-semibold text-white drop-shadow-md px-3 text-center">
+              Hello! 👋
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    // ----- Theme: full theme image (portrait) -----
+    if (item.tab === "Theme") {
+      return (
+        <div className="relative w-[150px] h-[260px] rounded-2xl overflow-hidden shadow-lg">
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="200px"
+          />
+        </div>
+      );
+    }
+
+    // ----- ID: ID badge -----
+    if (item.tab === "ID") {
+      return (
+        <div className="relative w-[140px] h-[140px] flex items-center justify-center">
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-contain"
+            sizes="150px"
+          />
+        </div>
+      );
+    }
+
+    // ----- Vehicle: animated preview -----
     if (item.tryVideo) {
-      return <WebGLVideoAvatar src={item.tryVideo} isVehicleModal={item.tab === "Vehicle"} />;
+      return <WebGLVideoAvatar src={item.tryVideo} isVehicleModal={true} />;
     }
     if (item.image && item.image.endsWith(".mp4")) {
-      return <WebGLVideoAvatar src={item.image} isVehicleModal={item.tab === "Vehicle"} />;
+      return <WebGLVideoAvatar src={item.image} isVehicleModal={true} />;
     }
     if (item.removeGreen) {
       return <WebGLImageAvatar src={item.image} />;
@@ -721,7 +761,7 @@ export default function StorePage({
         src={item.image}
         alt={item.name}
         fill
-        className="object-cover"
+        className="object-contain"
         sizes="200px"
       />
     );
@@ -840,52 +880,49 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          PURCHASE BOTTOM SHEET
-          - No outer glowing border
-          - Avatar behind, frame overlay
-          - Name above avatar
+          PURCHASE BOTTOM SHEET — CHHOTA + TAB-BASED PREVIEW
          ========================================== */}
       {purchaseItem && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-[1px]" onClick={() => setPurchaseItem(null)}>
           <div
-            className="w-full max-w-md bg-white rounded-t-[30px] p-5 pb-8 flex flex-col items-center animate-slide-up"
+            className="w-full max-w-md bg-white rounded-t-[28px] px-4 pt-4 pb-6 flex flex-col items-center animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[20px] font-bold text-gray-900 mb-4">Purchase</h2>
+            <h2 className="text-[18px] font-bold text-gray-900 mb-3">Purchase</h2>
 
-            {/* Name above the preview */}
-            <span className="text-[22px] font-bold text-gray-900 mb-4 text-center">
+            {/* Name above preview */}
+            <span className="text-[18px] font-bold text-gray-900 mb-3 text-center">
               {purchaseItem.name}
             </span>
 
-            {/* Preview — avatar behind, frame overlay (no outer border) */}
-            <div className="flex items-center justify-center mb-6">
-              {renderFramePreview(purchaseItem)}
+            {/* Tab-based preview */}
+            <div className="flex items-center justify-center mb-4 w-full">
+              {renderTabPreview(purchaseItem)}
             </div>
 
-            {/* Price */}
-            <div className="w-full flex items-center justify-end gap-1 px-2 mb-6">
-              <span className="text-[24px] font-bold text-orange-400">
+            {/* Price row */}
+            <div className="w-full flex items-center justify-end gap-1 px-1 mb-4">
+              <span className="text-[22px] font-bold text-orange-400">
                 {getPriceForDuration(purchaseItem.price, selectedDuration).toLocaleString()}
               </span>
-              <div className="w-6 h-6 flex items-center justify-center">
+              <div className="w-5 h-5 flex items-center justify-center">
                 <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
               </div>
             </div>
 
-            {/* Duration Selection */}
-            <div className="w-full flex gap-3 mb-8">
+            {/* Duration */}
+            <div className="w-full flex gap-3 mb-5">
               <button
                 onClick={() => setSelectedDuration(3)}
-                className={`flex-1 py-3 rounded-xl font-bold text-[16px] transition-all relative overflow-hidden ${
+                className={`flex-1 py-2.5 rounded-xl font-bold text-[15px] transition-all relative overflow-hidden ${
                   selectedDuration === 3
                     ? "bg-orange-50 text-orange-500 border-2 border-orange-400"
                     : "bg-gray-50 text-gray-400 border-2 border-transparent"
                 }`}
               >
                 {selectedDuration === 3 && (
-                  <div className="absolute top-0 left-0 w-6 h-6 bg-orange-400 rounded-br-lg flex items-center justify-center">
-                    <Check size={14} className="text-white" />
+                  <div className="absolute top-0 left-0 w-5 h-5 bg-orange-400 rounded-br-lg flex items-center justify-center">
+                    <Check size={12} className="text-white" />
                   </div>
                 )}
                 3days
@@ -893,33 +930,33 @@ export default function StorePage({
 
               <button
                 onClick={() => setSelectedDuration(7)}
-                className={`flex-1 py-3 rounded-xl font-bold text-[16px] transition-all relative overflow-hidden ${
+                className={`flex-1 py-2.5 rounded-xl font-bold text-[15px] transition-all relative overflow-hidden ${
                   selectedDuration === 7
                     ? "bg-orange-50 text-orange-500 border-2 border-orange-400"
                     : "bg-gray-50 text-gray-400 border-2 border-transparent"
                 }`}
               >
                 {selectedDuration === 7 && (
-                  <div className="absolute top-0 left-0 w-6 h-6 bg-orange-400 rounded-br-lg flex items-center justify-center">
-                    <Check size={14} className="text-white" />
+                  <div className="absolute top-0 left-0 w-5 h-5 bg-orange-400 rounded-br-lg flex items-center justify-center">
+                    <Check size={12} className="text-white" />
                   </div>
                 )}
                 7days
               </button>
             </div>
 
-            {/* Action Buttons */}
+            {/* Actions */}
             <div className="w-full flex gap-3">
               <button
                 onClick={() => setPurchaseItem(null)}
-                className="flex-1 py-3.5 bg-cyan-50 text-cyan-500 font-bold text-[16px] rounded-full hover:bg-cyan-100 transition-colors"
+                className="flex-1 py-3 bg-cyan-50 text-cyan-500 font-bold text-[15px] rounded-full hover:bg-cyan-100 transition-colors"
               >
                 Send
               </button>
               <button
                 onClick={() => handleBuy(purchaseItem)}
                 disabled={buying === purchaseItem.id}
-                className="flex-1 py-3.5 bg-cyan-400 text-white font-bold text-[16px] rounded-full hover:bg-cyan-500 transition-colors disabled:opacity-50"
+                className="flex-1 py-3 bg-cyan-400 text-white font-bold text-[15px] rounded-full hover:bg-cyan-500 transition-colors disabled:opacity-50"
               >
                 {buying === purchaseItem.id ? 'Processing...' : 'Buy'}
               </button>
@@ -928,7 +965,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* Existing Try Modals */}
+      {/* Try modals */}
       {tryCenterItem && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer" onClick={() => setTryCenterItem(null)}>
           <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
