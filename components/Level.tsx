@@ -330,7 +330,6 @@ export default function Level({ onBack }: LevelProps) {
           <button
             onClick={onBack}
             className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
-            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 8px)' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
