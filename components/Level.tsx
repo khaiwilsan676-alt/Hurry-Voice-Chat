@@ -324,26 +324,26 @@ export default function Level({ onBack }: LevelProps) {
         {/* Top App Bar */}
         <div
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 29px)' }}
         >
           {/* Back Button - Ekdam Strict Corner Left */}
           <button
             onClick={onBack}
-            className="absolute left-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
-            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 13px)' }}
+            className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
+            style={{ top: 'auto' }}
           >
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
           
-<h1 className="flex-1 text-center translate-x-4 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
+<h1 className="text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
   Level
 </h1>
 
 
           {/* Help Button - Ekdam Strict Corner Right */}
           <button
-            className="absolute -right-6 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
-            style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 13px)' }}
+            className="p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
+            style={{ top: 'auto' }}
           >
             <HelpCircle size={24} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
