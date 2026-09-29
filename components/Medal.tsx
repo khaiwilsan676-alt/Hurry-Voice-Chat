@@ -627,7 +627,7 @@ export default function Medal({ onBack }: MedalProps) {
             <button
               onClick={closeSheet}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
-              style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
+              
             >
               <ArrowLeft size={28} />
             </button>
