@@ -30,11 +30,10 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-foreground: var(--foreground);
+  --color-popover-foreground: var(--foreground);
+  --color-popover: var(--popover);
   --color-background: var(--background);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -89,7 +88,7 @@
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
@@ -125,7 +124,6 @@
   }
 }
 
-/* Base resets full-screen webview overflow */
 html, body {
   margin: 0 !important;
   padding: 0 !important;
@@ -137,10 +135,9 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Ensure the app-root container covers the safe-area and shows the gradient under the status bar */
 .app-root {
   margin: 0 !important;
-  padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px) !important;
+  padding-top: 0 !important;
   min-height: 100dvh;
   background: linear-gradient(180deg, #3b82f6 0%, #eff6ff 40%, #ffffff 100%);
   -webkit-backdrop-filter: blur(0);
@@ -168,7 +165,7 @@ html, body {
 
   body {
     @apply bg-transparent text-foreground;
-    padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px);
+    padding-top: 0;
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
