@@ -387,7 +387,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       {/* MAIN SETTINGS PAGE */}
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* Header */}
-        <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white">
+        <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 25px)' }}>
           <button
             onClick={onBack}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
@@ -521,7 +521,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         {/* Theme Full Page */}
         {showThemePage && (
           <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white">
+            <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 26px)' }}>
               <button
                 onClick={() => setShowThemePage(false)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
