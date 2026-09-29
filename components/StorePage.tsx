@@ -25,6 +25,7 @@ const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
 const DEFAULT_BALANCE = 82927;
 const DEFAULT_USERNAME = "User123";
+const DEFAULT_USER_ID = "12345678";
 const DEFAULT_AVATAR = "/default_avatar.png";
 
 interface UserData {
@@ -33,6 +34,7 @@ interface UserData {
   equippedItems: string[];
   avatar: string;
   username: string;
+  userId: string;
 }
 
 const initWalletDB = (): Promise<IDBDatabase> =>
@@ -74,6 +76,12 @@ const loadUserData = async (): Promise<UserData> => {
             data.name ||
             data.nickname ||
             DEFAULT_USERNAME,
+          userId:
+            data.userId ||
+            data.userID ||
+            data.uid ||
+            data.id ||
+            DEFAULT_USER_ID,
         });
       };
       req.onerror = () =>
@@ -83,6 +91,7 @@ const loadUserData = async (): Promise<UserData> => {
           equippedItems: [],
           avatar: DEFAULT_AVATAR,
           username: DEFAULT_USERNAME,
+          userId: DEFAULT_USER_ID,
         });
     });
   } catch {
@@ -92,6 +101,7 @@ const loadUserData = async (): Promise<UserData> => {
       equippedItems: [],
       avatar: DEFAULT_AVATAR,
       username: DEFAULT_USERNAME,
+      userId: DEFAULT_USER_ID,
     };
   }
 };
@@ -524,11 +534,9 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
 // ==========================================
 export default function StorePage({
   onBack,
-  onOpenWallet,
   initialView = "store",
 }: {
   onBack: () => void;
-  onOpenWallet?: () => void;
   initialView?: "store" | "bag";
 }) {
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
@@ -537,6 +545,7 @@ export default function StorePage({
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
   const [purchaseItem, setPurchaseItem] = useState<StoreItem | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number>(3);
+  const [toastMsg, setToastMsg] = useState<string>("");
 
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
@@ -546,6 +555,7 @@ export default function StorePage({
   const [buying, setBuying] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string>(DEFAULT_AVATAR);
   const [username, setUsername] = useState<string>(DEFAULT_USERNAME);
+  const [userId, setUserId] = useState<string>(DEFAULT_USER_ID);
 
   useEffect(() => {
     let alive = true;
@@ -556,6 +566,7 @@ export default function StorePage({
       setBalance(data.balance);
       setUserAvatar(data.avatar);
       setUsername(data.username);
+      setUserId(data.userId);
       setOwnedIds((prev) => {
         const next = new Set(prev);
         data.ownedItems.forEach((id) => next.add(id));
@@ -592,16 +603,18 @@ export default function StorePage({
     return basePrice;
   };
 
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(""), 1800);
+  };
+
   const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = getPriceForDuration(item.price, selectedDuration);
 
+    // Pure wallet check — no recharge, no pay, no redirect
     if (balance < cost) {
-      if (onOpenWallet) {
-        onOpenWallet();
-      } else {
-        alert('Insufficient balance! Opening wallet...');
-      }
+      showToast("Not enough coins");
       return;
     }
 
@@ -632,6 +645,7 @@ export default function StorePage({
 
     setBuying(null);
     setPurchaseItem(null);
+    showToast("Purchased!");
   };
 
   const displayedItems = allStoreItems.filter((item) => {
@@ -650,15 +664,14 @@ export default function StorePage({
   };
 
   // ==========================================
-  // Preview renderer — tab ke hisaab se alag dikhaye
+  // Tab-based preview in purchase sheet
   // ==========================================
   const renderTabPreview = (item: StoreItem) => {
-    // ----- Avatar Frame: user DP + username + frame overlay -----
+    // ----- Avatar Frame: DP + frame overlay -----
     if (item.tab === "Avatar Frame") {
       const isVideo = item.image?.endsWith(".mp4") || !!item.tryVideo;
       return (
         <div className="relative w-[160px] h-[160px] flex items-center justify-center">
-          {/* Avatar circle (behind frame) */}
           <div className="absolute w-[100px] h-[100px] rounded-full overflow-hidden bg-gray-300 shadow-inner">
             <img
               src={userAvatar}
@@ -667,8 +680,6 @@ export default function StorePage({
               onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR; }}
             />
           </div>
-
-          {/* Frame overlay (video/image) */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             {item.tryVideo ? (
               <WebGLVideoAvatar src={item.tryVideo} />
@@ -682,11 +693,10 @@ export default function StorePage({
       );
     }
 
-    // ----- Chat Bubble: bubble image with sample message + user info -----
+    // ----- Chat Bubble: DP + name + bubble -----
     if (item.tab === "Chat Bubble") {
       return (
         <div className="w-full flex flex-col items-center gap-3 px-3">
-          {/* User info row */}
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-300 shrink-0">
               <img
@@ -698,16 +708,8 @@ export default function StorePage({
             </div>
             <span className="text-[14px] font-semibold text-gray-700">{username}</span>
           </div>
-
-          {/* Bubble preview with sample message */}
           <div className="relative w-[200px] h-[110px] flex items-center justify-center">
-            <Image
-              src={item.image}
-              alt={item.name}
-              fill
-              className="object-contain"
-              sizes="200px"
-            />
+            <Image src={item.image} alt={item.name} fill className="object-contain" sizes="200px" />
             <span className="relative z-10 text-[13px] font-semibold text-white drop-shadow-md px-3 text-center">
               Hello! 👋
             </span>
@@ -716,37 +718,46 @@ export default function StorePage({
       );
     }
 
-    // ----- Theme: full theme image (portrait) -----
+    // ----- Theme: portrait -----
     if (item.tab === "Theme") {
       return (
         <div className="relative w-[150px] h-[260px] rounded-2xl overflow-hidden shadow-lg">
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-cover"
-            sizes="200px"
-          />
+          <Image src={item.image} alt={item.name} fill className="object-cover" sizes="200px" />
         </div>
       );
     }
 
-    // ----- ID: ID badge -----
+    // ----- ID: DP + Name + ID number -----
     if (item.tab === "ID") {
       return (
-        <div className="relative w-[140px] h-[140px] flex items-center justify-center">
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-contain"
-            sizes="150px"
-          />
+        <div className="relative w-[270px] flex flex-col items-center">
+          {/* ID badge background */}
+          <div className="relative w-[270px] h-[130px] rounded-2xl overflow-hidden shadow-lg">
+            <Image src={item.image} alt={item.name} fill className="object-cover" sizes="300px" />
+          </div>
+
+          {/* User info card overlapping bottom of badge */}
+          <div className="w-[250px] -mt-12 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 z-10 border border-gray-100">
+            <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 shrink-0 border-[3px] border-yellow-300 shadow-md">
+              <img
+                src={userAvatar}
+                alt={username}
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = DEFAULT_AVATAR; }}
+              />
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[16px] font-bold text-gray-900 truncate">{username}</span>
+              <span className="text-[12px] text-gray-500 font-medium truncate">
+                ID: {userId}
+              </span>
+            </div>
+          </div>
         </div>
       );
     }
 
-    // ----- Vehicle: animated preview -----
+    // ----- Vehicle -----
     if (item.tryVideo) {
       return <WebGLVideoAvatar src={item.tryVideo} isVehicleModal={true} />;
     }
@@ -757,13 +768,7 @@ export default function StorePage({
       return <WebGLImageAvatar src={item.image} />;
     }
     return (
-      <Image
-        src={item.image}
-        alt={item.name}
-        fill
-        className="object-contain"
-        sizes="200px"
-      />
+      <Image src={item.image} alt={item.name} fill className="object-contain" sizes="200px" />
     );
   };
 
@@ -880,7 +885,7 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          PURCHASE BOTTOM SHEET — CHHOTA + TAB-BASED PREVIEW
+          PURCHASE BOTTOM SHEET
          ========================================== */}
       {purchaseItem && (
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-[1px]" onClick={() => setPurchaseItem(null)}>
@@ -890,12 +895,10 @@ export default function StorePage({
           >
             <h2 className="text-[18px] font-bold text-gray-900 mb-3">Purchase</h2>
 
-            {/* Name above preview */}
             <span className="text-[18px] font-bold text-gray-900 mb-3 text-center">
               {purchaseItem.name}
             </span>
 
-            {/* Tab-based preview */}
             <div className="flex items-center justify-center mb-4 w-full">
               {renderTabPreview(purchaseItem)}
             </div>
@@ -962,6 +965,13 @@ export default function StorePage({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toastMsg && (
+        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[80] bg-black/80 text-white px-6 py-3 rounded-full text-sm font-semibold shadow-lg animate-fade-in">
+          {toastMsg}
         </div>
       )}
 
