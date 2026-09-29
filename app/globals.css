@@ -140,14 +140,14 @@ html, body {
 /* Ensure the app-root container covers the safe-area and shows the gradient under the status bar */
 .app-root {
   margin: 0 !important;
-  padding-top: 0 !important;
+  padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px) !important;
   min-height: 100dvh;
   background: linear-gradient(180deg, #3b82f6 0%, #eff6ff 40%, #ffffff 100%);
   -webkit-backdrop-filter: blur(0);
 }
 
 .safe-top {
-  padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 12px);
+  padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px);
 }
 
 .safe-bottom {
@@ -168,7 +168,7 @@ html, body {
 
   body {
     @apply bg-transparent text-foreground;
-    padding-top: 0;
+    padding-top: max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px), 24px);
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
