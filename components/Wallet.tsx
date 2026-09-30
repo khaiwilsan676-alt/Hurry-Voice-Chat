@@ -124,7 +124,7 @@ async function loadDiamondBalanceFromDB(): Promise<number> {
 async function addCoinsToDB(amountToAdd: number): Promise<void> {
   try {
     const db = await initDB();
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
       const req = store.get('user_data');
@@ -437,12 +437,22 @@ function DetailsPage({
 // ==========================================
 // Main Wallet Component
 // ==========================================
-type TabType = 'wallet' | 'diamonds' | 'offline';
+type TabType = 'wallet' | 'diamonds' | 'agent';
 
 interface WalletProps {
   onBack: () => void
   initialTab?: TabType
 }
+
+// Reusable Original Google G Logo SVG
+const GPaySvg = () => (
+  <svg viewBox="0 0 24 24" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+)
 
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
@@ -552,8 +562,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
-        // TOP 30VH BLUE MIXING IN 70VH GREY
-        background: 'linear-gradient(180deg, #0044FF 0%, #0044FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
+        background: 'linear-gradient(180deg, #1A66FF 0%, #1A66FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
       }}
     >
       <style>{`
@@ -564,7 +573,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         }
       `}</style>
 
-      {/* TOP HEADER (Text is white to be visible on blue) */}
+      {/* TOP HEADER */}
       <div className="w-full relative flex-shrink-0 flex items-center justify-between pl-1 pr-4 z-20 h-12">
         <button
           onClick={onBack}
@@ -599,9 +608,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       {/* SCROLLABLE BODY */}
       <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
         
-        {/* Dynamic Banners - Coins Banner for Wallet AND Offline */}
-        {/* No borders, no outline, text/value shifted right (pl-10) and down (pt-8) */}
-        {(activeTab === 'wallet' || activeTab === 'offline') && (
+        {/* Dynamic Banners - Coins Banner for Wallet AND Agent */}
+        {(activeTab === 'wallet' || activeTab === 'agent') && (
           <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
               src="/file_00000000f3d88211964f0057da4bc797.png"
@@ -614,7 +622,6 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 My Coins
               </span>
               <div className="flex items-center gap-2 mt-0.5">
-                {/* Value size reduced to 22px */}
                 <span className="text-[22px] font-bold text-yellow-400 tracking-tight drop-shadow-sm">
                   {walletBalance === null ? '—' : walletBalance.toLocaleString()}
                 </span>
@@ -633,7 +640,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {activeTab === 'diamonds' && (
           <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
-              src="/file_000000004ec482088add2cf9e002cade.png"
+              src="/file_0000000085a482088fb089cb76f3d1af.png"
               alt="Diamonds Banner Background"
               className="w-full h-auto block"
               draggable={false}
@@ -656,12 +663,12 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           </div>
         )}
 
-        {/* Pill Tabs completely UNDER the banner */}
-        <div className="bg-white/20 backdrop-blur-sm p-1 mt-5 rounded-full flex relative items-center border border-white/30">
+        {/* Pill Tabs - 'Agent' label updated */}
+        <div className="bg-black/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)] backdrop-blur-sm p-1 mt-5 rounded-full flex relative items-center border border-white/10">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
-            { id: 'offline', label: 'Offline' }
+            { id: 'agent', label: 'Agent' } // Change from Offline to Agent
           ].map((tab) => (
             <button
               key={tab.id}
@@ -669,7 +676,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               className={`flex-1 py-2.5 rounded-full text-[13px] font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id 
                   ? 'bg-white text-[#0044FF] shadow-sm' 
-                  : 'text-gray-800' // Darker text for readability if blue mixing ends early
+                  : 'text-white/90'
               }`}
             >
               {tab.label}
@@ -681,30 +688,25 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {activeTab === 'wallet' && (
           <div className="flex flex-col mt-5">
             <div className="flex justify-start">
-              {/* ₹ Card: No Borders, No Shadows */}
               <button
                 onClick={() => {
-                  setSelectedAmountToBuy({ coins: 1000000, price: 100 });
+                  setSelectedAmountToBuy({ coins: 1030000, price: 100 });
                   setShowPaymentSheet(true);
                 }}
-                className="w-[140px] bg-transparent flex flex-col items-center justify-center outline-none border-0 shadow-none active:scale-95 transition-transform"
+                className="w-[140px] aspect-square bg-white rounded-xl shadow-sm flex flex-col items-center justify-center outline-none border-0 active:scale-95 transition-transform"
               >
-                {/* 1st Row: Coins image */}
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
                   className="w-8 h-8 object-contain mb-1.5"
                   alt="coin"
                   draggable={false}
                 />
-                {/* 2nd Row: 1,000,000 */}
                 <span className="text-gray-900 font-bold text-[17px] leading-none mb-2">
                   1,000,000
                 </span>
-                {/* 3rd Row: Red card with +Bounce 30,000 */}
                 <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-[4px] mb-2 leading-none shadow-sm">
                   +Bounce 30,000
                 </div>
-                {/* 4th Row: ₹ 100 */}
                 <span className="text-gray-500 font-medium text-[14px] leading-none">
                   ₹ 100
                 </span>
@@ -713,12 +715,10 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           </div>
         )}
 
-        {/* Offline Specific Content (User Card with Avatar and Chat Icon) */}
-        {activeTab === 'offline' && (
+        {/* Agent Specific Content */}
+        {activeTab === 'agent' && (
           <div className="flex flex-col mt-5">
-            {/* Agent Anmol Card - No borders, no shadows */}
             <div className="w-full bg-transparent p-2 flex items-center justify-between border-0 shadow-none">
-              {/* Left Side: Avatar and Name */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 border-2 border-white flex items-center justify-center flex-shrink-0 text-gray-500 shadow-sm">
                   <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -731,9 +731,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 </span>
               </div>
               
-              {/* Right Side: Chat Icon ONLY (Pure Blue, transparent dots) */}
-              <button className="flex-shrink-0 active:scale-90 transition-transform">
-                 <svg width="28" height="28" viewBox="0 0 24 24" fill="#0044FF" xmlns="http://www.w3.org/2000/svg">
+              <button className="flex-shrink-0 w-11 h-11 bg-white rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-sm">
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#0044FF" xmlns="http://www.w3.org/2000/svg">
                    <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V16C22 17.1 21.1 18 20 18H6L2 22V4ZM7 11.5A1.5 1.5 0 1 0 7 8.5 1.5 1.5 0 0 0 7 11.5ZM13.5 10A1.5 1.5 0 1 1 10.5 10 1.5 1.5 0 0 1 13.5 10ZM17 11.5A1.5 1.5 0 1 0 17 8.5 1.5 1.5 0 0 0 17 11.5Z" />
                  </svg>
               </button>
@@ -827,8 +826,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            {/* Exchange Button: Pure Blue, moved further down */}
-            <div className="pt-8 pb-2 flex justify-center mt-4">
+            {/* Exchange Button: Moved significantly further down */}
+            <div className="pt-16 pb-4 flex justify-center mt-8">
               <button
                 onClick={handleExchange}
                 className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
@@ -893,11 +892,26 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             <span className="text-[13px] text-gray-500 font-medium">Select payment method</span>
             
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                 <span className="font-black italic text-gray-800 text-lg tracking-tighter">UPI</span>
-                 <span className="font-bold text-blue-500 text-lg">G</span>
-                 <span className="font-bold text-purple-600 bg-purple-100 rounded-full px-1 text-sm">पे</span>
-                 <span className="font-bold text-blue-400 text-sm">Paytm</span>
+              
+              {/* Updated Logo Presentation Line */}
+              <div className="flex items-center gap-2.5">
+                 <span className="font-black italic text-gray-800 text-lg tracking-tighter mr-1">UPI</span>
+                 
+                 {/* Google G Logo */}
+                 <div className="w-[18px] h-[18px] flex-shrink-0">
+                    <GPaySvg />
+                 </div>
+                 
+                 {/* PhonePe Exact Style Logo */}
+                 <div className="w-[18px] h-[18px] bg-[#5f259f] rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-[9px] leading-none mb-0.5">पे</span>
+                 </div>
+                 
+                 {/* Paytm Exact Style Text */}
+                 <div className="flex font-black text-[13px] italic tracking-tight">
+                    <span className="text-[#002970]">Pay</span>
+                    <span className="text-[#00BAF2]">tm</span>
+                 </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -926,7 +940,6 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         </div>
       </div>
 
-
       {/* ================================================== */}
       {/* 2. PAY USING SHEET */}
       {/* ================================================== */}
@@ -952,10 +965,35 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
         <div className="px-5 py-2 flex-1 flex flex-col">
           {[
-            { id: 'gpay', name: 'GPay', icon: <span className="font-bold text-blue-500 text-xl">G</span> },
-            { id: 'phonepe', name: 'PhonePe', icon: <span className="font-bold text-white text-lg">पे</span>, bg: 'bg-[#5f259f]' },
-            { id: 'paytm', name: 'Paytm', icon: <span className="font-bold text-white text-xs">Paytm</span>, bg: 'bg-[#002e6e]' },
-            { id: 'other', name: 'Other', icon: <span className="font-black text-gray-400 tracking-widest leading-none mb-1">...</span>, bg: 'bg-gray-200' },
+            { 
+              id: 'gpay', 
+              name: 'GPay', 
+              icon: <div className="w-[22px] h-[22px]"><GPaySvg /></div>, 
+              bg: 'bg-white border border-gray-200' 
+            },
+            { 
+              id: 'phonepe', 
+              name: 'PhonePe', 
+              icon: <span className="font-bold text-white text-[20px] leading-none mb-0.5">पे</span>, 
+              bg: 'bg-[#5f259f]' 
+            },
+            { 
+              id: 'paytm', 
+              name: 'Paytm', 
+              icon: (
+                <div className="flex font-black text-[15px] italic tracking-tight">
+                  <span className="text-[#002970]">Pay</span>
+                  <span className="text-[#00BAF2]">tm</span>
+                </div>
+              ), 
+              bg: 'bg-white border border-gray-200' 
+            },
+            { 
+              id: 'other', 
+              name: 'Other', 
+              icon: <span className="font-black text-gray-400 tracking-widest leading-none mb-2">...</span>, 
+              bg: 'bg-gray-100' 
+            },
           ].map((app, idx) => (
             <button
               key={app.id}
@@ -964,7 +1002,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 idx !== 3 ? 'border-b border-gray-50' : ''
               }`}
             >
-              <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${app.bg || 'bg-white border border-gray-200'}`}>
+              <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm ${app.bg}`}>
                 {app.icon}
               </div>
               <span className="text-[16px] font-medium text-gray-900">{app.name}</span>
