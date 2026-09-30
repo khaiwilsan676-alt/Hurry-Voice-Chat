@@ -680,7 +680,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {/* Pill Tabs — BLACK bg + BLACK text */}
-        <div className="bg-black p-1 mt-5 rounded-full flex relative items-center">
+        <div className="bg-white/10 p-1 mt-5 rounded-full flex relative items-center">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
@@ -747,11 +747,61 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 </span>
               </div>
               
-              {/* Chat icon — no white card, just circular icon */}
-              <button className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center active:scale-90 transition-transform">
-                 <svg width="28" height="28" viewBox="0 0 24 24" fill="#0044FF" xmlns="http://www.w3.org/2000/svg">
-                   <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V16C22 17.1 21.1 18 20 18H6L2 22V4ZM7 11.5A1.5 1.5 0 1 0 7 8.5 1.5 1.5 0 0 0 7 11.5ZM13.5 10A1.5 1.5 0 1 1 10.5 10 1.5 1.5 0 0 1 13.5 10ZM17 11.5A1.5 1.5 0 1 0 17 8.5 1.5 1.5 0 0 0 17 11.5Z" />
-                 </svg>
+              {/* Chat icon — blue circle with white circular chat icon */}
+              <button
+                className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 48 48"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Blue outer circle */}
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="23"
+                    fill="#0044FF"
+                  />
+
+                  {/* White circular chat bubble */}
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="14"
+                    fill="white"
+                  />
+
+                  {/* Small chat-tail */}
+                  <path
+                    d="M14 32L13 38L19 34"
+                    fill="white"
+                  />
+
+                  {/* Three blue dots */}
+                  <circle
+                    cx="18"
+                    cy="24"
+                    r="2"
+                    fill="#0044FF"
+                  />
+
+                  <circle
+                    cx="24"
+                    cy="24"
+                    r="2"
+                    fill="#0044FF"
+                  />
+
+                  <circle
+                    cx="30"
+                    cy="24"
+                    r="2"
+                    fill="#0044FF"
+                  />
+                </svg>
               </button>
             </div>
           </div>
@@ -1034,4 +1084,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       
     </div>
   )
-                      }
+          }
