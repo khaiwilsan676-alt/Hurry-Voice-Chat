@@ -337,7 +337,8 @@ function markUserOnline(userId, socket, accountId = null) {
     }
 
     // Sync to Redis asynchronously (fire and forget)
-    setOnlineStatus(presenceId);\n    setSecondaryStatus(presenceId);
+    setOnlineStatus(presenceId);
+    setSecondaryStatus(presenceId);
   });
 
   socket.emit("presence_status", {
@@ -372,7 +373,8 @@ function markUserOffline(socket) {
       socket.broadcast.emit("user_offline", id);
 
       // Remove from Redis asynchronously
-      removeOnlineStatus(id);\n      removeSecondaryStatus(id);
+      removeOnlineStatus(id);
+      removeSecondaryStatus(id);
     } else {
       onlineUsers.set(id, count - 1);
     }
