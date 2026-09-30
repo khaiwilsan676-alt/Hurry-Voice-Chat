@@ -454,6 +454,13 @@ const GPaySvg = () => (
   </svg>
 )
 
+// PERFECT PHONEPE SVG (Flawless scaling and centering everywhere)
+const PhonePeSvg = () => (
+  <svg viewBox="0 0 24 24" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <text x="12" y="12" dy="0.32em" textAnchor="middle" fontFamily="system-ui, sans-serif" fontSize="16" fontWeight="bold" fill="#ffffff">पे</text>
+  </svg>
+)
+
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
   
@@ -608,9 +615,9 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       {/* SCROLLABLE BODY */}
       <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
         
-        {/* Dynamic Banners - Coins Banner for Wallet AND Agent */}
+        {/* Dynamic Banners - Coins Banner for Wallet AND Agent (Margin mx kam kiya aur width fixed) */}
         {(activeTab === 'wallet' || activeTab === 'agent') && (
-          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
+          <div className="relative w-full rounded-xl overflow-hidden mt-2 shadow-none border-0 outline-none">
             <img
               src="/file_00000000f3d88211964f0057da4bc797.png"
               alt="Coins Banner Background"
@@ -636,9 +643,9 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           </div>
         )}
 
-        {/* Diamonds Banner */}
+        {/* Diamonds Banner - Margin mx kam kiya aur w-full rounded-xl rakha */}
         {activeTab === 'diamonds' && (
-          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
+          <div className="relative w-full rounded-xl overflow-hidden mt-2 shadow-none border-0 outline-none">
             <img
               src="/file_0000000085a482088fb089cb76f3d1af.png"
               alt="Diamonds Banner Background"
@@ -663,12 +670,12 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
           </div>
         )}
 
-        {/* Pill Tabs - 'Agent' label updated */}
-        <div className="bg-black/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.15)] backdrop-blur-sm p-1 mt-5 rounded-full flex relative items-center border border-white/10">
+        {/* Pill Tabs - BORDERS aur BLACK COLOR hatadiye */}
+        <div className="bg-white/20 backdrop-blur-sm p-1 mt-5 rounded-full flex relative items-center">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
-            { id: 'agent', label: 'Agent' } // Change from Offline to Agent
+            { id: 'agent', label: 'Agent' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -688,12 +695,13 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         {activeTab === 'wallet' && (
           <div className="flex flex-col mt-5">
             <div className="flex justify-start">
+              {/* ₹ Card ki width kam karke 115px kar di gai hai */}
               <button
                 onClick={() => {
                   setSelectedAmountToBuy({ coins: 1030000, price: 100 });
                   setShowPaymentSheet(true);
                 }}
-                className="w-[140px] aspect-square bg-white rounded-xl shadow-sm flex flex-col items-center justify-center outline-none border-0 active:scale-95 transition-transform"
+                className="w-[115px] aspect-square bg-white rounded-xl shadow-sm flex flex-col items-center justify-center outline-none border-0 active:scale-95 transition-transform"
               >
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
@@ -704,8 +712,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 <span className="text-gray-900 font-bold text-[17px] leading-none mb-2">
                   1,000,000
                 </span>
-                <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-[4px] mb-2 leading-none shadow-sm">
-                  +Bounce 30,000
+                <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-[4px] mb-2 leading-none shadow-sm whitespace-nowrap overflow-hidden">
+                  +Bounce 30K
                 </div>
                 <span className="text-gray-500 font-medium text-[14px] leading-none">
                   ₹ 100
@@ -731,10 +739,12 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 </span>
               </div>
               
-              <button className="flex-shrink-0 w-11 h-11 bg-white rounded-full flex items-center justify-center active:scale-90 transition-transform shadow-sm">
-                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#0044FF" xmlns="http://www.w3.org/2000/svg">
-                   <path fillRule="evenodd" clipRule="evenodd" d="M2 4C2 2.9 2.9 2 4 2H20C21.1 2 22 2.9 22 4V16C22 17.1 21.1 18 20 18H6L2 22V4ZM7 11.5A1.5 1.5 0 1 0 7 8.5 1.5 1.5 0 0 0 7 11.5ZM13.5 10A1.5 1.5 0 1 1 10.5 10 1.5 1.5 0 0 1 13.5 10ZM17 11.5A1.5 1.5 0 1 0 17 8.5 1.5 1.5 0 0 0 17 11.5Z" />
-                 </svg>
+              {/* Chat Icon - White card hata kar only round Circle icon rakha gaya hai */}
+              <button className="flex-shrink-0 active:scale-90 transition-transform">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="12" fill="white"/>
+                  <path d="M12 7C8.68629 7 6 9.23858 6 12C6 13.5645 6.88344 14.9608 8.24355 15.862C8.36195 16.3479 8.01639 17.3533 7.5855 18.0601C7.49132 18.2146 7.64775 18.3776 7.80789 18.299C9.07221 17.6791 10.1554 17.1432 10.5878 16.8941C11.0371 16.9634 11.5097 17 12 17C15.3137 17 18 14.7614 18 12C18 9.23858 15.3137 7 12 7Z" fill="#0044FF"/>
+                </svg>
               </button>
             </div>
           </div>
@@ -826,8 +836,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            {/* Exchange Button: Moved significantly further down */}
-            <div className="pt-16 pb-4 flex justify-center mt-8">
+            {/* Exchange Button: pt-24 aur mt-12 karke ekdam niche kardiya */}
+            <div className="pt-24 pb-4 flex justify-center mt-12">
               <button
                 onClick={handleExchange}
                 className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
@@ -893,7 +903,6 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             
             <div className="flex items-center justify-between">
               
-              {/* Updated Logo Presentation Line */}
               <div className="flex items-center gap-2.5">
                  <span className="font-black italic text-gray-800 text-lg tracking-tighter mr-1">UPI</span>
                  
@@ -902,9 +911,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                     <GPaySvg />
                  </div>
                  
-                 {/* PhonePe Exact Style Logo */}
-                 <div className="w-[18px] h-[18px] bg-[#5f259f] rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-[9px] leading-none mb-0.5">पे</span>
+                 {/* PhonePe NEW SVG Logo */}
+                 <div className="w-[18px] h-[18px] bg-[#5f259f] rounded-full flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-full">
+                       <PhonePeSvg />
+                    </div>
                  </div>
                  
                  {/* Paytm Exact Style Text */}
@@ -974,7 +985,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             { 
               id: 'phonepe', 
               name: 'PhonePe', 
-              icon: <span className="font-bold text-white text-[20px] leading-none mb-0.5">पे</span>, 
+              icon: <div className="w-[24px] h-[24px]"><PhonePeSvg /></div>, 
               bg: 'bg-[#5f259f]' 
             },
             { 
