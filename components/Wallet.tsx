@@ -680,7 +680,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {/* Pill Tabs — BLACK bg + BLACK text */}
-        <div className="bg-white/10 p-1 mt-5 rounded-full flex relative items-center">
+        <div className="bg-black/20 p-1 mt-5 rounded-full flex relative items-center">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
@@ -709,7 +709,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                   setSelectedAmountToBuy({ coins: 1030000, price: 100 });
                   setShowPaymentSheet(true);
                 }}
-                className="w-[125px] aspect-square bg-white rounded-xl shadow-sm flex flex-col items-center justify-center outline-none border-0 active:scale-95 transition-transform"
+                className="w-[120px] aspect-square bg-white rounded-md flex flex-col items-center justify-center outline-none active:scale-95 transition-transform"
               >
                 <img
                   src="/file_00000000e56882119c217d508b6733dc.png"
@@ -894,7 +894,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
             </div>
 
             {/* Exchange Button: moved slightly further down */}
-            <div className="pt-20 pb-4 flex justify-center mt-8">
+            <div className="pt-20 pb-4 flex justify-center mt-10">
               <button
                 onClick={handleExchange}
                 className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
