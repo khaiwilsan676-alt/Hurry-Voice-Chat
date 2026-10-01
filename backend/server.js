@@ -1134,7 +1134,7 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftType, transferId, luckyGift, senderName, senderImage, recipientName, recipientImage, multiplier } = {}) => {
+  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftImage, giftType, transferId, luckyGift, senderName, senderImage, recipientName, recipientImage, multiplier } = {}) => {
     const room = String(roomId || "");
     const sender = String(senderId || "");
     const value = Number(amount);
@@ -1246,6 +1246,7 @@ io.on("connection", (socket) => {
       amount: value,
       diamondAmount,
       giftName: String(giftName || "Gift"),
+      giftImage: String(giftImage || ""),
       giftType: String(giftType || ""),
       luckyGift: isLucky,
       senderName: String(senderName || senderUser?.name || "User"),
