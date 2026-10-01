@@ -790,6 +790,10 @@ export default function GiftPicker({
           style={{ background: "transparent" }}
         >
           <video
+            autoPlay
+            loop
+            muted
+            playsInline
             ref={(el) => {
               if (el) {
                 el.controls = false;
