@@ -334,13 +334,14 @@ export default function Fourgride({
                   <img src="/IMG_20260814_110608.png" alt="Public msg Off" className="w-12 h-12 object-contain" />
                   <button
                     onClick={onTogglePublicMsg}
+                    aria-label={publicMsgOff ? "Turn public messages on" : "Turn public messages off"}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      'bg-blue-500'
+                      publicMsgOff ? 'bg-gray-300' : 'bg-blue-500'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        'translate-x-[10px]'
+                        publicMsgOff ? 'translate-x-0.5' : 'translate-x-[10px]'
                       }`}
                     />
                   </button>
@@ -405,12 +406,21 @@ export default function Fourgride({
               {/* 6. Speaker - OFF state (no toggle) */}
               <div className="flex flex-col items-center">
                 <img src="/IMG_20260814_110628.png" alt="Speaker" className="w-12 h-12 object-contain" />
-                <div className="flex items-center mt-1 space-x-1">
+                <button
+                  type="button"
+                  onClick={onToggleSpeaker}
+                  aria-label={speaker ? "Turn speaker off" : "Turn speaker on"}
+                  className="flex items-center mt-1 space-x-1"
+                >
                   <span className="text-[10px] text-gray-700 whitespace-nowrap">Speaker</span>
-                  <div className="w-6 h-4 rounded-full bg-gray-300 flex items-center">
-                    <div className="w-3 h-3 bg-white rounded-full transform translate-x-0.5" />
-                  </div>
-                </div>
+                  <span className={`w-6 h-4 rounded-full flex items-center transition-colors ${
+                    speaker ? 'bg-blue-500' : 'bg-gray-300'
+                  }`}>
+                    <span className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
+                      speaker ? 'translate-x-[10px]' : 'translate-x-0.5'
+                    }`} />
+                  </span>
+                </button>
               </div>
 
               {/* 7. Store */}
