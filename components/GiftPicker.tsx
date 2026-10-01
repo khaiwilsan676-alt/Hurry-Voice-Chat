@@ -276,6 +276,41 @@ export default function GiftPicker({
   );
 
   useEffect(() => {
+    if (!currentUserAccountId) return
+
+    const handleReceivedGift = (data: any = {}) => {
+      const recipientIds = Array.isArray(data.recipientIds) ? data.recipientIds.map(String) : []
+      if (!recipientIds.includes(String(currentUserAccountId))) return
+
+      const image = String(data.giftImage || data.luckyImage || "")
+      if (!image) return
+
+      const key = "receivedGifts_" + String(currentUserAccountId)
+      let gifts: Array<{ id: string; name: string; image: string }> = []
+      try {
+        const stored = localStorage.getItem(key)
+        const parsed = stored ? JSON.parse(stored) : []
+        if (Array.isArray(parsed)) gifts = parsed
+      } catch {}
+
+      const transferId = String(data.transferId || ("gift-" + Date.now() + "-" + Math.random().toString(36).slice(2)))
+      if (gifts.some((gift) => gift.id === transferId)) return
+
+      gifts.unshift({
+        id: transferId,
+        name: String(data.giftName || "Gift"),
+        image,
+      })
+      gifts = gifts.slice(0, 50)
+      localStorage.setItem(key, JSON.stringify(gifts))
+      window.dispatchEvent(new CustomEvent("hurry:received-gifts-updated"))
+    }
+
+    socket.on("coin_transfer_received", handleReceivedGift)
+    return () => socket.off("coin_transfer_received", handleReceivedGift)
+  }, [currentUserAccountId])
+
+  useEffect(() => {
     const originalEmit = socket.emit.bind(socket);
     const patchedEmit = ((event: string, ...args: any[]) => {
       if (event !== "coin_transfer" || !args[0]) return originalEmit(event, ...args);
@@ -591,6 +626,7 @@ export default function GiftPicker({
         recipientIds: recipientIds.map(String),
         amount: totalCost,
         giftName: selectedGiftObj.name,
+        giftImage: selectedGiftObj.image,
         giftType: activeTab,
         senderName: currentUserName,
         senderImage: currentUserImage,
