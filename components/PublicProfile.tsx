@@ -1682,7 +1682,7 @@ export default function PublicProfile({
             </div>
 
             {/* Scrollable Content */}
-            <div className="overflow-y-auto px-5 py-4 space-y-6 flex-1">
+            <div className="overflow-hidden px-5 py-4 space-y-6 flex-1">
               <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
@@ -1770,7 +1770,7 @@ export default function PublicProfile({
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
-                    Album Photos ({albumImages.length}/9)
+                    Album Photos ({albumImages.length}/4)
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
@@ -1796,7 +1796,7 @@ export default function PublicProfile({
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 9 && (
+                  {albumImages.length < 4 && (
                     <button
                       onClick={() => albumInputRef.current?.click()}
                       className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
