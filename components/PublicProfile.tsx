@@ -484,11 +484,28 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
       }
       frameId = requestAnimationFrame(draw)
     }
-    video.addEventListener('play', draw)
-    video.play().catch(() => {})
+    const drawFirstFrame = () => {
+      if (video.readyState >= 2 && video.videoWidth && video.videoHeight) {
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const data = image.data
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2]
+          if (g > 80 && g > r * 1.25 && g > b * 1.25) data[i + 3] = 0
+        }
+        ctx.putImageData(image, 0, 0)
+      }
+    }
+    video.addEventListener('loadeddata', drawFirstFrame)
+    if (video.readyState >= 2) drawFirstFrame()
+    video.pause()
     return () => {
-      cancelAnimationFrame(frameId)
-      video.removeEventListener('play', draw)
+      video.removeEventListener('loadeddata', drawFirstFrame)
     }
   }, [src])
 
@@ -1671,11 +1688,19 @@ export default function PublicProfile({
           {ownedFrameItems.length > 0 ? (
             <div className="grid grid-cols-4 gap-2">
               {ownedFrameItems.slice(0, 4).map((frame) => (
-                <div key={frame.id} className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
-                  <GreenColorRemovalVideo
-                    src={frame.image}
-                    className="w-full h-full object-contain"
-                  />
+                <div key={frame.id} className="w-20">
+                  <div className="w-20 h-20 overflow-hidden">
+                    <GreenColorRemovalVideo
+                      src={frame.image}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="mt-1 text-center">
+                    <div className="text-[11px] font-medium text-gray-800 truncate">{frame.name}</div>
+                    <div className="flex items-center justify-center gap-0.5 text-[10px] text-yellow-500">
+                      {Array.from({ length: 5 }).map((_, index) => <span key={index}>★</span>)}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
