@@ -64,7 +64,9 @@ const loadWalletData = async (): Promise<{ balance: number; ownedItems: string[]
 const CHAT_BUBBLE_EXPIRY_PREFIX = "chatBubbleExpiry_";
 
 const durationToMs = (duration: string): number => {
-  const match = String(duration || "").trim().match(/^(\d+)D$/i);
+  const value = String(duration || "").trim();
+  if (!value || /^all$/i.test(value)) return 0;
+  const match = value.match(/^(\d+)\s*D$/i);
   return match ? Number(match[1]) * 24 * 60 * 60 * 1000 : 0;
 };
 
@@ -88,23 +90,27 @@ const saveItemExpiry = (item: StoreItem) => {
   localStorage.setItem(getExpiryKey(item.id), String(Date.now() + ms));
 };
 
-const clearExpiredStoreItems = (items: StoreItem[]) => {
-  if (typeof window === "undefined") return;
+const getExpiredStoreItemIds = (items: StoreItem[]): string[] => {
+  if (typeof window === "undefined") return [];
   const now = Date.now();
+  const expired: string[] = [];
   for (const item of items) {
     const key = getExpiryKey(item.id);
     const raw = localStorage.getItem(key);
     if (raw && Number(raw) <= now) {
+      expired.push(item.id);
       localStorage.removeItem(key);
-      if (
-        item.tab === "Chat Bubble" &&
-        localStorage.getItem("equipped_Chat Bubble_expiresAt") === raw
-      ) {
+      if (item.tab === "Chat Bubble" && localStorage.getItem("equipped_Chat Bubble_expiresAt") === raw) {
         localStorage.removeItem("equipped_Chat Bubble");
         localStorage.removeItem("equipped_Chat Bubble_expiresAt");
       }
+      if (item.tab === "Vehicle") {
+        localStorage.removeItem("equipped_Vehicle");
+        localStorage.removeItem("equipped_Vehicle_image");
+      }
     }
   }
+  return expired;
 };
 
 // delta positive = add, negative = deduct
@@ -655,7 +661,10 @@ export default function StorePage({
   useEffect(() => {
     let alive = true;
     const sync = async () => {
-      clearExpiredStoreItems(allStoreItems);
+      const expiredIds = getExpiredStoreItemIds(allStoreItems);
+      for (const expiredId of expiredIds) {
+        await removeOwnedItemFromDB(expiredId);
+      }
       const { balance: bal, ownedItems, equippedItems } = await loadWalletData();
       if (!alive) return;
       setBalance(bal);
@@ -677,12 +686,21 @@ export default function StorePage({
     };
     sync();
     const id = setInterval(sync, 1500);
-    const expiryTimer = setInterval(() => {
-      clearExpiredStoreItems(allStoreItems);
-      setOwnedIds((prev) => new Set(Array.from(prev).filter((itemId) => {
-        const item = allStoreItems.find((it) => it.id === itemId);
-        return !item || isItemActive(item);
-      })));
+    const expiryTimer = setInterval(async () => {
+      const expiredIds = getExpiredStoreItemIds(allStoreItems);
+      if (expiredIds.length) {
+        for (const expiredId of expiredIds) await removeOwnedItemFromDB(expiredId);
+        setOwnedIds((prev) => {
+          const next = new Set(prev);
+          expiredIds.forEach((id) => next.delete(id));
+          return next;
+        });
+        setEquippedIds((prev) => {
+          const next = new Set(prev);
+          expiredIds.forEach((id) => next.delete(id));
+          return next;
+        });
+      }
     }, 1000);
     return () => {
       alive = false;
@@ -692,6 +710,28 @@ export default function StorePage({
   }, []);
 
   const parsePrice = (p: string) => parseInt(p.replace(/,/g, ''), 10) || 0;
+
+  const removeOwnedItemFromDB = async (itemId: string): Promise<void> => {
+    try {
+      const db = await initWalletDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(SHARED_STORE, 'readwrite');
+        const store = tx.objectStore(SHARED_STORE);
+        const req = store.get('user_data');
+        req.onsuccess = () => {
+          const data = req.result || {};
+          const ownedItems = Array.isArray(data.ownedItems) ? data.ownedItems.filter((id: string) => String(id) !== String(itemId)) : [];
+          const equippedItems = Array.isArray(data.equippedItems) ? data.equippedItems.filter((id: string) => String(id) !== String(itemId)) : [];
+          const putReq = store.put({ ...data, ownedItems, equippedItems }, 'user_data');
+          putReq.onsuccess = () => resolve();
+          putReq.onerror = () => reject(putReq.error);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      console.error('Expired item removal failed', e);
+    }
+  };
 
   // Buy handler
   const handleBuy = async (item: StoreItem) => {
