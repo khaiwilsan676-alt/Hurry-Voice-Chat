@@ -285,24 +285,31 @@ export default function GiftPicker({
       const image = String(data.giftImage || data.luckyImage || "")
       if (!image) return
 
-      const key = "receivedGifts_" + String(currentUserAccountId)
-      let gifts: Array<{ id: string; name: string; image: string }> = []
-      try {
-        const stored = localStorage.getItem(key)
-        const parsed = stored ? JSON.parse(stored) : []
-        if (Array.isArray(parsed)) gifts = parsed
-      } catch {}
-
       const transferId = String(data.transferId || ("gift-" + Date.now() + "-" + Math.random().toString(36).slice(2)))
-      if (gifts.some((gift) => gift.id === transferId)) return
+      const name = String(data.giftName || "Gift")
+      const aliases = Array.from(new Set([
+        String(currentUserAccountId),
+        localStorage.getItem("userUID") || "",
+        localStorage.getItem("userPhone") || "",
+        localStorage.getItem("userId") || "",
+        localStorage.getItem("accountNumber") || "",
+      ].filter(Boolean)))
 
-      gifts.unshift({
-        id: transferId,
-        name: String(data.giftName || "Gift"),
-        image,
-      })
-      gifts = gifts.slice(0, 50)
-      localStorage.setItem(key, JSON.stringify(gifts))
+      for (const uid of aliases) {
+        const key = "receivedGifts_" + uid
+        let gifts: Array<{ id: string; name: string; image: string }> = []
+        try {
+          const stored = localStorage.getItem(key)
+          const parsed = stored ? JSON.parse(stored) : []
+          if (Array.isArray(parsed)) gifts = parsed
+        } catch {}
+
+        if (gifts.some((gift) => gift.id === transferId)) continue
+
+        gifts.unshift({ id: transferId, name, image })
+        localStorage.setItem(key, JSON.stringify(gifts.slice(0, 50)))
+      }
+
       window.dispatchEvent(new CustomEvent("hurry:received-gifts-updated"))
     }
 
