@@ -1136,7 +1136,7 @@ const renderSeats = () => {
     );
   });
   if (micMode === 5) return (
-    <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '76px' } as React.CSSProperties}>
+    <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '73px' } as React.CSSProperties}>
       <div className="flex justify-center">{renderSeatItems([1])}</div>
       <div className="flex justify-around items-center w-full px-0">{renderSeatItems([2, 3, 4, 5])}</div>
     </div>
@@ -1820,7 +1820,7 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
             {isLocked ? <SeatBubbleIconGrey /> : <SeatBubbleIconBlue />}
           </div>
 
-          <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '80%', height: '80%' }}>
+          <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '84%', height: '84%' }}>
             {isLocked ? (
               <img src="/file_0000000015a48211b000ee447a786f7c.png" alt="Locked" className="w-full h-full object-contain select-none pointer-events-none" draggable={false} loading="eager" decoding="async" />
             ) : isOccupied && user ? (
