@@ -167,7 +167,36 @@ const HouseIcon = memo(function HouseIcon({
   );
 });
 
-const SeatBubbleIcon = memo(function SeatBubbleIcon() {
+const SeatBubbleIconBlue = memo(function SeatBubbleIconBlue() {
+  return (
+    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }} preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="seatBubbleBlue" x1="100" y1="55" x2="420" y2="460" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#D9F7FF" />
+          <stop offset="18%" stopColor="#91E1FF" />
+          <stop offset="42%" stopColor="#4DBFEF" />
+          <stop offset="70%" stopColor="#299DD6" />
+          <stop offset="100%" stopColor="#167DB9" />
+        </linearGradient>
+        <linearGradient id="seatShineBlue" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
+          <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.75" />
+          <stop offset="55%" stopColor="#FFFFFF" stopOpacity="0.95" />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+        </linearGradient>
+        <filter id="seatSoftGlowBlue" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
+      </defs>
+      <circle cx="256" cy="256" r="225" fill="none" stroke="#55C6F3" strokeWidth="15" opacity="0.25" filter="url(#seatSoftGlowBlue)" />
+      <circle cx="256" cy="256" r="225" fill="none" stroke="url(#seatBubbleBlue)" strokeWidth="10" strokeLinecap="round" />
+      <path d="M 98 134 C 113 108 132 92 153 79 C 174 67 196 59 218 56" fill="none" stroke="url(#seatShineBlue)" strokeWidth="7.5" strokeLinecap="round" />
+      <path d="M 207 452 C 258 466 316 456 361 428 C 378 417 392 404 404 388" fill="none" stroke="url(#seatShineBlue)" strokeWidth="7" strokeLinecap="round" />
+    </svg>
+  );
+});
+
+const SeatBubbleIconGrey = memo(function SeatBubbleIconGrey() {
   return (
     <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style={{ width: "100%", height: "100%", display: "block" }} preserveAspectRatio="xMidYMid meet">
       <defs>
@@ -178,20 +207,20 @@ const SeatBubbleIcon = memo(function SeatBubbleIcon() {
           <stop offset="70%" stopColor="#6B7280" />
           <stop offset="100%" stopColor="#4B5563" />
         </linearGradient>
-        <linearGradient id="seatShine" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id="seatShineGrey" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
           <stop offset="30%" stopColor="#FFFFFF" stopOpacity="0.75" />
           <stop offset="55%" stopColor="#FFFFFF" stopOpacity="0.95" />
           <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
         </linearGradient>
-        <filter id="seatSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <filter id="seatSoftGlowGrey" x="-30%" y="-30%" width="160%" height="160%">
           <feGaussianBlur stdDeviation="5" />
         </filter>
       </defs>
-      <circle cx="256" cy="256" r="225" fill="none" stroke="#9CA3AF" strokeWidth="15" opacity="0.25" filter="url(#seatSoftGlow)" />
+      <circle cx="256" cy="256" r="225" fill="none" stroke="#9CA3AF" strokeWidth="15" opacity="0.25" filter="url(#seatSoftGlowGrey)" />
       <circle cx="256" cy="256" r="225" fill="none" stroke="url(#seatBubbleGrey)" strokeWidth="10" strokeLinecap="round" />
-      <path d="M 98 134 C 113 108 132 92 153 79 C 174 67 196 59 218 56" fill="none" stroke="url(#seatShine)" strokeWidth="7.5" strokeLinecap="round" />
-      <path d="M 207 452 C 258 466 316 456 361 428 C 378 417 392 404 404 388" fill="none" stroke="url(#seatShine)" strokeWidth="7" strokeLinecap="round" />
+      <path d="M 98 134 C 113 108 132 92 153 79 C 174 67 196 59 218 56" fill="none" stroke="url(#seatShineGrey)" strokeWidth="7.5" strokeLinecap="round" />
+      <path d="M 207 452 C 258 466 316 456 361 428 C 378 417 392 404 404 388" fill="none" stroke="url(#seatShineGrey)" strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 });
@@ -285,7 +314,7 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-               }
+      }
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -755,10 +784,12 @@ function RoomContent({
     };
   }, [showChatInput]);
 
+  // ✅ FIXED: openProfile — auto-detect isInSeat from seats array
   const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
-    setProfileUser({ ...user, isInSeat: false });
+    const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
+    setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
     setShowUserProfile(true);
-  }, []);
+  }, [seats]);
   const handleCopyId = (e: React.MouseEvent) => {
   e.stopPropagation();
   navigator.clipboard.writeText(roomOwner.accountId || '');
@@ -1341,7 +1372,6 @@ if (showSettingPage) return (
                 </svg>
               </button>
 
-              {/* ⭐ 2×2 GRID: 3 boxes + 3 lines */}
               <button
                 onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
                 aria-label="Apps Menu"
@@ -1351,7 +1381,7 @@ if (showSettingPage) return (
                 <svg
                   viewBox="0 0 24 24"
                   className="fill-white"
-                  style={{ width: 'calc(var(--footer-icon-size) * 0.75)', height: 'calc(var(--footer-icon-size) * 0.75)' }}
+                  style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}
                 >
                   <rect x="3" y="3" width="8" height="8" rx="1.5" />
                   <rect x="13" y="3" width="8" height="8" rx="1.5" />
@@ -1745,7 +1775,7 @@ if (showSettingPage) return (
       />
     </div>
   );
-                    }
+                  }
 function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
   seatNumber: number; seatData?: Seat; onClick: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void; accountId: string; roomOwnerId: string;
@@ -1785,9 +1815,9 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
           </>
         )}
 
-        <div className={`relative w-[var(--seat-size)] h-[var(--seat-size)] flex items-center justify-center shrink-0 z-10 transition-all duration-300 hover:scale-105 pointer-events-auto overflow-visible ${activeSpeaking ? 'drop-shadow-[0_0_12px_rgba(156,163,175,0.9)]' : ''}`}>
+        <div className={`relative w-[var(--seat-size)] h-[var(--seat-size)] flex items-center justify-center shrink-0 z-10 transition-all duration-300 hover:scale-105 pointer-events-auto overflow-visible ${activeSpeaking ? 'drop-shadow-[0_0_12px_rgba(85,198,243,0.9)]' : ''}`}>
           <div className="absolute inset-0 pointer-events-none z-0">
-            <SeatBubbleIcon />
+            {isLocked ? <SeatBubbleIconGrey /> : <SeatBubbleIconBlue />}
           </div>
 
           <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '72%', height: '72%' }}>
