@@ -840,6 +840,7 @@ export default function StorePage({
     if (currentView === "bag") {
       return isOwned && isActive && item.tab === activeTab;
     }
+    // Expired items are no longer owned, so they appear in Store again as Buy.
     return !item.dailyReward && item.tab === activeTab;
   });
 
