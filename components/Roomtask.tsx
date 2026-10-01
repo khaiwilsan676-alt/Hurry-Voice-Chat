@@ -260,7 +260,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
   ];
 
   return (
-    <div className="relative w-full h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#380308] scrollbar-none select-none m-0 p-0">
+    <div className="relative w-full h-[100dvh] overflow-y-auto overflow-x-hidden bg-[#380308] scrollbar-none select-none m-0 p-0 pointer-events-auto">
       
       <div className="relative w-full min-h-full flex flex-col m-0 p-0">
         

@@ -56,7 +56,7 @@ const VideoRewardItem = ({
         preload="auto"
         playsInline
         muted
-        controls
+        controls={false}
         disablePictureInPicture
         disableRemotePlayback
         className={`w-full h-full object-cover pointer-events-none ${scaleClass}`} 
@@ -86,7 +86,7 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
         preload="auto"
         playsInline
         muted
-        controls
+        controls={false}
         disablePictureInPicture
         disableRemotePlayback
         className="w-full h-full object-cover scale-150 pointer-events-none" 
@@ -445,7 +445,7 @@ export default function Family({ onBack }: FamilyProps) {
                   loop 
                   playsInline
         muted
-        controls
+        controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[85vh] object-cover" 
@@ -463,7 +463,7 @@ export default function Family({ onBack }: FamilyProps) {
                   loop 
                   playsInline
         muted
-        controls
+        controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[70vh] object-cover" 
@@ -484,7 +484,7 @@ export default function Family({ onBack }: FamilyProps) {
                   loop
                   playsInline
         muted
-        controls
+        controls={false}
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
