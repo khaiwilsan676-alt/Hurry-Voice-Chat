@@ -1724,7 +1724,7 @@ if (showSettingPage) return (
 
       <style jsx global>{`
         :root {
-          --seat-size: 77px; --header-btn-size: 42px; --header-btn-padding: 4px 8px; --header-icon-size: 26px;
+          --seat-size: 70px; --header-btn-size: 42px; --header-btn-padding: 4px 8px; --header-icon-size: 26px;
           --header-room-img-size: 44px; --header-room-name-size: 16px; --header-id-size: 11px;
           --header-follow-btn-size: 22px; --header-follow-icon-size: 14px; --header-count-size: 11px;
           --footer-btn-size: 47px; --footer-icon-size: 30px; --footer-input-text: 13px;
@@ -1736,7 +1736,7 @@ if (showSettingPage) return (
         }
         @media (max-width: 400px) {
           :root {
-            --seat-size: 75px; --header-btn-size: 38px; --header-icon-size: 22px;
+            --seat-size: 70px; --header-btn-size: 38px; --header-icon-size: 22px;
             --header-room-img-size: 38px; --header-room-name-size: 15px;
             --footer-btn-size: 42px; --footer-icon-size: 26px;
           }
