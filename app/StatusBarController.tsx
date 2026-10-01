@@ -9,7 +9,7 @@ export default function StatusBarController() {
       try {
         // Keep the entire app content below the Android status bar.
         // This applies to every page so no page renders underneath the status-bar area.
-        await StatusBar.setOverlaysWebView({ overlay: false })
+        await StatusBar.setOverlaysWebView({ overlay: true })
 
         // Keep the status-bar background transparent while content begins below it
         await StatusBar.setBackgroundColor({

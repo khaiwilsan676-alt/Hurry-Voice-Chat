@@ -1675,7 +1675,7 @@ if (showSettingPage) return (
         )}
       </div>
 
-      {showRoomTask && <div className="absolute inset-0 z-[11000] pointer-events-none"><Roomtask onBack={() => setShowRoomTask(false)} /></div>}
+      {showRoomTask && <div className="absolute inset-0 z-[11000] pointer-events-auto"><Roomtask onBack={() => setShowRoomTask(false)} /></div>}
       {showCupIcon && <div className="absolute inset-0 z-[11000] pointer-events-none"><CupIcon onBack={() => setShowCupIcon(false)} count={cupCount} /></div>}
 
       {/* MUSIC CONTROLLER */}
