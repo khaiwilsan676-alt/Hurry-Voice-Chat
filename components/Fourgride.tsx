@@ -356,12 +356,12 @@ export default function Fourgride({
                   <button
                     onClick={toggleEntryEffect}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      'bg-blue-500'
+                      entryEffect ? 'bg-blue-500' : 'bg-gray-300'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        'translate-x-[10px]'
+                        entryEffect ? 'translate-x-[10px]' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
@@ -376,12 +376,12 @@ export default function Fourgride({
                   <button
                     onClick={toggleGiftEffect}
                     className={`absolute bottom-0 right-0 w-6 h-4 rounded-full flex items-center transition-colors ${
-                      'bg-blue-500'
+                      giftEffect ? 'bg-blue-500' : 'bg-gray-300'
                     }`}
                   >
                     <div
                       className={`w-3 h-3 bg-white rounded-full transform transition-transform ${
-                        'translate-x-[10px]'
+                        giftEffect ? 'translate-x-[10px]' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
