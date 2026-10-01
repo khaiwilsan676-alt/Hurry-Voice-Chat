@@ -501,11 +501,20 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
         ctx.putImageData(image, 0, 0)
       }
     }
-    video.addEventListener('loadeddata', drawFirstFrame)
-    if (video.readyState >= 2) drawFirstFrame()
-    video.pause()
+    const handleLoadedData = () => {
+      video.currentTime = 0
+      requestAnimationFrame(() => {
+        drawFirstFrame()
+        video.pause()
+      })
+    }
+    video.addEventListener('loadeddata', handleLoadedData)
+    video.addEventListener('canplay', handleLoadedData)
+    video.load()
+    if (video.readyState >= 2) handleLoadedData()
     return () => {
-      video.removeEventListener('loadeddata', drawFirstFrame)
+      video.removeEventListener('loadeddata', handleLoadedData)
+      video.removeEventListener('canplay', handleLoadedData)
     }
   }, [src])
 
