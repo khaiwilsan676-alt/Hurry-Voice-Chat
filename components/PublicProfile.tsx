@@ -454,6 +454,52 @@ const WhiteColorRemovalShader = ({
   )
 }
 
+const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; className?: string }) => {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let frameId = 0
+    const draw = () => {
+      if (video.readyState >= 2 && video.videoWidth && video.videoHeight) {
+        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const image = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const data = image.data
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2]
+          if (g > 80 && g > r * 1.25 && g > b * 1.25) data[i + 3] = 0
+        }
+        ctx.putImageData(image, 0, 0)
+      }
+      frameId = requestAnimationFrame(draw)
+    }
+    video.addEventListener('play', draw)
+    video.play().catch(() => {})
+    return () => {
+      cancelAnimationFrame(frameId)
+      video.removeEventListener('play', draw)
+    }
+  }, [src])
+
+  return (
+    <>
+      <video ref={videoRef} src={src} muted loop playsInline preload="auto" className="hidden" />
+      <canvas ref={canvasRef} className={className} />
+    </>
+  )
+}
+
 export default function PublicProfile({
   onBack,
   onJoinRoom,
@@ -563,7 +609,8 @@ export default function PublicProfile({
     }
 
     const loadReceivedGifts = () => {
-      const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || localStorage.getItem('accountNumber') || ''
+      const uid = (isOtherUser ? (targetUser?.accountId || targetUser?.uid || targetUser?.id || '') : '') ||
+        localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || localStorage.getItem('accountNumber') || ''
       if (!uid) return
       try {
         const stored = localStorage.getItem('receivedGifts_' + uid)
@@ -1625,14 +1672,9 @@ export default function PublicProfile({
             <div className="grid grid-cols-4 gap-2">
               {ownedFrameItems.slice(0, 4).map((frame) => (
                 <div key={frame.id} className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
-                  <video
+                  <GreenColorRemovalVideo
                     src={frame.image}
                     className="w-full h-full object-contain"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
                   />
                 </div>
               ))}
