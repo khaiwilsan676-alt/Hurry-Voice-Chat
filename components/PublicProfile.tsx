@@ -1527,10 +1527,10 @@ export default function PublicProfile({
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2 flex justify-between items-center">
             Albums
-            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/9</span>
+            <span className="text-xs text-gray-400 font-normal">{albumImages.length}/4</span>
           </h3>
           {albumImages.length > 0 ? (
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="grid grid-cols-4 gap-2">
               {albumImages.map((img, index) => (
                 <div
                   key={index}
