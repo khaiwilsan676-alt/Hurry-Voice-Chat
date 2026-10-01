@@ -530,6 +530,63 @@ export default function PublicProfile({
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
 
+  const [ownedFrameItems, setOwnedFrameItems] = useState<Array<{ id: string; image: string; name: string }>>([])
+  const [receivedGifts, setReceivedGifts] = useState<Array<{ id: string; name: string; image: string }>>([])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const FRAME_ITEMS: Record<string, { id: string; image: string; name: string }> = {
+      a1: { id: 'a1', image: '/VID_20260905_024534_955_bsl.mp4', name: 'Crown Wings' },
+      a2: { id: 'a2', image: '/VID_20260905_024726_660_bsl.mp4', name: 'Host Wings' },
+      a3: { id: 'a3', image: '/VID_20260905_083446_619_bsl.mp4', name: 'Mystic Wings' },
+    }
+
+    const loadOwnedFrames = async () => {
+      try {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+          const request = indexedDB.open('FruitPartyDB', 3)
+          request.onsuccess = () => resolve(request.result)
+          request.onerror = () => reject(request.error)
+        })
+        const tx = db.transaction('GameState', 'readonly')
+        const req = tx.objectStore('GameState').get('user_data')
+        req.onsuccess = () => {
+          const owned = Array.isArray(req.result?.ownedItems) ? req.result.ownedItems.map(String) : []
+          setOwnedFrameItems(owned.map((id: string) => FRAME_ITEMS[id]).filter(Boolean))
+          db.close()
+        }
+        req.onerror = () => db.close()
+      } catch {
+        setOwnedFrameItems([])
+      }
+    }
+
+    const loadReceivedGifts = () => {
+      const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || localStorage.getItem('accountNumber') || ''
+      if (!uid) return
+      try {
+        const stored = localStorage.getItem('receivedGifts_' + uid)
+        const parsed = stored ? JSON.parse(stored) : []
+        if (Array.isArray(parsed)) setReceivedGifts(parsed.slice(0, 50))
+      } catch {}
+    }
+
+    loadOwnedFrames()
+    loadReceivedGifts()
+
+    const refresh = () => {
+      loadOwnedFrames()
+      loadReceivedGifts()
+    }
+    window.addEventListener('hurry:received-gifts-updated', refresh)
+    window.addEventListener('hurry-store-sync', refresh)
+    return () => {
+      window.removeEventListener('hurry:received-gifts-updated', refresh)
+      window.removeEventListener('hurry-store-sync', refresh)
+    }
+  }, [])
+
   const [coverPhotos, setCoverPhotos] = useState<string[]>(() => {
     if (typeof window === 'undefined') return []
     const stored = localStorage.getItem('userCoverPhotos')
@@ -1564,16 +1621,44 @@ export default function PublicProfile({
 
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2">Frame</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091457562.png" alt="" className="w-full h-full object-cover" />
-          </div>
+          {ownedFrameItems.length > 0 ? (
+            <div className="grid grid-cols-4 gap-2">
+              {ownedFrameItems.slice(0, 4).map((frame) => (
+                <div key={frame.id} className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
+                  <video
+                    src={frame.image}
+                    className="w-full h-full object-contain"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091457562.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
         </div>
 
         <div>
           <h3 className="text-sm font-bold text-gray-800 mb-2">Gift</h3>
-          <div className="w-full h-28 rounded-2xl overflow-hidden">
-            <img src="/1785091520912.png" alt="" className="w-full h-full object-cover" />
-          </div>
+          {receivedGifts.length > 0 ? (
+            <div className="grid grid-cols-4 gap-2">
+              {receivedGifts.slice(0, 4).map((gift) => (
+                <div key={gift.id} className="w-20 h-20 rounded-xl overflow-hidden bg-gray-100">
+                  <img src={gift.image} alt={gift.name || ''} className="w-full h-full object-contain" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="w-full h-28 rounded-2xl overflow-hidden">
+              <img src="/1785091520912.png" alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
         </div>
       </div>
 
