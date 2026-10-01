@@ -6,6 +6,8 @@ import CupIcon from './cupicon';
 import GiftPicker from './GiftPicker';
 import RoomSettingPage, { RoomSettingsData } from './RoomSettingPage';
 import MessagePage from './MessagePage';
+import ChatScreen from './ChatScreen';
+
 import RoomProfile from './RoomProfile';
 import Fourgride from './Fourgride';
 import Wildparty from './Wildparty';
@@ -327,6 +329,8 @@ function RoomContent({
   const [roomAdmins, setRoomAdmins] = useState<string[]>([]);
 
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [showPrivateChat, setShowPrivateChat] = useState(false);
+  const [privateChatUser, setPrivateChatUser] = useState<{ uid: string; name: string; photo: string } | null>(null);
   const [profileUser, setProfileUser] = useState<{ name: string; image: string; accountId: string; isInSeat?: boolean; } | null>(null);
 
   const userAccountId = currentUser.accountId || currentUser.uid || currentUser.id || "guest";
@@ -414,13 +418,14 @@ function RoomContent({
       else if (showGameSheet) setShowGameSheet(false);
       else if (showStore) setShowStore(false);
       else if (showRoomTask) setShowRoomTask(false);
+      else if (showPrivateChat) setShowPrivateChat(false);
       else if (showUserProfile) setShowUserProfile(false);
       else if (showMessageSheet) setShowMessageSheet(false);
       else setShowExitMenu(true);
     };
     window.addEventListener('hardwareBackPress', handleHardwareBack);
     return () => window.removeEventListener('hardwareBackPress', handleHardwareBack);
-  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
+  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet, showPrivateChat]);
 
   useEffect(() => {
     if (!jitsiApi) return;
@@ -1528,7 +1533,17 @@ if (showSettingPage) return (
           isRoomOwner={isRoomOwner}
           onClose={() => setShowUserProfile(false)}
           onFollow={() => console.log('Follow clicked')}
-          onMessage={() => { setShowUserProfile(false); setShowChatInput(true); setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 200); }}
+          onMessage={() => {
+            setShowUserProfile(false);
+            if (profileUser) {
+              setPrivateChatUser({
+                uid: profileUser.accountId,
+                name: profileUser.name,
+                photo: profileUser.image
+              });
+              setShowPrivateChat(true);
+            }
+          }}
           onCopyId={() => console.log('Copy ID')}
           onMention={(username?: string) => { setShowUserProfile(false); setShowChatInput(true); setMessage(`@${username} `); setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 200); }}
           onLeaveSeat={() => { if (profileUser) handleLeaveUserSeat(profileUser.accountId); setShowUserProfile(false); }}
@@ -1536,6 +1551,26 @@ if (showSettingPage) return (
           onLock={() => { if (profileUser) { const seat = seats.find(s => s.isOccupied && s.user?.accountId === profileUser.accountId); if (seat) setSeats(seats.map(s => s.number === seat.number ? { ...s, isLocked: !s.isLocked } : s)); } setShowUserProfile(false); }}
           onKickOut={() => { if (profileUser) handleLeaveUserSeat(profileUser.accountId); setShowUserProfile(false); }}
         />
+      )}
+
+
+      {/* PRIVATE CHAT OVERLAY */}
+      {showPrivateChat && privateChatUser && (
+        <div className="fixed inset-0 z-[10000]">
+          <ChatScreen
+            currentUser={{
+              uid: currentUser.accountId || currentUser.uid || '',
+              name: currentUser.name || 'Me',
+              photo: currentUser.image || currentUser.photo || ''
+            }}
+            targetUser={privateChatUser}
+            onClose={() => {
+              setShowPrivateChat(false);
+              setPrivateChatUser(null);
+            }}
+            sharedRoomData={{ roomId: String(roomId), roomName, roomDp }}
+          />
+        </div>
       )}
 
       {/* EXIT MENU */}
