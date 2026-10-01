@@ -140,7 +140,7 @@ export default function Svip({ onBack }: SvipProps) {
           {/* ============ VIDEO (Bigger + slightly up, Green removed) ============ */}
           <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
             <video
-                            controls={false}
+              controls={false}
               disablePictureInPicture
               disableRemotePlayback
               ref={videoRef}

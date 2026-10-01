@@ -97,6 +97,7 @@ function MedalVideo({
       autoPlay={autoPlay}
       loop
       playsInline
+      muted
       controls={false}
       preload="auto"
       disablePictureInPicture
