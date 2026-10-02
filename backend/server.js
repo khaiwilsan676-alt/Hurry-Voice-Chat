@@ -1003,28 +1003,6 @@ io.on("connection", (socket) => {
       const room = String(roomId);
       const accId = accountId ? String(accountId) : String(userId);
       const requestedOwnerId = String(roomOwnerId || "");
-      const cachedLock = lockedRooms.get(room);
-
-      if (cachedLock?.locked && String(cachedLock.ownerId || "") !== accId) {
-        socket.emit("room_locked", { roomId: room, ownerId: String(cachedLock.ownerId || "") });
-        return;
-      }
-
-      if (db) {
-        try {
-          const roomDoc = await db.collection("rooms").findOne({
-            $or: [{ accountId: room }, { roomId: room }, { id: room }]
-          });
-          if (roomDoc?.isLocked && String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId) !== accId) {
-            const owner = String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId || "");
-            lockedRooms.set(room, { locked: true, ownerId: owner, updatedAt: Date.now() });
-            socket.emit("room_locked", { roomId: room, ownerId: owner });
-            return;
-          }
-        } catch (error) {
-          console.error("Room lock check failed:", error.message);
-        }
-      }
 
       // Do not allow a client to impersonate a different account identity.
       if (socket.userId || socket.accountId || socket.roomUserId || socket.roomAccountId) {
@@ -1051,86 +1029,130 @@ io.on("connection", (socket) => {
           roomId: room,
           seats: getRoomSeats(room),
         });
+      } else {
+        if (socket.roomId) {
+          const oldRoom = String(socket.roomId);
+          const oldUser =
+            socket.roomAccountId ||
+            socket.accountId ||
+            socket.roomUserId ||
+            socket.userId;
 
+          if (oldRoom !== room) {
+            socket.leave(`room:${oldRoom}`);
+
+            clearUserSeatGracefully(oldRoom, oldUser, 0);
+
+            removeUserFromRoom(
+              oldRoom,
+              oldUser
+            );
+
+            socket
+              .to(`room:${oldRoom}`)
+              .emit("room_user_offline", {
+                roomId: oldRoom,
+                userId: String(oldUser || ""),
+              });
+
+            emitRoomPresence(oldRoom);
+          }
+        }
+
+        socket.join(`room:${room}`);
+
+        socket.roomId = room;
+        if (userId) socket.roomUserId = String(userId);
+        socket.accountId = accId;
+        socket.roomAccountId = accId;
+
+        addUserToRoom(room, accId, {
+          name: name || "User",
+          image:
+            dp ||
+            "/default-avatar.png",
+          email: email || "",
+          accountId: accId,
+        });
+
+        const users = getRoomUsers(room);
+
+        socket.emit("room_presence", {
+          roomId: room,
+          users,
+          activeUserCount: users.length,
+        });
+
+        socket.emit("room_seats", {
+          roomId: room,
+          seats: getRoomSeats(room),
+        });
+
+        socket
+          .to(`room:${room}`)
+          .emit("room_user_online", {
+            roomId: room,
+            userId: accId,
+            user: {
+              accountId: accId,
+              userId: userId ? String(userId) : accId,
+              name: name || "User",
+              image:
+                dp ||
+                "/default-avatar.png",
+              email: email || "",
+            },
+          });
+
+        emitRoomPresence(room);
+        emitGlobalRoomPresence();
+      }
+
+      // ASYNC LOCK CHECKS AFTER SYNCHRONOUS JOIN
+      const cachedLock = lockedRooms.get(room);
+
+      if (cachedLock?.locked && String(cachedLock.ownerId || "") !== accId) {
+        socket.emit("room_locked", { roomId: room, ownerId: String(cachedLock.ownerId || "") });
+
+        // Revert join side effects
+        socket.leave(`room:${room}`);
+        clearUserSeatGracefully(room, accId, 0);
+        removeUserFromRoom(room, accId);
+        socket.to(`room:${room}`).emit("room_user_offline", { roomId: room, userId: accId });
+        emitRoomPresence(room);
+        emitGlobalRoomPresence();
+        socket.roomId = null;
+        socket.roomAccountId = null;
+        socket.roomUserId = null;
         return;
       }
 
-      if (socket.roomId) {
-        const oldRoom = String(socket.roomId);
-        const oldUser =
-          socket.roomAccountId ||
-          socket.accountId ||
-          socket.roomUserId ||
-          socket.userId;
+      if (db) {
+        try {
+          const roomDoc = await db.collection("rooms").findOne({
+            $or: [{ accountId: room }, { roomId: room }, { id: room }]
+          });
+          if (roomDoc?.isLocked && String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId) !== accId) {
+            const owner = String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId || "");
+            lockedRooms.set(room, { locked: true, ownerId: owner, updatedAt: Date.now() });
+            socket.emit("room_locked", { roomId: room, ownerId: owner });
 
-        if (oldRoom !== room) {
-          socket.leave(`room:${oldRoom}`);
-
-          clearUserSeatGracefully(oldRoom, oldUser, 0);
-
-          removeUserFromRoom(
-            oldRoom,
-            oldUser
-          );
-
-          socket
-            .to(`room:${oldRoom}`)
-            .emit("room_user_offline", {
-              roomId: oldRoom,
-              userId: String(oldUser || ""),
-            });
-
-          emitRoomPresence(oldRoom);
+            // Revert join side effects
+            socket.leave(`room:${room}`);
+            clearUserSeatGracefully(room, accId, 0);
+            removeUserFromRoom(room, accId);
+            socket.to(`room:${room}`).emit("room_user_offline", { roomId: room, userId: accId });
+            emitRoomPresence(room);
+            emitGlobalRoomPresence();
+            socket.roomId = null;
+            socket.roomAccountId = null;
+            socket.roomUserId = null;
+            return;
+          }
+        } catch (error) {
+          console.error("Room lock check failed:", error.message);
         }
       }
-
-      socket.join(`room:${room}`);
-
-      socket.roomId = room;
-      if (userId) socket.roomUserId = String(userId);
-      socket.accountId = accId;
-      socket.roomAccountId = accId;
-
-      addUserToRoom(room, accId, {
-        name: name || "User",
-        image:
-          dp ||
-          "/default-avatar.png",
-        email: email || "",
-        accountId: accId,
-      });
-
-      const users = getRoomUsers(room);
-
-      socket.emit("room_presence", {
-        roomId: room,
-        users,
-        activeUserCount: users.length,
-      });
-
-      socket.emit("room_seats", {
-        roomId: room,
-        seats: getRoomSeats(room),
-      });
-
-      socket
-        .to(`room:${room}`)
-        .emit("room_user_online", {
-          roomId: room,
-          userId: accId,
-          user: {
-            accountId: accId,
-            userId: userId ? String(userId) : accId,
-            name: name || "User",
-            image:
-              dp ||
-              "/default-avatar.png",
-            email: email || "",
-          },
-        });
-
-      emitRoomPresence(room);
-      emitGlobalRoomPresence();
     }
   );
 
