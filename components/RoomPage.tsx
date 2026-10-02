@@ -1204,19 +1204,12 @@ if (showSettingPage) return (
 
             {isRoomOwner && (
               <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-                <svg viewBox="0 0 24 24" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                  <defs>
-                    <mask id="hex-hole-mask">
-                      <rect x="0" y="0" width="24" height="24" fill="white" />
-                      <circle cx="12" cy="12" r="3.2" fill="black" />
-                    </mask>
-                  </defs>
-                  <polygon points="12 2.2 20.4 7.1 20.4 16.9 12 21.8 3.6 16.9 3.6 7.1" fill="#ffffff" mask="url(#hex-hole-mask)" />
+                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                  <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
+                  <circle cx="12" cy="12" r="2.8" />
                 </svg>
               </button>
             )}
-
-            {/* ⭐ Share button removed from header */}
 
             <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
               <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
@@ -1472,31 +1465,43 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ⭐ ROOM INFO SHEET — Members/Host from localUser (Me page) */}
+      {/* ⭐ ROOM INFO SHEET — 50vh, no underline, smile indicator, no border line */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ maxHeight: '35vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="flex border-b border-gray-200 px-4 pt-3">
+          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
+
+            <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
               <button
                 onClick={() => setRoomInfoTab('roominfo')}
-                className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'roominfo' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}
+                className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer"
               >
-                Room info
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'roominfo' ? 'text-black' : 'text-gray-400'}`}>
+                  Room info
+                </span>
+                {roomInfoTab === 'roominfo' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                )}
               </button>
+
               <button
                 onClick={() => setRoomInfoTab('members')}
-                className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'members' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}
+                className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer"
               >
-                Members
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>
+                  Members
+                </span>
+                {roomInfoTab === 'members' && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                )}
               </button>
             </div>
 
-            <div className="px-4 py-3 overflow-y-auto" style={{ maxHeight: 'calc(35vh - 44px)' }}>
+            <div className="flex-1 overflow-y-auto px-4 py-3">
               {roomInfoTab === 'roominfo' ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '56px', height: '56px' }}>
+                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
                       <img src={roomDp} alt="Room" className="w-full h-full object-cover" loading="eager" decoding="async" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1512,13 +1517,11 @@ if (showSettingPage) return (
                       </div>
                     </div>
                   </div>
-                  {/* ⭐ Host from Me page (localUser) */}
                   <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-0.5">{localUser.name || "Unknown"}</p></div>
                   <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {/* ⭐ Owner row → localUser avatar + name (Me page) */}
                   <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
                       <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
@@ -1559,50 +1562,50 @@ if (showSettingPage) return (
         />
       )}
 
-      {/* ⭐⭐⭐ TOP 20vh SHEET — Share / Keep / Exit (all blue circle + white icon) ⭐⭐⭐ */}
+      {/* ⭐⭐⭐ TOP 25vh SHEET — Keep + Exit only (images) ⭐⭐⭐ */}
       {showExitMenu && (
-        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '20vh' }}>
-          {/* Backdrop to close on click outside */}
+        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '25vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
 
-          {/* Top sheet */}
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
             style={{
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.65) 65%, rgba(0,0,0,0) 100%)',
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 100%)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center gap-10">
-              {/* SHARE */}
-              <div className="flex flex-col items-center gap-2">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowExitMenu(false); setShowMessageSheet(true); }}
-                  className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer"
+            <div className="flex items-center justify-center gap-12 -mt-2">
+              <button
+                onClick={handleKeep}
+                className="cursor-pointer active:scale-95 transition-transform"
+                aria-label="Keep"
+              >
+                <img
+                  src="/IMG_20261002_113229.png"
+                  alt="Keep"
+                  className="object-contain select-none pointer-events-none"
                   style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}
-                >
-                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}>
-                    <path d="M4 14.5C4.5 10 8 7 14 7V3L21 10.5L14 18V14C9.5 14 6 15.5 4 19.5C4 18 4 16 4 14.5Z" />
-                  </svg>
-                </button>
-                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Share</span>
-              </div>
+                  draggable={false}
+                  loading="eager"
+                  decoding="async"
+                />
+              </button>
 
-              {/* KEEP */}
-              <div className="flex flex-col items-center gap-2">
-                <button onClick={handleKeep} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
-                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                </button>
-                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
-              </div>
-
-              {/* EXIT */}
-              <div className="flex flex-col items-center gap-2">
-                <button onClick={handleExit} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
-                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                </button>
-                <span className="text-white/70 font-medium" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
-              </div>
+              <button
+                onClick={handleExit}
+                className="cursor-pointer active:scale-95 transition-transform"
+                aria-label="Exit"
+              >
+                <img
+                  src="/IMG_20261002_113213.png"
+                  alt="Exit"
+                  className="object-contain select-none pointer-events-none"
+                  style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}
+                  draggable={false}
+                  loading="eager"
+                  decoding="async"
+                />
+              </button>
             </div>
           </div>
         </div>
@@ -1812,8 +1815,7 @@ if (showSettingPage) return (
       />
     </div>
   );
-                  }
-function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
+  function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
   seatNumber: number; seatData?: Seat; onClick: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void; accountId: string; roomOwnerId: string;
 }) {
@@ -1974,3 +1976,4 @@ const GreenColorRemovalShader = memo(function GreenColorRemovalShader({ imageSrc
   }, [imageSrc, threshold]);
   return <canvas ref={canvasRef} className={className} style={style} />;
 });
+                                                                                                                                                                                                                          }
