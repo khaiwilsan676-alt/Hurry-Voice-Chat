@@ -1567,7 +1567,7 @@ if (showSettingPage) return (
 
       {/* TOP 25vh SHEET — SOLID BLACK + fade, Keep/Exit IMAGES + TEXT below */}
       {showExitMenu && (
-        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '25vh' }}>
+        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '45vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
