@@ -1171,377 +1171,414 @@ if (showSettingPage) return (
 
       <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
-        {/* Top Header */}
-        <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
-          <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
-            <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
-              <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
-            </button>
-            <div className="text-left py-0.5">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>{displayRoomName}</h2>
-                {!isRoomOwner && (
-                  <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
-                    <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                  </button>
-                )}
-              </div>
-              <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || ''}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-0.5">
-            <button onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }} className="flex items-center gap-1 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm" style={{ height: 'var(--header-btn-size)', padding: 'var(--header-btn-padding)' }}>
-              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                <circle cx="9" cy="7" r="4.2" />
-                <path d="M2 20.5 C 2 15.5 5.2 13 9 13 C 12.8 13 16 15.5 16 20.5 Z" />
-                <rect x="17.5" y="7.5" width="4.5" height="1.8" rx="0.9" />
-                <rect x="17.5" y="11.1" width="4.5" height="1.8" rx="0.9" />
-                <rect x="17.5" y="14.7" width="3.5" height="1.8" rx="0.9" />
-              </svg>
-              <span className="text-white font-semibold leading-none" style={{ fontSize: 'var(--header-count-size)' }}>{liveUserCount}</span>
-            </button>
-
-            {isRoomOwner && (
-              <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                  <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
-                  <circle cx="12" cy="12" r="2.8" />
-                </svg>
+     {/* Top Header */}
+    <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
+      <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
+        <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
+          <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
+        </button>
+        <div className="text-left py-0.5">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>{displayRoomName}</h2>
+            {!isRoomOwner && (
+              <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
               </button>
             )}
-
-            <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
-            </button>
           </div>
+          <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || ''}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center shrink-0">
+        {/* ⭐ Power — 3 dot + line */}
+        <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm shrink-0" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+          <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+            <circle cx="5" cy="6" r="1.3" fill="#ffffff" stroke="none" />
+            <line x1="9" y1="6" x2="20" y2="6" />
+            <circle cx="5" cy="12" r="1.3" fill="#ffffff" stroke="none" />
+            <line x1="9" y1="12" x2="20" y2="12" />
+            <circle cx="5" cy="18" r="1.3" fill="#ffffff" stroke="none" />
+            <line x1="9" y1="18" x2="20" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    {/* Trophy Card + User Pill (same row) */}
+    <div className="w-full relative z-20 flex items-center justify-between mt-2">
+      {/* Cup (left) — same as before */}
+      <div className="-ml-1 sm:-ml-2">
+        <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none rounded-r-full">
+          <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
+            <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
+          </div>
+          <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>{formatCupCount(cupCount)}</span>
+          <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
+        </button>
+      </div>
+
+      {/* ⭐ User Pill (right corner) — 3 avatars + count + 3 blue tracks */}
+      <button
+        onClick={() => setShowActiveUsers(true)}
+        className="bg-black/30 rounded-full flex items-center gap-1.5 pl-1 pr-2 py-1 cursor-pointer hover:bg-black/40 transition-colors shadow-sm shrink-0 -mr-1 sm:-mr-2"
+      >
+        <div className="flex items-center -space-x-1.5">
+          {roomUsers.slice(0, 3).map((user) => (
+            <div
+              key={user.accountId}
+              className="rounded-full overflow-hidden shrink-0"
+              style={{ width: '22px', height: '22px', boxShadow: '0 0 0 1.5px #3b82f6', background: '#000' }}
+            >
+              <img
+                src={user.image || "/default-avatar.png"}
+                alt={user.name}
+                className="w-full h-full object-cover"
+                draggable={false}
+                loading="eager"
+                decoding="async"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+              />
+            </div>
+          ))}
         </div>
 
-        {/* Trophy Card */}
-        <div className="h-0 w-full relative z-20">
-          <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
-            <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
-              <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
-                <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
-              </div>
-              <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>{formatCupCount(cupCount)}</span>
-              <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
+        <div className="flex flex-col items-center gap-[1px]">
+          <span className="text-white font-semibold leading-none text-[11px]">{liveUserCount}</span>
+          <div className="flex flex-col gap-[1.5px] mt-[1px]">
+            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
+            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
+            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
           </div>
         </div>
+      </button>
+    </div>
 
-        {/* Middle */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">{renderSeats()}</div>
+    {/* Middle */}
+    <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">{renderSeats()}</div>
 
-          <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
-            <div className="mx-1 mb-3 flex justify-start">
-              <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+      <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
+        <div className="mx-1 mb-3 flex justify-start">
+          <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+            <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+              Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
+            </p>
+            {roomAnnouncement && (
+              <div className="mt-2 pt-2 border-t border-white/10">
                 <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
-                  Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
+                  <span className="font-bold mr-1">ANNOUNCEMENT: </span>{roomAnnouncement}
                 </p>
-                {roomAnnouncement && (
-                  <div className="mt-2 pt-2 border-t border-white/10">
-                    <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
-                      <span className="font-bold mr-1">ANNOUNCEMENT: </span>{roomAnnouncement}
-                    </p>
-                  </div>
-                )}
               </div>
-            </div>
+            )}
+          </div>
+        </div>
 
-            <div className="space-y-0.5">
-              {messages.map((msg) => (
-                <div key={msg.id} className="leading-[1.8rem]">
-                  {msg.type === 'join' ? (
-                    <>
-                      <div className="flex items-start gap-1.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
-                        <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                          <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-0.5 min-w-0">
-                            <span className="font-semibold text-white/95 leading-none truncate" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                            <span className="flex items-center justify-center shrink-0" style={{ width: 'calc(var(--msg-avatar-size) * 0.7)', height: 'calc(var(--msg-avatar-size) * 0.7)' }}>
-                              <HouseIcon size={14} style={{ width: '100%', height: '100%' }} />
-                            </span>
-                          </div>
-                          <span className="text-white/80 leading-none mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
-                        </div>
-                      </div>
-                      {msg.equippedVehicle && <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />}
-                    </>
-                  ) : msg.imageUrl ? (
-                    <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
-                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
-                          <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
-                        </div>
-                      </div>
+        <div className="space-y-0.5">
+          {messages.map((msg) => (
+            <div key={msg.id} className="leading-[1.8rem]">
+              {msg.type === 'join' ? (
+                <>
+                  <div className="flex items-start gap-1.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
+                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                      <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
                     </div>
-                  ) : (
-                    <div className="flex items-start gap-2 max-w-[75%]">
-                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-0.5 min-w-0">
+                        <span className="font-semibold text-white/95 leading-none truncate" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                        <span className="flex items-center justify-center shrink-0" style={{ width: 'calc(var(--msg-avatar-size) * 0.7)', height: 'calc(var(--msg-avatar-size) * 0.7)' }}>
+                          <HouseIcon size={14} style={{ width: '100%', height: '100%' }} />
+                        </span>
                       </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        {msg.equippedBubble ? (
-                          <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
-                            <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                          </div>
-                        ) : (
-                          <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
-                            <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Controls */}
-        <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-          <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
-            <div className="flex items-center justify-start gap-1 z-10">
-              <button onClick={openChatInput} aria-label="Say Hi Chat" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-                  <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-                </svg>
-              </button>
-              {hasSeat && (
-                <button onClick={handleBottomMicToggle} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                  {currentUserSeat?.isMuted ? (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs><mask id="mic-cut-muted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs><mask id="mic-cut-unmuted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                    </svg>
-                  )}
-                </button>
-              )}
-              {hasSeat && (
-                <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
-              <img src="/file_0000000019c4821180028eebae10dbfc.png" alt="Gift" className="cursor-pointer active:scale-95 transition-transform select-none" style={{ width: 'calc(var(--footer-btn-size) + 9px)', height: 'auto' }} draggable={false} loading="eager" decoding="async" onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} />
-            </div>
-
-            <div className="flex items-center justify-end gap-1 z-10">
-              <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Message Box Menu" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                <svg viewBox="0 0 24 24" style={{ width: 'calc(var(--footer-icon-size) + 2px)', height: 'calc(var(--footer-icon-size) + 2px)' }}>
-                  <defs><mask id="mail-v-cutout"><rect x="0" y="0" width="24" height="24" fill="white" /><path d="M3.5 7.5L12 13.5L20.5 7.5" stroke="black" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></mask></defs>
-                  <rect x="2" y="4.5" width="20" height="15" rx="3.5" fill="#ffffff" mask="url(#mail-v-cutout)" />
-                </svg>
-              </button>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
-                aria-label="Apps Menu"
-                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
-                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-              >
-                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <rect x="3" y="3" width="8" height="8" rx="1.5" />
-                  <rect x="13" y="3" width="8" height="8" rx="1.5" />
-                  <rect x="3" y="13" width="8" height="8" rx="1.5" />
-                  <rect x="13.5" y="13.5" width="7" height="1.6" rx="0.8" />
-                  <rect x="13.5" y="16.2" width="7" height="1.6" rx="0.8" />
-                  <rect x="13.5" y="18.9" width="7" height="1.6" rx="0.8" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {showChatInput && (
-          <div ref={inputContainerRef} className="fixed left-0 right-0 z-[10000] flex items-center w-full" style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
-            <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
-              <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
-                <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-                </svg>
-              </button>
-              <input ref={inputRef} type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} onFocus={handleInputFocus} placeholder="Type a message..." className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 px-2 py-1.5 outline-none border-none rounded-none" style={{ fontSize: 'var(--footer-input-text)' }} />
-              <button onMouseDown={(e) => e.preventDefault()} onClick={handleSendMessage} className="hover:bg-blue-50 rounded-full transition-colors cursor-pointer flex-shrink-0">
-                <svg viewBox="0 0 24 24" className="fill-none stroke-blue-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {musicControllerState === 'minimized' && currentTrack && (
-        <div onTouchStart={handleTouchStartMini} onTouchMove={handleTouchMoveMini} onTouchEnd={handleTouchEndMini} onMouseDown={handleMouseDownMini} onClick={() => { if (!isDraggingMiniRef.current) setMusicControllerState('full'); }} className="fixed z-[9999] cursor-pointer touch-none select-none transition-transform hover:scale-105 active:scale-95" style={{ left: `${miniPos.x}px`, top: `${miniPos.y}px` }}>
-          <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
-            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '24px', height: '24px' }}><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
-          </div>
-        </div>
-      )}
-
-      <div className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`} style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }} onClick={(e) => e.stopPropagation()}>
-        <RoomSideBanner />
-        <div onClick={() => setShowRoomTask(true)} className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center" style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}>
-          <GreenColorRemovalShader imageSrc="/IMG-20260902-WA0066.jpg" threshold={0.45} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
-        </div>
-        <div className="relative cursor-pointer transition-transform hover:scale-105 mt-1" style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }} onClick={() => setShowGameSheet(true)}>
-          <WhiteColorRemovalShader imageSrc="/IMG_20260814_111008.png" threshold={0.85} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
-        </div>
-      </div>
-
-      {showPublicMsgModal && (
-        <div className="absolute inset-0 z-[10000] flex items-center justify-center bg-black/50" onClick={() => setShowPublicMsgModal(false)}>
-          <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-base font-bold text-gray-800 mb-1">Public msg are off</h3>
-            <p className="text-xs text-gray-500 mb-3">Only the room owner can send messages right now.</p>
-            <button onClick={() => setShowPublicMsgModal(false)} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-5 rounded-full transition-colors cursor-pointer">OK</button>
-          </div>
-        </div>
-      )}
-
-      {/* ⭐ ACTIVE USERS SHEET — Owner row from localUser (Me page) */}
-      {showActiveUsers && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '40vh', maxHeight: '40vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-4 pt-4 pb-2 border-b border-gray-200 flex-shrink-0">
-              <h2 className="text-base font-bold text-gray-800 text-center">Active Users</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
-              <div className="space-y-2 pb-4">
-                {/* ⭐ OWNER ROW — ab localUser (Me page) se */}
-                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
-                  <div
-                    className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
-                    style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}
-                    onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}
-                  >
-                    <img
-                      src={localUser.image || "/default-avatar.png"}
-                      alt={localUser.name}
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      decoding="async"
-                      onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <h4 className="text-xs font-semibold text-gray-800 truncate">{localUser.name || 'Owner'}</h4>
-                    <HouseIcon size={14} className="shrink-0" />
-                  </div>
-                </div>
-
-                {roomUsers.filter(u => String(u.accountId) !== String(roomOwnerId)).map((user) => (
-                  <div key={user.accountId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
-                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
-                      <img src={user.image || "/default-avatar.png"} alt={user.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-semibold text-gray-800 truncate">{user.name}</h4>
-                      <p className="text-[10px] text-gray-400">ID: {user.accountId}</p>
+                      <span className="text-white/80 leading-none mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ROOM INFO SHEET — 50vh, gap-3, SMILE indicator */}
-      {showRoomInfo && (
-        <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-          <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
-
-            <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
-              <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
-                {roomInfoTab === 'profile' && (
-                  <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
-                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                  </svg>
-                )}
-              </button>
-              <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
-                {roomInfoTab === 'members' && (
-                  <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
-                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                  </svg>
-                )}
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-              {roomInfoTab === 'profile' ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
-                      <img src={roomDp} alt="Room" className="w-full h-full object-cover" loading="eager" decoding="async" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-800 text-sm truncate">{roomName || 'Room'}</h3>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <span className="truncate">ID: {roomOwner.accountId}</span>
-                        <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0" title="Copy ID">
-                          <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: '12px', height: '12px' }}>
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                          </svg>
-                        </button>
-                        {copied && <span className="text-green-500 text-xs shrink-0">Copied!</span>}
-                      </div>
+                  {msg.equippedVehicle && <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />}
+                </>
+              ) : msg.imageUrl ? (
+                <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
+                  <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                    <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                    <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
+                      <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
                     </div>
                   </div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-0.5">{localUser.name || "Unknown"}</p></div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
-                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
-                      <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-                    </div>
-                    <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <h4 className="text-xs font-medium text-gray-800 truncate">{localUser.name}</h4>
-                      <span className="flex items-center justify-center flex-shrink-0" style={{ width: 'calc(var(--header-follow-btn-size) + 4px)', height: 'calc(var(--header-follow-btn-size) + 4px)' }}>
-                        <HouseIcon size={26} style={{ width: '100%', height: '100%' }} />
-                      </span>
-                    </div>
+                <div className="flex items-start gap-2 max-w-[75%]">
+                  <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                    <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                    {msg.equippedBubble ? (
+                      <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                        <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                      </div>
+                    ) : (
+                      <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                        <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
             </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </div>
+
+    {/* Footer Controls */}
+    <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
+      <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
+        <div className="flex items-center justify-start gap-1 z-10">
+          <button onClick={openChatInput} aria-label="Say Hi Chat" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+              <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+            </svg>
+          </button>
+          {hasSeat && (
+            <button onClick={handleBottomMicToggle} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+              {currentUserSeat?.isMuted ? (
+                <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                  <defs><mask id="mic-cut-muted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
+                  <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
+                  <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                  <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                  <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
+                  <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                  <defs><mask id="mic-cut-unmuted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
+                  <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
+                  <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                  <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                </svg>
+              )}
+            </button>
+          )}
+          {hasSeat && (
+            <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
+          <img src="/file_0000000019c4821180028eebae10dbfc.png" alt="Gift" className="cursor-pointer active:scale-95 transition-transform select-none" style={{ width: 'calc(var(--footer-btn-size) + 9px)', height: 'auto' }} draggable={false} loading="eager" decoding="async" onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} />
+        </div>
+
+        <div className="flex items-center justify-end gap-1 z-10">
+          <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Message Box Menu" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+            <svg viewBox="0 0 24 24" style={{ width: 'calc(var(--footer-icon-size) + 2px)', height: 'calc(var(--footer-icon-size) + 2px)' }}>
+              <defs><mask id="mail-v-cutout"><rect x="0" y="0" width="24" height="24" fill="white" /><path d="M3.5 7.5L12 13.5L20.5 7.5" stroke="black" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></mask></defs>
+              <rect x="2" y="4.5" width="20" height="15" rx="3.5" fill="#ffffff" mask="url(#mail-v-cutout)" />
+            </svg>
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
+            aria-label="Apps Menu"
+            className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+          >
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+              <rect x="3" y="3" width="8" height="8" rx="1.5" />
+              <rect x="13" y="3" width="8" height="8" rx="1.5" />
+              <rect x="3" y="13" width="8" height="8" rx="1.5" />
+              <rect x="13.5" y="13.5" width="7" height="1.6" rx="0.8" />
+              <rect x="13.5" y="16.2" width="7" height="1.6" rx="0.8" />
+              <rect x="13.5" y="18.9" width="7" height="1.6" rx="0.8" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {showChatInput && (
+      <div ref={inputContainerRef} className="fixed left-0 right-0 z-[10000] flex items-center w-full" style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
+        <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
+          <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
+            <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+            </svg>
+          </button>
+          <input ref={inputRef} type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} onFocus={handleInputFocus} placeholder="Type a message..." className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 px-2 py-1.5 outline-none border-none rounded-none" style={{ fontSize: 'var(--footer-input-text)' }} />
+          <button onMouseDown={(e) => e.preventDefault()} onClick={handleSendMessage} className="hover:bg-blue-50 rounded-full transition-colors cursor-pointer flex-shrink-0">
+            <svg viewBox="0 0 24 24" className="fill-none stroke-blue-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+              <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+
+  {musicControllerState === 'minimized' && currentTrack && (
+    <div onTouchStart={handleTouchStartMini} onTouchMove={handleTouchMoveMini} onTouchEnd={handleTouchEndMini} onMouseDown={handleMouseDownMini} onClick={() => { if (!isDraggingMiniRef.current) setMusicControllerState('full'); }} className="fixed z-[9999] cursor-pointer touch-none select-none transition-transform hover:scale-105 active:scale-95" style={{ left: `${miniPos.x}px`, top: `${miniPos.y}px` }}>
+      <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
+        <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '24px', height: '24px' }}><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      </div>
+    </div>
+  )}
+
+  <div className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`} style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }} onClick={(e) => e.stopPropagation()}>
+    <RoomSideBanner />
+    <div onClick={() => setShowRoomTask(true)} className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center" style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}>
+      <GreenColorRemovalShader imageSrc="/IMG-20260902-WA0066.jpg" threshold={0.45} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
+    </div>
+    <div className="relative cursor-pointer transition-transform hover:scale-105 mt-1" style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }} onClick={() => setShowGameSheet(true)}>
+      <WhiteColorRemovalShader imageSrc="/IMG_20260814_111008.png" threshold={0.85} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
+    </div>
+  </div>
+
+  {showPublicMsgModal && (
+    <div className="absolute inset-0 z-[10000] flex items-center justify-center bg-black/50" onClick={() => setShowPublicMsgModal(false)}>
+      <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-base font-bold text-gray-800 mb-1">Public msg are off</h3>
+        <p className="text-xs text-gray-500 mb-3">Only the room owner can send messages right now.</p>
+        <button onClick={() => setShowPublicMsgModal(false)} className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1.5 px-5 rounded-full transition-colors cursor-pointer">OK</button>
+      </div>
+    </div>
+  )}
+
+  {/* ⭐ ACTIVE USERS SHEET — Owner row from localUser (Me page) */}
+  {showActiveUsers && (
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
+      <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '40vh', maxHeight: '40vh' }} onClick={(e) => e.stopPropagation()}>
+        <div className="px-4 pt-4 pb-2 border-b border-gray-200 flex-shrink-0">
+          <h2 className="text-base font-bold text-gray-800 text-center">Active Users</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
+          <div className="space-y-2 pb-4">
+            <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+              <div
+                className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}
+                onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}
+              >
+                <img
+                  src={localUser.image || "/default-avatar.png"}
+                  alt={localUser.name}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+                />
+              </div>
+              <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold text-gray-800 truncate">{localUser.name || 'Owner'}</h4>
+                <HouseIcon size={14} className="shrink-0" />
+              </div>
+            </div>
+
+            {roomUsers.filter(u => String(u.accountId) !== String(roomOwnerId)).map((user) => (
+              <div key={user.accountId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
+                  <img src={user.image || "/default-avatar.png"} alt={user.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-xs font-semibold text-gray-800 truncate">{user.name}</h4>
+                  <p className="text-[10px] text-gray-400">ID: {user.accountId}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  )}
+
+  {/* ⭐ ROOM INFO SHEET — Setting icon top-left (owner only) */}
+  {showRoomInfo && (
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
+      <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
+
+        {isRoomOwner && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowRoomInfo(false); openSettings(); }}
+            aria-label="Room Settings"
+            className="absolute top-3 left-3 z-30 rounded-full flex items-center justify-center shadow-md cursor-pointer active:scale-95 transition-transform"
+            style={{ width: '34px', height: '34px', background: '#3b82f6' }}
+          >
+            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: '18px', height: '18px' }}>
+              <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
+              <circle cx="12" cy="12" r="2.8" />
+            </svg>
+          </button>
+        )}
+
+        <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0" style={{ paddingLeft: isRoomOwner ? '56px' : '16px' }}>
+          <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
+            <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
+            {roomInfoTab === 'profile' && (
+              <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
+                <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              </svg>
+            )}
+          </button>
+          <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
+            <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
+            {roomInfoTab === 'members' && (
+              <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
+                <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {roomInfoTab === 'profile' ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
+                  <img src={roomDp} alt="Room" className="w-full h-full object-cover" loading="eager" decoding="async" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-gray-800 text-sm truncate">{roomName || 'Room'}</h3>
+                  <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                    <span className="truncate">ID: {roomOwner.accountId}</span>
+                    <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0" title="Copy ID">
+                      <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: '12px', height: '12px' }}>
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                    </button>
+                    {copied && <span className="text-green-500 text-xs shrink-0">Copied!</span>}
+                  </div>
+                </div>
+              </div>
+              <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-0.5">{localUser.name || "Unknown"}</p></div>
+              <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
+                  <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                </div>
+                <div className="flex-1 min-w-0 flex items-center gap-1">
+                  <h4 className="text-xs font-medium text-gray-800 truncate">{localUser.name}</h4>
+                  <span className="flex items-center justify-center flex-shrink-0" style={{ width: 'calc(var(--header-follow-btn-size) + 4px)', height: 'calc(var(--header-follow-btn-size) + 4px)' }}>
+                    <HouseIcon size={26} style={{ width: '100%', height: '100%' }} />
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )}
 
       {showUserProfile && profileUser && (
         <RoomProfile
