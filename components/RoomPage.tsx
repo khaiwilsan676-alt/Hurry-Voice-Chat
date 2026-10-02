@@ -1171,7 +1171,7 @@ if (showSettingPage) return (
 
       <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
-     {/* Top Header */}
+    {/* Top Header */}
     <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
       <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
         <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
@@ -1190,26 +1190,56 @@ if (showSettingPage) return (
         </div>
       </div>
 
-      <div className="flex items-center shrink-0">
-        {/* ⭐ Power — 3 dot + line */}
-        <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm shrink-0" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-          <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-            <circle cx="5" cy="6" r="1.3" fill="#ffffff" stroke="none" />
-            <line x1="9" y1="6" x2="20" y2="6" />
-            <circle cx="5" cy="12" r="1.3" fill="#ffffff" stroke="none" />
-            <line x1="9" y1="12" x2="20" y2="12" />
-            <circle cx="5" cy="18" r="1.3" fill="#ffffff" stroke="none" />
-            <line x1="9" y1="18" x2="20" y2="18" />
-          </svg>
+      <div className="flex items-center gap-0.5">
+        {/* ⭐ User Pill — 3 layered avatars + count (no white icon, no borders) */}
+        <button
+          onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }}
+          className="flex items-center gap-1.5 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm pl-1 pr-2.5 py-1"
+          style={{ height: 'var(--header-btn-size)' }}
+        >
+          <div className="flex items-center -space-x-2">
+            {roomUsers.slice(0, 3).map((user) => (
+              <div
+                key={user.accountId}
+                className="rounded-full overflow-hidden shrink-0"
+                style={{ width: '26px', height: '26px', background: '#000' }}
+              >
+                <img
+                  src={user.image || "/default-avatar.png"}
+                  alt={user.name}
+                  className="w-full h-full object-cover"
+                  draggable={false}
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+                />
+              </div>
+            ))}
+          </div>
+          <span className="text-white font-semibold leading-none" style={{ fontSize: 'var(--header-count-size)' }}>
+            {liveUserCount}
+          </span>
+        </button>
+
+        {isRoomOwner && (
+          <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+              <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
+              <circle cx="12" cy="12" r="2.8" />
+            </svg>
+          </button>
+        )}
+
+        <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+          <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
         </button>
       </div>
     </div>
 
-    {/* Trophy Card + User Pill (same row) */}
-    <div className="w-full relative z-20 flex items-center justify-between mt-2">
-      {/* Cup (left) — same as before */}
-      <div className="-ml-1 sm:-ml-2">
-        <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none rounded-r-full">
+    {/* Trophy Card */}
+    <div className="h-0 w-full relative z-20">
+      <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
+        <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
           <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
             <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
           </div>
@@ -1217,41 +1247,6 @@ if (showSettingPage) return (
           <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
         </button>
       </div>
-
-      {/* ⭐ User Pill (right corner) — 3 avatars + count + 3 blue tracks */}
-      <button
-        onClick={() => setShowActiveUsers(true)}
-        className="bg-black/30 rounded-full flex items-center gap-1.5 pl-1 pr-2 py-1 cursor-pointer hover:bg-black/40 transition-colors shadow-sm shrink-0 -mr-1 sm:-mr-2"
-      >
-        <div className="flex items-center -space-x-1.5">
-          {roomUsers.slice(0, 3).map((user) => (
-            <div
-              key={user.accountId}
-              className="rounded-full overflow-hidden shrink-0"
-              style={{ width: '22px', height: '22px', boxShadow: '0 0 0 1.5px #3b82f6', background: '#000' }}
-            >
-              <img
-                src={user.image || "/default-avatar.png"}
-                alt={user.name}
-                className="w-full h-full object-cover"
-                draggable={false}
-                loading="eager"
-                decoding="async"
-                onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col items-center gap-[1px]">
-          <span className="text-white font-semibold leading-none text-[11px]">{liveUserCount}</span>
-          <div className="flex flex-col gap-[1.5px] mt-[1px]">
-            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
-            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
-            <div className="rounded-full" style={{ width: '14px', height: '1.5px', background: '#3b82f6' }} />
-          </div>
-        </div>
-      </button>
     </div>
 
     {/* Middle */}
@@ -1460,6 +1455,7 @@ if (showSettingPage) return (
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
           <div className="space-y-2 pb-4">
+            {/* ⭐ OWNER ROW — ab localUser (Me page) se */}
             <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
               <div
                 className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
@@ -1498,27 +1494,13 @@ if (showSettingPage) return (
     </div>
   )}
 
-  {/* ⭐ ROOM INFO SHEET — Setting icon top-left (owner only) */}
+  {/* ROOM INFO SHEET — 50vh, gap-3, SMILE indicator */}
   {showRoomInfo && (
     <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
       <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
 
-        {isRoomOwner && (
-          <button
-            onClick={(e) => { e.stopPropagation(); setShowRoomInfo(false); openSettings(); }}
-            aria-label="Room Settings"
-            className="absolute top-3 left-3 z-30 rounded-full flex items-center justify-center shadow-md cursor-pointer active:scale-95 transition-transform"
-            style={{ width: '34px', height: '34px', background: '#3b82f6' }}
-          >
-            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: '18px', height: '18px' }}>
-              <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
-              <circle cx="12" cy="12" r="2.8" />
-            </svg>
-          </button>
-        )}
-
-        <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0" style={{ paddingLeft: isRoomOwner ? '56px' : '16px' }}>
+        <div className="flex items-center gap-1.5 px-4 pt-4 pb-2 flex-shrink-0">
           <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
             <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
             {roomInfoTab === 'profile' && (
