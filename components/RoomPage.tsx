@@ -314,7 +314,7 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-      }
+}
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -386,7 +386,7 @@ function RoomContent({
   const [roomPassword, setRoomPassword] = useState<string>("");
   const [roomDp, setRoomDp] = useState<string>(roomOwner.image || "/default-avatar.png");
   const [micMode, setMicMode] = useState<number>(15);
-  const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
+  const [roomInfoTab, setRoomInfoTab] = useState<'roominfo' | 'members'>('roominfo');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
 
   const [showChatInput, setShowChatInput] = useState(false);
@@ -784,7 +784,6 @@ function RoomContent({
     };
   }, [showChatInput]);
 
-  // ✅ FIXED: openProfile — auto-detect isInSeat from seats array
   const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
     const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
     setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
@@ -1175,7 +1174,7 @@ if (showSettingPage) return (
         {/* Top Header */}
         <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
           <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
-            <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
+            <button onClick={() => { setRoomInfoTab('roominfo'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
               <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
             </button>
             <div className="text-left py-0.5">
@@ -1217,11 +1216,7 @@ if (showSettingPage) return (
               </button>
             )}
 
-            <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Share" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                <path d="M4 14.5C4.5 10 8 7 14 7V3L21 10.5L14 18V14C9.5 14 6 15.5 4 19.5C4 18 4 16 4 14.5Z" />
-              </svg>
-            </button>
+            {/* ⭐ Share button removed from header */}
 
             <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
               <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
@@ -1477,46 +1472,59 @@ if (showSettingPage) return (
         </div>
       )}
 
+      {/* ⭐ ROOM INFO SHEET — Members/Host from localUser (Me page) */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ height: '50vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-4 pt-5 pb-2 flex items-center justify-center"><h2 className="text-base font-bold text-gray-800">Room Information</h2></div>
-            <div className="flex border-b border-gray-200 px-4">
-              <button onClick={() => setRoomInfoTab('profile')} className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'profile' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}>Profile</button>
-              <button onClick={() => setRoomInfoTab('members')} className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'members' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}>Members</button>
+          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ maxHeight: '35vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="flex border-b border-gray-200 px-4 pt-3">
+              <button
+                onClick={() => setRoomInfoTab('roominfo')}
+                className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'roominfo' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Room info
+              </button>
+              <button
+                onClick={() => setRoomInfoTab('members')}
+                className={`flex-1 py-2 text-xs font-semibold transition-all cursor-pointer ${roomInfoTab === 'members' ? 'text-black border-b-2 border-black' : 'text-gray-400 hover:text-gray-600'}`}
+              >
+                Members
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-              {roomInfoTab === 'profile' ? (
-                <div className="space-y-3">
+
+            <div className="px-4 py-3 overflow-y-auto" style={{ maxHeight: 'calc(35vh - 44px)' }}>
+              {roomInfoTab === 'roominfo' ? (
+                <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
+                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '56px', height: '56px' }}>
                       <img src={roomDp} alt="Room" className="w-full h-full object-cover" loading="eager" decoding="async" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 text-sm">{roomName || 'Room'}</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-800 text-sm truncate">{roomName || 'Room'}</h3>
                       <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                        <span>ID: {roomOwner.accountId}</span>
-                        <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer" title="Copy ID">
-                          <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                        <span className="truncate">ID: {roomOwner.accountId}</span>
+                        <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0" title="Copy ID">
+                          <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: '12px', height: '12px' }}>
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                           </svg>
                         </button>
-                        {copied && <span className="text-green-500 text-xs">Copied!</span>}
+                        {copied && <span className="text-green-500 text-xs shrink-0">Copied!</span>}
                       </div>
                     </div>
                   </div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-1">{roomOwner.name || "Unknown"}</p></div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-1 leading-relaxed">{roomAnnouncement || '—'}</p></div>
+                  {/* ⭐ Host from Me page (localUser) */}
+                  <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-0.5">{localUser.name || "Unknown"}</p></div>
+                  <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
                 </div>
               ) : (
                 <div className="space-y-2">
+                  {/* ⭐ Owner row → localUser avatar + name (Me page) */}
                   <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
-                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: roomOwner.name, image: roomOwner.image, accountId: roomOwner.accountId || roomOwner.id || '' })}>
-                      <img src={roomOwner.image || "/default-avatar.png"} alt={roomOwner.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
+                      <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                     </div>
                     <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <h4 className="text-xs font-medium text-gray-800 truncate">{roomOwner.name}</h4>
+                      <h4 className="text-xs font-medium text-gray-800 truncate">{localUser.name}</h4>
                       <span className="flex items-center justify-center flex-shrink-0" style={{ width: 'calc(var(--header-follow-btn-size) + 4px)', height: 'calc(var(--header-follow-btn-size) + 4px)' }}>
                         <HouseIcon size={26} style={{ width: '100%', height: '100%' }} />
                       </span>
@@ -1551,25 +1559,52 @@ if (showSettingPage) return (
         />
       )}
 
+      {/* ⭐⭐⭐ TOP 20vh SHEET — Share / Keep / Exit (all blue circle + white icon) ⭐⭐⭐ */}
       {showExitMenu && (
-        <div className="absolute inset-0 z-[9999] flex items-center justify-center bg-black/40" onClick={closeExitMenu}>
-          <div className="flex flex-col items-center gap-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex flex-col items-center gap-2">
-              <button onClick={handleKeep} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><line x1="5" y1="12" x2="19" y2="12" /></svg>
-              </button>
-              <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <button onClick={handleExit} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-              </button>
-              <span className="text-white/70 font-medium" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
+        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '20vh' }}>
+          {/* Backdrop to close on click outside */}
+          <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
+
+          {/* Top sheet */}
+          <div
+            className="relative w-full h-full flex items-center justify-center animate-top-sheet"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.65) 65%, rgba(0,0,0,0) 100%)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center gap-10">
+              {/* SHARE */}
+              <div className="flex flex-col items-center gap-2">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowExitMenu(false); setShowMessageSheet(true); }}
+                  className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer"
+                  style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}
+                >
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}>
+                    <path d="M4 14.5C4.5 10 8 7 14 7V3L21 10.5L14 18V14C9.5 14 6 15.5 4 19.5C4 18 4 16 4 14.5Z" />
+                  </svg>
+                </button>
+                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Share</span>
+              </div>
+
+              {/* KEEP */}
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={handleKeep} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
+                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                </button>
+                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
+              </div>
+
+              {/* EXIT */}
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={handleExit} className="rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 shadow-lg shadow-blue-500/30 cursor-pointer" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}>
+                  <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--exit-icon-size)', height: 'var(--exit-icon-size)' }}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                </button>
+                <span className="text-white/70 font-medium" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
+              </div>
             </div>
           </div>
-          <button onClick={closeExitMenu} className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-all duration-200 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-          </button>
         </div>
       )}
 
@@ -1752,6 +1787,8 @@ if (showSettingPage) return (
         .music-minimize-icon { animation: rotate-slow 4s linear infinite; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-top-sheet { animation: slideDown 0.28s ease-out; }
         @keyframes waveBehind { 0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.9; } 50% { transform: translate(-50%, -50%) scale(1.35); opacity: 0.4; } 100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } }
         @keyframes voicePulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.08); } }
         .wave-ripple { animation: waveBehind 1.2s ease-out infinite; }
@@ -1822,12 +1859,12 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
 
           <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '91%', height: '91%' }}>
             {isLocked ? (
-  <img src="/file_0000000015a48211b000ee447a786f7c.png" alt="Locked" className="object-contain select-none pointer-events-none" style={{ width: '62%', height: '62%' }} draggable={false} loading="eager" decoding="async" />
-) : isOccupied && user ? (
-  <img src={user.image || "/default-avatar.png"} alt={user.name} data-hurry-seat={seatNumber} data-hurry-account={user.accountId} className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} onClick={onAvatarClick} />
-) : (
-  <img src="/file_000000003e7482309b7f6e7f2a922160.png" alt="Empty Seat" className="w-full h-full object-contain select-none pointer-events-none" style={{ width: '65%', height: '65%' }} draggable={false} loading="eager" decoding="async" />
-)}
+              <img src="/file_0000000015a48211b000ee447a786f7c.png" alt="Locked" className="object-contain select-none pointer-events-none" style={{ width: '62%', height: '62%' }} draggable={false} loading="eager" decoding="async" />
+            ) : isOccupied && user ? (
+              <img src={user.image || "/default-avatar.png"} alt={user.name} data-hurry-seat={seatNumber} data-hurry-account={user.accountId} className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} onClick={onAvatarClick} />
+            ) : (
+              <img src="/file_000000003e7482309b7f6e7f2a922160.png" alt="Empty Seat" className="object-contain select-none pointer-events-none" style={{ width: '65%', height: '65%' }} draggable={false} loading="eager" decoding="async" />
+            )}
           </div>
 
           {gif && (
@@ -1846,29 +1883,29 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
         </div>
       </div>
 
-       <span
-  className="font-medium text-white/90 pointer-events-none flex flex-nowrap items-center justify-center gap-0.5 leading-none text-center w-[var(--seat-size)] overflow-hidden mt-0.5 shrink-0"
-  style={{
-    fontSize: 'calc(var(--seat-size) * 0.16)',
-    height: 'calc(var(--seat-size) * 0.22)',
-    lineHeight: 'calc(var(--seat-size) * 0.22)',
-  }}
->
-  {isRoomOwnerSeat && (
-    <span
-      className="flex items-center justify-center shrink-0 inline-flex"
-      style={{
-        width: 'calc(var(--seat-size) * 0.20)',
-        height: 'calc(var(--seat-size) * 0.20)',
-      }}
-    >
-      <HouseIcon size={22} style={{ width: '100%', height: '100%' }} />
-    </span>
-  )}
-  <span className="truncate min-w-0 whitespace-nowrap">
-    {isLocked ? `${seatNumber}` : (isOccupied && user ? user.name : `${seatNumber}`)}
-  </span>
-</span>
+      <span
+        className="font-medium text-white/90 pointer-events-none flex flex-nowrap items-center justify-center gap-0.5 leading-none text-center w-[var(--seat-size)] overflow-hidden mt-0.5 shrink-0"
+        style={{
+          fontSize: 'calc(var(--seat-size) * 0.16)',
+          height: 'calc(var(--seat-size) * 0.22)',
+          lineHeight: 'calc(var(--seat-size) * 0.22)',
+        }}
+      >
+        {isRoomOwnerSeat && (
+          <span
+            className="flex items-center justify-center shrink-0 inline-flex"
+            style={{
+              width: 'calc(var(--seat-size) * 0.20)',
+              height: 'calc(var(--seat-size) * 0.20)',
+            }}
+          >
+            <HouseIcon size={22} style={{ width: '100%', height: '100%' }} />
+          </span>
+        )}
+        <span className="truncate min-w-0 whitespace-nowrap">
+          {isLocked ? `${seatNumber}` : (isOccupied && user ? user.name : `${seatNumber}`)}
+        </span>
+      </span>
     </div>
   );
 }
