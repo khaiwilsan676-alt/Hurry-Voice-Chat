@@ -1820,18 +1820,18 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
             {isLocked ? <SeatBubbleIconGrey /> : <SeatBubbleIconBlue />}
           </div>
 
-          <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '84%', height: '84%' }}>
+          <div className="relative rounded-full overflow-hidden flex items-center justify-center z-10 pointer-events-auto" style={{ width: '87%', height: '87%' }}>
             {isLocked ? (
-              <img src="/file_0000000015a48211b000ee447a786f7c.png" alt="Locked" className="w-full h-full object-contain select-none pointer-events-none" draggable={false} loading="eager" decoding="async" />
-            ) : isOccupied && user ? (
-              <img src={user.image || "/default-avatar.png"} alt={user.name} data-hurry-seat={seatNumber} data-hurry-account={user.accountId} className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} onClick={onAvatarClick} />
-            ) : (
-              <img src="/file_000000003e7482309b7f6e7f2a922160.png" alt="Empty Seat" className="w-full h-full object-contain select-none pointer-events-none" draggable={false} loading="eager" decoding="async" />
-            )}
+  <img src="/file_0000000015a48211b000ee447a786f7c.png" alt="Locked" className="object-contain select-none pointer-events-none" style={{ width: '60%', height: '60%' }} draggable={false} loading="eager" decoding="async" />
+) : isOccupied && user ? (
+  <img src={user.image || "/default-avatar.png"} alt={user.name} data-hurry-seat={seatNumber} data-hurry-account={user.accountId} className="w-full h-full object-cover select-none pointer-events-auto cursor-pointer" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} onClick={onAvatarClick} />
+) : (
+  <img src="/file_000000003e7482309b7f6e7f2a922160.png" alt="Empty Seat" className="w-full h-full object-contain select-none pointer-events-none" draggable={false} loading="eager" decoding="async" />
+)}
           </div>
 
           {gif && (
-            <div className="absolute pointer-events-none overflow-visible flex items-center justify-center z-30" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '70%', height: '70%' }}>
+            <div className="absolute pointer-events-none overflow-visible flex items-center justify-center z-30" style={{ top: '55%', left: '55%', transform: 'translate(-50%, -50%)', width: '88%', height: '88%' }}>
               <img key={`${gif.src}-${gif.timestamp}`} src={`${encodeURI(gif.src)}?t=${gif.timestamp}`} alt="Reaction" className="w-full h-full object-contain select-none pointer-events-none" style={{ maxWidth: 'none', maxHeight: 'none' }} loading="eager" decoding="async" />
             </div>
           )}
