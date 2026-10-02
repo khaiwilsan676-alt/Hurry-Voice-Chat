@@ -314,7 +314,7 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-}
+  }
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -1366,11 +1366,7 @@ if (showSettingPage) return (
                 className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
                 style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="fill-white"
-                  style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}
-                >
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
                   <rect x="3" y="3" width="8" height="8" rx="1.5" />
                   <rect x="13" y="3" width="8" height="8" rx="1.5" />
                   <rect x="3" y="13" width="8" height="8" rx="1.5" />
@@ -1465,35 +1461,20 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ⭐ ROOM INFO SHEET — 50vh, no underline, smile indicator, no border line */}
+      {/* ⭐ ROOM INFO SHEET — 50vh, no underline, smile indicator */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
           <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
 
             <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
-              <button
-                onClick={() => setRoomInfoTab('roominfo')}
-                className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer"
-              >
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'roominfo' ? 'text-black' : 'text-gray-400'}`}>
-                  Room info
-                </span>
-                {roomInfoTab === 'roominfo' && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                )}
+              <button onClick={() => setRoomInfoTab('roominfo')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'roominfo' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
+                {roomInfoTab === 'roominfo' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
               </button>
-
-              <button
-                onClick={() => setRoomInfoTab('members')}
-                className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer"
-              >
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>
-                  Members
-                </span>
-                {roomInfoTab === 'members' && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                )}
+              <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
+                {roomInfoTab === 'members' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
               </button>
             </div>
 
@@ -1566,7 +1547,6 @@ if (showSettingPage) return (
       {showExitMenu && (
         <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '25vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
-
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
             style={{
@@ -1575,36 +1555,11 @@ if (showSettingPage) return (
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-center gap-12 -mt-2">
-              <button
-                onClick={handleKeep}
-                className="cursor-pointer active:scale-95 transition-transform"
-                aria-label="Keep"
-              >
-                <img
-                  src="/IMG_20261002_113229.png"
-                  alt="Keep"
-                  className="object-contain select-none pointer-events-none"
-                  style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}
-                  draggable={false}
-                  loading="eager"
-                  decoding="async"
-                />
+              <button onClick={handleKeep} className="cursor-pointer active:scale-95 transition-transform" aria-label="Keep">
+                <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
               </button>
-
-              <button
-                onClick={handleExit}
-                className="cursor-pointer active:scale-95 transition-transform"
-                aria-label="Exit"
-              >
-                <img
-                  src="/IMG_20261002_113213.png"
-                  alt="Exit"
-                  className="object-contain select-none pointer-events-none"
-                  style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }}
-                  draggable={false}
-                  loading="eager"
-                  decoding="async"
-                />
+              <button onClick={handleExit} className="cursor-pointer active:scale-95 transition-transform" aria-label="Exit">
+                <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
               </button>
             </div>
           </div>
@@ -1894,13 +1849,7 @@ if (showSettingPage) return (
         }}
       >
         {isRoomOwnerSeat && (
-          <span
-            className="flex items-center justify-center shrink-0 inline-flex"
-            style={{
-              width: 'calc(var(--seat-size) * 0.20)',
-              height: 'calc(var(--seat-size) * 0.20)',
-            }}
-          >
+          <span className="flex items-center justify-center shrink-0 inline-flex" style={{ width: 'calc(var(--seat-size) * 0.20)', height: 'calc(var(--seat-size) * 0.20)' }}>
             <HouseIcon size={22} style={{ width: '100%', height: '100%' }} />
           </span>
         )}
@@ -1976,4 +1925,4 @@ const GreenColorRemovalShader = memo(function GreenColorRemovalShader({ imageSrc
   }, [imageSrc, threshold]);
   return <canvas ref={canvasRef} className={className} style={style} />;
 });
-                                                                                                                                                                                                                          }
+                                                                                                                                                                                                                                                                                  }
