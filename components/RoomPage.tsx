@@ -314,8 +314,7 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-}
-
+                                                             }
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -790,8 +789,7 @@ function RoomContent({
     setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
     setShowUserProfile(true);
   }, [seats]);
-
-const handleCopyId = (e: React.MouseEvent) => {
+  const handleCopyId = (e: React.MouseEvent) => {
   e.stopPropagation();
   navigator.clipboard.writeText(roomOwner.accountId || '');
   setCopied(true);
@@ -1166,8 +1164,7 @@ if (showSettingPage) return (
     onSave={handleSaveSettings}
   />
 );
-
-  return (
+    return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
       <img src={backgroundImage} alt="Room Background" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" draggable={false} />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
@@ -1429,6 +1426,7 @@ if (showSettingPage) return (
         </div>
       )}
 
+      {/* ⭐ ACTIVE USERS SHEET — Owner row from localUser (Me page) */}
       {showActiveUsers && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
@@ -1438,15 +1436,28 @@ if (showSettingPage) return (
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
               <div className="space-y-2 pb-4">
+                {/* ⭐ OWNER ROW — ab localUser (Me page) se */}
                 <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
-                  <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: roomOwner.name, image: roomOwner.image, accountId: roomOwner.accountId || roomOwner.id || roomOwner.uid || '' })}>
-                    <img src={roomOwner.image || "/default-avatar.png"} alt={roomOwner.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
+                  <div
+                    className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+                    style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}
+                    onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}
+                  >
+                    <img
+                      src={localUser.image || "/default-avatar.png"}
+                      alt={localUser.name}
+                      className="w-full h-full object-cover"
+                      loading="eager"
+                      decoding="async"
+                      onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+                    />
                   </div>
                   <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <h4 className="text-xs font-semibold text-gray-800 truncate">{roomOwner.name || 'Owner'}</h4>
+                    <h4 className="text-xs font-semibold text-gray-800 truncate">{localUser.name || 'Owner'}</h4>
                     <HouseIcon size={14} className="shrink-0" />
                   </div>
                 </div>
+
                 {roomUsers.filter(u => String(u.accountId) !== String(roomOwnerId)).map((user) => (
                   <div key={user.accountId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
@@ -1464,20 +1475,28 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ⭐ ROOM INFO SHEET — 50vh, no heading, no underline, dot indicator, host/members from localUser */}
+      {/* ROOM INFO SHEET — 50vh, gap-3, SMILE indicator */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
           <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
 
             <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
-              <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
+              <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
                 <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
-                {roomInfoTab === 'profile' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
+                {roomInfoTab === 'profile' && (
+                  <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
+                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                  </svg>
+                )}
               </button>
-              <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
+              <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
                 <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
-                {roomInfoTab === 'members' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
+                {roomInfoTab === 'members' && (
+                  <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
+                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                  </svg>
+                )}
               </button>
             </div>
 
@@ -1546,22 +1565,30 @@ if (showSettingPage) return (
         />
       )}
 
-      {/* ⭐ TOP 25vh SHEET — Keep + Exit only (images) */}
+      {/* TOP 25vh SHEET — SOLID BLACK + fade, Keep/Exit IMAGES + TEXT below */}
       {showExitMenu && (
         <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '25vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
-            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 100%)' }}
+            style={{
+              background: 'linear-gradient(to bottom, #000000 0%, #000000 70%, rgba(0,0,0,0.5) 90%, rgba(0,0,0,0) 100%)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center gap-12 -mt-2">
-              <button onClick={handleKeep} className="cursor-pointer active:scale-95 transition-transform" aria-label="Keep">
-                <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
-              </button>
-              <button onClick={handleExit} className="cursor-pointer active:scale-95 transition-transform" aria-label="Exit">
-                <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
-              </button>
+            <div className="flex items-center justify-center gap-16 -mt-2">
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={handleKeep} className="cursor-pointer active:scale-95 transition-transform" aria-label="Keep">
+                  <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
+                </button>
+                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <button onClick={handleExit} className="cursor-pointer active:scale-95 transition-transform" aria-label="Exit">
+                  <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: 'var(--exit-btn-size)', height: 'var(--exit-btn-size)' }} draggable={false} loading="eager" decoding="async" />
+                </button>
+                <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1772,7 +1799,6 @@ if (showSettingPage) return (
     </div>
   );
                 }
-
 function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
   seatNumber: number; seatData?: Seat; onClick: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void; accountId: string; roomOwnerId: string;
