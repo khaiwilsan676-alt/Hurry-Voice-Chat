@@ -1567,7 +1567,7 @@ if (showSettingPage) return (
 
       {/* TOP 25vh SHEET — SOLID BLACK + fade, Keep/Exit IMAGES + TEXT below */}
       {showExitMenu && (
-        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '30vh' }}>
+        <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '26vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
@@ -1579,13 +1579,13 @@ if (showSettingPage) return (
             <div className="flex items-center justify-center gap-16 -mt-2">
               <div className="flex flex-col items-center gap-2">
                 <button onClick={handleKeep} className="cursor-pointer active:scale-95 transition-transform" aria-label="Keep">
-                  <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: '65px', height: '65px' }} draggable={false} loading="eager" decoding="async" />
+                  <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: '67px', height: '67px' }} draggable={false} loading="eager" decoding="async" />
                 </button>
                 <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <button onClick={handleExit} className="cursor-pointer active:scale-95 transition-transform" aria-label="Exit">
-                  <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: '65px', height: '65px' }} draggable={false} loading="eager" decoding="async" />
+                  <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: '67px', height: '67px' }} draggable={false} loading="eager" decoding="async" />
                 </button>
                 <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
               </div>
