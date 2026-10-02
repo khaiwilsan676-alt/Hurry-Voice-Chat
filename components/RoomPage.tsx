@@ -314,7 +314,8 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-  }
+}
+
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -386,7 +387,7 @@ function RoomContent({
   const [roomPassword, setRoomPassword] = useState<string>("");
   const [roomDp, setRoomDp] = useState<string>(roomOwner.image || "/default-avatar.png");
   const [micMode, setMicMode] = useState<number>(15);
-  const [roomInfoTab, setRoomInfoTab] = useState<'roominfo' | 'members'>('roominfo');
+  const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
 
   const [showChatInput, setShowChatInput] = useState(false);
@@ -789,7 +790,8 @@ function RoomContent({
     setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
     setShowUserProfile(true);
   }, [seats]);
-  const handleCopyId = (e: React.MouseEvent) => {
+
+const handleCopyId = (e: React.MouseEvent) => {
   e.stopPropagation();
   navigator.clipboard.writeText(roomOwner.accountId || '');
   setCopied(true);
@@ -1164,7 +1166,8 @@ if (showSettingPage) return (
     onSave={handleSaveSettings}
   />
 );
-    return (
+
+  return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
       <img src={backgroundImage} alt="Room Background" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" draggable={false} />
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
@@ -1174,7 +1177,7 @@ if (showSettingPage) return (
         {/* Top Header */}
         <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
           <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
-            <button onClick={() => { setRoomInfoTab('roominfo'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
+            <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
               <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
             </button>
             <div className="text-left py-0.5">
@@ -1461,16 +1464,16 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ⭐ ROOM INFO SHEET — 50vh, no underline, smile indicator */}
+      {/* ⭐ ROOM INFO SHEET — 50vh, no heading, no underline, dot indicator, host/members from localUser */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
           <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
 
             <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
-              <button onClick={() => setRoomInfoTab('roominfo')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'roominfo' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
-                {roomInfoTab === 'roominfo' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
+              <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
+                {roomInfoTab === 'profile' && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
               </button>
               <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center gap-1 py-1 cursor-pointer">
                 <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
@@ -1479,7 +1482,7 @@ if (showSettingPage) return (
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-3">
-              {roomInfoTab === 'roominfo' ? (
+              {roomInfoTab === 'profile' ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
@@ -1543,15 +1546,13 @@ if (showSettingPage) return (
         />
       )}
 
-      {/* ⭐⭐⭐ TOP 25vh SHEET — Keep + Exit only (images) ⭐⭐⭐ */}
+      {/* ⭐ TOP 25vh SHEET — Keep + Exit only (images) */}
       {showExitMenu && (
         <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '25vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
           <div
             className="relative w-full h-full flex items-center justify-center animate-top-sheet"
-            style={{
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 100%)',
-            }}
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0) 100%)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-center gap-12 -mt-2">
@@ -1770,7 +1771,9 @@ if (showSettingPage) return (
       />
     </div>
   );
-  function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
+                }
+
+function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
   seatNumber: number; seatData?: Seat; onClick: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void; accountId: string; roomOwnerId: string;
 }) {
@@ -1925,4 +1928,3 @@ const GreenColorRemovalShader = memo(function GreenColorRemovalShader({ imageSrc
   }, [imageSrc, threshold]);
   return <canvas ref={canvasRef} className={className} style={style} />;
 });
-                                                                                                                                                                                                                                                                                  }
