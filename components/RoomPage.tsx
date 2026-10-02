@@ -1846,14 +1846,21 @@ function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId,
         </div>
       </div>
 
-      <span
-  className="font-medium text-white/90 pointer-events-none flex flex-nowrap items-center justify-center gap-0.5 leading-none text-center w-[var(--seat-size)] overflow-hidden mt-0.5"
-  style={{ fontSize: 'calc(var(--seat-size) * 0.16)' }}
+       <span
+  className="font-medium text-white/90 pointer-events-none flex flex-nowrap items-center justify-center gap-0.5 leading-none text-center w-[var(--seat-size)] overflow-hidden mt-0.5 shrink-0"
+  style={{
+    fontSize: 'calc(var(--seat-size) * 0.16)',
+    height: 'calc(var(--seat-size) * 0.22)',
+    lineHeight: 'calc(var(--seat-size) * 0.22)',
+  }}
 >
   {isRoomOwnerSeat && (
     <span
       className="flex items-center justify-center shrink-0 inline-flex"
-      style={{ width: 'calc(var(--seat-size) * 0.22)', height: 'calc(var(--seat-size) * 0.22)' }}
+      style={{
+        width: 'calc(var(--seat-size) * 0.20)',
+        height: 'calc(var(--seat-size) * 0.20)',
+      }}
     >
       <HouseIcon size={22} style={{ width: '100%', height: '100%' }} />
     </span>
