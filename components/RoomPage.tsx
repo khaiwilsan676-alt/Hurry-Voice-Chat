@@ -1579,13 +1579,13 @@ if (showSettingPage) return (
             <div className="flex items-center justify-center gap-16 -mt-2">
               <div className="flex flex-col items-center gap-2">
                 <button onClick={handleKeep} className="cursor-pointer active:scale-95 transition-transform" aria-label="Keep">
-                  <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: '100px', height: '100px' }} draggable={false} loading="eager" decoding="async" />
+                  <img src="/IMG_20261002_113229.png" alt="Keep" className="object-contain select-none pointer-events-none" style={{ width: '65px', height: '65px' }} draggable={false} loading="eager" decoding="async" />
                 </button>
                 <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Keep</span>
               </div>
               <div className="flex flex-col items-center gap-2">
                 <button onClick={handleExit} className="cursor-pointer active:scale-95 transition-transform" aria-label="Exit">
-                  <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: '100px', height: '100px' }} draggable={false} loading="eager" decoding="async" />
+                  <img src="/IMG_20261002_113213.png" alt="Exit" className="object-contain select-none pointer-events-none" style={{ width: '65px', height: '65px' }} draggable={false} loading="eager" decoding="async" />
                 </button>
                 <span className="text-white font-semibold" style={{ fontSize: 'var(--exit-text-size)' }}>Exit</span>
               </div>
