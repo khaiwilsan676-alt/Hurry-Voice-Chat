@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -111,14 +110,14 @@ private fun HomeNative(nav: NavHostController) {
             }
         }
         Row(Modifier.fillMaxWidth()) {
-            QuickButton("Wallet") { navController.navigate(Routes.WALLET) }
+            Button(onClick = { controller.navigate(Routes.WALLET) }, modifier = Modifier.weight(1f)) { Text("Wallet") }
             Spacer(Modifier.width(10.dp))
-            QuickButton("Store") { navController.navigate(Routes.STORE) }
+            Button(onClick = { controller.navigate(Routes.STORE) }, modifier = Modifier.weight(1f)) { Text("Store") }
         }
         Row(Modifier.fillMaxWidth()) {
-            QuickButton("Leaderboard") { navController.navigate(Routes.LEADERBOARD) }
+            Button(onClick = { controller.navigate(Routes.LEADERBOARD) }, modifier = Modifier.weight(1f)) { Text("Leaderboard") }
             Spacer(Modifier.width(10.dp))
-            QuickButton("Invite") { navController.navigate(Routes.INVITE) }
+            Button(onClick = { controller.navigate(Routes.INVITE) }, modifier = Modifier.weight(1f)) { Text("Invite") }
         }
     }
 }
@@ -151,10 +150,6 @@ private fun MeNative(navController: NavHostController) {
     }
 }
 
-@Composable
-private fun RowScope.QuickButton(label: String, onClick: () -> Unit) {
-    Button(onClick = onClick, modifier = Modifier.weight(1f)) { Text(label) }
-}
 
 @Composable
 private fun SimpleNative(title: String, subtitle: String) {
