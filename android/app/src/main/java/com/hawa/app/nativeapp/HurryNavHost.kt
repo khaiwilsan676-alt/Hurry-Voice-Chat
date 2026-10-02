@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -24,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -152,7 +152,7 @@ private fun MeNative(navController: NavHostController) {
 }
 
 @Composable
-private fun QuickButton(label: String, onClick: () -> Unit) {
+private fun RowScope.QuickButton(label: String, onClick: () -> Unit) {
     Button(onClick = onClick, modifier = Modifier.weight(1f)) { Text(label) }
 }
 
