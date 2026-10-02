@@ -1005,27 +1005,6 @@ io.on("connection", (socket) => {
       const requestedOwnerId = String(roomOwnerId || "");
       const cachedLock = lockedRooms.get(room);
 
-      if (cachedLock?.locked && String(cachedLock.ownerId || "") !== accId) {
-        socket.emit("room_locked", { roomId: room, ownerId: String(cachedLock.ownerId || "") });
-        return;
-      }
-
-      if (db) {
-        try {
-          const roomDoc = await db.collection("rooms").findOne({
-            $or: [{ accountId: room }, { roomId: room }, { id: room }]
-          });
-          if (roomDoc?.isLocked && String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId) !== accId) {
-            const owner = String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId || "");
-            lockedRooms.set(room, { locked: true, ownerId: owner, updatedAt: Date.now() });
-            socket.emit("room_locked", { roomId: room, ownerId: owner });
-            return;
-          }
-        } catch (error) {
-          console.error("Room lock check failed:", error.message);
-        }
-      }
-
       // Do not allow a client to impersonate a different account identity.
       if (socket.userId || socket.accountId || socket.roomUserId || socket.roomAccountId) {
         if (!socketOwnsIdentity(socket, accId) && !socketOwnsIdentity(socket, userId)) return;
@@ -1131,6 +1110,38 @@ io.on("connection", (socket) => {
 
       emitRoomPresence(room);
       emitGlobalRoomPresence();
+
+      // Perform async lock check AFTER joining synchronously
+      if (cachedLock?.locked && String(cachedLock.ownerId || "") !== accId) {
+        socket.emit("room_locked", { roomId: room, ownerId: String(cachedLock.ownerId || "") });
+        socket.leave(`room:${room}`);
+        socket.roomId = null;
+        removeUserFromRoom(room, accId);
+        emitRoomPresence(room);
+        emitGlobalRoomPresence();
+        return;
+      }
+
+      if (db) {
+        try {
+          const roomDoc = await db.collection("rooms").findOne({
+            $or: [{ accountId: room }, { roomId: room }, { id: room }]
+          });
+          if (roomDoc?.isLocked && String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId) !== accId) {
+            const owner = String(roomDoc.accountId || roomDoc.roomId || roomDoc.id || requestedOwnerId || "");
+            lockedRooms.set(room, { locked: true, ownerId: owner, updatedAt: Date.now() });
+            socket.emit("room_locked", { roomId: room, ownerId: owner });
+            socket.leave(`room:${room}`);
+            socket.roomId = null;
+            removeUserFromRoom(room, accId);
+            emitRoomPresence(room);
+            emitGlobalRoomPresence();
+            return;
+          }
+        } catch (error) {
+          console.error("Room lock check failed:", error.message);
+        }
+      }
     }
   );
 
