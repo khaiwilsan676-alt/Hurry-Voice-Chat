@@ -1,6 +1,6 @@
 package com.hurry.voicechat
 
-import android.os.Bundle
+import android.os.Bundle\nimport android.view.WindowManager\nimport androidx.core.view.WindowCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS }\n        enableEdgeToEdge()\n        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true\n        window.isNavigationBarContrastEnforced = false
         setContent { HurryNativeRoot() }
     }
 }
