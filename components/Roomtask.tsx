@@ -108,79 +108,6 @@ function useProcessedShaderImage(src: string) {
   return processedSrc;
 }
 
-// === REUSABLE ORNATE BUTTON (screenshot jaisa) ===
-function OrnateButton({
-  label,
-  onClick,
-  className = '',
-}: {
-  label: string;
-  onClick?: () => void;
-  className?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`relative flex items-center justify-center cursor-pointer outline-none
-                  active:translate-y-[2px] transition-all duration-100 group ${className}`}
-    >
-      {/* Left Wing */}
-      <svg
-        viewBox="0 0 40 60"
-        className="w-4 h-9 flex-shrink-0 -mr-1 z-20 drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]"
-      >
-        <defs>
-          <linearGradient id="wingGoldL" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#fff3b0" />
-            <stop offset="50%" stopColor="#e6a91e" />
-            <stop offset="100%" stopColor="#8a5300" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M38 30 C30 20 26 8 20 4 C16 10 18 20 22 28 C18 26 12 24 8 26 C14 30 22 32 26 34 C22 38 14 42 8 46 C12 48 18 46 22 44 C18 52 16 60 20 58 C26 54 30 42 38 30 Z"
-          fill="url(#wingGoldL)"
-          stroke="#5a2c00"
-          strokeWidth="1.5"
-        />
-        <circle cx="12" cy="30" r="3" fill="#3fc6ff" stroke="#0a5a80" strokeWidth="1" />
-      </svg>
-
-      {/* Main Button Body */}
-      <div
-        className="relative flex items-center justify-center px-3 h-9 z-10
-                   bg-gradient-to-b from-[#e0231f] via-[#c0120e] to-[#8a0805]
-                   border-y-[3px] border-[#f5c542]
-                   shadow-[0_3px_0_#5a2c00,0_0_8px_rgba(255,200,0,0.6),inset_0_2px_4px_rgba(255,255,255,0.25),inset_0_-4px_6px_rgba(0,0,0,0.5)]"
-        style={{
-          borderRadius: '20px / 18px',
-          minWidth: '90px',
-          boxShadow:
-            '0 0 0 2px #f5c542, 0 3px 0 #5a2c00, 0 0 10px rgba(255,200,0,0.5), inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -4px 6px rgba(0,0,0,0.5)',
-        }}
-      >
-        <span className="text-[#ffe9a8] font-black text-[12px] uppercase tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-          {label}
-        </span>
-      </div>
-
-      {/* Right Wing */}
-      <svg
-        viewBox="0 0 40 60"
-        className="w-4 h-9 flex-shrink-0 -ml-1 z-20 drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]"
-        style={{ transform: 'scaleX(-1)' }}
-      >
-        <path
-          d="M38 30 C30 20 26 8 20 4 C16 10 18 20 22 28 C18 26 12 24 8 26 C14 30 22 32 26 34 C22 38 14 42 8 46 C12 48 18 46 22 44 C18 52 16 60 20 58 C26 54 30 42 38 30 Z"
-          fill="url(#wingGoldL)"
-          stroke="#5a2c00"
-          strokeWidth="1.5"
-        />
-        <circle cx="12" cy="30" r="3" fill="#3fc6ff" stroke="#0a5a80" strokeWidth="1" />
-      </svg>
-    </button>
-  );
-}
-
 // Helper component for task items
 function TaskItem({ 
   title, 
@@ -252,8 +179,19 @@ function TaskItem({
             </span>
           </div>
 
-          {/* CLAIM BUTTON - Ornate */}
-          <OrnateButton label="Claim" onClick={() => {}} />
+          {/* CLAIM BUTTON */}
+          <button 
+            onClick={() => {}}
+            className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-wider
+                       bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                       text-[#4a1f00]
+                       border-2 border-[#f5e6a8]
+                       shadow-[0_0_6px_rgba(255,215,0,0.5),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                       active:translate-y-[2px] active:shadow-[0_0_5px_rgba(255,215,0,0.5),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                       transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
+          >
+            Claim
+          </button>
 
         </div>
       </div>
@@ -369,11 +307,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* NOTE TEXT - Plate ke thoda upar, neeche shift kiya */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-3 px-1 mt-2">
-                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
-              </p>
-
               {/* Plate Wrapper (Relative container for plate + 0 + icon) */}
               <div className="relative w-full flex items-center justify-center">
                 <img 
@@ -413,9 +346,25 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* COLLECT BUTTON - Ornate */}
+              {/* NOTE TEXT - Plate ke niche chipka hua, thoda sa upar */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug -mt-3 px-1 relative z-30">
+                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+              </p>
+
+              {/* COLLECT BUTTON */}
               <div className="relative w-full flex justify-center -mt-4 z-30">
-                <OrnateButton label="Collect" onClick={() => {}} />
+                <button 
+                  onClick={() => {}}
+                  className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                             text-[#4a1f00]
+                             border-2 border-[#f5e6a8]
+                             shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
+                >
+                  Collect
+                </button>
               </div>
 
             </div>
