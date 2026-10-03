@@ -14,11 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color\nimport androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp\nimport androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
@@ -65,17 +65,29 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                     Spacer(Modifier.width(2.dp))
                 }
                 Spacer(Modifier.height(9.dp))
-                HorizontalPager(state=pager, modifier=Modifier.fillMaxWidth().height(154.dp)) { page ->
+                HorizontalPager(
+                    state=pager,
+                    modifier=Modifier.fillMaxWidth().height(13.5f * LocalConfiguration.current.screenHeightDp / 100f)
+                ) { page ->
                     AsyncImage(
-                        model=banners[page], contentDescription=null,
-                        modifier=Modifier.fillMaxSize().clip(RoundedCornerShape(7.dp)),
+                        model=banners[page],
+                        contentDescription=null,
+                        modifier=Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
                         contentScale=ContentScale.Crop
                     )
                 }
-                Row(Modifier.fillMaxWidth().padding(top=5.dp), horizontalArrangement=Arrangement.Center) {
+                Row(
+                    Modifier.fillMaxWidth().padding(top=0.dp),
+                    horizontalArrangement=Arrangement.Center
+                ) {
                     repeat(banners.size) { i ->
-                        Box(Modifier.padding(horizontal=2.dp).size(if(i==pager.currentPage) 7.dp else 5.dp)
-                            .clip(RoundedCornerShape(50)).background(if(i==pager.currentPage) HurryBlue else Color.LightGray))
+                        Box(
+                            Modifier
+                                .padding(horizontal=3.dp)
+                                .size(width=if(i==pager.currentPage) 12.dp else 6.dp, height=6.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(if(i==pager.currentPage) Color.White else Color.White.copy(alpha=0.5f))
+                        )
                     }
                 }
             }
@@ -158,16 +170,32 @@ private fun HurryHouseIcon() {
 @Composable
 private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
     androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
-        AsyncImage(model=bg,contentDescription=label,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
-        Text(text=label.uppercase(),modifier=Modifier.fillMaxWidth().padding(top=15.dp),textAlign=androidx.compose.ui.text.style.TextAlign.Center,fontSize=11.sp,fontWeight=FontWeight.Black,color=Color.White)
-        androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=8.dp).height(25.dp)) {
-            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
+        AsyncImage(
+            model=bg,
+            contentDescription=label,
+            modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer {
+                scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f
+                scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f
+            },
+            contentScale=ContentScale.Fit
+        )
+        Text(
+            text=label.uppercase(),
+            modifier=Modifier.fillMaxWidth().padding(top=16.dp),
+            textAlign=androidx.compose.ui.text.style.TextAlign.Center,
+            fontSize=11.sp,
+            fontWeight=FontWeight.Black,
+            color=Color.White
+        )
+        androidx.compose.foundation.layout.Box(
+            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f)
+                .padding(bottom=4.dp).offset(y=2.dp).height(25.dp)
+        ) {
+            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(18.dp),contentScale=ContentScale.Crop)
-                Spacer(Modifier.width(2.dp))
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(21.dp),contentScale=ContentScale.Crop)
-                Spacer(Modifier.width(2.dp))
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(18.dp),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(end=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(start=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
             }
         }
     }
