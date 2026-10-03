@@ -345,15 +345,15 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* RECEIVE BUTTON - Plate ke BAHAR, neeche, center mein */}
-              <div className="relative w-full flex justify-center -mt-1 z-30">
+              {/* RECEIVE BUTTON - Plate ke BAHAR, neeche, center mein, thoda UPAR shift kiya */}
+              <div className="relative w-full flex justify-center -mt-4 z-30">
                 <button 
                   onClick={() => {}}
                   className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
                              bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
-                             border-[2px] border-[#ffd700]
-                             shadow-[0_2px_0_#a86a00,0_4px_6px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
-                             active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
+                             border-[3px] border-[#fff8b0]
+                             shadow-[0_2px_0_#a86a00,0_4px_8px_rgba(0,0,0,0.8),inset_0_2px_5px_rgba(255,255,255,1)]
+                             active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.8),inset_0_2px_5px_rgba(255,255,255,1)]
                              transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                 >
                   RECEIVE
