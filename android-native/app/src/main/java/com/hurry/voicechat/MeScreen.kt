@@ -108,7 +108,7 @@ fun MeScreen() {
         }
 
         item {
-            MenuCard(topItems, Modifier.offset(y = (-32).dp))
+            MenuCard(topItems, Modifier.offset(y = (-28).dp))
         }
 
         item {
