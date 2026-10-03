@@ -23,6 +23,10 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 
 private const val RAW = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
+private const val HONOUR_BG = RAW + "IMG_20260912_144404.png"
+private const val CHARM_BG = RAW + "IMG_20260912_144324.png"
+private const val ROOM_BG = RAW + "IMG_20260912_144347.png"
+private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 
 @Composable
 fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
@@ -55,7 +59,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                     }
                     Spacer(Modifier.weight(1f))
                     HurrySearchIcon()
-                    Spacer(Modifier.width(15.dp))
+                    Spacer(Modifier.width(10.dp))
+                    HurryHouseIcon()
+                    Spacer(Modifier.width(2.dp))
                 }
                 Spacer(Modifier.height(9.dp))
                 HorizontalPager(state=pager, modifier=Modifier.fillMaxWidth().height(154.dp)) { page ->
@@ -73,6 +79,17 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 }
             }
         }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 2.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
+                HurryCategoryCard("Charm", CHARM_BG, Modifier.weight(1f))
+                HurryCategoryCard("Room", ROOM_BG, Modifier.weight(1f))
+            }
+        }
+
         if (rooms == null) {
             item {
                 Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment=Alignment.Center) {
@@ -110,5 +127,47 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit) {
                 Text(room.announcement, fontSize=12.sp, color=HurryMuted, maxLines=1)
         }
         Text("›", fontSize=27.sp, color=Color(0xFFAAAAAA))
+    }
+}
+
+@Composable
+private fun HurryHouseIcon() {
+    androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
+        val c = Color(0xFF2D2D2D)
+        val w = size.width
+        val h = size.height
+        val p = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w*.50f,h*.11f)
+            cubicTo(w*.42f,h*.11f,w*.10f,h*.25f,w*.10f,h*.43f)
+            lineTo(w*.10f,h*.68f)
+            cubicTo(w*.10f,h*.86f,w*.23f,h*.94f,w*.39f,h*.94f)
+            lineTo(w*.61f,h*.94f)
+            cubicTo(w*.77f,h*.94f,w*.90f,h*.86f,w*.90f,h*.68f)
+            lineTo(w*.90f,h*.43f)
+            cubicTo(w*.90f,h*.25f,w*.58f,h*.11f,w*.50f,h*.11f)
+            close()
+        }
+        drawPath(p,c,style=androidx.compose.ui.graphics.drawscope.Stroke(2.2.dp.toPx(),join=androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawRoundRect(c,topLeft=Offset(w*.28f,h*.45f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawRoundRect(c,topLeft=Offset(w*.445f,h*.37f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.28f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawRoundRect(c,topLeft=Offset(w*.61f,h*.43f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.22f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+    }
+}
+
+@Composable
+private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
+    androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
+        AsyncImage(model=bg,contentDescription=label,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
+        Text(text=label.uppercase(),modifier=Modifier.fillMaxWidth().padding(top=15.dp),textAlign=androidx.compose.ui.text.style.TextAlign.Center,fontSize=11.sp,fontWeight=FontWeight.Black,color=Color.White)
+        androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=8.dp).height(25.dp)) {
+            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
+            Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(18.dp),contentScale=ContentScale.Crop)
+                Spacer(Modifier.width(2.dp))
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(21.dp),contentScale=ContentScale.Crop)
+                Spacer(Modifier.width(2.dp))
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.size(18.dp),contentScale=ContentScale.Crop)
+            }
+        }
     }
 }
