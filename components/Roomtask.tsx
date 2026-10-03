@@ -331,7 +331,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   </span>
                 </div>
 
-                {/* ===== YAHAN CHANGE KIYA HAI: CLAIM BUTTON HATA KAR COLLECT LAGAYA HAI ===== */}
                 <div 
                   className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
                   style={{ right: '9%' }} 
@@ -352,9 +351,9 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* ===== TEXT + BUTTON EXACTLY BETWEEN BOTH PLATES ===== */}
-              <div className="flex flex-col items-center justify-center gap-3 py-4 w-full">
-                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3">
+              {/* ===== CENTERED MIDDLE SECTION (Text Note + Collect Button) ===== */}
+              <div className="flex flex-col items-center justify-center my-3 py-2 w-full max-w-[380px] gap-3 z-30">
+                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3 drop-shadow-sm">
                   *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
                 </p>
 
@@ -373,7 +372,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               </div>
 
               {/* ===== LOWER PLATE ===== */}
-              <div className="relative w-full flex flex-col items-center mt-0">
+              <div className="relative w-full flex flex-col items-center mt-2">
                 
                 <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
                   <img 
@@ -385,13 +384,13 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   />
 
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <h1 className="text-white text-base sm:text-lg font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] -mt-4 sm:-mt-6">
+                    <h1 className="text-white text-base sm:text-lg font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] -mt-1 sm:-mt-2">
                       Room Task
                     </h1>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-1 -mt-5 z-40 select-none">
+                <div className="flex items-center justify-center gap-1 my-1 z-40 select-none">
                   <span className="text-[#f5b8b8] text-[11px] font-medium">Countdown</span>
 
                   <div className="w-[20px] h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
