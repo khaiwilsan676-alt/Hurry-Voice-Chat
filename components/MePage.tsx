@@ -835,7 +835,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         className="px-4 pb-4 relative"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #f9fafb 100%)',
-          paddingTop: '5vh'
+          paddingTop: '8vh'
         }}
       >
         <div className="flex items-start justify-between mb-6">
