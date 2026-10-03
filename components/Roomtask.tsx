@@ -360,7 +360,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               </div>
 
               {/* NOTE TEXT - Plate ke niche, plate se chipka hua */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug -mt-1 px-1 relative z-40">
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-2 px-1 relative z-40">
                 *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
               </p>
 
