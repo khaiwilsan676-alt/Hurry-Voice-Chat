@@ -63,6 +63,7 @@ function MedalVideo({
   style = {},
   autoPlay = true,
   isColorless = false,
+  disableAnimation = false, // NAYA PROP ANIMATION BAND KARNE KE LIYE
 }: {
   src: string
   variant?: 'black' | 'green'
@@ -70,20 +71,25 @@ function MedalVideo({
   style?: React.CSSProperties
   autoPlay?: boolean
   isColorless?: boolean
+  disableAnimation?: boolean
 }) {
   const isGreen = variant === 'green'
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     if (videoRef.current) {
-      if (autoPlay) {
+      if (disableAnimation) {
+        // Animation band - video ko pause karke first frame par rok do
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+      } else if (autoPlay) {
         videoRef.current.play().catch(() => {})
       } else {
         videoRef.current.pause()
         videoRef.current.currentTime = 0
       }
     }
-  }, [autoPlay, src])
+  }, [autoPlay, src, disableAnimation])
 
   const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
@@ -94,8 +100,8 @@ function MedalVideo({
       <video
         ref={videoRef}
         src={src}
-        autoPlay={autoPlay}
-        loop
+        autoPlay={!disableAnimation && autoPlay}
+        loop={!disableAnimation}
         playsInline
         muted
         controls={false}
@@ -221,7 +227,7 @@ const TIER_TAB_IMAGES = [
   '/IMG_20260924_132051.png',
 ]
 
-// --- SCREEN 1: OBTAINED MEDALS SCREEN ---
+// --- SCREEN 1: OBTAINED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
 const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   const medalList = [
     { id: 1, name: 'CP Level Badge', img: '/IMG_20260924_132022.png' },
@@ -233,55 +239,66 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   ]
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#2a1b5e] flex flex-col font-sans overflow-y-auto animate-fade-in">
-      {/* Header */}
-      <div className="relative flex items-center justify-center pt-10 pb-6">
-        <h1 className="text-xl font-medium text-white tracking-wide">
-          Obtained Medals
-        </h1>
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-10 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-        >
-          <X size={24} className="text-white" />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
+      <div
+        className="absolute inset-0 bg-black/60 transition-opacity"
+        onClick={onClose}
+      />
 
-      {/* Grid */}
-      <div className="grid grid-cols-3 gap-3 px-4 pb-10">
-        {medalList.map((medal) => (
-          <div
-            key={medal.id}
-            className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
+        <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
+          <h1 className="text-xl font-medium text-white tracking-wide">
+            Obtained Medals
+          </h1>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <div className="w-full h-full flex items-center justify-center p-1">
-              <img
-                src={medal.img}
-                alt={medal.name}
-                className="w-full h-full object-contain drop-shadow-md"
-              />
-            </div>
-            <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
-              {medal.name}
-            </span>
+            <X size={24} className="text-white" />
+          </button>
+        </div>
+
+        {/* Grid - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 pb-10">
+          <div className="grid grid-cols-3 gap-3">
+            {medalList.map((medal) => (
+              <div
+                key={medal.id}
+                className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+              >
+                <div className="w-full h-full flex items-center justify-center p-1">
+                  <img
+                    src={medal.img}
+                    alt={medal.name}
+                    className="w-full h-full object-contain drop-shadow-md"
+                  />
+                </div>
+                <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+                  {medal.name}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
         }
       `}</style>
     </div>
   )
 }
 
-// --- SCREEN 2: UNEQUIPPED MEDALS SCREEN (NEW) ---
+// --- SCREEN 2: UNEQUIPPED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
 const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   const medalList = [
     { id: 1, name: 'CP Spokesperson', img: '/IMG_20260924_132022.png' },
@@ -293,48 +310,59 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   ]
 
   return (
-    <div className="fixed inset-0 z-[100] bg-[#2a1b5e] flex flex-col font-sans overflow-y-auto animate-fade-in">
-      {/* Header */}
-      <div className="relative flex items-center justify-center pt-10 pb-6">
-        <h1 className="text-xl font-medium text-white tracking-wide">
-          Unequipped Medals
-        </h1>
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-10 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-        >
-          <X size={24} className="text-white" />
-        </button>
-      </div>
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
+      <div
+        className="absolute inset-0 bg-black/60 transition-opacity"
+        onClick={onClose}
+      />
 
-      {/* Grid */}
-      <div className="grid grid-cols-3 gap-3 px-4 pb-10">
-        {medalList.map((medal) => (
-          <div
-            key={medal.id}
-            className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
+        <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
+          <h1 className="text-xl font-medium text-white tracking-wide">
+            Unequipped Medals
+          </h1>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <div className="w-full h-full flex items-center justify-center p-1">
-              <img
-                src={medal.img}
-                alt={medal.name}
-                className="w-full h-full object-contain drop-shadow-md"
-              />
-            </div>
-            <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
-              {medal.name}
-            </span>
+            <X size={24} className="text-white" />
+          </button>
+        </div>
+
+        {/* Grid - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 pb-10">
+          <div className="grid grid-cols-3 gap-3">
+            {medalList.map((medal) => (
+              <div
+                key={medal.id}
+                className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+              >
+                <div className="w-full h-full flex items-center justify-center p-1">
+                  <img
+                    src={medal.img}
+                    alt={medal.name}
+                    className="w-full h-full object-contain drop-shadow-md"
+                  />
+                </div>
+                <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+                  {medal.name}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
         }
       `}</style>
     </div>
@@ -347,7 +375,7 @@ export default function Medal({ onBack }: MedalProps) {
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
-  
+
   // STATES FOR OVERLAY SCREENS
   const [showObtained, setShowObtained] = useState(false)
   const [showUnequipped, setShowUnequipped] = useState(false)
@@ -671,7 +699,7 @@ export default function Medal({ onBack }: MedalProps) {
           <div className="relative mt-6 flex flex-col items-center">
             <div className="flex items-center justify-center text-[15px] font-medium text-gray-200 mb-2 z-10">
               Obtained Medal(s): <span className="text-[#facc15] ml-1">3</span>
-              <button 
+              <button
                 onClick={() => setShowObtained(true)}
                 className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors"
               >
@@ -726,6 +754,7 @@ export default function Medal({ onBack }: MedalProps) {
                     variant={medal.variant ?? 'black'}
                     autoPlay={true}
                     isColorless={true}
+                    disableAnimation={true}  // <-- YAHAN ANIMATION BAND KAR DI
                     className="max-w-none max-h-none object-contain"
                     style={{
                       width: medal.cardVideoSize,
@@ -867,12 +896,12 @@ export default function Medal({ onBack }: MedalProps) {
         </div>
       )}
 
-      {/* OBTAINED MEDALS OVERLAY */}
+      {/* OBTAINED MEDALS OVERLAY (HALF SCREEN) */}
       {showObtained && (
         <ObtainedMedalsScreen onClose={() => setShowObtained(false)} />
       )}
 
-      {/* UNEQUIPPED MEDALS OVERLAY (NEW) */}
+      {/* UNEQUIPPED MEDALS OVERLAY (HALF SCREEN) */}
       {showUnequipped && (
         <UnequippedMedalsScreen onClose={() => setShowUnequipped(false)} />
       )}
