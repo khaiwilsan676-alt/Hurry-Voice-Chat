@@ -38,6 +38,11 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
     LaunchedEffect(Unit) { rooms = HurryApi.rooms() }
 
+    if (mine) {
+        MineNativePage(onBack = onPopular)
+        return
+    }
+
     val banners = listOf(
         RAW + "IMG-20260830-WA0081.jpg",
         RAW + "IMG-20260818-WA0000.jpg",
