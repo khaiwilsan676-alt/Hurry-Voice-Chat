@@ -4,11 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -22,8 +20,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val Blue = Color(0xFF3B82F6)
-private val Bg = Color(0xFFF8F9FB)
+private val HurryBlue = Color(0xFF3B82F6)
+private val HurryText = Color(0xFF1D1D1F)
+private val HurryGray = Color(0xFF6E6E6E)
+private val HurryBg = Color(0xFFF8F9FB)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,145 +33,123 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private enum class Page { HOME, MESSAGE, ME, ROOM, LEADERBOARD, INVITE, SETTINGS }
+private enum class MainPage { HOME, MESSAGE, ME }
+private enum class SubPage {
+    NONE, ROOM, LEADERBOARD, INVITE, LEVEL, FAMILY, SVIP, SETTING, STORE,
+    WALLET, CHAT, SUPPORT, REPORTS, MEDALS, SELLER, PUBLIC_PROFILE
+}
 
 @Composable
 private fun HurryNativeApp() {
-    var page by remember { mutableStateOf(Page.HOME) }
+    var mainPage by remember { mutableStateOf(MainPage.HOME) }
+    var subPage by remember { mutableStateOf(SubPage.NONE) }
+
+    val openMain: (MainPage) -> Unit = { mainPage = it; subPage = SubPage.NONE }
+    val openSub: (SubPage) -> Unit = { subPage = it }
 
     MaterialTheme {
-        Surface(Modifier.fillMaxSize(), color = Bg) {
-            when (page) {
-                Page.HOME -> MainHome(onOpen = { page = it })
-                Page.MESSAGE -> MainMessage()
-                Page.ME -> MainMe(onOpen = { page = it })
-                Page.ROOM -> NativeRoom(onBack = { page = Page.HOME })
-                Page.LEADERBOARD -> NativeDetail("Leaderboard", 30, Page.HOME) { page = it }
-                Page.INVITE -> NativeDetail("Invite Friends", 26, Page.HOME) { page = it }
-                Page.SETTINGS -> NativeDetail("Setting", 20, Page.ME) { page = it }
+        Surface(Modifier.fillMaxSize(), color = Color.White) {
+            if (subPage != SubPage.NONE) {
+                NativeSubScreen(subPage) { subPage = SubPage.NONE }
+            } else {
+                when (mainPage) {
+                    MainPage.HOME -> HomeScreen(openSub)
+                    MainPage.MESSAGE -> MessageScreen()
+                    MainPage.ME -> MeScreen(openSub)
+                }
+                NativeBottomBar(mainPage, openMain)
             }
         }
     }
 }
 
 @Composable
-private fun BottomBar(selected: Page, onSelect: (Page) -> Unit) {
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 0.dp,
-        modifier = Modifier.height(65.dp)
+private fun NativeBottomBar(page: MainPage, onSelect: (MainPage) -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().height(65.dp).background(Color.White)
+            .border(1.dp, Color(0xFFF0F0F0)).padding(horizontal = 12.dp)
     ) {
-        listOf(Page.HOME to "Home", Page.MESSAGE to "Message", Page.ME to "Me").forEach { (p, label) ->
-            NavigationBarItem(
-                selected = selected == p,
-                onClick = { onSelect(p) },
-                icon = {
-                    when (p) {
-                        Page.HOME -> NativeHomeIcon(selected == p)
-                        Page.MESSAGE -> NativeMessageIcon(selected == p)
-                        else -> NativeMeIcon(selected == p)
-                    }
-                },
-                label = { Text(label, fontSize = 12.sp, fontWeight = if (selected == p) FontWeight.SemiBold else FontWeight.Normal) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color.Unspecified,
-                    unselectedIconColor = Color.Unspecified,
-                    selectedTextColor = Color.Black,
-                    unselectedTextColor = Color.Gray,
-                    indicatorColor = Color.Transparent
-                )
-            )
+        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
+            BottomItem(page == MainPage.HOME, "Home", onClick = { onSelect(MainPage.HOME) }) { HomeIcon(page == MainPage.HOME) }
+            BottomItem(page == MainPage.MESSAGE, "Message", onClick = { onSelect(MainPage.MESSAGE) }) { MessageIcon(page == MainPage.MESSAGE) }
+            BottomItem(page == MainPage.ME, "Me", onClick = { onSelect(MainPage.ME) }) { MeIcon(page == MainPage.ME) }
         }
     }
 }
 
-@Composable private fun NativeHomeIcon(active: Boolean) {
-    Text("◉", fontSize = 28.sp, color = if (active) Blue else Color(0xFF222222))
+@Composable private fun BottomItem(active: Boolean, label: String, onClick: () -> Unit, icon: @Composable () -> Unit) {
+    Column(Modifier.width(70.dp).clickable { onClick() }, horizontalAlignment = Alignment.CenterHorizontally) {
+        icon()
+        Text(label, fontSize = 12.sp, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (active) HurryText else Color.Gray)
+    }
 }
-@Composable private fun NativeMessageIcon(active: Boolean) {
-    Text("▢", fontSize = 27.sp, color = if (active) Blue else Color(0xFF222222))
+@Composable private fun HomeIcon(active: Boolean) {
+    Text("◉", fontSize = 29.sp, color = if (active) HurryBlue else HurryText)
 }
-@Composable private fun NativeMeIcon(active: Boolean) {
-    Text("●", fontSize = 27.sp, color = if (active) Blue else Color(0xFF222222))
+@Composable private fun MessageIcon(active: Boolean) {
+    Text("▱", fontSize = 30.sp, color = if (active) HurryBlue else HurryText)
+}
+@Composable private fun MeIcon(active: Boolean) {
+    Text("♙", fontSize = 30.sp, color = if (active) HurryBlue else HurryText)
 }
 
 @Composable
-private fun MainHome(onOpen: (Page) -> Unit) {
-    var activeTab by remember { mutableStateOf("popular") }
-    val rooms = listOf("Popular Voice Room", "Friends Lounge", "Music & Chat", "Late Night Talk")
+private fun HomeScreen(openSub: (SubPage) -> Unit) {
+    var tab by remember { mutableStateOf("popular") }
+    val rooms = listOf(
+        "Popular Voice Room" to "Voice room · Live",
+        "Friends Lounge" to "Voice room · Live",
+        "Music & Chat" to "Voice room · Live",
+        "Late Night Talk" to "Voice room · Live"
+    )
 
-    Scaffold(
-        containerColor = Color.White,
-        bottomBar = { BottomBar(Page.HOME) { onOpen(it) } }
-    ) { pad ->
-        LazyColumn(
-            Modifier.fillMaxSize().padding(pad).background(Color.White),
-            contentPadding = PaddingValues(bottom = 12.dp)
-        ) {
+    Column(Modifier.fillMaxSize().background(Color.White).padding(bottom = 65.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 14.dp)) {
             item {
-                Column(
-                    Modifier.fillMaxWidth().background(Color.White)
-                        .padding(top = 35.dp, start = 12.dp, end = 12.dp)
-                ) {
+                Column(Modifier.fillMaxWidth().background(
+                    if (tab == "mine") Color(0xFFEFF6FF) else Color(0xFFEFF6FF)
+                ).padding(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 8.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            HomeTab("Mine", activeTab == "mine") { activeTab = "mine" }
-                            HomeTab("Popular", activeTab == "popular") { activeTab = "popular" }
+                        Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            NativeTab("Mine", tab == "mine") { tab = "mine" }
+                            NativeTab("Popular", tab == "popular") { tab = "popular" }
                         }
                         Spacer(Modifier.weight(1f))
-                        Text("⌕", fontSize = 31.sp, color = Color(0xFF2D2D2D))
+                        Text("⌕", fontSize = 30.sp, color = HurryText)
                         Spacer(Modifier.width(10.dp))
-                        Text("⌂", fontSize = 29.sp, color = Color(0xFF2D2D2D))
+                        Text("⌂", fontSize = 30.sp, color = HurryText)
                     }
-
-                    if (activeTab == "popular") {
-                        Spacer(Modifier.height(7.dp))
-                        Box(
-                            Modifier.fillMaxWidth().height(110.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFEAF2FF)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Hurry", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Blue)
+                    if (tab == "popular") {
+                        Spacer(Modifier.height(4.dp))
+                        Box(Modifier.fillMaxWidth().height(13.5f.dp).heightIn(min = 96.dp, max = 120.dp)
+                            .clip(RoundedCornerShape(6.dp)).background(Color(0xFFDCEBFF)), contentAlignment = Alignment.Center) {
+                            Text("Hurry", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = HurryBlue)
                         }
-                        Row(
-                            Modifier.fillMaxWidth().padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            repeat(4) { i ->
-                                Box(
-                                    Modifier.padding(horizontal = 3.dp).size(if (i == 0) 8.dp else 6.dp)
-                                        .clip(CircleShape)
-                                        .background(if (i == 0) Color.White else Color.LightGray)
-                                )
-                            }
+                        Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.Center) {
+                            repeat(4) { Text(if (it == 0) "━" else "•", fontSize = if (it == 0) 12.sp else 10.sp, color = Color.White) }
                         }
                     }
                 }
             }
-
-            items(rooms) { title ->
+            items(rooms.size) { index ->
+                val room = rooms[index]
                 Card(
-                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp)
-                        .clickable { onOpen(Page.ROOM) },
-                    shape = RoundedCornerShape(9.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 5.dp).clickable { openSub(SubPage.ROOM) },
+                    shape = RoundedCornerShape(9.dp), colors = CardDefaults.cardColors(Color.White),
+                    elevation = CardDefaults.cardElevation(1.dp)
                 ) {
                     Row(Modifier.fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            Modifier.size(62.dp).clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFE9F1FF)),
-                            contentAlignment = Alignment.Center
-                        ) { Text("🎙", fontSize = 28.sp) }
+                        Box(Modifier.size(62.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFE9F1FF)), contentAlignment = Alignment.Center) {
+                            Text("♬", fontSize = 27.sp, color = HurryBlue)
+                        }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Voice room · Live", fontSize = 12.sp, color = Color.Gray)
-                            Spacer(Modifier.height(5.dp))
-                            Text("●  Online", fontSize = 11.sp, color = Color(0xFF22A447))
+                            Text(room.first, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = HurryText)
+                            Text(room.second, fontSize = 12.sp, color = HurryGray)
+                            Text("●  Online", fontSize = 11.sp, color = Color(0xFF22A447), modifier = Modifier.padding(top = 4.dp))
                         }
-                        Text("›", fontSize = 25.sp, color = Color.Gray)
+                        Text("›", fontSize = 26.sp, color = HurryGray)
                     }
                 }
             }
@@ -179,113 +157,104 @@ private fun MainHome(onOpen: (Page) -> Unit) {
     }
 }
 
+@Composable private fun NativeTab(text: String, active: Boolean, onClick: () -> Unit) {
+    Column(Modifier.clickable { onClick() }, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text, fontSize = 22.sp, fontWeight = if (active) FontWeight.ExtraBold else FontWeight.Bold,
+            color = if (active) HurryText else HurryGray)
+        if (active) Text("⌣", fontSize = 16.sp, color = HurryText, modifier = Modifier.height(8.dp))
+    }
+}
+
 @Composable
-private fun HomeTab(text: String, active: Boolean, onClick: () -> Unit) {
-    Text(
-        text,
-        Modifier.clickable { onClick() }.padding(bottom = 7.dp),
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Bold,
-        color = if (active) Color(0xFF1E1E1E) else Color(0xFF6E6E6E)
+private fun MessageScreen() {
+    Column(Modifier.fillMaxSize().background(Color.White).padding(top = 16.dp, start = 12.dp, end = 12.dp, bottom = 65.dp)) {
+        Text("Message", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = HurryText)
+        Spacer(Modifier.height(16.dp))
+        Text("No conversations yet", fontSize = 14.sp, color = HurryGray)
+    }
+}
+
+@Composable
+private fun MeScreen(openSub: (SubPage) -> Unit) {
+    val menu = listOf(
+        "Invite Friends" to SubPage.INVITE, "Level" to SubPage.LEVEL, "Family" to SubPage.FAMILY,
+        "SVIP" to SubPage.SVIP, "Medals" to SubPage.MEDALS, "Store" to SubPage.STORE,
+        "Wallet" to SubPage.WALLET, "Setting" to SubPage.SETTING, "Hurry Support" to SubPage.SUPPORT,
+        "Reports" to SubPage.REPORTS, "Seller" to SubPage.SELLER
     )
-}
-
-@Composable
-private fun MainMessage() {
-    Scaffold(containerColor = Color.White, bottomBar = { BottomBar(Page.MESSAGE) {} }) { pad ->
-        Column(
-            Modifier.fillMaxSize().padding(pad).padding(top = 16.dp, start = 12.dp, end = 12.dp)
-        ) {
-            Text("Message", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(14.dp))
-            Text("No conversations yet", color = Color.Gray, fontSize = 14.sp)
+    LazyColumn(Modifier.fillMaxSize().background(HurryBg).padding(bottom = 65.dp)) {
+        item {
+            Column(Modifier.fillMaxWidth().background(Color.White).padding(top = 38.dp, start = 14.dp, end = 14.dp, bottom = 18.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(76.dp).clip(CircleShape).background(Color(0xFF64748B)), contentAlignment = Alignment.Center) {
+                        Text("H", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(Modifier.width(13.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("Hurry User", fontSize = 23.sp, fontWeight = FontWeight.Bold)
+                        Text("ID: 000000", fontSize = 12.sp, color = HurryGray)
+                    }
+                    Text("›", fontSize = 30.sp, color = HurryGray)
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    listOf("0\nFriends", "1\nFollowers", "0\nFollowing", "1\nVisitors").forEach {
+                        Text(it, textAlign = TextAlign.Center, fontSize = 12.sp, color = HurryText)
+                    }
+                }
+            }
+        }
+        item {
+            Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf("🪙 0", "💎 0").forEach {
+                    Surface(Modifier.weight(1f), shape = RoundedCornerShape(9.dp), color = Color.White) {
+                        Text(it, Modifier.padding(vertical = 15.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+        items(menu.size) { i ->
+            val item = menu[i]
+            Row(Modifier.fillMaxWidth().background(Color.White).clickable { openSub(item.second) }.padding(horizontal = 16.dp, vertical = 15.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text("●", fontSize = 9.sp, color = HurryBlue)
+                Spacer(Modifier.width(14.dp))
+                Text(item.first, Modifier.weight(1f), fontWeight = FontWeight.SemiBold, color = HurryText)
+                Text("›", fontSize = 22.sp, color = HurryGray)
+            }
+            HorizontalDivider(color = Color(0xFFF1F1F1))
         }
     }
 }
 
 @Composable
-private fun MainMe(onOpen: (Page) -> Unit) {
-    val rows = listOf("Invite Friends" to Page.INVITE, "Family" to Page.SETTINGS, "Level" to Page.SETTINGS,
-        "Medals" to Page.SETTINGS, "Store" to Page.SETTINGS, "Wallet" to Page.SETTINGS,
-        "SVIP" to Page.SETTINGS, "Setting" to Page.SETTINGS, "Hurry Support" to Page.SETTINGS,
-        "Reports" to Page.SETTINGS, "Seller" to Page.SETTINGS)
-
-    Scaffold(containerColor = Bg, bottomBar = { BottomBar(Page.ME) { onOpen(it) } }) { pad ->
-        LazyColumn(Modifier.fillMaxSize().padding(pad)) {
-            item {
-                Column(
-                    Modifier.fillMaxWidth().background(Color.White)
-                        .padding(top = 38.dp, start = 14.dp, end = 14.dp, bottom = 18.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(76.dp).clip(CircleShape).background(Color(0xFF64748B)), contentAlignment = Alignment.Center) {
-                            Text("H", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
-                        }
-                        Spacer(Modifier.width(13.dp))
-                        Column {
-                            Text("Hurry User", fontSize = 23.sp, fontWeight = FontWeight.Bold)
-                            Text("ID: 000000", fontSize = 12.sp, color = Color.Gray)
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Text("›", fontSize = 30.sp, color = Color.Gray)
-                    }
-                    Spacer(Modifier.height(17.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        listOf("0\nFriends", "1\nFollowers", "0\nFollowing", "1\nVisitors").forEach {
-                            Text(it, textAlign = TextAlign.Center, fontSize = 12.sp)
-                        }
-                    }
-                }
-            }
-            item {
-                Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf("🪙 0", "💎 0").forEach {
-                        Surface(Modifier.weight(1f), shape = RoundedCornerShape(9.dp), color = Color.White) {
-                            Text(it, Modifier.padding(vertical = 15.dp), textAlign = TextAlign.Center, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-            }
-            items(rows) { (label, target) ->
-                Row(
-                    Modifier.fillMaxWidth().background(Color.White).clickable { onOpen(target) }
-                        .padding(horizontal = 16.dp, vertical = 15.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("●", fontSize = 10.sp, color = Blue)
-                    Spacer(Modifier.width(14.dp))
-                    Text(label, Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
-                    Text("›", fontSize = 22.sp, color = Color.Gray)
-                }
-                HorizontalDivider(color = Color(0xFFF1F1F1))
-            }
-        }
+private fun NativeSubScreen(page: SubPage, onBack: () -> Unit) {
+    val title = when(page) {
+        SubPage.ROOM -> "Room"; SubPage.LEADERBOARD -> "Leaderboard"; SubPage.INVITE -> "Invite Friends"
+        SubPage.LEVEL -> "Level"; SubPage.FAMILY -> "Family"; SubPage.SVIP -> "SVIP"
+        SubPage.SETTING -> "Setting"; SubPage.STORE -> "Store"; SubPage.WALLET -> "Wallet"
+        SubPage.CHAT -> "Chat"; SubPage.SUPPORT -> "Hurry Support"; SubPage.REPORTS -> "Reports"
+        SubPage.MEDALS -> "Medals"; SubPage.SELLER -> "Seller"; SubPage.PUBLIC_PROFILE -> "Profile"
+        SubPage.NONE -> ""
     }
-}
-
-@Composable
-private fun NativeRoom(onBack: () -> Unit) {
-    Column(Modifier.fillMaxSize().background(Color(0xFFF8F9FB)).padding(top = 28.dp)) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", Modifier.clickable { onBack() }, fontSize = 34.sp)
+    val top = when(page) {
+        SubPage.ROOM -> 28; SubPage.LEADERBOARD -> 30; SubPage.INVITE -> 26; SubPage.LEVEL -> 29
+        SubPage.FAMILY -> 20; SubPage.SVIP -> 15; SubPage.SETTING -> 20; SubPage.STORE -> 20
+        SubPage.WALLET -> 20; SubPage.CHAT -> 27; SubPage.SUPPORT -> 30; SubPage.REPORTS -> 24
+        SubPage.MEDALS -> 24; SubPage.SELLER -> 24; else -> 20
+    }
+    Column(Modifier.fillMaxSize().background(if (page == SubPage.ROOM) Color(0xFFF8F9FB) else Color.White).padding(top = top.dp)) {
+        Row(Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("‹", Modifier.clickable { onBack() }, fontSize = 36.sp, color = HurryText)
             Spacer(Modifier.width(8.dp))
-            Text("Room", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = HurryText)
         }
-        Spacer(Modifier.height(20.dp))
-        Box(Modifier.fillMaxWidth().height(240.dp).padding(12.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF20232A)),
-            contentAlignment = Alignment.Center) {
-            Text("Voice Room", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@Composable
-private fun NativeDetail(title: String, top: Int, back: Page, onBack: (Page) -> Unit) {
-    Column(Modifier.fillMaxSize().background(Bg).padding(top = top.dp, start = 16.dp, end = 16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("‹", Modifier.clickable { onBack(back) }, fontSize = 34.sp)
-            Spacer(Modifier.width(8.dp))
-            Text(title, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        if (page == SubPage.ROOM) {
+            Box(Modifier.fillMaxWidth().height(250.dp).padding(12.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF20232A)), contentAlignment = Alignment.Center) {
+                Text("Voice Room", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+            }
+        } else if (page == SubPage.WALLET || page == SubPage.STORE) {
+            Text(if (page == SubPage.WALLET) "Wallet balance" else "Store", Modifier.padding(18.dp), fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
