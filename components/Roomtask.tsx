@@ -1,4 +1,3 @@
-Samajh gaya! Upper plate ko thoda neeche karke text note ko Upper Plate ke bilkul chipka ke (just upar) place kar diya hai aur baki sab kuch waise ka waisa rakha hai:
 'use client';
 
 import React, { useEffect, useState } from 'react';
