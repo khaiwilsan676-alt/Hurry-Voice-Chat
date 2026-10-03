@@ -3161,21 +3161,22 @@ export default function HomePage({ onLogout }: HomePageProps) {
                           draggable="false"
                         />
                       </div>
-                    </div>
-
-                    <div
-                      ref={bannerDotsRef}
-                      className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
-                      style={{ bottom: '6px', minHeight: '6px' }}
-                    >
-                      {BANNERS.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`w-1.5 h-1.5 rounded-full transition-all ${
-                            index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
+                      <div
+                        ref={bannerDotsRef}
+                        className="absolute left-0 right-0 bottom-2 flex justify-center items-center gap-1.5 z-[60] pointer-events-none"
+                        style={{ minHeight: '7px' }}
+                      >
+                        {BANNERS.map((_, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-full transition-all duration-200 ${
+                              index === currentBanner
+                                ? 'w-3 h-1.5 bg-white'
+                                : 'w-1.5 h-1.5 bg-white/70'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </>
