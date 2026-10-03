@@ -138,8 +138,8 @@ export default function Page() {
 
   const themeStyle = {
     background: 'linear-gradient(to bottom, #3b82f6 0%, #3b82f6 30%, #ffffff 50%, #ffffff 100%)',
-    minHeight: '100dvh',
     minHeight: '100svh',
+    minHeight: '100dvh',
     width: '100%',
   }
 
