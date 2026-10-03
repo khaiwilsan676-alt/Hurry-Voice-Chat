@@ -179,15 +179,15 @@ function TaskItem({
             </span>
           </div>
 
-          {/* CLAIM BUTTON - CLEAR & BRIGHT */}
+          {/* CLAIM BUTTON */}
           <button 
             onClick={() => {}}
             className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-wider
-                       bg-gradient-to-b from-[#ffef9f] to-[#f5b301]
+                       bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
                        text-[#4a1f00]
-                       border-2 border-[#fff7c2]
-                       shadow-[0_0_10px_rgba(255,215,0,0.9),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
-                       active:translate-y-[2px] active:shadow-[0_0_8px_rgba(255,215,0,0.9),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
+                       border-2 border-[#f5e6a8]
+                       shadow-[0_0_6px_rgba(255,215,0,0.5),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                       active:translate-y-[2px] active:shadow-[0_0_5px_rgba(255,215,0,0.5),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
                        transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
           >
             Claim
@@ -307,6 +307,11 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
+              {/* NOTE TEXT - Plate ke just upar */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-2 px-1">
+                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+              </p>
+
               {/* Plate Wrapper (Relative container for plate + 0 + icon) */}
               <div className="relative w-full flex items-center justify-center">
                 <img 
@@ -334,7 +339,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   </span>
                 </div>
 
-                {/* Button Plate - Just for reference, no text */}
                 <div 
                   className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
                   style={{ right: '9%' }} 
@@ -347,16 +351,16 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* COLLECT BUTTON - CLEAR & BRIGHT */}
+              {/* COLLECT BUTTON */}
               <div className="relative w-full flex justify-center -mt-4 z-30">
                 <button 
                   onClick={() => {}}
                   className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
-                             bg-gradient-to-b from-[#ffef9f] to-[#f5b301]
+                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
                              text-[#4a1f00]
-                             border-2 border-[#fff7c2]
-                             shadow-[0_0_12px_rgba(255,215,0,1),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
-                             active:translate-y-[2px] active:shadow-[0_0_10px_rgba(255,215,0,1),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
+                             border-2 border-[#f5e6a8]
+                             shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
                              transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                 >
                   Collect
