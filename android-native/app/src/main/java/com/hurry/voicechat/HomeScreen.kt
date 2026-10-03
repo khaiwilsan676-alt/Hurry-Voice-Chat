@@ -114,7 +114,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                             )
                         }
                     }
-                }                }
+                }
             }
         }
         item {
@@ -156,9 +156,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
 }
 
 @Composable
-private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit) {
+private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Modifier = Modifier) {
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .padding(horizontal=6.dp, vertical=4.dp)

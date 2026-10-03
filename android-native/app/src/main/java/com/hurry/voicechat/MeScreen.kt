@@ -154,7 +154,7 @@ private fun MeMenuIcon(type: MeIconType) {
             MeIconType.LANGUAGE -> {
                 drawCircle(c, radius = size.minDimension / 2f - 1f, style = stroke)
                 drawLine(c, androidx.compose.ui.geometry.Offset(2f, size.height / 2f), androidx.compose.ui.geometry.Offset(size.width - 2f, size.height / 2f), strokeWidth = stroke.width)
-                drawOval(c, androidx.compose.ui.geometry.Rect(7f, 1f, size.width - 7f, size.height - 1f), style = stroke)
+                drawOval(c, topLeft = androidx.compose.ui.geometry.Offset(7f, 1f), size = androidx.compose.ui.geometry.Size(size.width - 14f, size.height - 2f), style = stroke)
             }
             MeIconType.SETTINGS -> {
                 val path = androidx.compose.ui.graphics.Path().apply {
@@ -199,7 +199,7 @@ private fun MeMenuIcon(type: MeIconType) {
                     cubicTo(14.92f, 11f, 12f, 12f, 12f, 14f)
                 }
                 drawPath(q, c, style = stroke)
-                drawCircle(c, androidx.compose.ui.geometry.Offset(12f, 17f), radius = 0.7.dp.toPx())
+                drawCircle(c, radius = 0.7.dp.toPx(), center = androidx.compose.ui.geometry.Offset(12f, 17f))
             }
         }
     }
