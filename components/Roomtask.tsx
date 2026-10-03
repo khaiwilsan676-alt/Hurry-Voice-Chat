@@ -331,15 +331,24 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   </span>
                 </div>
 
+                {/* ===== CHANGED: CLAIM to COLLECT ===== */}
                 <div 
                   className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
                   style={{ right: '9%' }} 
                 >
                   <button 
                     onClick={() => {}}
-                    className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
+                    className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                               bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                               text-[#4a1f00]
+                               border-2 border-[#f5e6a8]
+                               shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                               active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                               transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                     aria-label="Top Action"
-                  ></button>
+                  >
+                    COLLECT
+                  </button>
                 </div>
               </div>
 
