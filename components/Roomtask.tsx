@@ -303,60 +303,62 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full" style={{ height: 'calc(50vh - 45px)' }}></div>
 
           <div className="w-full flex justify-center px-4 flex-col items-center">
-            <div className="relative w-[100%] max-w-[450px] flex items-center justify-center mt-2">
-              <img 
-                src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
-                alt="Middle Decoration" 
-                className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
-                draggable={false}
-              />
+            <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              <div 
-                className="absolute top-1/2 -translate-y-1/2 flex items-center z-20 pointer-events-none"
-                style={{ left: '10%' }} 
-              >
+              {/* Plate Wrapper (Relative container for plate + 0 + icon) */}
+              <div className="relative w-full flex items-center justify-center">
                 <img 
-                  src={cleanedIconSrc}
-                  alt="Cleaned Coin Icon" 
-                  className="w-7 h-7 object-contain select-none rounded-none"
+                  src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
+                  alt="Middle Decoration" 
+                  className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
                   draggable={false}
                 />
-              </div>
-
-              <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pr-4">
-                <span className="text-2xl font-extrabold text-[#ffd700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  0
-                </span>
-              </div>
-
-              {/* --- BUTTON PLATE & RECEIVE BUTTON (BILKUL CENTER MEIN) --- */}
-              <div 
-                className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
-                style={{ right: '9%' }} 
-              >
-                {/* Button Plate (Top button without Claim text) */}
-                <button 
-                  onClick={() => {}}
-                  className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
-                  aria-label="Top Action"
-                ></button>
                 
-                {/* RECEIVE Button - Bilkul center mein, nishan wali jagah par */}
-                <div className="absolute top-[85%] left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 flex items-center z-20 pointer-events-none"
+                  style={{ left: '10%' }} 
+                >
+                  <img 
+                    src={cleanedIconSrc}
+                    alt="Cleaned Coin Icon" 
+                    className="w-7 h-7 object-contain select-none rounded-none"
+                    draggable={false}
+                  />
+                </div>
+
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pr-4">
+                  <span className="text-2xl font-extrabold text-[#ffd700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    0
+                  </span>
+                </div>
+
+                {/* Button Plate - Just for reference, no text */}
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
+                  style={{ right: '9%' }} 
+                >
                   <button 
                     onClick={() => {}}
-                    className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
-                               bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
-                               border-[2px] border-[#ffd700]
-                               shadow-[0_2px_0_#a86a00,0_4px_6px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
-                               active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
-                               transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
-                  >
-                    RECEIVE
-                  </button>
+                    className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
+                    aria-label="Top Action"
+                  ></button>
                 </div>
               </div>
-              {/* --- END OF BUTTON SECTION --- */}
+
+              {/* RECEIVE BUTTON - Plate ke BAHAR, neeche, center mein */}
+              <div className="relative w-full flex justify-center -mt-1 z-30">
+                <button 
+                  onClick={() => {}}
+                  className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
+                             bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
+                             border-[2px] border-[#ffd700]
+                             shadow-[0_2px_0_#a86a00,0_4px_6px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
+                             active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
+                >
+                  RECEIVE
+                </button>
+              </div>
 
             </div>
           </div>
