@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Plus, Star, HelpCircle, X } from 'lucide-react'
 
 interface MedalProps {
@@ -63,6 +63,7 @@ function MedalVideo({
   style = {},
   autoPlay = true,
   isColorless = false,
+  disableAnimation = false, // NAYA PROP ANIMATION BAND KARNE KE LIYE
 }: {
   src: string
   variant?: 'black' | 'green'
@@ -70,17 +71,25 @@ function MedalVideo({
   style?: React.CSSProperties
   autoPlay?: boolean
   isColorless?: boolean
+  disableAnimation?: boolean
 }) {
   const isGreen = variant === 'green'
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     if (videoRef.current) {
-      if (autoPlay) {
+      if (disableAnimation) {
+        // Animation band - video ko pause karke first frame par rok do
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+      } else if (autoPlay) {
         videoRef.current.play().catch(() => {})
+      } else {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
       }
     }
-  }, [autoPlay, src])
+  }, [autoPlay, src, disableAnimation])
 
   const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
@@ -91,8 +100,8 @@ function MedalVideo({
       <video
         ref={videoRef}
         src={src}
-        autoPlay={autoPlay}
-        loop
+        autoPlay={!disableAnimation && autoPlay}
+        loop={!disableAnimation}
         playsInline
         muted
         controls={false}
@@ -231,12 +240,15 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
       <div
         className="absolute inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
       />
 
-      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)] will-change-transform">
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
         <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
           <h1 className="text-xl font-medium text-white tracking-wide">
             Obtained Medals
@@ -249,6 +261,7 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           </button>
         </div>
 
+        {/* Grid - Scrollable */}
         <div className="flex-1 overflow-y-auto px-4 pb-10">
           <div className="grid grid-cols-3 gap-3">
             {medalList.map((medal) => (
@@ -278,7 +291,7 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           to { transform: translateY(0); }
         }
         .animate-slide-up {
-          animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          animation: slideUp 0.3s ease-out forwards;
         }
       `}</style>
     </div>
@@ -298,12 +311,15 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
       <div
         className="absolute inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
       />
 
-      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)] will-change-transform">
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
         <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
           <h1 className="text-xl font-medium text-white tracking-wide">
             Unequipped Medals
@@ -316,6 +332,7 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           </button>
         </div>
 
+        {/* Grid - Scrollable */}
         <div className="flex-1 overflow-y-auto px-4 pb-10">
           <div className="grid grid-cols-3 gap-3">
             {medalList.map((medal) => (
@@ -345,7 +362,7 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           to { transform: translateY(0); }
         }
         .animate-slide-up {
-          animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+          animation: slideUp 0.3s ease-out forwards;
         }
       `}</style>
     </div>
@@ -359,6 +376,7 @@ export default function Medal({ onBack }: MedalProps) {
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
 
+  // STATES FOR OVERLAY SCREENS
   const [showObtained, setShowObtained] = useState(false)
   const [showUnequipped, setShowUnequipped] = useState(false)
 
@@ -596,19 +614,12 @@ export default function Medal({ onBack }: MedalProps) {
     return medals.filter((m) => m.tierGroup === medal.tierGroup)
   }
 
-  // ✅ SMOOTH: instant open, no video pause. State update next frame par.
-  const openSheet = useCallback((medal: MedalItem) => {
-    const group = medal.tierGroup
-      ? medals.filter((m) => m.tierGroup === medal.tierGroup)
-      : [medal]
+  const openSheet = (medal: MedalItem) => {
+    const group = getTierMedals(medal)
     const idx = group.findIndex((m) => m.id === medal.id)
-
-    // next animation frame par state set karo -> UI block nahi hoga
-    requestAnimationFrame(() => {
-      setActiveTier(idx >= 0 ? idx : 0)
-      setSelectedMedal(medal)
-    })
-  }, [medals])
+    setActiveTier(idx >= 0 ? idx : 0)
+    setSelectedMedal(medal)
+  }
 
   const closeSheet = () => {
     setSelectedMedal(null)
@@ -621,31 +632,6 @@ export default function Medal({ onBack }: MedalProps) {
 
   const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
   const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
-
-  // ✅ PRELOAD images + warm video cache for instant open
-  useEffect(() => {
-    const preloadImages = [
-      '/IMG_20260924_132006.png',
-      '/IMG_20260924_132112.png',
-      ...TIER_TAB_IMAGES,
-    ]
-    preloadImages.forEach((src) => {
-      const img = new Image()
-      img.src = src
-    })
-
-    const timer = setTimeout(() => {
-      medals.forEach((m) => {
-        const link = document.createElement('link')
-        link.rel = 'preload'
-        link.as = 'video'
-        link.href = m.video
-        document.head.appendChild(link)
-      })
-    }, 600)
-
-    return () => clearTimeout(timer)
-  }, [])
 
   return (
     <div className="h-screen w-full text-white flex flex-col font-sans select-none relative overflow-hidden bg-[#02050e] touch-pan-y">
@@ -701,6 +687,7 @@ export default function Medal({ onBack }: MedalProps) {
             {Array.from({ length: 10 }).map((_, index) => (
               <div
                 key={index}
+                // YAHAN CLICK EVENT LAGAYA HAI UNEQUIPPED MEDALS KE LIYE
                 onClick={() => setShowUnequipped(true)}
                 className="aspect-square rounded-md border border-white bg-[#281b54]/60 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-inner"
               >
@@ -765,8 +752,9 @@ export default function Medal({ onBack }: MedalProps) {
                   <MedalVideo
                     src={medal.video}
                     variant={medal.variant ?? 'black'}
-                    autoPlay={true}
+                    autoPlay={false}
                     isColorless={true}
+                    disableAnimation={true}  // <-- YAHAN ANIMATION BAND KAR DI
                     className="max-w-none max-h-none object-contain"
                     style={{
                       width: medal.cardVideoSize,
@@ -787,10 +775,7 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {selectedMedal && displayMedal && (
-        <div
-          className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in"
-          style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}
-        >
+        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in">
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -871,6 +856,7 @@ export default function Medal({ onBack }: MedalProps) {
 
             {showTabs && (
               <div className="flex flex-col items-center mt-4 relative z-10">
+                {/* 1 / 2 / 3 tabs — gap hataya (gap-0) */}
                 <div className="flex items-center justify-center gap-2">
                   {tierMedals.map((_, i) => (
                     <React.Fragment key={i}>
@@ -900,20 +886,22 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from { opacity: 0; transform: scale(0.985); }
-              to { opacity: 1; transform: scale(1); }
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
             .animate-fade-in {
-              animation: fadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+              animation: fadeIn 0.3s ease-out forwards;
             }
           `}</style>
         </div>
       )}
 
+      {/* OBTAINED MEDALS OVERLAY (HALF SCREEN) */}
       {showObtained && (
         <ObtainedMedalsScreen onClose={() => setShowObtained(false)} />
       )}
 
+      {/* UNEQUIPPED MEDALS OVERLAY (HALF SCREEN) */}
       {showUnequipped && (
         <UnequippedMedalsScreen onClose={() => setShowUnequipped(false)} />
       )}
