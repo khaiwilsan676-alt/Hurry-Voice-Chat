@@ -345,11 +345,11 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* COLLECT BUTTON - Plate ke BAHAR, neeche, center mein, golden attractive */}
-              <div className="relative w-full flex justify-center -mt-4 z-30">
+              {/* COLLECT BUTTON - Bada size, thoda aur upar, golden attractive */}
+              <div className="relative w-full flex justify-center -mt-7 z-30">
                 <button 
                   onClick={() => {}}
-                  className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
+                  className="w-[110px] h-[34px] rounded-full font-black text-[12px] text-[#5a2c00] uppercase tracking-widest
                              bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
                              border-[3px] border-[#fff8b0]
                              shadow-[0_2px_0_#a86a00,0_4px_8px_rgba(0,0,0,0.8),inset_0_2px_5px_rgba(255,255,255,1)]
