@@ -69,7 +69,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 Spacer(Modifier.height(9.dp))
                 HorizontalPager(
                     state=pager,
-                    modifier=Modifier.fillMaxWidth().height(13.5f * LocalConfiguration.current.screenHeightDp / 100f)
+                    modifier=Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
                 ) { page ->
                     AsyncImage(
                         model=banners[page],
