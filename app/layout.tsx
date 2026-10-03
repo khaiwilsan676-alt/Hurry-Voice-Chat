@@ -115,6 +115,27 @@ export default function RootLayout({
         />
       </head>
 
+      <script
+        id="hurry-viewport-sync"
+        dangerouslySetInnerHTML={{
+          __html: `(function () {
+            function syncViewport() {
+              var vv = window.visualViewport;
+              var height = vv ? vv.height : window.innerHeight;
+              var width = vv ? vv.width : window.innerWidth;
+              document.documentElement.style.setProperty('--app-viewport-height', height + 'px');
+              document.documentElement.style.setProperty('--app-viewport-width', width + 'px');
+            }
+            syncViewport();
+            window.addEventListener('resize', syncViewport, { passive: true });
+            window.addEventListener('orientationchange', syncViewport, { passive: true });
+            if (window.visualViewport) {
+              window.visualViewport.addEventListener('resize', syncViewport, { passive: true });
+            }
+          })();`,
+        }}
+      />
+
       <body className="antialiased app-root bg-transparent">
         <StatusBarController />
         <BackButtonController />
