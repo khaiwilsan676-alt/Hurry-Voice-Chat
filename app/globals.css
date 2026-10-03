@@ -163,6 +163,23 @@ html, body {
   padding-bottom: var(--safe-bottom);
 }
 
+
+/* Universal mobile screen sizing: make legacy Tailwind viewport utilities follow the real WebView viewport. */
+.h-screen {
+  height: 100dvh !important;
+  height: var(--app-viewport-height) !important;
+}
+.min-h-screen {
+  min-height: 100dvh !important;
+  min-height: var(--app-viewport-height) !important;
+}
+
+/* Prevent horizontal viewport drift on Android WebView. */
+html, body, #__next {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 /* Real-device viewport helpers: use the WebView's dynamic viewport instead of legacy 100vh. */
 .app-screen {
   min-height: 100svh;
