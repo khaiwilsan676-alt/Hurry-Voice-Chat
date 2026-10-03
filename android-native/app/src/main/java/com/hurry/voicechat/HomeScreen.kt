@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import kotlinx.coroutines.launch
 
 private const val RAW = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 private const val HONOUR_BG = RAW + "IMG_20260912_144404.png"
@@ -77,40 +76,50 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                     Spacer(Modifier.width(2.dp))
                 }
                 Spacer(Modifier.height(9.dp))
-                HorizontalPager(
-                    state = pager,
-                    modifier = Modifier
+                Box(
+                    Modifier
                         .fillMaxWidth()
-                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp),
-                    userScrollEnabled = true,
-                    pageSpacing = 0.dp
-                ) { page ->
-                    AsyncImage(
-                        model=banners[page],
-                        contentDescription=null,
-                        modifier=Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)),
-                        contentScale=ContentScale.Crop
-                    )
-                }
-                Row(
-                    Modifier.fillMaxWidth().padding(top=0.dp),
-                    horizontalArrangement=Arrangement.Center
+                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
+                        .clip(RoundedCornerShape(6.dp))
                 ) {
-                    repeat(banners.size) { i ->
-                        Box(
-                            Modifier
-                                .padding(horizontal=3.dp)
-                                .size(width=if(i==pager.currentPage) 12.dp else 6.dp, height=6.dp)
-                                .clip(RoundedCornerShape(50))
-                                .background(if(i==pager.currentPage) Color.White else Color.White.copy(alpha=0.5f))
+                    HorizontalPager(
+                        state = pager,
+                        modifier = Modifier.fillMaxSize(),
+                        userScrollEnabled = true,
+                        pageSpacing = 0.dp
+                    ) { page ->
+                        AsyncImage(
+                            model=banners[page],
+                            contentDescription=null,
+                            modifier=Modifier.fillMaxSize(),
+                            contentScale=ContentScale.Crop
                         )
                     }
-                }
+                    Row(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 5.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        repeat(banners.size) { i ->
+                            Box(
+                                Modifier
+                                    .padding(horizontal=3.dp)
+                                    .size(width=if(i==pager.currentPage) 12.dp else 6.dp, height=6.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(
+                                        if(i==pager.currentPage) Color.White
+                                        else Color.White.copy(alpha=0.75f)
+                                    )
+                            )
+                        }
+                    }
+                }                }
             }
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 2.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
@@ -185,7 +194,7 @@ private fun HurryHouseIcon() {
 
 @Composable
 private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
-    androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
+    androidx.compose.foundation.layout.Box(modifier.aspectRatio(1f).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(
             model=bg,
             contentDescription=label,
@@ -205,9 +214,9 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         )
         androidx.compose.foundation.layout.Box(
             modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f)
-                .padding(bottom=4.dp).offset(y=2.dp).height(25.dp)
+                .padding(bottom=4.dp).offset(y=2.dp)
         ) {
-            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit)
+            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(end=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp),contentScale=ContentScale.Crop)
