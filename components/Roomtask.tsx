@@ -6,7 +6,6 @@ interface RoomtaskProps {
   onBack?: () => void;
 }
 
-// Custom Hook jo WebGL Shader se image ka white background strictly remove karta hai (PURE ORIGINAL)
 function useProcessedShaderImage(src: string) {
   const [processedSrc, setProcessedSrc] = useState<string>(src);
 
@@ -108,7 +107,6 @@ function useProcessedShaderImage(src: string) {
   return processedSrc;
 }
 
-// Helper component for task items
 function TaskItem({ 
   title, 
   reward,
@@ -179,7 +177,6 @@ function TaskItem({
             </span>
           </div>
 
-          {/* CLAIM BUTTON */}
           <button 
             onClick={() => {}}
             className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-wider
@@ -307,13 +304,13 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* NOTE TEXT - Plate ke upar chipka hua, collect button se upar */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-1 px-1 relative z-30">
+              {/* NOTE TEXT - Plate ke thoda upar, chipka hua (no overlap) */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-[2px] px-1 relative z-40">
                 *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
               </p>
 
-              {/* Plate Wrapper (Relative container for plate + 0 + icon) */}
-              <div className="relative w-full flex items-center justify-center -mt-1">
+              {/* Plate Wrapper */}
+              <div className="relative w-full flex items-center justify-center">
                 <img 
                   src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
                   alt="Middle Decoration" 
