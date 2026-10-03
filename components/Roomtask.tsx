@@ -344,19 +344,20 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 {/* Button Plate (Top button without Claim text) */}
                 <button 
                   onClick={() => {}}
-                  className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
+                  className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none relative z-10"
                   aria-label="Top Action"
                 ></button>
                 
-                {/* RECEIVE Button - Just below the plate, Centered */}
+                {/* RECEIVE Button - Absolutely positioned just below the plate, centered */}
                 <button 
                   onClick={() => {}}
-                  className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1
+                             w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
                              bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
                              border-[2px] border-[#ffd700]
                              shadow-[0_2px_0_#a86a00,0_4px_6px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
                              active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
-                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center mt-1"
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center z-20"
                 >
                   RECEIVE
                 </button>
