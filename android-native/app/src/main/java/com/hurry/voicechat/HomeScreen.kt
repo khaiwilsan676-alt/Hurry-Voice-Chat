@@ -133,8 +133,8 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                         repeat(banners.size) { i ->
                             Box(
                                 Modifier
-                                    .padding(horizontal=3.dp)
-                                    .size(width=if(i==pager.currentPage) 12.dp else 6.dp, height=6.dp)
+                                    .padding(horizontal=1.5.dp)
+                                    .size(5.dp)
                                     .clip(RoundedCornerShape(50))
                                     .background(
                                         if(i==pager.currentPage) Color.White
