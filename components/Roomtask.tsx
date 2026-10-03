@@ -179,13 +179,15 @@ function TaskItem({
             </span>
           </div>
 
+          {/* CLAIM BUTTON - CLEAR & BRIGHT */}
           <button 
             onClick={() => {}}
-            className="w-[85px] h-[28px] rounded-full font-black text-[11px] text-[#5a2c00] uppercase tracking-wider
-                       bg-gradient-to-b from-[#ffeeb0] via-[#fcd253] to-[#e69b00]
-                       border-[1.5px] border-[#ffea8f]
-                       shadow-[0_3px_0_#a86a00,0_5px_8px_rgba(0,0,0,0.5),inset_0_2px_3px_rgba(255,255,255,0.9)]
-                       active:translate-y-[2px] active:shadow-[0_1px_0_#a86a00,0_3px_5px_rgba(0,0,0,0.5),inset_0_2px_3px_rgba(255,255,255,0.9)]
+            className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-wider
+                       bg-gradient-to-b from-[#ffef9f] to-[#f5b301]
+                       text-[#4a1f00]
+                       border-2 border-[#fff7c2]
+                       shadow-[0_0_10px_rgba(255,215,0,0.9),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
+                       active:translate-y-[2px] active:shadow-[0_0_8px_rgba(255,215,0,0.9),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
                        transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
           >
             Claim
@@ -345,15 +347,16 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* COLLECT BUTTON - Bada size, thoda aur upar, golden attractive */}
-              <div className="relative w-full flex justify-center -mt-7 z-30">
+              {/* COLLECT BUTTON - CLEAR & BRIGHT */}
+              <div className="relative w-full flex justify-center -mt-4 z-30">
                 <button 
                   onClick={() => {}}
-                  className="w-[110px] h-[34px] rounded-full font-black text-[12px] text-[#5a2c00] uppercase tracking-widest
-                             bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
-                             border-[3px] border-[#fff8b0]
-                             shadow-[0_2px_0_#a86a00,0_4px_8px_rgba(0,0,0,0.8),inset_0_2px_5px_rgba(255,255,255,1)]
-                             active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.8),inset_0_2px_5px_rgba(255,255,255,1)]
+                  className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                             bg-gradient-to-b from-[#ffef9f] to-[#f5b301]
+                             text-[#4a1f00]
+                             border-2 border-[#fff7c2]
+                             shadow-[0_0_12px_rgba(255,215,0,1),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
+                             active:translate-y-[2px] active:shadow-[0_0_10px_rgba(255,215,0,1),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.95)]
                              transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                 >
                   Collect
