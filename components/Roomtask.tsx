@@ -142,10 +142,12 @@ function TaskItem({
   const rewardValue = reward.replace(/coins/gi, '').trim();
 
   return (
+    // Explicitly added rounded-none to ensure NO curves at all
     <div className="relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none">
       <img 
         src="/file_000000004fd0821198ed4e26d5008b16.png"
         alt="Task Background"
+        // Force rounded-none on image so original square/rectangle shape remains
         className="absolute inset-0 w-full h-full object-fill cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none z-0 rounded-none"
         draggable={false}
       />
@@ -182,9 +184,15 @@ function TaskItem({
             </span>
           </div>
 
+          {/* UPDATED CLAIM BUTTON AS PER SCREENSHOT */}
           <button 
             onClick={() => {}}
-            className="px-5 py-1.5 rounded-full font-bold text-[13px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_4px_0_#9c6500,0_6px_8px_rgba(0,0,0,0.4)] active:translate-y-[2px] active:shadow-[0_2px_0_#9c6500,0_4px_6px_rgba(0,0,0,0.4)] transition-all cursor-pointer uppercase tracking-wider border-[1px] border-[#fff4a3]"
+            className="w-[85px] h-[28px] rounded-full font-black text-[11px] text-[#5a2c00] uppercase tracking-wider
+                       bg-gradient-to-b from-[#ffeeb0] via-[#fcd253] to-[#e69b00]
+                       border-[1.5px] border-[#ffea8f]
+                       shadow-[0_3px_0_#a86a00,0_5px_8px_rgba(0,0,0,0.5),inset_0_2px_3px_rgba(255,255,255,0.9)]
+                       active:translate-y-[2px] active:shadow-[0_1px_0_#a86a00,0_3px_5px_rgba(0,0,0,0.5),inset_0_2px_3px_rgba(255,255,255,0.9)]
+                       transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
           >
             Claim
           </button>
@@ -302,47 +310,44 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full" style={{ height: 'calc(50vh - 45px)' }}></div>
 
           <div className="w-full flex justify-center px-4 flex-col items-center">
-            {/* Top Claim Button Section (Updated as per screenshot) */}
-            <div className="relative w-[100%] max-w-[450px] flex items-center justify-center mt-2 px-1">
-              <div className="relative w-full h-[52px] flex items-center justify-between">
-                
-                {/* Outer Gold Frame with Red Background */}
-                <div className="absolute inset-0 rounded-full border-[3px] border-[#d4a017] bg-[#8b0000] shadow-[0_0_15px_rgba(0,0,0,0.6)] overflow-hidden">
-                  {/* Inner gradient and highlight for 3D effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-[#c41e1e] via-[#8b0000] to-[#4a0000] opacity-90 rounded-full"></div>
-                  <div className="absolute top-0 left-0 w-full h-[1px] bg-white opacity-20 rounded-full"></div>
-                  <div className="absolute bottom-0 left-0 w-full h-[1px] bg-black opacity-40 rounded-full"></div>
-                </div>
-
-                {/* Left Side: Cat Icon */}
-                <div className="relative z-10 flex items-center pl-3">
-                  <div className="w-[38px] h-[38px] rounded-full bg-[#ffd700] flex items-center justify-center shadow-[0_0_8px_rgba(0,0,0,0.4)] border-[2px] border-[#b8860b]">
-                    <img 
-                      src={cleanedIconSrc} 
-                      alt="Cat Icon" 
-                      className="w-[30px] h-[30px] object-contain select-none"
-                      draggable={false}
-                    />
-                  </div>
-                </div>
-
-                {/* Center: Number '0' */}
-                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                  <span className="text-[22px] font-extrabold text-[#ffd700] drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
-                    0
-                  </span>
-                </div>
-
-                {/* Right Side: Claim Button */}
-                <div className="relative z-10 pr-2">
-                  <button 
-                    onClick={() => {}}
-                    className="px-4 py-1.5 rounded-full font-black text-[12px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_3px_0_#9c6500,0_5px_8px_rgba(0,0,0,0.5)] active:translate-y-[2px] active:shadow-[0_1px_0_#9c6500,0_3px_6px_rgba(0,0,0,0.5)] transition-all cursor-pointer uppercase tracking-wider border-[1px] border-[#fff4a3]"
-                  >
-                    CLAIM
-                  </button>
-                </div>
+            <div className="relative w-[100%] max-w-[450px] flex items-center justify-center mt-2">
+              <img 
+                src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
+                alt="Middle Decoration" 
+                className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
+                draggable={false}
+              />
+              
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 flex items-center z-20 pointer-events-none"
+                style={{ left: '10%' }} 
+              >
+                <img 
+                  src={cleanedIconSrc}
+                  alt="Cleaned Coin Icon" 
+                  className="w-7 h-7 object-contain select-none rounded-none"
+                  draggable={false}
+                />
               </div>
+
+              <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pr-4">
+                <span className="text-2xl font-extrabold text-[#ffd700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  0
+                </span>
+              </div>
+
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
+                style={{ right: '9%' }} 
+              >
+                <button 
+                  onClick={() => {}}
+                  className="px-2 py-1 rounded-full font-black text-[9px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_4px_0_#9c6500,0_6px_8px_rgba(0,0,0,0.4)] active:translate-y-[2px] active:shadow-[0_2px_0_#9c6500,0_4px_6px_rgba(0,0,0,0.4)] transition-all cursor-pointer uppercase tracking-wider"
+                >
+                  Claim
+                </button>
+              </div>
+
             </div>
           </div>
 
