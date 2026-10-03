@@ -3,6 +3,8 @@ package com.hurry.voicechat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -65,9 +67,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text("Mine", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(mine) HurryText else HurryMuted, modifier=Modifier.clickable { mine=true })
+                            color=if(mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { mine=true }) })
                         Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(!mine) HurryText else HurryMuted, modifier=Modifier.clickable { mine=false })
+                            color=if(!mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { mine=false }) })
                     }
                     Spacer(Modifier.weight(1f))
                     HurrySearchIcon()
