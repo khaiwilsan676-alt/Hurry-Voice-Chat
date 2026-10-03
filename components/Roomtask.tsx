@@ -329,7 +329,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </span>
               </div>
 
-              {/* --- BUTTON PLATE & RECEIVE BUTTON (CENTERED BELOW PLATE) --- */}
+              {/* --- BUTTON PLATE & RECEIVE BUTTON (BILKUL CENTER MEIN) --- */}
               <div 
                 className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
                 style={{ right: '9%' }} 
@@ -341,8 +341,8 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   aria-label="Top Action"
                 ></button>
                 
-                {/* RECEIVE Button - Exactly below the plate, centered */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1">
+                {/* RECEIVE Button - Bilkul center mein, nishan wali jagah par */}
+                <div className="absolute top-[85%] left-1/2 -translate-x-1/2 -translate-y-1/2">
                   <button 
                     onClick={() => {}}
                     className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
