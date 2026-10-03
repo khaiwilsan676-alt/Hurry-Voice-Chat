@@ -304,8 +304,8 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* NOTE TEXT - Plate ke thoda upar, chipka hua (no overlap) */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-[2px] px-1 relative z-40">
+              {/* NOTE TEXT - Plate ke thoda upar, collect button se upar */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mb-2 px-1 relative z-40">
                 *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
               </p>
 
