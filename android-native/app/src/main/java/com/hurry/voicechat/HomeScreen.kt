@@ -44,7 +44,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
     ) {
         item {
             Column(
-                Modifier.fillMaxWidth().padding(top = 35.dp, start = 12.dp, end = 12.dp)
+                Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).padding(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
