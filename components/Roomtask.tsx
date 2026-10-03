@@ -142,12 +142,10 @@ function TaskItem({
   const rewardValue = reward.replace(/coins/gi, '').trim();
 
   return (
-    // Explicitly added rounded-none to ensure NO curves at all
     <div className="relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none">
       <img 
         src="/file_000000004fd0821198ed4e26d5008b16.png"
         alt="Task Background"
-        // Force rounded-none on image so original square/rectangle shape remains
         className="absolute inset-0 w-full h-full object-fill cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none z-0 rounded-none"
         draggable={false}
       />
@@ -184,14 +182,12 @@ function TaskItem({
             </span>
           </div>
 
-          {/* CHANGED: Niche wala Claim button ab screenshot jaisa golden pill shape hai */}
           <button 
             onClick={() => {}}
             className="px-5 py-1.5 rounded-full font-bold text-[13px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_4px_0_#9c6500,0_6px_8px_rgba(0,0,0,0.4)] active:translate-y-[2px] active:shadow-[0_2px_0_#9c6500,0_4px_6px_rgba(0,0,0,0.4)] transition-all cursor-pointer uppercase tracking-wider border-[1px] border-[#fff4a3]"
           >
             Claim
           </button>
-          {/* CHANGED END */}
 
         </div>
       </div>
@@ -306,7 +302,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full" style={{ height: 'calc(50vh - 45px)' }}></div>
 
           <div className="w-full flex justify-center px-4 flex-col items-center">
-            {/* Top Claim Button Section */}
+            {/* Top Claim Button Section (Updated as per screenshot) */}
             <div className="relative w-[100%] max-w-[450px] flex items-center justify-center mt-2 px-1">
               <div className="relative w-full h-[52px] flex items-center justify-between">
                 
