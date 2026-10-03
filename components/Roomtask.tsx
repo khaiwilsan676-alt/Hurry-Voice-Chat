@@ -119,7 +119,6 @@ function TaskItem({
   iconSrc: string;
 }) {
   
-  // Title ke basis par Left Icon aur uska size decide karna
   const lowerTitle = title.toLowerCase();
   
   let leftIconSrc = iconSrc; 
@@ -142,19 +141,16 @@ function TaskItem({
   const rewardValue = reward.replace(/coins/gi, '').trim();
 
   return (
-    // Explicitly added rounded-none to ensure NO curves at all
     <div className="relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none">
       <img 
         src="/file_000000004fd0821198ed4e26d5008b16.png"
         alt="Task Background"
-        // Force rounded-none on image so original square/rectangle shape remains
         className="absolute inset-0 w-full h-full object-fill cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none z-0 rounded-none"
         draggable={false}
       />
 
       <div className="relative z-30 w-full pl-2 pr-4 flex items-center justify-between pointer-events-none rounded-none">
         
-        {/* Left Side: 0.5 gap */}
         <div className="flex items-center space-x-0.5 flex-1">
           <img 
             src={leftIconSrc} 
@@ -169,7 +165,6 @@ function TaskItem({
           </div>
         </div>
 
-        {/* Right Side */}
         <div className="flex-shrink-0 pointer-events-auto flex flex-col items-center justify-center space-y-1.5 pl-1">
           
           <div className="flex items-center space-x-1">
@@ -184,7 +179,6 @@ function TaskItem({
             </span>
           </div>
 
-          {/* UPDATED CLAIM BUTTON AS PER SCREENSHOT */}
           <button 
             onClick={() => {}}
             className="w-[85px] h-[28px] rounded-full font-black text-[11px] text-[#5a2c00] uppercase tracking-wider
@@ -205,7 +199,6 @@ function TaskItem({
 
 export default function Roomtask({ onBack }: RoomtaskProps) {
   
-  // Yaha original WebGL hook se clean image aayegi (base64 data URL)
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -336,7 +329,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </span>
               </div>
 
-              {/* --- BUTTON PLATE & RECEIVE BUTTON (EXACTLY BELOW PLATE, CENTERED) --- */}
+              {/* --- BUTTON PLATE & RECEIVE BUTTON (CENTERED BELOW PLATE) --- */}
               <div 
                 className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
                 style={{ right: '9%' }} 
@@ -349,7 +342,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 ></button>
                 
                 {/* RECEIVE Button - Exactly below the plate, centered */}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 flex justify-center">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1">
                   <button 
                     onClick={() => {}}
                     className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
