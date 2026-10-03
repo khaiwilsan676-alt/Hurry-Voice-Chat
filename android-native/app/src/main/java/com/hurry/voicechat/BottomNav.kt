@@ -3,6 +3,8 @@ package com.hurry.voicechat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +24,7 @@ import androidx.compose.ui.unit.sp
     }
 }
 @Composable private fun NavItem(which:HurryTab,selected:HurryTab,onTab:(HurryTab)->Unit,label:String){
-    Column(Modifier.width(64.dp).clickable{onTab(which)},horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(1.dp)){
+    Column(Modifier.width(64.dp).clickable(indication=null, interactionSource=remember { MutableInteractionSource() }){onTab(which)},horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(1.dp)){
         Canvas(Modifier.size(30.dp)){
             val s=size.minDimension/36f; val active=which==selected; val fill=if(active) Color(0xFF3B82F6) else Color.White; val stroke=Color(0xFF1D1D1F)
             fun path(block:Path.()->Unit)=Path().apply(block)
