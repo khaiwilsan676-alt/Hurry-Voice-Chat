@@ -359,15 +359,15 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </button>
               </div>
 
-              {/* NOTE TEXT - Plate ke niche, plate se chipka hua */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-2 px-1 relative z-40">
-                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
-              </p>
-
             </div>
           </div>
 
-          <div className="relative w-full flex flex-col items-center mt-3">
+          {/* NOTE TEXT - ab plate wrapper ke BAHAR, thoda neeche */}
+          <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-4 px-3 relative z-40">
+            *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+          </p>
+
+          <div className="relative w-full flex flex-col items-center mt-1">
             
             <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
               <img 
