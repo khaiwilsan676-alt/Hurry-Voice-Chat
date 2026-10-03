@@ -336,17 +336,32 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </span>
               </div>
 
+              {/* --- TOP BUTTON (CLAIM TEXT REMOVED) & RECEIVE BUTTON ADDED --- */}
               <div 
-                className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
+                className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1 flex flex-col items-center gap-1"
                 style={{ right: '9%' }} 
               >
+                {/* Top button without Claim text - keeping it empty/transparent as requested */}
                 <button 
                   onClick={() => {}}
-                  className="px-2 py-1 rounded-full font-black text-[9px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_4px_0_#9c6500,0_6px_8px_rgba(0,0,0,0.4)] active:translate-y-[2px] active:shadow-[0_2px_0_#9c6500,0_4px_6px_rgba(0,0,0,0.4)] transition-all cursor-pointer uppercase tracking-wider"
+                  className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
+                  aria-label="Top Action"
+                ></button>
+                
+                {/* New RECEIVE Button with Golden Border */}
+                <button 
+                  onClick={() => {}}
+                  className="w-[85px] h-[26px] rounded-full font-black text-[10px] text-[#5a2c00] uppercase tracking-widest
+                             bg-gradient-to-b from-[#ffea8f] via-[#ffc107] to-[#e69b00]
+                             border-[2px] border-[#ffd700]
+                             shadow-[0_2px_0_#a86a00,0_4px_6px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
+                             active:translate-y-[2px] active:shadow-[0_0px_0_#a86a00,0_2px_4px_rgba(0,0,0,0.6),inset_0_1px_3px_rgba(255,255,255,0.9)]
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                 >
-                  Claim
+                  RECEIVE
                 </button>
               </div>
+              {/* --- END OF TOP BUTTON SECTION --- */}
 
             </div>
           </div>
