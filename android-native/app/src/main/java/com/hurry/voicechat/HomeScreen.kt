@@ -45,6 +45,16 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
     val pager = rememberPagerState(pageCount = { banners.size })
     val scope = rememberCoroutineScope()
 
+    // Match the real app banner behavior: automatic 5s advance while
+    // keeping native horizontal swipe/fling scrolling smooth and bounded.
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(5000)
+            val next = (pager.currentPage + 1) % banners.size
+            pager.animateScrollToPage(next)
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(Color.White),
         contentPadding = PaddingValues(bottom = 12.dp)
@@ -68,8 +78,12 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 }
                 Spacer(Modifier.height(9.dp))
                 HorizontalPager(
-                    state=pager,
-                    modifier=Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
+                    state = pager,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp),
+                    userScrollEnabled = true,
+                    pageSpacing = 0.dp
                 ) { page ->
                     AsyncImage(
                         model=banners[page],
