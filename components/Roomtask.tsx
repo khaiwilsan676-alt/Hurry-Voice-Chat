@@ -343,9 +343,9 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* ===== EXACT CENTER BETWEEN BOTH PLATES (TEXT + BUTTON) ===== */}
-              <div className="w-full flex flex-col items-center justify-center gap-3 my-4 px-3 relative z-40">
-                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug">
+              {/* ===== TEXT + BUTTON EXACTLY BETWEEN BOTH PLATES ===== */}
+              <div className="flex flex-col items-center justify-center gap-3 py-4 w-full">
+                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3">
                   *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
                 </p>
 
@@ -363,7 +363,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </button>
               </div>
 
-              {/* ===== LOWER PLATE (ROOM TASK FRAME) ===== */}
+              {/* ===== LOWER PLATE ===== */}
               <div className="relative w-full flex flex-col items-center mt-0">
                 
                 <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
