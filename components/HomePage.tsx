@@ -3045,14 +3045,15 @@ export default function HomePage({ onLogout }: HomePageProps) {
           >
             <div
               ref={bannerContainerRef}
-              className="w-full px-3 safe-top pt-2"
+              className="w-full px-3 pt-2"
               style={{
                 height: 'auto',
                 minHeight: 'auto',
                 background: activeTab === 'mine'
                   ? 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 60%, #ffffff 100%)'
                   : 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-                paddingBottom: '0.7vh'
+                paddingBottom: '0.7vh',
+                paddingTop: '35px'
               }}
             >
               <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
