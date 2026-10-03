@@ -171,8 +171,8 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
             val roomRows = rooms!!.chunked(2)
             items(roomRows) { row ->
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal=6.dp),
-                    horizontalArrangement=Arrangement.spacedBy(2.dp)
+                    Modifier.fillMaxWidth().padding(horizontal=2.dp),
+                    horizontalArrangement=Arrangement.spacedBy(0.dp)
                 ) {
                     row.forEach { room ->
                         RoomListCard(room, onRoom, Modifier.weight(1f))
