@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, Star, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Plus, Star, HelpCircle, X } from 'lucide-react'
 
 interface MedalProps {
   onBack?: () => void
@@ -91,25 +91,25 @@ function MedalVideo({
   return (
     <>
       <style>{`video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel, video::-webkit-media-controls-overlay-play-button, video::-webkit-media-controls-start-playback-button { display:none !important; opacity:0 !important; }`}</style>
-    <video
-      ref={videoRef}
-      src={src}
-      autoPlay={autoPlay}
-      loop
-      playsInline
-      muted
-      controls={false}
-      preload="auto"
-      disablePictureInPicture
-      disableRemotePlayback
-      className={className}
-      style={{
-        backgroundColor: 'transparent',
-        filter: finalFilter,
-        pointerEvents: 'none',
-        ...style,
-      }}
-    />
+      <video
+        ref={videoRef}
+        src={src}
+        autoPlay={autoPlay}
+        loop
+        playsInline
+        muted
+        controls={false}
+        preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
+        className={className}
+        style={{
+          backgroundColor: 'transparent',
+          filter: finalFilter,
+          pointerEvents: 'none',
+          ...style,
+        }}
+      />
     </>
   )
 }
@@ -221,12 +221,136 @@ const TIER_TAB_IMAGES = [
   '/IMG_20260924_132051.png',
 ]
 
+// --- SCREEN 1: OBTAINED MEDALS SCREEN ---
+const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
+  const medalList = [
+    { id: 1, name: 'CP Level Badge', img: '/IMG_20260924_132022.png' },
+    { id: 2, name: 'Millionaire I', img: '/IMG_20260924_132038.png' },
+    { id: 3, name: 'Charm Star I', img: '/IMG_20260924_132051.png' },
+    { id: 4, name: 'Fruit King I', img: '/IMG_20260924_132022.png' },
+    { id: 5, name: 'Millionaire II', img: '/IMG_20260924_132038.png' },
+    { id: 6, name: 'Fruit King II', img: '/IMG_20260924_132051.png' },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#2a1b5e] flex flex-col font-sans overflow-y-auto animate-fade-in">
+      {/* Header */}
+      <div className="relative flex items-center justify-center pt-10 pb-6">
+        <h1 className="text-xl font-medium text-white tracking-wide">
+          Obtained Medals
+        </h1>
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-10 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          <X size={24} className="text-white" />
+        </button>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-3 gap-3 px-4 pb-10">
+        {medalList.map((medal) => (
+          <div
+            key={medal.id}
+            className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+          >
+            <div className="w-full h-full flex items-center justify-center p-1">
+              <img
+                src={medal.img}
+                alt={medal.name}
+                className="w-full h-full object-contain drop-shadow-md"
+              />
+            </div>
+            <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+              {medal.name}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// --- SCREEN 2: UNEQUIPPED MEDALS SCREEN (NEW) ---
+const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
+  const medalList = [
+    { id: 1, name: 'CP Spokesperson', img: '/IMG_20260924_132022.png' },
+    { id: 2, name: 'Level Medal', img: '/IMG_20260924_132038.png' },
+    { id: 3, name: 'Weird Star', img: '/IMG_20260924_132051.png' },
+    { id: 4, name: 'SVIP Badge', img: '/IMG_20260924_132022.png' },
+    { id: 5, name: 'Money Gun Talent', img: '/IMG_20260924_132038.png' },
+    { id: 6, name: 'First Recharge', img: '/IMG_20260924_132051.png' },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-[#2a1b5e] flex flex-col font-sans overflow-y-auto animate-fade-in">
+      {/* Header */}
+      <div className="relative flex items-center justify-center pt-10 pb-6">
+        <h1 className="text-xl font-medium text-white tracking-wide">
+          Unequipped Medals
+        </h1>
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-10 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          <X size={24} className="text-white" />
+        </button>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-3 gap-3 px-4 pb-10">
+        {medalList.map((medal) => (
+          <div
+            key={medal.id}
+            className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+          >
+            <div className="w-full h-full flex items-center justify-center p-1">
+              <img
+                src={medal.img}
+                alt={medal.name}
+                className="w-full h-full object-contain drop-shadow-md"
+              />
+            </div>
+            <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+              {medal.name}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export default function Medal({ onBack }: MedalProps) {
   const [activeTab, setActiveTab] = useState<
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
+  
+  // STATES FOR OVERLAY SCREENS
+  const [showObtained, setShowObtained] = useState(false)
+  const [showUnequipped, setShowUnequipped] = useState(false)
 
   const medals: MedalItem[] = [
     {
@@ -535,6 +659,8 @@ export default function Medal({ onBack }: MedalProps) {
             {Array.from({ length: 10 }).map((_, index) => (
               <div
                 key={index}
+                // YAHAN CLICK EVENT LAGAYA HAI UNEQUIPPED MEDALS KE LIYE
+                onClick={() => setShowUnequipped(true)}
                 className="aspect-square rounded-md border border-white bg-[#281b54]/60 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-inner"
               >
                 <Plus size={22} className="text-[#e2d5ff]" strokeWidth={2.5} />
@@ -545,7 +671,10 @@ export default function Medal({ onBack }: MedalProps) {
           <div className="relative mt-6 flex flex-col items-center">
             <div className="flex items-center justify-center text-[15px] font-medium text-gray-200 mb-2 z-10">
               Obtained Medal(s): <span className="text-[#facc15] ml-1">3</span>
-              <button className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors">
+              <button 
+                onClick={() => setShowObtained(true)}
+                className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors"
+              >
                 Check&gt;
               </button>
             </div>
@@ -728,12 +857,8 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from {
-                opacity: 0;
-              }
-              to {
-                opacity: 1;
-              }
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
@@ -741,6 +866,16 @@ export default function Medal({ onBack }: MedalProps) {
           `}</style>
         </div>
       )}
+
+      {/* OBTAINED MEDALS OVERLAY */}
+      {showObtained && (
+        <ObtainedMedalsScreen onClose={() => setShowObtained(false)} />
+      )}
+
+      {/* UNEQUIPPED MEDALS OVERLAY (NEW) */}
+      {showUnequipped && (
+        <UnequippedMedalsScreen onClose={() => setShowUnequipped(false)} />
+      )}
     </div>
   )
-              }
+}
