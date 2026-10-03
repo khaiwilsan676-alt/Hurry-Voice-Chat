@@ -2706,18 +2706,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   />
 
                   <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-2">
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      @keyframes shrinkAndFade {
-                        0%, 80% { transform: scale(1); opacity: 1; }
-                        95% { transform: scale(0.5); opacity: 0; }
-                        100% { transform: scale(0); opacity: 0; }
-                      }
-                    `}} />
-
                     <div
                       className="relative w-[85%] mx-auto flex items-center justify-center z-10"
                       style={{
-                        animation: 'shrinkAndFade 5s ease-in-out infinite',
+                        animation: 'none',
                         marginBottom: '0px',
                         transformOrigin: 'center'
                       }}
@@ -2754,7 +2746,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
         {allRooms.length > 0 ? (
           <div className="px-3" style={{ marginTop: '0.0vh' }}>
-            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
+            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1 items-start">
               {allRooms.map((room, index) => (
                 <div
                   key={room.accountId}
@@ -2770,9 +2762,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   }
                 >
                   <div
-                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
+                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                    style={{ width: '100%', aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
                   >
-                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative"
+                      style={{ width: '100%', height: '100%', aspectRatio: '1 / 1' }}>
                       <img
                         src={
                           room.image && room.image !== "undefined" && room.image !== "null"
