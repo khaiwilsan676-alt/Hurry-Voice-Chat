@@ -22,17 +22,21 @@ class MainActivity : ComponentActivity() {
 private fun HurryNativeRoot() {
     var tab by remember { mutableStateOf(HurryTab.HOME) }
     var openedRoom by remember { mutableStateOf<HurryRoom?>(null) }
+    var openedChat by remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
     HurryTheme {
         Box(Modifier.fillMaxSize()) {
             if (openedRoom != null) {
                 RoomScreen(openedRoom!!, onBack = { openedRoom = null })
+            } else if (openedChat != null) {
+                val chat = openedChat!!
+                NativeChatScreen(chat.second, chat.third, onBack = { openedChat = null })
             } else {
                 Column(Modifier.fillMaxSize()) {
                     Box(Modifier.weight(1f)) {
                         when (tab) {
                             HurryTab.HOME -> HomeScreen(onRoom = { openedRoom = it })
-                            HurryTab.MESSAGE -> MessageScreen()
+                            HurryTab.MESSAGE -> MessageScreen { uid, name, image -> openedChat = Triple(uid, name, image) }
                             HurryTab.ME -> MeScreen()
                         }
                     }
