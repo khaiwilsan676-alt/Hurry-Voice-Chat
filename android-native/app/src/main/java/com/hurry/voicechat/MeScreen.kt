@@ -108,7 +108,7 @@ fun MeScreen() {
         }
 
         item {
-            MenuCard(topItems)
+            MenuCard(topItems, Modifier.offset(y = (-32).dp))
         }
 
         item {
@@ -144,8 +144,8 @@ fun MeScreen() {
     AsyncImage(RAW_ME + asset, null, modifier.clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
 }
 
-@Composable private fun MenuCard(items: List<MeMenu>) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
+@Composable private fun MenuCard(items: List<MeMenu>, modifier: Modifier = Modifier) {
+    Column(modifier.padding(horizontal = 16.dp, vertical = 0.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
         items.forEach { item ->
             Row(Modifier.fillMaxWidth().clickable { }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(RAW_ME + item.asset, null, Modifier.size(if (item.label == "Seller Center") 40.dp else 32.dp), contentScale = ContentScale.Crop)
