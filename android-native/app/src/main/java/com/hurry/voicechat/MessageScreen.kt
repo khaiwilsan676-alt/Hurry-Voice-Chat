@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -42,7 +43,7 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
             Text(
                 "Message",
                 Modifier.padding(start = 16.dp, top = 16.dp, bottom = 13.dp),
-                color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
+                color = Color.Black, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold
             )
         }
 
@@ -86,59 +87,82 @@ fun NativeChatScreen(
     onBack: () -> Unit
 ) {
     var text by remember { mutableStateOf("") }
+    val isOfficial = name == "Hurry Team" || name == "Hurry System"
     val messages = remember { mutableStateListOf<String>() }
 
-    Column(Modifier.fillMaxSize().background(Color.White)) {
-        Row(
-            Modifier.fillMaxWidth().background(Color.White).padding(top = 12.dp, start = 8.dp, end = 12.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("‹", fontSize = 38.sp, color = Color.Black,
-                modifier = Modifier.clickable(onClick = onBack).padding(horizontal = 8.dp))
+    Box(Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
+        if (isOfficial) {
             AsyncImage(
-                model = image, contentDescription = name,
-                modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop
+                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_00000000777481f588df50d28908ce63.png",
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().alpha(0.05f),
+                contentScale = ContentScale.Crop
             )
-            Spacer(Modifier.width(10.dp))
-            Text(name, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222))
         }
 
-        HorizontalDivider(color = Color(0xFFEDEDED))
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().background(
+                    Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFF0F2F5)))
+                ).padding(top = 12.dp, start = 8.dp, end = 10.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("‹", fontSize = 38.sp, color = Color(0xFF222222),
+                    modifier = Modifier.clickable(onClick = onBack).padding(horizontal = 7.dp))
+                AsyncImage(model = image, contentDescription = name,
+                    modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(name, fontSize = 17.sp, fontWeight = FontWeight.Bold,
+                        color = Color(0xFF222222), maxLines = 1)
+                    if (!isOfficial) Text("Online", fontSize = 11.sp, color = Color(0xFF16A34A))
+                }
+                if (!isOfficial) Text("⋮", fontSize = 27.sp, color = Color.Black)
+            }
+            HorizontalDivider(color = Color(0xFFE3E3E3))
 
-        LazyColumn(
-            Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 12.dp)
-        ) {
-            items(messages) { message ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    Surface(
-                        color = Color(0xFF008CFF),
-                        shape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
-                    ) {
-                        Text(message, color = Color.White, fontSize = 15.sp,
-                            modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp))
+            LazyColumn(
+                Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                if (isOfficial && messages.isEmpty()) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(top = 10.dp), contentAlignment = Alignment.Center) {
+                            Text("Messages from $name", color = Color(0xFF8A8A8A), fontSize = 12.sp,
+                                modifier = Modifier.clip(RoundedCornerShape(10.dp))
+                                    .background(Color(0xFFE0E0E0).copy(alpha = .7f))
+                                    .padding(horizontal = 10.dp, vertical = 5.dp))
+                        }
+                    }
+                }
+                items(messages) { message ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        Surface(color = Color(0xFF374151),
+                            shape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)) {
+                            Text(message, color = Color.White, fontSize = 14.sp,
+                                modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp))
+                        }
                     }
                 }
             }
-        }
 
-        Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = text, onValueChange = { text = it },
-                modifier = Modifier.weight(1f), singleLine = true,
-                placeholder = { Text("Message") },
-                shape = RoundedCornerShape(22.dp)
-            )
-            Spacer(Modifier.width(6.dp))
-            Button(
-                onClick = { if (text.isNotBlank()) { messages.add(text.trim()); text = "" } },
-                enabled = text.isNotBlank(), shape = CircleShape,
-                contentPadding = PaddingValues(0.dp), modifier = Modifier.size(48.dp)
-            ) { Text("➤", fontSize = 20.sp) }
+            if (!isOfficial) {
+                Row(Modifier.fillMaxWidth().background(Color.White).navigationBarsPadding()
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text("＋", fontSize = 28.sp, color = Color(0xFF777777))
+                    Spacer(Modifier.width(6.dp))
+                    OutlinedTextField(value = text, onValueChange = { text = it },
+                        modifier = Modifier.weight(1f), singleLine = true,
+                        placeholder = { Text("Type a message...", color = Color(0xFF888888)) },
+                        shape = RoundedCornerShape(22.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Button(onClick = { if (text.isNotBlank()) { messages.add(text.trim()); text = "" } },
+                        enabled = text.isNotBlank(), shape = CircleShape, contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.size(46.dp)) { Text("➤", fontSize = 19.sp) }
+                }
+            }
         }
     }
 }
