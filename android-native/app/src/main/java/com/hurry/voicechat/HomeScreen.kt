@@ -139,8 +139,17 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 Text("No rooms available", Modifier.padding(20.dp), color=HurryMuted, fontSize=14.sp)
             }
         } else {
-            items(rooms!!) { room ->
-                RoomListCard(room, onRoom)
+            val roomRows = rooms!!.chunked(2)
+            items(roomRows) { row ->
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal=6.dp),
+                    horizontalArrangement=Arrangement.spacedBy(2.dp)
+                ) {
+                    row.forEach { room ->
+                        RoomListCard(room, onRoom)
+                    }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
             }
         }
     }
@@ -148,26 +157,35 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
 
 @Composable
 private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable { onRoom(room) }.padding(horizontal=12.dp, vertical=7.dp),
-        verticalAlignment=Alignment.CenterVertically
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(horizontal=6.dp, vertical=4.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .clickable { onRoom(room) }
     ) {
         AsyncImage(
             model=if(room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'),
             contentDescription=null,
-            modifier=Modifier.size(62.dp).clip(RoundedCornerShape(10.dp)),
+            modifier=Modifier.fillMaxSize(),
             contentScale=ContentScale.Crop
         )
-        Spacer(Modifier.width(11.dp))
-        Column(Modifier.weight(1f)) {
-            Text(room.name, fontSize=16.sp, fontWeight=FontWeight.SemiBold, color=HurryText, maxLines=1)
-            if (room.announcement.isNotBlank())
-                Text(room.announcement, fontSize=12.sp, color=HurryMuted, maxLines=1)
+        Box(
+            Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Color.Black.copy(alpha=0.45f))
+                .padding(horizontal=8.dp, vertical=7.dp)
+        ) {
+            Column {
+                Text(room.name, fontSize=15.sp, fontWeight=FontWeight.SemiBold, color=Color.White, maxLines=1)
+                if (room.announcement.isNotBlank())
+                    Text(room.announcement, fontSize=11.sp, color=Color.White.copy(alpha=0.9f), maxLines=1)
+            }
         }
-        Text("›", fontSize=27.sp, color=Color(0xFFAAAAAA))
     }
 }
-
 @Composable
 private fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
@@ -194,7 +212,7 @@ private fun HurryHouseIcon() {
 
 @Composable
 private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
-    androidx.compose.foundation.layout.Box(modifier.aspectRatio(1f).clip(RoundedCornerShape(16.dp))) {
+    androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(
             model=bg,
             contentDescription=label,
