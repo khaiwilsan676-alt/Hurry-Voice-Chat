@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HurryNativeRoot() {
     var tab by remember { mutableStateOf(HurryTab.HOME) }
+    var homeMine by remember { mutableStateOf(false) }
     var openedRoom by remember { mutableStateOf<HurryRoom?>(null) }
     var openedChat by remember { mutableStateOf<Triple<String, String, String>?>(null) }
 
@@ -47,7 +48,7 @@ private fun HurryNativeRoot() {
                 Column(Modifier.fillMaxSize()) {
                     Box(Modifier.weight(1f)) {
                         when (tab) {
-                            HurryTab.HOME -> HomeScreen(onRoom = { openedRoom = it })
+                            HurryTab.HOME -> HomeScreen(onRoom = { openedRoom = it }, onMine = { homeMine = true }, onPopular = { homeMine = false }, mineSelected = homeMine)
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
                                 openedChat = Triple(uid, name, image)
                             }

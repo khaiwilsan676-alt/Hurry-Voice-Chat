@@ -33,8 +33,8 @@ private const val ROOM_BG = RAW + "IMG_20260912_144347.png"
 private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 
 @Composable
-fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
-    var mine by remember { mutableStateOf(false) }
+fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: () -> Unit = {}, mineSelected: Boolean = false) {
+    val mine = mineSelected
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
     LaunchedEffect(Unit) { rooms = HurryApi.rooms() }
 
@@ -67,9 +67,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text("Mine", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { mine=true }) })
+                            color=if(mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) })
                         Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(!mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { mine=false }) })
+                            color=if(!mine) HurryText else HurryMuted, modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) })
                     }
                     Spacer(Modifier.weight(1f))
                     HurrySearchIcon()
