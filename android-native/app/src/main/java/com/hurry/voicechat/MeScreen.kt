@@ -93,7 +93,7 @@ fun MeScreen() {
         }
 
         item {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 0.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 FeatureImage("file_00000000f26c81f88083bc494a0f229b.png", Modifier.weight(1f).height(56.dp))
                 FeatureImage("file_00000000fe848207abf557a118ff8a5b.png", Modifier.weight(1f).height(56.dp))
             }
@@ -102,13 +102,13 @@ fun MeScreen() {
         item {
             AsyncImage(
                 RAW_ME + "file_00000000a25081fbb57574619596eed8.png", null,
-                Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp).heightIn(min = 76.dp).clip(RoundedCornerShape(8.dp)),
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-40).dp).padding(bottom = 24.dp).heightIn(min = 76.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
         }
 
         item {
-            MenuCard(topItems, Modifier.offset(y = (-28).dp))
+            MenuCard(topItems, Modifier.offset(y = (-32).dp))
         }
 
         item {
