@@ -102,7 +102,7 @@ fun MeScreen() {
         item {
             AsyncImage(
                 RAW_ME + "file_00000000a25081fbb57574619596eed8.png", null,
-                Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 4.dp).heightIn(min = 76.dp).clip(RoundedCornerShape(8.dp)),
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp).heightIn(min = 76.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
         }
