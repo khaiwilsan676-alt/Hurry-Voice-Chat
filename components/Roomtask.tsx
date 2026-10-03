@@ -343,13 +343,13 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* NOTE TEXT - NOW MOVED JUST ABOVE THE PLATE WITH SLIGHT GAP */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-4 px-3 relative z-40">
+              {/* NOTE TEXT - MOVED UP (Just below the plate) */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-0 px-3 relative z-40">
                 *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
               </p>
 
-              {/* COLLECT BUTTON */}
-              <div className="relative w-full flex justify-center mt-1 z-30">
+              {/* COLLECT BUTTON - MOVED UP (Just below the note text) */}
+              <div className="relative w-full flex justify-center -mt-1 z-30">
                 <button 
                   onClick={() => {}}
                   className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
