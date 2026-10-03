@@ -63,7 +63,6 @@ function MedalVideo({
   style = {},
   autoPlay = true,
   isColorless = false,
-  disableAnimation = false,
 }: {
   src: string
   variant?: 'black' | 'green'
@@ -71,24 +70,17 @@ function MedalVideo({
   style?: React.CSSProperties
   autoPlay?: boolean
   isColorless?: boolean
-  disableAnimation?: boolean
 }) {
   const isGreen = variant === 'green'
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     if (videoRef.current) {
-      if (disableAnimation) {
-        videoRef.current.pause()
-        videoRef.current.currentTime = 0
-      } else if (autoPlay) {
+      if (autoPlay) {
         videoRef.current.play().catch(() => {})
-      } else {
-        videoRef.current.pause()
-        videoRef.current.currentTime = 0
       }
     }
-  }, [autoPlay, src, disableAnimation])
+  }, [autoPlay, src])
 
   const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
@@ -99,8 +91,8 @@ function MedalVideo({
       <video
         ref={videoRef}
         src={src}
-        autoPlay={!disableAnimation && autoPlay}
-        loop={!disableAnimation}
+        autoPlay={autoPlay}
+        loop
         playsInline
         muted
         controls={false}
@@ -244,7 +236,7 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
         onClick={onClose}
       />
 
-      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)] will-change-transform">
         <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
           <h1 className="text-xl font-medium text-white tracking-wide">
             Obtained Medals
@@ -286,7 +278,7 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           to { transform: translateY(0); }
         }
         .animate-slide-up {
-          animation: slideUp 0.3s ease-out forwards;
+          animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
       `}</style>
     </div>
@@ -311,7 +303,7 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
         onClick={onClose}
       />
 
-      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)] will-change-transform">
         <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
           <h1 className="text-xl font-medium text-white tracking-wide">
             Unequipped Medals
@@ -353,7 +345,7 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           to { transform: translateY(0); }
         }
         .animate-slide-up {
-          animation: slideUp 0.3s ease-out forwards;
+          animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
       `}</style>
     </div>
@@ -604,12 +596,18 @@ export default function Medal({ onBack }: MedalProps) {
     return medals.filter((m) => m.tierGroup === medal.tierGroup)
   }
 
-  // ✅ SMOOTH OPEN: pehle instant frame dikhao, phir video load
+  // ✅ SMOOTH: instant open, no video pause. State update next frame par.
   const openSheet = useCallback((medal: MedalItem) => {
-    const group = getTierMedals(medal)
+    const group = medal.tierGroup
+      ? medals.filter((m) => m.tierGroup === medal.tierGroup)
+      : [medal]
     const idx = group.findIndex((m) => m.id === medal.id)
-    setActiveTier(idx >= 0 ? idx : 0)
-    setSelectedMedal(medal)
+
+    // next animation frame par state set karo -> UI block nahi hoga
+    requestAnimationFrame(() => {
+      setActiveTier(idx >= 0 ? idx : 0)
+      setSelectedMedal(medal)
+    })
   }, [medals])
 
   const closeSheet = () => {
@@ -624,7 +622,7 @@ export default function Medal({ onBack }: MedalProps) {
   const groupTop = tierMedals[0]?.sheetVideoTop ?? selectedMedal?.sheetVideoTop
   const groupSize = tierMedals[0]?.sheetVideoSize ?? selectedMedal?.sheetVideoSize
 
-  // ✅ PRELOAD videos + images for instant open
+  // ✅ PRELOAD images + warm video cache for instant open
   useEffect(() => {
     const preloadImages = [
       '/IMG_20260924_132006.png',
@@ -636,7 +634,6 @@ export default function Medal({ onBack }: MedalProps) {
       img.src = src
     })
 
-    // Preload tier videos in background (blob cache)
     const timer = setTimeout(() => {
       medals.forEach((m) => {
         const link = document.createElement('link')
@@ -645,7 +642,7 @@ export default function Medal({ onBack }: MedalProps) {
         link.href = m.video
         document.head.appendChild(link)
       })
-    }, 800)
+    }, 600)
 
     return () => clearTimeout(timer)
   }, [])
@@ -770,7 +767,6 @@ export default function Medal({ onBack }: MedalProps) {
                     variant={medal.variant ?? 'black'}
                     autoPlay={true}
                     isColorless={true}
-                    disableAnimation={true}
                     className="max-w-none max-h-none object-contain"
                     style={{
                       width: medal.cardVideoSize,
@@ -791,7 +787,10 @@ export default function Medal({ onBack }: MedalProps) {
       </div>
 
       {selectedMedal && displayMedal && (
-        <div className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in will-change-transform">
+        <div
+          className="fixed inset-0 z-50 bg-black overflow-y-auto overflow-x-hidden animate-fade-in"
+          style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}
+        >
           <div className="relative w-full h-[30vh]">
             <img
               src="/IMG_20260924_132006.png"
@@ -901,11 +900,11 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from { opacity: 0; transform: scale(0.98); }
+              from { opacity: 0; transform: scale(0.985); }
               to { opacity: 1; transform: scale(1); }
             }
             .animate-fade-in {
-              animation: fadeIn 0.18s ease-out forwards;
+              animation: fadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             }
           `}</style>
         </div>
