@@ -1,3 +1,4 @@
+Samajh gaya! Upper plate ko thoda neeche karke text note ko Upper Plate ke bilkul chipka ke (just upar) place kar diya hai aur baki sab kuch waise ka waisa rakha hai:
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -116,6 +117,7 @@ function TaskItem({
   reward: string;
   iconSrc: string;
 }) {
+  
   const lowerTitle = title.toLowerCase();
   
   let leftIconSrc = iconSrc; 
@@ -196,7 +198,9 @@ function TaskItem({
 }
 
 export default function Roomtask({ onBack }: RoomtaskProps) {
+  
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
+
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -299,14 +303,19 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full" style={{ height: 'calc(50vh - 45px)' }}></div>
 
           <div className="w-full flex justify-center px-4 flex-col items-center">
-            <div className="relative w-full max-w-[450px] flex flex-col items-center justify-start mt-2">
+            <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* ===== 1. UPPER PLATE ===== */}
-              <div className="relative w-full flex-shrink-0 flex items-center justify-center">
+              {/* ===== TEXT NOTE JUST ABOVE UPPER PLATE ===== */}
+              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3 mb-1 z-30 drop-shadow-md">
+                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+              </p>
+
+              {/* ===== UPPER PLATE (SHIFTED SLIGHTLY DOWN) ===== */}
+              <div className="relative w-full flex items-center justify-center mt-1">
                 <img 
                   src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
                   alt="Middle Decoration" 
-                  className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none block"
+                  className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
                   draggable={false}
                 />
                 
@@ -348,28 +357,8 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* ===== 2. MIDDLE SECTION (TEXT NOTE + BUTTON) EXACTLY CENTERED BETWEEN PLATES ===== */}
-              <div className="w-full flex-shrink-0 flex flex-col items-center justify-center py-6 px-2 gap-4.5 z-30">
-                <p className="w-full text-center text-white text-[11px] sm:text-[12.5px] font-medium leading-relaxed px-2 drop-shadow-md">
-                  *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
-                </p>
-
-                <button 
-                  onClick={() => {}}
-                  className="w-[95px] h-[30px] rounded-full font-black text-[11px] uppercase tracking-widest
-                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
-                             text-[#4a1f00]
-                             border-2 border-[#f5e6a8]
-                             shadow-[0_0_8px_rgba(255,215,0,0.6),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.6),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
-                >
-                  COLLECT
-                </button>
-              </div>
-
-              {/* ===== 3. LOWER PLATE ===== */}
-              <div className="relative w-full flex flex-col items-center flex-shrink-0">
+              {/* ===== LOWER PLATE ===== */}
+              <div className="relative w-full flex flex-col items-center mt-2">
                 
                 <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
                   <img 
@@ -463,3 +452,4 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
     </div>
   );
 }
+
