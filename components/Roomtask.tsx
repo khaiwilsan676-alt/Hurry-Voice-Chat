@@ -343,25 +343,26 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* NOTE TEXT - MOVED UP (Just below the plate) */}
-              <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-0 px-3 relative z-40">
-                *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
-              </p>
+              {/* NOTE TEXT & COLLECT BUTTON - EXACTLY IN CENTER OF BOTH PLATES */}
+              <div className="relative w-full flex flex-col items-center justify-center my-2 z-40">
+                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3">
+                  *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+                </p>
 
-              {/* COLLECT BUTTON - MOVED UP (Just below the note text) */}
-              <div className="relative w-full flex justify-center -mt-1 z-30">
-                <button 
-                  onClick={() => {}}
-                  className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
-                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
-                             text-[#4a1f00]
-                             border-2 border-[#f5e6a8]
-                             shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
-                >
-                  Collect
-                </button>
+                <div className="relative w-full flex justify-center mt-2">
+                  <button 
+                    onClick={() => {}}
+                    className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                               bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                               text-[#4a1f00]
+                               border-2 border-[#f5e6a8]
+                               shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                               active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                               transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
+                  >
+                    Collect
+                  </button>
+                </div>
               </div>
 
             </div>
