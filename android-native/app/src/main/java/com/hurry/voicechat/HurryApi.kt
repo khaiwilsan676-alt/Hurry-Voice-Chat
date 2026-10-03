@@ -30,6 +30,7 @@ object HurryApi {
                             name = o.optString("roomName", o.optString("name", "Room")),
                             image = o.optString("roomDp", o.optString("image", "")),
                             announcement = o.optString("announcement", o.optString("message", "")),
+                            country = o.optString("country", "🇮🇳"),
                             locked = o.optBoolean("isLocked", false)
                         )
                     )

@@ -186,32 +186,13 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
 
 @Composable
 private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .padding(horizontal=6.dp, vertical=4.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .clickable { onRoom(room) }
-    ) {
-        AsyncImage(
-            model=if(room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'),
-            contentDescription=null,
-            modifier=Modifier.fillMaxSize(),
-            contentScale=ContentScale.Crop
-        )
-        Box(
-            Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth()
-                .background(Color.Black.copy(alpha=0.45f))
-                .padding(horizontal=8.dp, vertical=7.dp)
-        ) {
-            Column {
-                Text(room.name, fontSize=15.sp, fontWeight=FontWeight.SemiBold, color=Color.White, maxLines=1)
-                if (room.announcement.isNotBlank())
-                    Text(room.announcement, fontSize=11.sp, color=Color.White.copy(alpha=0.9f), maxLines=1)
-            }
+    Column(modifier.fillMaxWidth().padding(horizontal=6.dp, vertical=4.dp).clickable { onRoom(room) }) {
+        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp))) {
+            AsyncImage(model=if(room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'), contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
+        }
+        Row(Modifier.fillMaxWidth().padding(horizontal=1.dp, vertical=1.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(2.dp)) {
+            Text(room.country, fontSize=14.sp, maxLines=1)
+            Text(room.name, fontSize=14.sp, fontWeight=FontWeight.SemiBold, color=Color(0xFF202124), maxLines=1, modifier=Modifier.weight(1f))
         }
     }
 }
