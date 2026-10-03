@@ -265,9 +265,22 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <div className="absolute flex flex-col items-center w-full" style={{ bottom: '31vh' }}>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '50px', height: '50px' }} />
               <div className="text-yellow-400 font-bold text-3xl drop-shadow-md leading-none mt-1">0</div>
-              <button className="mt-3 bg-gradient-to-b from-yellow-300 to-yellow-500 text-[#451a03] font-extrabold text-sm rounded-full px-6 py-1.5 shadow-[0_4px_0_#92400e] active:shadow-[0_0px_0_#92400e] active:translate-y-1 transition-all cursor-pointer">
-                Claim
-              </button>
+              
+              {/* UPDATED CLAIM BUTTON WITH BORDER */}
+              <div className="relative mt-3 flex items-center justify-center">
+                {/* Left Diamond */}
+                <div className="absolute -left-[5px] w-2 h-2 rotate-45 bg-gradient-to-br from-cyan-300 to-blue-500 border border-yellow-300 z-20 shadow-[0_0_4px_rgba(0,0,0,0.5)]"></div>
+                
+                {/* Main Button */}
+                <button className="relative z-10 bg-gradient-to-b from-[#e62e2e] via-[#b80d0d] to-[#7a0000] text-yellow-300 font-extrabold text-sm rounded-full px-10 py-1.5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_4px_0_#4a0000] border-[1.5px] border-yellow-400 active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_0px_0_#4a0000] active:translate-y-1 transition-all cursor-pointer drop-shadow-md">
+                  Claim
+                </button>
+                
+                {/* Right Diamond */}
+                <div className="absolute -right-[5px] w-2 h-2 rotate-45 bg-gradient-to-br from-cyan-300 to-blue-500 border border-yellow-300 z-20 shadow-[0_0_4px_rgba(0,0,0,0.5)]"></div>
+              </div>
+              {/* END CLAIM BUTTON */}
+
             </div>
 
             {/* Bottom Left Items (0, Number Invitation) */}
@@ -344,4 +357,4 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
       </div>
     </div>
   )
-            }
+}
