@@ -829,13 +829,13 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
   const lockedAvatarLetter = lockedNameDisplay ? lockedNameDisplay.charAt(0).toUpperCase() : '';
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 pb-24 overflow-y-auto">
+    <div className="w-full min-h-screen bg-gray-50 pb-16 overflow-y-auto">
       {/* Profile Header without extra cards inside it */}
       <div
-        className="px-4 pb-4 relative safe-top"
+        className="px-4 pb-4 relative"
         style={{
           background: 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #f9fafb 100%)',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 28px)'
+          paddingTop: '40px'
         }}
       >
         <div className="flex items-start justify-between mb-6">
