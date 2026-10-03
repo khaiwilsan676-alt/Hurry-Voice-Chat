@@ -304,7 +304,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* Plate Wrapper */}
+              {/* ===== UPPER PLATE ===== */}
               <div className="relative w-full flex items-center justify-center">
                 <img 
                   src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
@@ -343,114 +343,113 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* NOTE TEXT & COLLECT BUTTON - EXACTLY IN CENTER OF BOTH PLATES */}
-              <div className="relative w-full flex flex-col items-center justify-center my-2 z-40">
-                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug px-3">
+              {/* ===== EXACT CENTER BETWEEN BOTH PLATES (TEXT + BUTTON) ===== */}
+              <div className="w-full flex flex-col items-center justify-center gap-3 my-4 px-3 relative z-40">
+                <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug">
                   *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
                 </p>
 
-                <div className="relative w-full flex justify-center mt-2">
-                  <button 
-                    onClick={() => {}}
-                    className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
-                               bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
-                               text-[#4a1f00]
-                               border-2 border-[#f5e6a8]
-                               shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                               active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                               transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
-                  >
-                    Collect
-                  </button>
-                </div>
+                <button 
+                  onClick={() => {}}
+                  className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                             text-[#4a1f00]
+                             border-2 border-[#f5e6a8]
+                             shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
+                >
+                  Collect
+                </button>
               </div>
 
-            </div>
-          </div>
-
-          <div className="relative w-full flex flex-col items-center mt-1">
-            
-            <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
-              <img 
-                src="/file_00000000680881faa3dfdb17cce60858.png"
-                alt="Frame Top Border"
-                className="w-full h-auto object-fill block select-none pointer-events-none rounded-none"
-                style={{ transform: 'scaleX(1.12)' }}
-                draggable={false}
-              />
-
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <h1 className="text-white text-base sm:text-lg font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] -mt-4 sm:-mt-6">
-                  Room Task
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-1 -mt-5 z-40 select-none">
-              <span className="text-[#f5b8b8] text-[11px] font-medium">Countdown</span>
-
-              <div className="w-[20px] h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
-                <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.hours}</span>
-              </div>
-              <span className="text-[#f5b8b8] text-[11px] font-medium">Hour</span>
-
-              <div className="min-w-[20px] px-1 h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
-                <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.minutes}</span>
-              </div>
-              <span className="text-[#f5b8b8] text-[11px] font-medium">Minute</span>
-
-              <div className="w-[20px] h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
-                <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.seconds}</span>
-              </div>
-              <span className="text-[#f5b8b8] text-[11px] font-medium">Second</span>
-            </div>
-
-            <div className="relative w-full flex flex-col items-center mt-1 -mb-3">
-              
-              <div 
-                className="absolute -top-14 bottom-0 w-12 sm:w-16 z-10 pointer-events-none"
-                style={{
-                  backgroundImage: 'url(/IMG_20260903_105647.png)',
-                  backgroundRepeat: 'repeat-y',
-                  backgroundSize: '100% auto',
-                  backgroundPosition: 'left top',
-                  left: '-15px'
-                }}
-              />
-
-              <div 
-                className="absolute -top-14 bottom-0 w-12 sm:w-16 z-10 pointer-events-none"
-                style={{
-                  backgroundImage: 'url(/IMG_20260903_105705.png)',
-                  backgroundRepeat: 'repeat-y',
-                  backgroundSize: '100% auto',
-                  backgroundPosition: 'right top',
-                  right: '-15px'
-                }}
-              />
-
-              <div className="w-full max-w-[390px] flex flex-col items-center -space-y-[60px] px-6 z-20 -mt-2">
-                {tasks.map((task, index) => (
-                  <TaskItem 
-                    key={index}
-                    title={task.title}
-                    reward={task.reward}
-                    iconSrc={cleanedIconSrc}
+              {/* ===== LOWER PLATE (ROOM TASK FRAME) ===== */}
+              <div className="relative w-full flex flex-col items-center mt-0">
+                
+                <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
+                  <img 
+                    src="/file_00000000680881faa3dfdb17cce60858.png"
+                    alt="Frame Top Border"
+                    className="w-full h-auto object-fill block select-none pointer-events-none rounded-none"
+                    style={{ transform: 'scaleX(1.12)' }}
+                    draggable={false}
                   />
-                ))}
+
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <h1 className="text-white text-base sm:text-lg font-black tracking-wider uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] -mt-4 sm:-mt-6">
+                      Room Task
+                    </h1>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-1 -mt-5 z-40 select-none">
+                  <span className="text-[#f5b8b8] text-[11px] font-medium">Countdown</span>
+
+                  <div className="w-[20px] h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
+                    <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.hours}</span>
+                  </div>
+                  <span className="text-[#f5b8b8] text-[11px] font-medium">Hour</span>
+
+                  <div className="min-w-[20px] px-1 h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
+                    <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.minutes}</span>
+                  </div>
+                  <span className="text-[#f5b8b8] text-[11px] font-medium">Minute</span>
+
+                  <div className="w-[20px] h-[20px] rounded-[4px] border border-[#d85858] bg-gradient-to-b from-[#8f1a1a] to-[#470a0a] flex items-center justify-center shadow-inner">
+                    <span className="text-[#ffe0e0] text-[11px] font-bold">{timeLeft.seconds}</span>
+                  </div>
+                  <span className="text-[#f5b8b8] text-[11px] font-medium">Second</span>
+                </div>
+
+                <div className="relative w-full flex flex-col items-center mt-1 -mb-3">
+                  
+                  <div 
+                    className="absolute -top-14 bottom-0 w-12 sm:w-16 z-10 pointer-events-none"
+                    style={{
+                      backgroundImage: 'url(/IMG_20260903_105647.png)',
+                      backgroundRepeat: 'repeat-y',
+                      backgroundSize: '100% auto',
+                      backgroundPosition: 'left top',
+                      left: '-15px'
+                    }}
+                  />
+
+                  <div 
+                    className="absolute -top-14 bottom-0 w-12 sm:w-16 z-10 pointer-events-none"
+                    style={{
+                      backgroundImage: 'url(/IMG_20260903_105705.png)',
+                      backgroundRepeat: 'repeat-y',
+                      backgroundSize: '100% auto',
+                      backgroundPosition: 'right top',
+                      right: '-15px'
+                    }}
+                  />
+
+                  <div className="w-full max-w-[390px] flex flex-col items-center -space-y-[60px] px-6 z-20 -mt-2">
+                    {tasks.map((task, index) => (
+                      <TaskItem 
+                        key={index}
+                        title={task.title}
+                        reward={task.reward}
+                        iconSrc={cleanedIconSrc}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="w-full flex-shrink-0 z-30 pointer-events-none overflow-hidden -mt-12">
+                  <img 
+                    src="/file_0000000066c88211aa777b1f6da8683f.png"
+                    alt="Frame Bottom Border"
+                    className="w-full h-auto object-fill block select-none rounded-none"
+                    style={{ transform: 'scaleX(1.12)' }}
+                    draggable={false}
+                  />
+                </div>
+
               </div>
-            </div>
 
-            <div className="w-full flex-shrink-0 z-30 pointer-events-none overflow-hidden -mt-12">
-              <img 
-                src="/file_0000000066c88211aa777b1f6da8683f.png"
-                alt="Frame Bottom Border"
-                className="w-full h-auto object-fill block select-none rounded-none"
-                style={{ transform: 'scaleX(1.12)' }}
-                draggable={false}
-              />
             </div>
-
           </div>
 
         </div>
