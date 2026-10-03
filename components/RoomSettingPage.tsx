@@ -294,6 +294,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            accountId: roomOwnerId,
             roomId: roomOwnerId,
             id: roomOwnerId,
             roomName: settingsData.roomName,
