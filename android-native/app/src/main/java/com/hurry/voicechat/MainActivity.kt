@@ -1,24 +1,29 @@
 package com.hurry.voicechat
 
 import android.os.Bundle
-import android.view.WindowManager
-import androidx.core.view.WindowCompat
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS }
-        enableEdgeToEdge()
-        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
-        window.isNavigationBarContrastEnforced = false
+
+        // Stable edge-to-edge setup for Redmi/Android 14-16.
+        // Avoid the display-cutout/window-attribute path that can terminate
+        // the process on some OEM builds.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
+        window.navigationBarColor = android.graphics.Color.TRANSPARENT
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = true
+
         setContent { HurryNativeRoot() }
     }
 }
@@ -41,7 +46,9 @@ private fun HurryNativeRoot() {
                     Box(Modifier.weight(1f)) {
                         when (tab) {
                             HurryTab.HOME -> HomeScreen(onRoom = { openedRoom = it })
-                            HurryTab.MESSAGE -> MessageScreen { uid, name, image -> openedChat = Triple(uid, name, image) }
+                            HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
+                                openedChat = Triple(uid, name, image)
+                            }
                             HurryTab.ME -> MeScreen()
                         }
                     }
