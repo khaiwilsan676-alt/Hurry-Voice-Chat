@@ -146,7 +146,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit) {
                     horizontalArrangement=Arrangement.spacedBy(2.dp)
                 ) {
                     row.forEach { room ->
-                        RoomListCard(room, onRoom)
+                        RoomListCard(room, onRoom, Modifier.weight(1f))
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
