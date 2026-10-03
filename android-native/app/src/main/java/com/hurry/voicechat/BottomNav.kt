@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 @Composable private fun NavItem(which:HurryTab,selected:HurryTab,onTab:(HurryTab)->Unit,label:String){
     Column(Modifier.width(64.dp).clickable{onTab(which)},horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(1.dp)){
         Canvas(Modifier.size(30.dp)){
-            val s=size.minDimension/36f; val active=which==selected; val fill=if(active)Color(0xFF3B82F6)Color.White; val stroke=Color(0xFF1D1D1F)
+            val s=size.minDimension/36f; val active=which==selected; val fill=if(active) Color(0xFF3B82F6) else Color.White; val stroke=Color(0xFF1D1D1F)
             fun path(block:Path.()->Unit)=Path().apply(block)
             when(which){
                 HurryTab.HOME->{val q=path{moveTo(18*s,2.8f*s);cubicTo(20.2f*s,2.8f*s,30.2f*s,8.2f*s,30.2f*s,12.6f*s);lineTo(30.2f*s,23.2f*s);cubicTo(30.2f*s,27.8f*s,28f*s,31f*s,18f*s,31f*s);cubicTo(8f*s,31f*s,5.8f*s,27.8f*s,5.8f*s,23.2f*s);lineTo(5.8f*s,12.6f*s);cubicTo(5.8f*s,8.2f*s,15.8f*s,2.8f*s,18f*s,2.8f*s);close()};drawPath(q,fill);drawPath(q,stroke,style=Stroke(2.4f*s,cap=StrokeCap.Round,join=StrokeJoin.Round));drawPath(path{moveTo(12.2f*s,14.2f*s);cubicTo(13.3f*s,12.6f*s,14.9f*s,12.1f*s,16.8f*s,13.4f*s)},stroke,style=Stroke(1.8f*s,cap=StrokeCap.Round));drawPath(path{moveTo(11.2f*s,20.8f*s);cubicTo(12.5f*s,24.2f*s,21f*s,25.6f*s,24.3f*s,20.2f*s)},stroke,style=Stroke(1.8f*s,cap=StrokeCap.Round))}
