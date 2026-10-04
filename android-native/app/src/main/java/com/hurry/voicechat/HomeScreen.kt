@@ -71,9 +71,10 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(mine) HurryText else HurryMuted,
-                            modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
+                        Box {
+                            Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                color=if(mine) HurryText else HurryMuted,
+                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) })
                             if (mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
@@ -84,9 +85,10 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                                 }
                             }
                         }
-                        Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(!mine) HurryText else HurryMuted,
-                            modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
+                        Box {
+                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                color=if(!mine) HurryText else HurryMuted,
+                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) })
                             if (!mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
