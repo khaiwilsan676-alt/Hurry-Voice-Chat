@@ -151,7 +151,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* Number of people Section */}
-              <div className="mb-6 shrink-0">
+              {/* Yahan mb-6 ki jagah mb-3 kar diya taaki countdown bilkul niche chipka rahe */}
+              <div className="mb-3 shrink-0">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Number of people
                 </h3>
@@ -176,21 +177,21 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
-              {/* mt-6 add kiya taaki countdown thoda niche shift ho */}
-              <div className="mt-6 mb-5 shrink-0 flex flex-col gap-3">
+              {/* Yahan koi mt-6 nahi hai, bilkul upar chipka hua hai */}
+              <div className="mb-5 shrink-0 flex flex-col gap-2">
                 
                 {/* Countdown Header */}
                 <div className="flex items-center justify-center gap-2 px-1">
                   <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                   <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
-                  <span className="text-[#F5D9A8] font-bold text-[15px] tracking-wide drop-shadow-sm">
+                  <span className="text-[#F5D9A8] font-bold text-[14px] tracking-wide drop-shadow-sm">
                     countdown
                   </span>
                   <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
                   <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Time Buttons - Exactly same colour as other buttons */}
+                {/* Time Buttons - Same colour as other buttons */}
                 <div className="flex flex-wrap gap-2 px-1">
                   {timeOptions.map((time) => {
                     const isSelected = selectedTime === time
@@ -211,10 +212,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button - mb-8 kar diya taaki niche aaye */}
+              {/* Send Button - mb-10 kar diya taaki aur niche aaye */}
               <button
                 onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-8"
+                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-10"
               >
                 Send
               </button>
