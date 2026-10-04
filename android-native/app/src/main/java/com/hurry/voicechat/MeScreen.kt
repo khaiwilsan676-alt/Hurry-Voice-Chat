@@ -58,7 +58,7 @@ fun MeScreen() {
                         listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color(0xFFF9FAFB)),
                         startY = 0f, endY = 620f
                     )
-                ).statusBarsPadding().padding(top = 6.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ).padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
@@ -66,14 +66,14 @@ fun MeScreen() {
                             AsyncImage(photo, null, Modifier.size(80.dp).clip(CircleShape), contentScale = ContentScale.Crop)
                         } else {
                             Box(Modifier.size(80.dp).clip(CircleShape).background(Color(0xFF666666)), contentAlignment = Alignment.Center) {
-                                Text(name.take(1).uppercase(), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
+                                Text(name.take(1).uppercase(), color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Normal)
                             }
                         }
                         Spacer(Modifier.width(16.dp))
                         Column {
-                            Text(name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-                            if (account.isNotBlank()) Text("ID: $account", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF374151))
-                            if (phone.isNotBlank()) Text(phone, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF4B5563))
+                            Text(name, fontSize = 24.sp, fontWeight = FontWeight.Normal, color = Color(0xFF111827))
+                            if (account.isNotBlank()) Text("ID: $account", fontSize = 12.sp, fontWeight = FontWeight.Normal, color = Color(0xFF374151))
+                            if (phone.isNotBlank()) Text(phone, fontSize = 12.sp, fontWeight = FontWeight.Normal, color = Color(0xFF4B5563))
                         }
                     }
                     Text("›", fontSize = 32.sp, color = Color(0xFF374151), modifier = Modifier.padding(top = 10.dp))
@@ -128,7 +128,7 @@ fun MeScreen() {
                             }
                         )
                         Spacer(Modifier.width(4.dp))
-                        Text(label, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF171717))
+                        Text(label, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.Normal, color = Color(0xFF171717))
                         Text("›", fontSize = 25.sp, color = Color(0xFFAAAAAA))
                     }
                 }
@@ -139,7 +139,7 @@ fun MeScreen() {
 
 @Composable private fun Stat(value: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
+        Text(value, fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color(0xFF111827))
         Text(label, fontSize = 11.sp, color = Color(0xFF4B5563))
     }
 }
@@ -198,7 +198,7 @@ private fun MeMenuIcon(type: MeIconType) {
             Row(Modifier.fillMaxWidth().clickable { }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(RAW_ME + item.asset, null, Modifier.size(if (item.label == "Seller Center") 40.dp else 32.dp), contentScale = ContentScale.Crop)
                 Spacer(Modifier.width(16.dp))
-                Text(item.label, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF171717))
+                Text(item.label, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.Normal, color = Color(0xFF171717))
                 Text("›", fontSize = 25.sp, color = Color(0xFFAAAAAA))
             }
         }
