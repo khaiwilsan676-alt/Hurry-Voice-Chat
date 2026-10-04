@@ -32,7 +32,7 @@ fun MineNativePage(onBack: () -> Unit) {
                             .wrapContentSize()
                             .clickable { onBack() }
                     ) {
-                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryText)
+                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
                         androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                             val p = androidx.compose.ui.graphics.Path().apply {
                                 moveTo(size.width * 0.22f, size.height * 0.98f)
@@ -46,7 +46,7 @@ fun MineNativePage(onBack: () -> Unit) {
                             .wrapContentSize()
                             .clickable { onBack() }
                     ) {
-                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
+                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryMuted)
                     }
                 }
                 Spacer(Modifier.weight(1f))
