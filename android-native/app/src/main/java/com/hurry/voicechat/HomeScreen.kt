@@ -70,32 +70,42 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                 Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).padding(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box {
-                            Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                color=if(mine) HurryText else HurryMuted,
-                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) })
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Bottom) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Me",
+                                fontSize = 22.sp,
+                                fontWeight = if (mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                letterSpacing = 0.2.sp,
+                                color = if (mine) Color(0xFF1E1E1E) else Color(0xFF6E6E6E),
+                                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }
+                            )
                             if (mine) {
-                                androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                                androidx.compose.foundation.Canvas(Modifier.width(16.dp).height(7.dp)) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.22f, size.height * 0.98f)
-                                        quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
+                                        moveTo(size.width * 0.125f, size.height * 0.215f)
+                                        quadraticTo(size.width * 0.50f, size.height * 0.86f, size.width * 0.875f, size.height * 0.215f)
                                     }
-                                    drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                                    drawPath(p, Color(0xFF1E1E1E), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                                 }
                             }
                         }
-                        Box {
-                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                color=if(!mine) HurryText else HurryMuted,
-                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) })
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "Popular",
+                                fontSize = 22.sp,
+                                fontWeight = if (!mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                letterSpacing = 0.2.sp,
+                                color = if (!mine) Color(0xFF1E1E1E) else Color(0xFF6E6E6E),
+                                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }
+                            )
                             if (!mine) {
-                                androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                                androidx.compose.foundation.Canvas(Modifier.width(16.dp).height(7.dp)) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.22f, size.height * 0.98f)
-                                        quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
+                                        moveTo(size.width * 0.125f, size.height * 0.215f)
+                                        quadraticTo(size.width * 0.50f, size.height * 0.86f, size.width * 0.875f, size.height * 0.215f)
                                     }
-                                    drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                                    drawPath(p, Color(0xFF1E1E1E), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                                 }
                             }
                         }
@@ -201,39 +211,40 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
 @Composable
 private fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
-        val blue = Color(0xFF008CFF)
-        val white = Color.White
+        val c = Color(0xFF2D2D2D)
         val w = size.width
         val h = size.height
-
-        // Real-app style: compact blue circular badge with a white house.
-        drawCircle(
-            color = blue,
-            radius = w * 0.32f,
-            center = Offset(w * 0.5f, h * 0.5f)
+        val stroke = 2.2.dp.toPx()
+        val p = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.50f, h * 0.109375f)
+            cubicTo(w * 0.453f, h * 0.109375f, w * 0.094f, h * 0.25f, w * 0.094f, h * 0.422f)
+            lineTo(w * 0.094f, h * 0.672f)
+            cubicTo(w * 0.094f, h * 0.797f, w * 0.188f, h * 0.891f, w * 0.328f, h * 0.891f)
+            lineTo(w * 0.672f, h * 0.891f)
+            cubicTo(w * 0.812f, h * 0.891f, w * 0.906f, h * 0.797f, w * 0.906f, h * 0.672f)
+            lineTo(w * 0.906f, h * 0.422f)
+            cubicTo(w * 0.906f, h * 0.25f, w * 0.547f, h * 0.109f, w * 0.50f, h * 0.109f)
+            close()
+        }
+        drawPath(p, c, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.281f, h * 0.453f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.188f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
         )
-
-        val house = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.30f, h * 0.49f)
-            lineTo(w * 0.50f, h * 0.32f)
-            lineTo(w * 0.70f, h * 0.49f)
-            lineTo(w * 0.67f, h * 0.49f)
-            lineTo(w * 0.67f, h * 0.69f)
-            lineTo(w * 0.33f, h * 0.69f)
-            lineTo(w * 0.33f, h * 0.49f)
-            close()
-        }
-        drawPath(house, white)
-
-        // Door cut-out.
-        val door = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.455f, h * 0.55f)
-            lineTo(w * 0.545f, h * 0.55f)
-            lineTo(w * 0.545f, h * 0.69f)
-            lineTo(w * 0.455f, h * 0.69f)
-            close()
-        }
-        drawPath(door, blue)
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.444f, h * 0.359f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.281f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
+        )
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.609f, h * 0.438f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.203f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
+        )
     }
 }
 
