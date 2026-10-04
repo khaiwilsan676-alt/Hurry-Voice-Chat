@@ -16,7 +16,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [showClaim, setShowClaim] = useState(false)
   const [showRules, setShowRules] = useState(false)
   
-  // Naya state countdown ke liye
   const [selectedTime, setSelectedTime] = useState<string>('Now')
   const timeOptions = ['Now', '5 min', '10 min', '20 min']
 
@@ -69,7 +68,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 <path d="M174 318 H338" />
               </g>
 
-              {/* "Y" in top-left corner */}
               <path
                 d="M6 6 L26 26 L46 6 M26 26 L26 46"
                 fill="none"
@@ -81,10 +79,11 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </svg>
           </button>
 
-          <div className="w-full h-full p-4 flex flex-col relative z-20">
+          {/* ===== Main Content Area (Border ke andar fit karne ke liye padding adjust ki hai) ===== */}
+          <div className="w-full h-full px-6 pt-16 pb-10 flex flex-col relative z-20">
 
             {/* Top Right - Question Mark Icon */}
-            <div className="w-full flex justify-end items-center mb-6 mt-4 relative shrink-0">
+            <div className="w-full flex justify-end items-center mb-2 relative shrink-0">
               <button
                 onClick={() => setShowRules(true)}
                 className="w-7 h-7 cursor-pointer active:scale-95 transition"
@@ -124,20 +123,22 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </button>
             </div>
 
-            <div className="mt-auto">
-              {/* Gold Quantity Section - Text Down Kar Diya */}
-              <div className="mb-4 shrink-0 mt-4">
-                <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
+            {/* Content Wrapper - Niche lane ke liye mt-auto use kiya hai */}
+            <div className="mt-auto flex flex-col gap-3">
+              
+              {/* Gold Quantity Section */}
+              <div className="shrink-0">
+                <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[15px] mb-1.5 ml-1">
                   Gold Quantity
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="flex flex-wrap gap-1.5 px-1">
                   {coinOptions.map((coins) => {
                     const isSelected = selectedCoins === coins
                     return (
                       <button
                         key={coins}
                         onClick={() => setSelectedCoins(coins)}
-                        className={`h-[36px] px-4 rounded-full font-bold text-[14px] transition-all flex items-center justify-center ${
+                        className={`h-[34px] px-3 rounded-full font-bold text-[13px] transition-all flex items-center justify-center ${
                           isSelected
                             ? 'bg-[#FE3C68] text-white shadow-md'
                             : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A]'
@@ -150,19 +151,19 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Number of people Section - Text Down Kar Diya */}
-              <div className="mb-3 shrink-0 mt-4">
-                <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
+              {/* Number of people Section */}
+              <div className="shrink-0">
+                <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[15px] mb-1.5 ml-1">
                   Number of people
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="flex flex-wrap gap-1.5 px-1">
                   {recipientOptions.map((num) => {
                     const isSelected = recipients === num
                     return (
                       <button
                         key={num}
                         onClick={() => setRecipients(num)}
-                        className={`h-[36px] flex-1 min-w-[60px] max-w-[80px] rounded-full font-bold text-[14px] transition-all flex items-center justify-center ${
+                        className={`h-[34px] flex-1 min-w-[60px] max-w-[75px] rounded-full font-bold text-[13px] transition-all flex items-center justify-center ${
                           isSelected
                             ? 'bg-[#FE3C68] text-white shadow-md'
                             : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A]'
@@ -175,29 +176,26 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
-              <div className="mt-8 mb-4 shrink-0 flex flex-col gap-2">
-                
-                {/* Countdown Header */}
+              {/* Countdown Section */}
+              <div className="shrink-0 flex flex-col gap-1.5">
                 <div className="flex items-center justify-center gap-2 px-1">
                   <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
-                  <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
-                  <span className="text-[#F5D9A8] font-bold text-[14px] tracking-wide drop-shadow-sm">
+                  <div className="w-1.5 h-1.5 rotate-45 bg-[#F5D9A8]"></div>
+                  <span className="text-[#F5D9A8] font-bold text-[13px] tracking-wide drop-shadow-sm">
                     countdown
                   </span>
-                  <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
+                  <div className="w-1.5 h-1.5 rotate-45 bg-[#F5D9A8]"></div>
                   <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Time Buttons */}
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="flex flex-wrap gap-1.5 px-1">
                   {timeOptions.map((time) => {
                     const isSelected = selectedTime === time
                     return (
                       <button
                         key={time}
                         onClick={() => setSelectedTime(time)}
-                        className={`h-[36px] flex-1 min-w-[60px] max-w-[80px] rounded-full font-bold text-[14px] transition-all flex items-center justify-center ${
+                        className={`h-[34px] flex-1 min-w-[60px] max-w-[75px] rounded-full font-bold text-[13px] transition-all flex items-center justify-center ${
                           isSelected
                             ? 'bg-[#FE3C68] text-white shadow-md'
                             : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A]'
@@ -210,13 +208,16 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button - Yahan position fix ki hai (Screenshot ke nishan ke hisaab se) */}
-              <button
-                onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-10"
-              >
-                Send
-              </button>
+              {/* Send Button - Border ke andar aur thoda niche */}
+              <div className="mt-2 mb-2 flex justify-center">
+                <button
+                  onClick={() => setShowClaim(true)}
+                  className="w-[85%] h-[44px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[18px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center"
+                >
+                  Send
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
