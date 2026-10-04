@@ -71,7 +71,7 @@ fun HomeScreen(
         }
         item {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 4.dp, bottom = 0.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 4.dp)
                     .clip(RoundedCornerShape(14.dp))
             ) {
                 HorizontalPager(
@@ -113,7 +113,7 @@ fun HomeScreen(
 
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, top = 2.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp).padding(top = 2.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -305,7 +305,11 @@ private fun HomeTopTab(
         modifier = Modifier
             .width(76.dp)
             .height(50.dp)
-            .clickable(\n                interactionSource = remember { MutableInteractionSource() },\n                indication = null,\n                onClick = onClick\n            ),
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
