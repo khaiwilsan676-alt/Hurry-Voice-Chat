@@ -20,11 +20,27 @@ import coil3.compose.AsyncImage
 @Composable
 fun MineNativePage(onBack: () -> Unit) {
     var recent by remember { mutableStateOf(false) }
-    val card = Modifier.fillMaxWidth().height(120.dp).pointerInput(Unit) { detectTapGestures(onTap = {}) }
+    val card = Modifier.fillMaxWidth().height(112.dp).pointerInput(Unit) { detectTapGestures(onTap = {}) }
     LazyColumn(
         Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 80.dp)
+        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 80.dp)
     ) {
+        item {
+            Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
+                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = HurryText)
+                    }
+                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
+                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryMuted)
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                HurrySearchIcon()
+                Spacer(Modifier.width(10.dp))
+                HurryHouseIcon()
+            }
+        }
         item {
             Box(card.clip(RoundedCornerShape(6.dp)).background(
                 Brush.linearGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2)))
@@ -47,7 +63,7 @@ fun MineNativePage(onBack: () -> Unit) {
             }
         }
         item {
-            Column(Modifier.fillMaxWidth().padding(top=40.dp), horizontalAlignment=Alignment.CenterHorizontally) {
+            Column(Modifier.fillMaxWidth().padding(top=24.dp), horizontalAlignment=Alignment.CenterHorizontally) {
                 AsyncImage("https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000047308211a02722299d1fda2e.png", null, Modifier.size(160.dp))
                 Text("No data", color=Color(0xFF9CA3AF), fontSize=14.sp)
             }
