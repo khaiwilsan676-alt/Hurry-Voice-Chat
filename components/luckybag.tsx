@@ -13,6 +13,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [recipients, setRecipients] = useState<number>(5)
   const recipientOptions = [5, 10, 30, 50]
 
+  // Naya state countdown buttons ke liye
+  const [selectedCountdown, setSelectedCountdown] = useState<string>('Now')
+  const countdownOptions = ['Now', '5 min', '10 min', '20 min']
+
   const [showClaim, setShowClaim] = useState(false)
   const [showRules, setShowRules] = useState(false)
 
@@ -171,21 +175,44 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* ===== NEW COUNTDOWN SECTION ===== */}
-              <div className="flex items-center justify-center gap-4 mb-4 mt-1 px-2">
-                <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
-                <div className="flex items-center gap-2">
-                  {/* Left Diamond */}
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
-                  </svg>
-                  <span className="text-[#8B5E3C] font-bold text-[16px] tracking-wide">countdown</span>
-                  {/* Right Diamond */}
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
-                  </svg>
+              {/* ===== COUNTDOWN SECTION WITH BUTTONS ===== */}
+              <div className="flex flex-col mb-4 mt-1 px-1">
+                {/* Countdown Header */}
+                <div className="flex items-center justify-center gap-4 mb-3">
+                  <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
+                  <div className="flex items-center gap-2">
+                    {/* Left Diamond */}
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
+                    </svg>
+                    <span className="text-[#8B5E3C] font-bold text-[16px] tracking-wide">countdown</span>
+                    {/* Right Diamond */}
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
+                    </svg>
+                  </div>
+                  <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
                 </div>
-                <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
+
+                {/* Countdown Options (Now, 5 min, 10 min, 20 min) */}
+                <div className="flex flex-wrap gap-2 justify-between">
+                  {countdownOptions.map((option) => {
+                    const isSelected = selectedCountdown === option
+                    return (
+                      <button
+                        key={option}
+                        onClick={() => setSelectedCountdown(option)}
+                        className={`h-[38px] flex-1 min-w-[70px] rounded-full font-bold text-[14px] transition-all flex items-center justify-center border ${
+                          isSelected
+                            ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
+                            : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4AF37]'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
               {/* ================================= */}
 
