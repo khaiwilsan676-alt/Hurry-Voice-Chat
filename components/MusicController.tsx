@@ -89,27 +89,27 @@ export default function MusicController({
           boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
         }}
       >
-        {/* LEFT SIDE BUTTON (Ab yeh Minimize/Double Arrow hai) */}
-        <button
-          onClick={onMinimize}
-          className="absolute top-2 left-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
-          aria-label="Minimize music controller"
-        >
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
-            <line x1="7" y1="17" x2="17" y2="7" />
-            <polyline points="7 7 17 7 17 17" />
-          </svg>
-        </button>
-
-        {/* RIGHT SIDE BUTTON (Ab yeh Close/Power icon hai) */}
+        {/* LEFT SIDE BUTTON - Ab yeh Close (Power) hai */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+          className="absolute top-2 left-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
           aria-label="Close music controller"
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
             <path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
             <line x1="12" y1="2" x2="12" y2="12" />
+          </svg>
+        </button>
+
+        {/* RIGHT SIDE BUTTON - Ab yeh Minimize (Double Arrow) hai */}
+        <button
+          onClick={onMinimize}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+          aria-label="Minimize music controller"
+        >
+          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
+            <line x1="7" y1="17" x2="17" y2="7" />
+            <polyline points="7 7 17 7 17 17" />
           </svg>
         </button>
 
