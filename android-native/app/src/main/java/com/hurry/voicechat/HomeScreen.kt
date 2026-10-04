@@ -70,7 +70,7 @@ fun HomeScreen(
         }
         item {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 6.dp, bottom = 1.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 4.dp, bottom = 0.dp)
                     .clip(RoundedCornerShape(14.dp))
             ) {
                 HorizontalPager(
@@ -86,7 +86,7 @@ fun HomeScreen(
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 1.dp),
+                modifier = Modifier.fillMaxWidth().height(8.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 repeat(banners.size) { index ->
@@ -101,7 +101,7 @@ fun HomeScreen(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 0.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 1.dp, bottom = 3.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
@@ -178,7 +178,7 @@ private fun RoomListCard(
 
 @Composable
 private fun HurryCategoryCard(label: String, bg: String, modifier: Modifier = Modifier) {
-    Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
+    Box(modifier.height(88.dp).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(
             model = bg,
             contentDescription = label,
