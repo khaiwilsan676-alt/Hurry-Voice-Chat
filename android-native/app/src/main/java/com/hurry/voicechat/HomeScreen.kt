@@ -104,7 +104,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                     HurryHouseIcon()
                     Spacer(Modifier.width(2.dp))
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(5.dp))
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -148,7 +148,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp, bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp, bottom = 1.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
@@ -186,7 +186,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
 
 @Composable
 private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth().padding(horizontal=6.dp, vertical=4.dp).clickable { onRoom(room) }) {
+    Column(modifier.fillMaxWidth().padding(horizontal=6.dp, vertical=2.dp).clickable { onRoom(room) }) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp))) {
             AsyncImage(model=if(room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'), contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
         }
