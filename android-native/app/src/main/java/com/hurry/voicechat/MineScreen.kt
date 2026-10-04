@@ -23,7 +23,7 @@ fun MineNativePage(onBack: () -> Unit) {
     val card = Modifier.fillMaxWidth().height(120.dp).pointerInput(Unit) { detectTapGestures(onTap = {}) }
     LazyColumn(
         Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 80.dp)
+        contentPadding = PaddingValues(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 80.dp)
     ) {
         item {
             Box(card.clip(RoundedCornerShape(6.dp)).background(

@@ -58,9 +58,9 @@ fun HurryMeIcon(active: Boolean, modifier: Modifier = Modifier) {
 
 @Composable
 fun HurrySearchIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier.size(23.dp)) {
+    Canvas(modifier.size(26.dp)) {
         val c = Color(0xFF222222)
-        drawCircle(c, size.minDimension*.34f, Offset(size.width*.43f,size.height*.43f), style=Stroke(2.1.dp.toPx()))
-        drawLine(c, Offset(size.width*.68f,size.height*.68f), Offset(size.width*.9f,size.height*.9f), 2.1.dp.toPx(), StrokeCap.Round)
+        drawCircle(c, size.minDimension*.25f, Offset(size.width*.446f,size.height*.446f), style=Stroke(2.1.dp.toPx()))
+        drawLine(c, Offset(size.width*.65f,size.height*.65f), Offset(size.width*.86f,size.height*.86f), 2.1.dp.toPx(), StrokeCap.Round)
     }
 }

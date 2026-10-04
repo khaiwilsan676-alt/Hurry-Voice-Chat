@@ -38,8 +38,23 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
     LaunchedEffect(Unit) { rooms = HurryApi.rooms() }
 
+    val banners = listOf(
+        RAW + "IMG-20260830-WA0081.jpg",
+        RAW + "IMG-20260818-WA0000.jpg",
+        RAW + "IMG-20260818-WA0001.jpg"
+    )
+
+    // The real app keeps the Me/Popular top bar visible when switching to Me.
+    // Only the content below the header changes.
     if (mine) {
-        MineNativePage(onBack = onPopular)
+        Column(Modifier.fillMaxSize().background(Color.White)) {
+            HomeTopBar(
+                mine = true,
+                onMine = onMine,
+                onPopular = onPopular
+            )
+            MineNativePage(onBack = onPopular)
+        }
         return
     }
 
@@ -66,87 +81,8 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         contentPadding = PaddingValues(bottom = 12.dp)
     ) {
         item {
-            Column(
-                Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).padding(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box {
-                            Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                color=if(mine) HurryText else HurryMuted,
-                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) })
-                            if (mine) {
-                                androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-                                    val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.22f, size.height * 0.98f)
-                                        quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
-                                    }
-                                    drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                                }
-                            }
-                        }
-                        Box {
-                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                color=if(!mine) HurryText else HurryMuted,
-                                modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) })
-                            if (!mine) {
-                                androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-                                    val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.22f, size.height * 0.98f)
-                                        quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
-                                    }
-                                    drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.weight(1f))
-                    HurrySearchIcon()
-                    Spacer(Modifier.width(10.dp))
-                    HurryHouseIcon()
-                    Spacer(Modifier.width(2.dp))
-                }
-                Spacer(Modifier.height(9.dp))
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
-                        .clip(RoundedCornerShape(6.dp))
-                ) {
-                    HorizontalPager(
-                        state = pager,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        pageSpacing = 0.dp
-                    ) { page ->
-                        AsyncImage(
-                            model=banners[page],
-                            contentDescription=null,
-                            modifier=Modifier.fillMaxSize(),
-                            contentScale=ContentScale.Crop
-                        )
-                    }
-                    Row(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 5.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        repeat(banners.size) { i ->
-                            Box(
-                                Modifier
-                                    .padding(horizontal=1.5.dp)
-                                    .size(5.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(
-                                        if(i==pager.currentPage) Color.White
-                                        else Color.White.copy(alpha=0.75f)
-                                    )
-                            )
-                        }
-                    }
-                }
-            }
+            // Header is shared with the Me tab so it never disappears on tab switch.
+            HomeTopBar(mine = false, onMine = onMine, onPopular = onPopular)
         }
         item {
             Row(
@@ -201,39 +137,40 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
 @Composable
 private fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
-        val blue = Color(0xFF008CFF)
-        val white = Color.White
+        val c = Color(0xFF2D2D2D)
         val w = size.width
         val h = size.height
-
-        // Real-app style: compact blue circular badge with a white house.
-        drawCircle(
-            color = blue,
-            radius = w * 0.32f,
-            center = Offset(w * 0.5f, h * 0.5f)
+        val stroke = 2.2.dp.toPx()
+        val p = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.50f, h * 0.109375f)
+            cubicTo(w * 0.453f, h * 0.109375f, w * 0.094f, h * 0.25f, w * 0.094f, h * 0.422f)
+            lineTo(w * 0.094f, h * 0.672f)
+            cubicTo(w * 0.094f, h * 0.797f, w * 0.188f, h * 0.891f, w * 0.328f, h * 0.891f)
+            lineTo(w * 0.672f, h * 0.891f)
+            cubicTo(w * 0.812f, h * 0.891f, w * 0.906f, h * 0.797f, w * 0.906f, h * 0.672f)
+            lineTo(w * 0.906f, h * 0.422f)
+            cubicTo(w * 0.906f, h * 0.25f, w * 0.547f, h * 0.109f, w * 0.50f, h * 0.109f)
+            close()
+        }
+        drawPath(p, c, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.281f, h * 0.453f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.188f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
         )
-
-        val house = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.30f, h * 0.49f)
-            lineTo(w * 0.50f, h * 0.32f)
-            lineTo(w * 0.70f, h * 0.49f)
-            lineTo(w * 0.67f, h * 0.49f)
-            lineTo(w * 0.67f, h * 0.69f)
-            lineTo(w * 0.33f, h * 0.69f)
-            lineTo(w * 0.33f, h * 0.49f)
-            close()
-        }
-        drawPath(house, white)
-
-        // Door cut-out.
-        val door = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.455f, h * 0.55f)
-            lineTo(w * 0.545f, h * 0.55f)
-            lineTo(w * 0.545f, h * 0.69f)
-            lineTo(w * 0.455f, h * 0.69f)
-            close()
-        }
-        drawPath(door, blue)
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.444f, h * 0.359f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.281f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
+        )
+        drawRoundRect(
+            c,
+            topLeft = androidx.compose.ui.geometry.Offset(w * 0.609f, h * 0.438f),
+            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.203f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
+        )
     }
 }
 
@@ -270,3 +207,4 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         }
     }
 }
+
