@@ -6,14 +6,10 @@
     android:gravity="center_horizontal"
     android:background="@drawable/hurry_splash_background">
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="86dp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.38"
+        android:layout_weight="0.50"
         android:orientation="vertical"
         android:gravity="center">
 
@@ -27,18 +23,16 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:text="@string/app_name"
             android:textColor="#FFFFFF"
-            android:textSize="25sp"
+            android:textSize="24sp"
             android:textStyle="bold"
             android:fontFamily="sans" />
-
     </LinearLayout>
 
     <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.62" />
-
+        android:layout_weight="0.50" />
 </LinearLayout>
