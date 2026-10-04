@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,12 +102,33 @@ fun HomeScreen(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 1.dp, bottom = 3.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 0.dp, bottom = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
                 HurryCategoryCard("Charm", CHARM_BG, Modifier.weight(1f))
                 HurryCategoryCard("Room", ROOM_BG, Modifier.weight(1f))
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, top = 2.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Live Rooms",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF151515),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    "See all",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = HurryBlue
+                )
             }
         }
 
@@ -147,10 +169,10 @@ private fun RoomListCard(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp)
+        modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 3.dp)
             .clickable { onRoom(room) }
     ) {
-        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp))) {
+        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp))) {
             AsyncImage(
                 model = if (room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'),
                 contentDescription = null,
@@ -159,7 +181,7 @@ private fun RoomListCard(
             )
         }
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 1.dp, vertical = 1.dp),
+            Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
@@ -178,7 +200,7 @@ private fun RoomListCard(
 
 @Composable
 private fun HurryCategoryCard(label: String, bg: String, modifier: Modifier = Modifier) {
-    Box(modifier.height(88.dp).clip(RoundedCornerShape(16.dp))) {
+    Box(modifier.height(96.dp).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(
             model = bg,
             contentDescription = label,
@@ -190,7 +212,7 @@ private fun HurryCategoryCard(label: String, bg: String, modifier: Modifier = Mo
         )
         Text(
             text = label.uppercase(),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 13.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             fontSize = 11.sp,
             fontWeight = FontWeight.Black,
@@ -253,7 +275,7 @@ private fun HomeTopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .height(56.dp)
                 .padding(horizontal = 18.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Bottom
@@ -282,7 +304,7 @@ private fun HomeTopTab(
     Column(
         modifier = Modifier
             .width(76.dp)
-            .height(46.dp)
+            .height(50.dp)
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
