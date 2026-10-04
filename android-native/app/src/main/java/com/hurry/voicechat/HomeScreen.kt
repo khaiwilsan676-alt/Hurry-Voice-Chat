@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -66,6 +67,37 @@ fun HomeScreen(
     ) {
         item {
             HomeTopBar(mine = false, onMine = onMine, onPopular = onPopular)
+        }
+        item {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(14.dp))
+            ) {
+                HorizontalPager(
+                    state = pager,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(2.15f)
+                ) { page ->
+                    AsyncImage(
+                        model = banners[page],
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(14.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(banners.size) { index ->
+                    Box(
+                        Modifier.padding(horizontal = 3.dp).size(if (index == pager.currentPage) 7.dp else 5.dp)
+                            .clip(RoundedCornerShape(50)).background(
+                                if (index == pager.currentPage) HurryBlue else Color(0xFFD0D5DD)
+                            )
+                    )
+                }
+            }
         }
         item {
             Row(
@@ -215,7 +247,7 @@ private fun HomeTopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(HomeWhiteBlue)
+            .background(HurryBlue)
             .statusBarsPadding()
     ) {
         Row(
@@ -259,7 +291,7 @@ private fun HomeTopTab(
             text = label,
             fontSize = 16.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected) Color(0xFF202124) else Color(0xFF8A8F98),
+            color = if (selected) Color.White else Color(0xFFDCEEFF),
             maxLines = 1
         )
         Spacer(Modifier.height(7.dp))
@@ -268,7 +300,7 @@ private fun HomeTopTab(
                 .width(if (selected) 28.dp else 0.dp)
                 .height(3.dp)
                 .clip(RoundedCornerShape(3.dp))
-                .background(if (selected) HurryBlue else Color.Transparent)
+                .background(if (selected) Color.White else Color.Transparent)
         )
         Spacer(Modifier.height(2.dp))
     }
