@@ -199,24 +199,39 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
 @Composable
 private fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
-        val c = Color(0xFF2D2D2D)
+        val blue = Color(0xFF008CFF)
+        val white = Color.White
         val w = size.width
         val h = size.height
-        val p = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w*.50f,h*.11f)
-            cubicTo(w*.42f,h*.11f,w*.10f,h*.25f,w*.10f,h*.43f)
-            lineTo(w*.10f,h*.68f)
-            cubicTo(w*.10f,h*.86f,w*.23f,h*.94f,w*.39f,h*.94f)
-            lineTo(w*.61f,h*.94f)
-            cubicTo(w*.77f,h*.94f,w*.90f,h*.86f,w*.90f,h*.68f)
-            lineTo(w*.90f,h*.43f)
-            cubicTo(w*.90f,h*.25f,w*.58f,h*.11f,w*.50f,h*.11f)
+
+        // Same visual as the real Hurry app: blue circular badge + solid white home.
+        drawCircle(color = blue, radius = minOf(w, h) * 0.322f, center = center)
+
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * .31f, h * .49f)
+            lineTo(w * .48f, h * .34f)
+            cubicTo(w * .50f, h * .32f, w * .52f, h * .32f, w * .54f, h * .34f)
+            lineTo(w * .71f, h * .49f)
+            quadraticTo(w * .72f, h * .50f, w * .70f, h * .51f)
+            lineTo(w * .68f, h * .51f)
+            lineTo(w * .68f, h * .67f)
+            quadraticTo(w * .68f, h * .69f, w * .66f, h * .69f)
+            lineTo(w * .35f, h * .69f)
+            quadraticTo(w * .33f, h * .69f, w * .33f, h * .67f)
+            lineTo(w * .33f, h * .51f)
+            lineTo(w * .31f, h * .51f)
+            quadraticTo(w * .29f, h * .50f, w * .31f, h * .49f)
             close()
         }
-        drawPath(p,c,style=androidx.compose.ui.graphics.drawscope.Stroke(2.2.dp.toPx(),join=androidx.compose.ui.graphics.StrokeJoin.Round))
-        drawRoundRect(c,topLeft=Offset(w*.28f,h*.45f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
-        drawRoundRect(c,topLeft=Offset(w*.445f,h*.37f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.28f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
-        drawRoundRect(c,topLeft=Offset(w*.61f,h*.43f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.22f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawPath(path, white)
+
+        // Door cut-out, matching the web icon proportions.
+        drawRoundRect(
+            color = blue,
+            topLeft = Offset(w * .455f, h * .555f),
+            size = androidx.compose.ui.geometry.Size(w * .09f, h * .135f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5.dp.toPx())
+        )
     }
 }
 
