@@ -102,7 +102,7 @@ fun HomeScreen(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 0.dp, bottom = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
