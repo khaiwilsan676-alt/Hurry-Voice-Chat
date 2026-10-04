@@ -89,7 +89,7 @@ export default function MusicController({
           boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
         }}
       >
-        {/* LEFT SIDE BUTTON - Ab yeh Close (Power) hai */}
+        {/* LEFT SIDE BUTTON - Ab yahan POWER (Close) icon hai */}
         <button
           onClick={onClose}
           className="absolute top-2 left-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
@@ -101,7 +101,7 @@ export default function MusicController({
           </svg>
         </button>
 
-        {/* RIGHT SIDE BUTTON - Ab yeh Minimize (Double Arrow) hai */}
+        {/* RIGHT SIDE BUTTON - Ab yahan DOUBLE ARROW (Minimize) icon hai */}
         <button
           onClick={onMinimize}
           className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
