@@ -38,8 +38,23 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
     LaunchedEffect(Unit) { rooms = HurryApi.rooms() }
 
+    val banners = listOf(
+        RAW + "IMG-20260830-WA0081.jpg",
+        RAW + "IMG-20260818-WA0000.jpg",
+        RAW + "IMG-20260818-WA0001.jpg"
+    )
+
+    // The real app keeps the Me/Popular top bar visible when switching to Me.
+    // Only the content below the header changes.
     if (mine) {
-        MineNativePage(onBack = onPopular)
+        Column(Modifier.fillMaxSize().background(Color.White)) {
+            HomeTopBar(
+                mine = true,
+                onMine = onMine,
+                onPopular = onPopular
+            )
+            MineNativePage(onBack = onPopular)
+        }
         return
     }
 
@@ -66,97 +81,8 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         contentPadding = PaddingValues(bottom = 12.dp)
     ) {
         item {
-            Column(
-                Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).padding(top = 35.dp, start = 12.dp, end = 12.dp, bottom = 8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Bottom) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                "Me",
-                                fontSize = 22.sp,
-                                fontWeight = if (mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                letterSpacing = 0.2.sp,
-                                color = if (mine) Color(0xFF1E1E1E) else Color(0xFF6E6E6E),
-                                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }
-                            )
-                            if (mine) {
-                                androidx.compose.foundation.Canvas(Modifier.width(16.dp).height(7.dp)) {
-                                    val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.125f, size.height * 0.215f)
-                                        quadraticTo(size.width * 0.50f, size.height * 0.86f, size.width * 0.875f, size.height * 0.215f)
-                                    }
-                                    drawPath(p, Color(0xFF1E1E1E), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                                }
-                            }
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                "Popular",
-                                fontSize = 22.sp,
-                                fontWeight = if (!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                                letterSpacing = 0.2.sp,
-                                color = if (!mine) Color(0xFF1E1E1E) else Color(0xFF6E6E6E),
-                                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }
-                            )
-                            if (!mine) {
-                                androidx.compose.foundation.Canvas(Modifier.width(16.dp).height(7.dp)) {
-                                    val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.125f, size.height * 0.215f)
-                                        quadraticTo(size.width * 0.50f, size.height * 0.86f, size.width * 0.875f, size.height * 0.215f)
-                                    }
-                                    drawPath(p, Color(0xFF1E1E1E), style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                                }
-                            }
-                        }
-                    }
-                    Spacer(Modifier.weight(1f))
-                    HurrySearchIcon()
-                    Spacer(Modifier.width(10.dp))
-                    HurryHouseIcon()
-                    Spacer(Modifier.width(2.dp))
-                }
-                Spacer(Modifier.height(9.dp))
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
-                        .clip(RoundedCornerShape(6.dp))
-                ) {
-                    HorizontalPager(
-                        state = pager,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        pageSpacing = 0.dp
-                    ) { page ->
-                        AsyncImage(
-                            model=banners[page],
-                            contentDescription=null,
-                            modifier=Modifier.fillMaxSize(),
-                            contentScale=ContentScale.Crop
-                        )
-                    }
-                    Row(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 5.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        repeat(banners.size) { i ->
-                            Box(
-                                Modifier
-                                    .padding(horizontal=1.5.dp)
-                                    .size(5.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(
-                                        if(i==pager.currentPage) Color.White
-                                        else Color.White.copy(alpha=0.75f)
-                                    )
-                            )
-                        }
-                    }
-                }
-            }
+            // Header is shared with the Me tab so it never disappears on tab switch.
+            HomeTopBar(mine = false, onMine = onMine, onPopular = onPopular)
         }
         item {
             Row(
@@ -281,3 +207,4 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         }
     }
 }
+
