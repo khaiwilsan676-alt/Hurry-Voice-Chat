@@ -13,12 +13,12 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [recipients, setRecipients] = useState<number>(5)
   const recipientOptions = [5, 10, 30, 50]
 
-  // Naya state countdown buttons ke liye
-  const [selectedCountdown, setSelectedCountdown] = useState<string>('Now')
-  const countdownOptions = ['Now', '5 min', '10 min', '20 min']
-
   const [showClaim, setShowClaim] = useState(false)
   const [showRules, setShowRules] = useState(false)
+  
+  // New state for countdown selection
+  const [selectedTime, setSelectedTime] = useState<string>('Now')
+  const timeOptions = ['Now', '5 min', '10 min', '20 min']
 
   const rules = [
     'Click and select the Amount to be send in the lucky packet',
@@ -124,7 +124,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </button>
             </div>
 
-            <div className="mt-auto flex flex-col">
+            <div className="mt-auto">
               {/* Gold Quantity Section */}
               <div className="mb-4 shrink-0">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
@@ -175,46 +175,41 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* ===== COUNTDOWN SECTION WITH BUTTONS ===== */}
-              <div className="flex flex-col mb-4 mt-1 px-1">
+              {/* ================= COUNTDOWN & TIME OPTIONS SECTION ================= */}
+              {/* Added just above the Send button as requested */}
+              <div className="mb-5 shrink-0 flex flex-col gap-3">
+                
                 {/* Countdown Header */}
-                <div className="flex items-center justify-center gap-4 mb-3">
-                  <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
-                  <div className="flex items-center gap-2">
-                    {/* Left Diamond */}
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
-                    </svg>
-                    <span className="text-[#8B5E3C] font-bold text-[16px] tracking-wide">countdown</span>
-                    {/* Right Diamond */}
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
-                    </svg>
-                  </div>
-                  <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
+                <div className="flex items-center justify-center gap-2 px-1">
+                  <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
+                  <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
+                  <span className="text-[#F5D9A8] font-bold text-[15px] tracking-wide drop-shadow-sm">
+                    countdown
+                  </span>
+                  <div className="w-2 h-2 rotate-45 bg-[#F5D9A8]"></div>
+                  <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Countdown Options (Now, 5 min, 10 min, 20 min) */}
-                <div className="flex flex-wrap gap-2 justify-between">
-                  {countdownOptions.map((option) => {
-                    const isSelected = selectedCountdown === option
+                {/* Time Options */}
+                <div className="flex justify-between gap-2 px-1">
+                  {timeOptions.map((time) => {
+                    const isSelected = selectedTime === time
                     return (
                       <button
-                        key={option}
-                        onClick={() => setSelectedCountdown(option)}
-                        className={`h-[38px] flex-1 min-w-[70px] rounded-full font-bold text-[14px] transition-all flex items-center justify-center border ${
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`flex-1 h-[36px] rounded-full font-bold text-[13px] transition-all flex items-center justify-center ${
                           isSelected
-                            ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
-                            : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4AF37]'
+                            ? 'bg-[#FE3C68] text-white shadow-md border border-[#FE3C68]'
+                            : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border border-transparent'
                         }`}
                       >
-                        {option}
+                        {time}
                       </button>
                     )
                   })}
                 </div>
               </div>
-              {/* ================================= */}
 
               {/* Send Button */}
               <button
