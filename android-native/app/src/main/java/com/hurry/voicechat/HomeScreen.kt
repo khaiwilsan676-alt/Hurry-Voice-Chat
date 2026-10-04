@@ -71,9 +71,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(mine) HurryText else HurryMuted,
-                            modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
+                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
+                            Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                color=if(mine) HurryText else HurryMuted)
                             if (mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
@@ -84,9 +84,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                                 }
                             }
                         }
-                        Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
-                            color=if(!mine) HurryText else HurryMuted,
-                            modifier=Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
+                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
+                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.ExtraBold else FontWeight.Bold,
+                                color=if(!mine) HurryText else HurryMuted)
                             if (!mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
