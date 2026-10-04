@@ -13,7 +13,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [recipients, setRecipients] = useState<number>(5)
   const recipientOptions = [5, 10, 30, 50]
 
-  // New state for countdown
   const [selectedCountdown, setSelectedCountdown] = useState<string>('Now')
   const countdownOptions = ['Now', '5 min', '10 min', '20 min']
 
@@ -46,7 +45,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           {/* ===== Top-Left Corner Document Icon (with Y) ===== */}
           <button
             onClick={() => setShowClaim(true)}
-            className="absolute top-8 left-4 z-30 w-7 h-7 active:scale-95 transition"
+            className="absolute top-10 left-5 z-30 w-7 h-7 active:scale-95 transition"
             aria-label="Open claim details"
           >
             <svg
@@ -69,7 +68,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 <path d="M174 318 H338" />
               </g>
 
-              {/* "Y" in top-left corner */}
               <path
                 d="M6 6 L26 26 L46 6 M26 26 L26 46"
                 fill="none"
@@ -81,10 +79,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </svg>
           </button>
 
-          <div className="w-full h-full p-4 flex flex-col relative z-20">
+          <div className="w-full h-full px-6 pb-6 pt-2 flex flex-col relative z-20">
 
             {/* Top Right - Question Mark Icon */}
-            <div className="w-full flex justify-end items-center mb-4 mt-2 relative shrink-0">
+            <div className="w-full flex justify-end items-center mb-4 mt-4 relative shrink-0">
               <button
                 onClick={() => setShowRules(true)}
                 className="w-7 h-7 cursor-pointer active:scale-95 transition"
@@ -124,13 +122,13 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </button>
             </div>
 
-            <div className="mt-auto">
+            <div className="mt-2">
               {/* Gold Quantity Section */}
-              <div className="mb-3 shrink-0">
+              <div className="mb-3 shrink-0 px-2">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Gold Quantity
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="flex flex-wrap gap-2">
                   {coinOptions.map((coins) => {
                     const isSelected = selectedCoins === coins
                     return (
@@ -151,11 +149,11 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* Number of people Section */}
-              <div className="mb-3 shrink-0">
+              <div className="mb-3 shrink-0 px-2">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Number of people
                 </h3>
-                <div className="flex flex-wrap gap-2 px-1">
+                <div className="flex flex-wrap gap-2">
                   {recipientOptions.map((num) => {
                     const isSelected = recipients === num
                     return (
@@ -176,7 +174,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* ===== COUNTDOWN SECTION ===== */}
-              <div className="mb-4 shrink-0">
+              <div className="mb-4 shrink-0 px-2">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <div className="h-[1px] w-12 bg-white/40" />
                   <div className="flex items-center gap-2">
@@ -186,7 +184,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                   </div>
                   <div className="h-[1px] w-12 bg-white/40" />
                 </div>
-                <div className="flex flex-wrap gap-2 px-1 justify-center">
+                <div className="flex flex-wrap gap-2 justify-center">
                   {countdownOptions.map((option) => {
                     const isSelected = selectedCountdown === option
                     return (
@@ -206,10 +204,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button - Moved down with mt-6 */}
+              {/* Send Button */}
               <button
                 onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-2 mt-6"
+                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-4 mt-2"
               >
                 Send
               </button>
