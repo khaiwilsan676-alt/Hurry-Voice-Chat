@@ -176,7 +176,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
-              <div className="mb-5 shrink-0 flex flex-col gap-3">
+              {/* mt-6 add kiya taaki countdown thoda niche shift ho */}
+              <div className="mt-6 mb-5 shrink-0 flex flex-col gap-3">
                 
                 {/* Countdown Header */}
                 <div className="flex items-center justify-center gap-2 px-1">
@@ -189,7 +190,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                   <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Time Buttons - Exactly same style as existing buttons */}
+                {/* Time Buttons - Exactly same colour as other buttons */}
                 <div className="flex flex-wrap gap-2 px-1">
                   {timeOptions.map((time) => {
                     const isSelected = selectedTime === time
@@ -210,10 +211,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button */}
+              {/* Send Button - mb-8 kar diya taaki niche aaye */}
               <button
                 onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-2"
+                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-8"
               >
                 Send
               </button>
