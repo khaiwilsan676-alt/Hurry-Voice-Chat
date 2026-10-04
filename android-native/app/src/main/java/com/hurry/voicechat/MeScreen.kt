@@ -108,7 +108,7 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
         }
 
         item {
-            MenuCard(topItems, Modifier.offset(y = (-56).dp))
+            MenuCard(topItems, onOpen, Modifier.offset(y = (-56).dp))
         }
 
         item {
@@ -222,7 +222,7 @@ private fun MeMenuIcon(type: MeIconType) {
     AsyncImage(RAW_ME + asset, null, modifier.clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
 }
 
-@Composable private fun MenuCard(items: List<MeMenu>, modifier: Modifier = Modifier) {
+@Composable private fun MenuCard(items: List<MeMenu>, onOpen: (String) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.padding(horizontal = 16.dp, vertical = 0.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
         items.forEach { item ->
             Row(Modifier.fillMaxWidth().clickable { onOpen(item.label) }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {

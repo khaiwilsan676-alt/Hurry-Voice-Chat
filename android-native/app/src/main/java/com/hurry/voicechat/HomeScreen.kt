@@ -197,7 +197,7 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
     }
 }
 @Composable
-private fun HurryHouseIcon() {
+fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
         val c = Color(0xFF2D2D2D)
         val w = size.width

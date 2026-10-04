@@ -70,7 +70,7 @@ fun MineNativePage(onBack: () -> Unit) {
                     }
                 }
             }
-            Row(Modifier.padding(top=12.dp).pointerInput(Unit){detectTapGestures(onTap={})}, horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.padding(top=12.dp), horizontalArrangement=Arrangement.spacedBy(16.dp)) {
                 Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
                 Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF),
                     modifier=Modifier.clickable { recent=true })
