@@ -46,7 +46,7 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
             Text(
                 "Message",
                 Modifier.padding(start = 16.dp, top = 16.dp, bottom = 13.dp),
-                color = Color.Black, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold
+                color = Color.Black, fontSize = 26.sp, fontWeight = FontWeight.Normal
             )
         }
 
@@ -73,7 +73,7 @@ private fun MessageRow(chat: MessagePreview, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
-            Text(chat.name, color = Color(0xFF333333), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(chat.name, color = Color(0xFF333333), fontSize = 16.sp, fontWeight = FontWeight.Normal)
             if (chat.message.isNotEmpty()) {
                 Spacer(Modifier.height(3.dp))
                 Text(chat.message, color = HurryMuted, fontSize = 14.sp, maxLines = 1)
@@ -139,7 +139,7 @@ fun NativeChatScreen(
                     Text(
                         name,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Normal,
                         color = Color(0xFF1F2937),
                         maxLines = 1
                     )
@@ -247,7 +247,7 @@ fun NativeChatScreen(
                                     Modifier.size(28.dp).clip(CircleShape).background(Color(0xFF9CA3AF)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(currentName.take(1).uppercase(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text(currentName.take(1).uppercase(), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                                 }
                             }
                         }
@@ -377,7 +377,7 @@ fun NativeChatScreen(
                     Box(
                         Modifier.fillMaxWidth().height(48.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF3B82F6)).clickable { showOptions = false },
                         contentAlignment = Alignment.Center
-                    ) { Text("Cancel", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold) }
+                    ) { Text("Cancel", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Normal) }
                 }
             }
         }
