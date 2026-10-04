@@ -58,7 +58,7 @@ fun MeScreen() {
                         listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color(0xFFF9FAFB)),
                         startY = 0f, endY = 620f
                     )
-                ).padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ).statusBarsPadding().padding(top = 6.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
