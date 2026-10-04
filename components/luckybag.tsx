@@ -33,13 +33,14 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
 
         {/* Main Container */}
         <div
-          className="relative w-full max-w-[440px] mx-auto h-[48vh] flex flex-col justify-end animate-in slide-in-from-bottom duration-300"
+          className="relative w-full max-w-[440px] mx-auto h-[62vh] flex flex-col justify-end animate-in slide-in-from-bottom duration-300"
           onClick={(e) => e.stopPropagation()}
           style={{
             backgroundImage: `url('/file_000000008aec8230a4f2d1854cb19882.png')`,
             backgroundSize: '100% 100%',
             backgroundPosition: 'center bottom',
             backgroundRepeat: 'no-repeat',
+            zoom: 0.8,
           }}
         >
           {/* ===== Top-Left Corner Document Icon (with Y) ===== */}
