@@ -154,6 +154,204 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
+// ---------- CROP MODAL COMPONENT ----------
+// ------------------------------------------------------------
+function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel: () => void; onCrop: (cropped: string) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+
+  const [scale, setScale] = useState(1)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [imageLoaded, setImageLoaded] = useState(false)
+
+  // Image load hone par initial scale set karo taaki wo box ko cover kare
+  const handleImageLoad = () => {
+    const img = imgRef.current
+    const container = containerRef.current
+    if (!img || !container) return
+
+    const containerSize = container.offsetWidth // Square box (e.g. 300px)
+    const imgRatio = img.naturalWidth / img.naturalHeight
+    let initialScale = 1
+
+    // Agar image wide hai to height ke hisaab se scale karo, warna width ke hisaab se
+    if (imgRatio > 1) {
+      // Landscape: Height match karo
+      initialScale = containerSize / img.naturalHeight
+    } else {
+      // Portrait/Square: Width match karo
+      initialScale = containerSize / img.naturalWidth
+    }
+
+    setScale(initialScale)
+    setPosition({ x: 0, y: 0 })
+    setImageLoaded(true)
+  }
+
+  // Drag handlers (Mouse)
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true)
+    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
+  }
+
+  const handleMouseUp = () => setIsDragging(false)
+
+  // Drag handlers (Touch)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0]
+    setIsDragging(true)
+    setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return
+    const touch = e.touches[0]
+    setPosition({ x: touch.clientX - dragStart.x, y: touch.clientY - dragStart.y })
+  }
+
+  const handleTouchEnd = () => setIsDragging(false)
+
+  // Zoom handler
+  const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setScale(parseFloat(e.target.value))
+  }
+
+  // Crop & Save logic
+  const handleCrop = () => {
+    const img = imgRef.current
+    const container = containerRef.current
+    if (!img || !container) return
+
+    const containerSize = container.offsetWidth // Square box size (e.g. 300px)
+    const outputSize = 640 // Final image size (640x640)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = outputSize
+    canvas.height = outputSize
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // White background bharo (transparent ke liye)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, outputSize, outputSize)
+
+    // Image ka original size aur current scale calculate karo
+    const imgW = img.naturalWidth * scale
+    const imgH = img.naturalHeight * scale
+
+    // Image ka top-left position relative to container
+    // Container center se image center tak ka offset
+    const containerCenter = containerSize / 2
+    const imgLeft = containerCenter + position.x - imgW / 2
+    const imgTop = containerCenter + position.y - imgH / 2
+
+    // Canvas mein draw karo (scale factor: outputSize / containerSize)
+    const ratio = outputSize / containerSize
+    ctx.drawImage(
+      img,
+      imgLeft * ratio,
+      imgTop * ratio,
+      imgW * ratio,
+      imgH * ratio
+    )
+
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    onCrop(croppedDataUrl)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/90 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <h3 className="text-white text-center font-bold text-lg mb-4">Crop Image</h3>
+
+        {/* Crop Box */}
+        <div
+          ref={containerRef}
+          className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden cursor-move touch-none"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Grid Overlay (jaise WhatsApp mein hota hai) */}
+          <div className="absolute inset-0 pointer-events-none z-10 opacity-30">
+            <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white" />
+            <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white" />
+            <div className="absolute left-0 right-0 top-1/3 h-px bg-white" />
+            <div className="absolute left-0 right-0 top-2/3 h-px bg-white" />
+          </div>
+
+          {!imageLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+              Loading...
+            </div>
+          )}
+
+          <img
+            ref={imgRef}
+            src={imageSrc}
+            alt="Crop"
+            onLoad={handleImageLoad}
+            className="absolute select-none pointer-events-none"
+            style={{
+              left: '50%',
+              top: '50%',
+              transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+              transformOrigin: 'center center',
+              maxWidth: 'none',
+              maxHeight: 'none',
+            }}
+            draggable={false}
+          />
+        </div>
+
+        {/* Zoom Slider */}
+        <div className="mt-5 px-2">
+          <input
+            type="range"
+            min="0.1"
+            max="5"
+            step="0.01"
+            value={scale}
+            onChange={handleZoom}
+            className="w-full accent-blue-500"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 mt-5">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-xl font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleCrop}
+            disabled={!imageLoaded}
+            className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${
+              imageLoaded ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 cursor-not-allowed'
+            }`}
+          >
+            Crop & Save
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ------------------------------------------------------------
 
 export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave }: RoomSettingPageProps) {
   const [roomDp, setRoomDp] = useState<string>(roomData?.roomDp || '/default-avatar.png')
@@ -174,6 +372,9 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
 
   const [isSaving, setIsSaving] = useState(false)
+
+  // ✅ CROP MODAL STATE
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
   // ============ FETCH ROOM MEMBERS ============
   useEffect(() => {
@@ -222,31 +423,27 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' },
   ]
 
+  // ✅ IMAGE UPLOAD - ab crop modal open karega
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith('image/')) { alert('Please select an image file'); return }
-    if (file.size > 5 * 1024 * 1024) { alert('Image size should be less than 5MB'); return }
+    if (file.size > 10 * 1024 * 1024) { alert('Image size should be less than 10MB'); return }
 
     const reader = new FileReader()
     reader.onload = (event) => {
       const source = String(event.target?.result || '')
-      const img = new Image()
-      img.onload = () => {
-        const maxSide = 640
-        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || 1, img.naturalHeight || 1))
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.max(1, Math.round((img.naturalWidth || 1) * scale))
-        canvas.height = Math.max(1, Math.round((img.naturalHeight || 1) * scale))
-        const ctx = canvas.getContext('2d')
-        if (!ctx) { setRoomDp(source); return }
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        setRoomDp(canvas.toDataURL('image/jpeg', 0.72))
-      }
-      img.onerror = () => setRoomDp(source)
-      img.src = source
+      setCropImageSrc(source) // Crop modal open karo
     }
     reader.readAsDataURL(file)
+    // Input reset karo taaki same file dobara select kar sake
+    e.target.value = ''
+  }
+
+  // ✅ CROP COMPLETE - yahan se DP set hogi
+  const handleCropComplete = (croppedDataUrl: string) => {
+    setRoomDp(croppedDataUrl)
+    setCropImageSrc(null)
   }
 
   const handleSetPassword = () => {
@@ -288,7 +485,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     }
 
     try {
-      // ✅ 1. DIRECT MONGO SAVE
       if (roomOwnerId) {
         const res = await fetch(apiUrl('/api/rooms'), {
           method: 'PUT',
@@ -319,10 +515,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         }
       }
 
-      // Mic Mode local cache: keep the latest room mode in IndexedDB.
       await saveMicModeToIndexedDB(String(roomOwnerId || ""), Number(settingsData.micMode || 15));
 
-      // ✅ 2. Socket broadcast
       const currentUserId = localStorage.getItem('userUID') || localStorage.getItem('accountNumber') || '';
       socket.emit('room_settings_update', {
         roomId: roomOwnerId,
@@ -338,10 +532,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         updatedAt: Date.now(),
       })
 
-      // ✅ 3. Parent ko bhi batao
       if (onSave) onSave(settingsData)
 
-      // ✅ 4. LocalStorage update
       try {
         const stored = localStorage.getItem('myRoom')
         if (stored) {
@@ -411,22 +603,27 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          {/* Room Cover */}
+          {/* Room Cover / Photo Section */}
           <div className="mb-6 flex flex-col items-center">
             <label className="cursor-pointer relative group">
-              <div className="w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 shadow-md">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
                 <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-white fill-none opacity-0 group-hover:opacity-100 stroke-[2]">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-                </div>
               </div>
               <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
             </label>
-            <p className="text-sm font-medium text-gray-600 mt-2">Room Cover</p>
+            <button
+              onClick={() => {
+                const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+                if (input) input.click();
+              }}
+              className="mt-3 flex items-center gap-1.5 px-4 py-1.5 border border-gray-300 rounded-full text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-gray-700 stroke-[2]">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              Edit Room photo
+            </button>
           </div>
 
           {/* Room Name */}
@@ -623,6 +820,15 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         )}
       </div>
 
+      {/* ✅ CROP MODAL */}
+      {cropImageSrc && (
+        <CropModal
+          imageSrc={cropImageSrc}
+          onCancel={() => setCropImageSrc(null)}
+          onCrop={handleCropComplete}
+        />
+      )}
+
       {/* ADMIN SHEET */}
       {showAdminSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center">
@@ -691,4 +897,4 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       )}
     </>
   )
-    }
+}
