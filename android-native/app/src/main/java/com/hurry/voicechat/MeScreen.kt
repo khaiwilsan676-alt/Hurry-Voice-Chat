@@ -148,93 +148,40 @@ enum class MeIconType { LANGUAGE, SETTINGS, SUPPORT, HELP }
 @Composable
 private fun MeMenuIcon(type: MeIconType) {
     androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
-        // The real Hurry web icons use a 24x24 Lucide-style coordinate system.
-        // Canvas coordinates are pixels, so scale the 24-unit artwork to the
-        // actual 24dp canvas; this keeps the native icon visually identical.
-        val unit = size.minDimension / 24f
-        androidx.compose.ui.graphics.drawscope.scale(unit, unit) {
-            val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = 2f / unit,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                join = androidx.compose.ui.graphics.StrokeJoin.Round
-            )
-            val c = Color(0xFF1E1E1E)
-            when (type) {
-                MeIconType.LANGUAGE -> {
-                    drawCircle(c, radius = 10f, center = androidx.compose.ui.geometry.Offset(12f, 12f), style = stroke)
-                    drawLine(c, androidx.compose.ui.geometry.Offset(2f, 12f), androidx.compose.ui.geometry.Offset(22f, 12f), strokeWidth = stroke.width)
-                    drawOval(
-                        c,
-                        topLeft = androidx.compose.ui.geometry.Offset(8f, 2f),
-                        size = androidx.compose.ui.geometry.Size(8f, 20f),
-                        style = stroke
-                    )
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 2.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
+        )
+        val c = Color(0xFF1E1E1E)
+        when (type) {
+            MeIconType.LANGUAGE -> {
+                drawCircle(c, radius = size.minDimension * 0.42f, center = androidx.compose.ui.geometry.Offset(size.width/2f, size.height/2f), style = stroke)
+                drawLine(c, androidx.compose.ui.geometry.Offset(size.width*0.08f, size.height/2f), androidx.compose.ui.geometry.Offset(size.width*0.92f, size.height/2f), strokeWidth = stroke.width)
+                drawOval(c, topLeft = androidx.compose.ui.geometry.Offset(size.width*0.33f, size.height*0.08f), size = androidx.compose.ui.geometry.Size(size.width*0.34f, size.height*0.84f), style = stroke)
+            }
+            MeIconType.SETTINGS -> {
+                val p = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(size.width*.50f, size.height*.08f)
+                    lineTo(size.width*.84f, size.height*.28f)
+                    lineTo(size.width*.84f, size.height*.72f)
+                    lineTo(size.width*.50f, size.height*.92f)
+                    lineTo(size.width*.16f, size.height*.72f)
+                    lineTo(size.width*.16f, size.height*.28f)
+                    close()
                 }
-                MeIconType.SETTINGS -> {
-                    val path = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(12f, 2f)
-                        lineTo(20f, 6.67f)
-                        lineTo(20f, 17.33f)
-                        lineTo(12f, 22f)
-                        lineTo(4f, 17.33f)
-                        lineTo(4f, 6.67f)
-                        close()
-                    }
-                    drawPath(path, c, style = stroke)
-                    drawCircle(c, radius = 3f, center = androidx.compose.ui.geometry.Offset(12f, 12f), style = stroke)
+                drawPath(p, c, style = stroke)
+                drawCircle(c, radius = size.minDimension*.125f, center = androidx.compose.ui.geometry.Offset(size.width/2f,size.height/2f), style = stroke)
+            }
+            MeIconType.SUPPORT, MeIconType.HELP -> {
+                drawCircle(c, radius = size.minDimension*.42f, center = androidx.compose.ui.geometry.Offset(size.width/2f,size.height/2f), style = stroke)
+                val q = androidx.compose.ui.graphics.Path().apply {
+                    moveTo(size.width*.38f,size.height*.38f)
+                    cubicTo(size.width*.40f,size.height*.28f,size.width*.60f,size.height*.28f,size.width*.62f,size.height*.40f)
+                    cubicTo(size.width*.64f,size.height*.53f,size.width*.50f,size.height*.55f,size.width*.50f,size.height*.68f)
                 }
-                MeIconType.SUPPORT -> {
-                    val p = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(5.5f, 11f)
-                        lineTo(5.5f, 8.5f)
-                        cubicTo(5.5f, 5f, 8.2f, 3f, 12f, 3f)
-                        cubicTo(15.8f, 3f, 18.5f, 5f, 18.5f, 8.5f)
-                        lineTo(18.5f, 15.2f)
-                        cubicTo(18.5f, 18.5f, 16.2f, 21f, 12f, 21f)
-                    }
-                    drawPath(p, c, style = stroke)
-
-                    val left = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(3f, 10.2f)
-                        lineTo(3f, 13.8f)
-                        cubicTo(3f, 14.6f, 3.5f, 15.2f, 4.2f, 15.2f)
-                        lineTo(5.5f, 15.2f)
-                        lineTo(5.5f, 9f)
-                        lineTo(4.2f, 9f)
-                        cubicTo(3.5f, 9f, 3f, 9.5f, 3f, 10.2f)
-                        close()
-                    }
-                    drawPath(left, c, style = stroke)
-
-                    val right = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(18.5f, 9f)
-                        lineTo(19.8f, 9f)
-                        cubicTo(20.5f, 9f, 21f, 9.4f, 21f, 10.2f)
-                        lineTo(21f, 13.8f)
-                        cubicTo(21f, 14.6f, 20.5f, 15.2f, 19.8f, 15.2f)
-                        lineTo(18.5f, 15.2f)
-                        close()
-                    }
-                    drawPath(right, c, style = stroke)
-
-                    val smile = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(9.2f, 13.8f)
-                        cubicTo(9.2f, 15f, 10.3f, 16f, 12f, 16f)
-                        cubicTo(13.7f, 16f, 14.8f, 15f, 14.8f, 13.8f)
-                    }
-                    drawPath(smile, c, style = stroke)
-                }
-                MeIconType.HELP -> {
-                    drawCircle(c, radius = 10f, center = androidx.compose.ui.geometry.Offset(12f, 12f), style = stroke)
-                    val q = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(9.09f, 9f)
-                        cubicTo(9.35f, 7.15f, 10.45f, 6f, 12f, 6f)
-                        cubicTo(13.75f, 6f, 14.92f, 7.25f, 14.92f, 9f)
-                        cubicTo(14.92f, 11f, 12f, 12f, 12f, 14f)
-                    }
-                    drawPath(q, c, style = stroke)
-                    drawCircle(c, radius = 1f, center = androidx.compose.ui.geometry.Offset(12f, 17f))
-                }
+                drawPath(q,c,style=stroke)
+                drawCircle(c,radius=size.minDimension*.04f,center=androidx.compose.ui.geometry.Offset(size.width/2f,size.height*.78f))
             }
         }
     }
