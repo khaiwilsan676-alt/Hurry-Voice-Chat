@@ -29,10 +29,10 @@ fun MineNativePage(onBack: () -> Unit) {
             Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
-                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold, color = HurryText)
+                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryText)
                     }
                     Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
-                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryMuted)
+                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
                     }
                 }
                 Spacer(Modifier.weight(1f))
