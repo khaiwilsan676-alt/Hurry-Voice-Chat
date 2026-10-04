@@ -33,7 +33,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
 
         {/* Main Container */}
         <div
-          className="relative w-full max-w-[440px] mx-auto h-[72vh] flex flex-col justify-end animate-in slide-in-from-bottom duration-300"
+          className="relative w-full max-w-[440px] mx-auto h-[62vh] flex flex-col justify-end animate-in slide-in-from-bottom duration-300"
           onClick={(e) => e.stopPropagation()}
           style={{
             backgroundImage: `url('/file_000000008aec8230a4f2d1854cb19882.png')`,
@@ -89,7 +89,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                     <button
                       key={coins}
                       onClick={() => setSelectedCoins(coins)}
-                      className={`h-[28px] px-3 rounded-full font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[32px] px-3 rounded-full font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -114,7 +114,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                     <button
                       key={num}
                       onClick={() => setRecipients(num)}
-                      className={`h-[28px] flex-1 min-w-[45px] max-w-[65px] rounded-full font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[32px] flex-1 min-w-[45px] max-w-[65px] rounded-full font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -130,13 +130,13 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             {/* Countdown Section */}
             <div className="mb-2 shrink-0">
               <div className="flex items-center justify-center gap-2 mb-1.5">
-                <div className="h-[1px] w-8 bg-white/40" />
+                <div className="h-[1px] w-8 bg-white/60" />
                 <div className="flex items-center gap-2">
-                  <span className="text-white/80 text-[11px] font-medium tracking-wide">
+                  <span className="text-white font-bold text-[13px] tracking-wide drop-shadow-sm">
                     countdown
                   </span>
                 </div>
-                <div className="h-[1px] w-8 bg-white/40" />
+                <div className="h-[1px] w-8 bg-white/60" />
               </div>
               <div className="flex flex-wrap gap-1 justify-center">
                 {countdownOptions.map((option) => {
@@ -145,7 +145,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                     <button
                       key={option}
                       onClick={() => setSelectedCountdown(option)}
-                      className={`h-[30px] px-4 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[34px] px-4 rounded-xl font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -161,7 +161,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             {/* Send Button */}
             <button
               onClick={() => setShowClaim(true)}
-              className="w-[90%] mx-auto h-[38px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[16px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mt-auto mb-1 shrink-0"
+              className="w-[90%] mx-auto h-[40px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[17px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mt-auto mb-1 shrink-0"
             >
               Send
             </button>
