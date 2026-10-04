@@ -70,7 +70,7 @@ fun HomeScreen(
         }
         item {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 6.dp, bottom = 1.dp)
                     .clip(RoundedCornerShape(14.dp))
             ) {
                 HorizontalPager(
@@ -86,7 +86,7 @@ fun HomeScreen(
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 1.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 repeat(banners.size) { index ->
@@ -101,7 +101,7 @@ fun HomeScreen(
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, top = 0.dp, bottom = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
