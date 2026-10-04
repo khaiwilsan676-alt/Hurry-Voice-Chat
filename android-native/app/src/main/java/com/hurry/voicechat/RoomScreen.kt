@@ -86,7 +86,7 @@ fun RoomScreen(room: HurryRoom, onBack: () -> Unit) {
 
 @Composable
 private fun RoomHeader(room: HurryRoom, onBack: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(top = 28.dp, start = 8.dp, end = 10.dp, bottom = 8.dp),
+    Row(Modifier.fillMaxWidth().statusBarsPadding().padding(top = 4.dp, start = 8.dp, end = 10.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text("‹", fontSize = 38.sp, color = Color.White,
             modifier = Modifier.clickable(onClick = onBack).padding(horizontal = 7.dp))
