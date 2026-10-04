@@ -88,7 +88,11 @@ fun HomeScreen(
                 Text("No rooms available", Modifier.padding(20.dp), color = HurryMuted, fontSize = 14.sp)
             }
             else -> {
-                items(rooms!!.chunked(2)) { row ->
+                items(
+                    items = rooms!!.chunked(2),
+                    key = { row -> row.joinToString("|") { room -> room.id.toString() + ":" + room.name } },
+                    contentType = { "room-row" }
+                ) { row ->
                     Row(
                         Modifier.fillMaxWidth().padding(horizontal = 2.dp),
                         horizontalArrangement = Arrangement.spacedBy(0.dp)
