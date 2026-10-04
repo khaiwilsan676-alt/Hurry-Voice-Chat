@@ -10,6 +10,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsControllerCompat
 
@@ -32,11 +43,13 @@ private fun HurryNativeRoot() {
     var homeMine by remember { mutableStateOf(false) }
     var openedRoom by remember { mutableStateOf<HurryRoom?>(null) }
     var openedChat by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+    var openedMePage by remember { mutableStateOf<String?>(null) }
 
-    BackHandler(enabled = openedRoom != null || openedChat != null) {
+    BackHandler(enabled = openedRoom != null || openedChat != null || openedMePage != null) {
         when {
             openedChat != null -> openedChat = null
             openedRoom != null -> openedRoom = null
+            openedMePage != null -> openedMePage = null
         }
     }
 
@@ -60,12 +73,23 @@ private fun HurryNativeRoot() {
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
                                 openedChat = Triple(uid, name, image)
                             }
-                            HurryTab.ME -> MeScreen()
+                            HurryTab.ME -> if (openedMePage != null) MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null }) else MeScreen(onOpen = { openedMePage = it })
                         }
                     }
                     HurryBottomNav(tab, onTab = { tab = it })
                 }
             }
+        }
+    }
+}
+
+
+@Composable
+private fun MeNativeSubPage(title: String, onBack: () -> Unit) {
+    Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
+        Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("‹", fontSize = 36.sp, color = Color(0xFF222222), modifier = Modifier.clickable { onBack() })
+            Spacer(Modifier.width(12.dp)); Text(title, fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color(0xFF111827))
         }
     }
 }
