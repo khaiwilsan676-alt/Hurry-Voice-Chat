@@ -125,8 +125,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </div>
 
             <div className="mt-auto">
-              {/* Gold Quantity Section */}
-              <div className="mb-4 shrink-0">
+              {/* Gold Quantity Section - Text Down Kar Diya */}
+              <div className="mb-4 shrink-0 mt-4">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Gold Quantity
                 </h3>
@@ -150,8 +150,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Number of people Section */}
-              <div className="mb-3 shrink-0">
+              {/* Number of people Section - Text Down Kar Diya */}
+              <div className="mb-3 shrink-0 mt-4">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Number of people
                 </h3>
@@ -176,8 +176,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
-              {/* mt-10 diya taaki countdown niche shift ho jaye */}
-              <div className="mt-10 mb-5 shrink-0 flex flex-col gap-2">
+              <div className="mt-8 mb-4 shrink-0 flex flex-col gap-2">
                 
                 {/* Countdown Header */}
                 <div className="flex items-center justify-center gap-2 px-1">
@@ -190,7 +189,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                   <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Time Buttons - Same colour as other buttons */}
+                {/* Time Buttons */}
                 <div className="flex flex-wrap gap-2 px-1">
                   {timeOptions.map((time) => {
                     const isSelected = selectedTime === time
@@ -211,10 +210,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button - mb-16 kar diya taaki aur niche aaye */}
+              {/* Send Button - Yahan position fix ki hai (Screenshot ke nishan ke hisaab se) */}
               <button
                 onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-16"
+                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-10"
               >
                 Send
               </button>
