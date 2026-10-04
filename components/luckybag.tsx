@@ -120,7 +120,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </button>
             </div>
 
-            <div className="mt-auto">
+            <div className="mt-auto flex flex-col">
               {/* Gold Quantity Section */}
               <div className="mb-4 shrink-0">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
@@ -170,6 +170,24 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                   })}
                 </div>
               </div>
+
+              {/* ===== NEW COUNTDOWN SECTION ===== */}
+              <div className="flex items-center justify-center gap-4 mb-4 mt-1 px-2">
+                <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
+                <div className="flex items-center gap-2">
+                  {/* Left Diamond */}
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
+                  </svg>
+                  <span className="text-[#8B5E3C] font-bold text-[16px] tracking-wide">countdown</span>
+                  {/* Right Diamond */}
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 0L12 6L6 12L0 6L6 0Z" fill="#F5D9A8" stroke="#8B5E3C" strokeWidth="1"/>
+                  </svg>
+                </div>
+                <div className="h-[1px] flex-1 bg-[#8B5E3C] opacity-60"></div>
+              </div>
+              {/* ================================= */}
 
               {/* Send Button */}
               <button
