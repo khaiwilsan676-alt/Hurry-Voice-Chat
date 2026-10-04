@@ -31,6 +31,7 @@ private const val HONOUR_BG = RAW + "IMG_20260912_144404.png"
 private const val CHARM_BG = RAW + "IMG_20260912_144324.png"
 private const val ROOM_BG = RAW + "IMG_20260912_144347.png"
 private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
+private val HomeWhiteBlue = Color(0xFFFCFDFF)
 
 @Composable
 fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: () -> Unit = {}, mineSelected: Boolean = false) {
@@ -47,7 +48,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     // The real app keeps the Me/Popular top bar visible when switching to Me.
     // Only the content below the header changes.
     if (mine) {
-        Column(Modifier.fillMaxSize().background(Color.White)) {
+        Column(Modifier.fillMaxSize().background(HomeWhiteBlue)) {
             HomeTopBar(
                 mine = true,
                 onMine = onMine,
@@ -58,11 +59,6 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         return
     }
 
-    val banners = listOf(
-        RAW + "IMG-20260830-WA0081.jpg",
-        RAW + "IMG-20260818-WA0000.jpg",
-        RAW + "IMG-20260818-WA0001.jpg"
-    )
     val pager = rememberPagerState(pageCount = { banners.size })
     val scope = rememberCoroutineScope()
 
@@ -77,7 +73,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color.White),
+        modifier = Modifier.fillMaxSize().background(HomeWhiteBlue),
         contentPadding = PaddingValues(bottom = 12.dp)
     ) {
         item {
@@ -149,55 +145,22 @@ private fun HurryHouseIcon() {
             lineTo(w * 0.672f, h * 0.891f)
             cubicTo(w * 0.812f, h * 0.891f, w * 0.906f, h * 0.797f, w * 0.906f, h * 0.672f)
             lineTo(w * 0.906f, h * 0.422f)
-            cubicTo(w * 0.906f, h * 0.25f, w * 0.547f, h * 0.109f, w * 0.50f, h * 0.109f)
+            cubicTo(w * 0.906f, h * 0.25f, w * 0.547f, h * 0.109375f, w * 0.50f, h * 0.109375f)
             close()
         }
         drawPath(p, c, style = androidx.compose.ui.graphics.drawscope.Stroke(stroke, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
-        drawRoundRect(
-            c,
-            topLeft = androidx.compose.ui.geometry.Offset(w * 0.281f, h * 0.453f),
-            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.188f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
-        )
-        drawRoundRect(
-            c,
-            topLeft = androidx.compose.ui.geometry.Offset(w * 0.444f, h * 0.359f),
-            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.281f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
-        )
-        drawRoundRect(
-            c,
-            topLeft = androidx.compose.ui.geometry.Offset(w * 0.609f, h * 0.438f),
-            size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.203f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f)
-        )
+        drawRoundRect(c, topLeft = androidx.compose.ui.geometry.Offset(w * 0.281f, h * 0.453f), size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.188f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f))
+        drawRoundRect(c, topLeft = androidx.compose.ui.geometry.Offset(w * 0.444f, h * 0.359f), size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.281f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f))
+        drawRoundRect(c, topLeft = androidx.compose.ui.geometry.Offset(w * 0.609f, h * 0.438f), size = androidx.compose.ui.geometry.Size(w * 0.109f, h * 0.203f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.047f, w * 0.047f))
     }
 }
 
 @Composable
 private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
     androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
-        AsyncImage(
-            model=bg,
-            contentDescription=label,
-            modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer {
-                scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f
-                scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f
-            },
-            contentScale=ContentScale.Fit
-        )
-        Text(
-            text=label.uppercase(),
-            modifier=Modifier.fillMaxWidth().padding(top=16.dp),
-            textAlign=androidx.compose.ui.text.style.TextAlign.Center,
-            fontSize=11.sp,
-            fontWeight=FontWeight.Black,
-            color=Color.White
-        )
-        androidx.compose.foundation.layout.Box(
-            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f)
-                .padding(bottom=4.dp).offset(y=2.dp)
-        ) {
+        AsyncImage(model=bg, contentDescription=label, modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer { scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f; scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f }, contentScale=ContentScale.Fit)
+        Text(text=label.uppercase(), modifier=Modifier.fillMaxWidth().padding(top=16.dp), textAlign=androidx.compose.ui.text.style.TextAlign.Center, fontSize=11.sp, fontWeight=FontWeight.Black, color=Color.White)
+        androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=4.dp).offset(y=2.dp)) {
             AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(end=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
@@ -207,4 +170,3 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         }
     }
 }
-
