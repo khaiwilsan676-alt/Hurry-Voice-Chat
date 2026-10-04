@@ -200,3 +200,72 @@ private fun HurryCategoryCard(label: String, bg: String, modifier: Modifier = Mo
         }
     }
 }
+
+
+@Composable
+private fun HomeTopBar(
+    mine: Boolean,
+    onMine: () -> Unit,
+    onPopular: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(HomeWhiteBlue)
+            .statusBarsPadding()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .padding(horizontal = 18.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            HomeTopTab(
+                label = "Popular",
+                selected = !mine,
+                onClick = onPopular
+            )
+            Spacer(Modifier.width(30.dp))
+            HomeTopTab(
+                label = "Mine",
+                selected = mine,
+                onClick = onMine
+            )
+        }
+    }
+}
+
+@Composable
+private fun HomeTopTab(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .width(76.dp)
+            .height(46.dp)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            color = if (selected) Color(0xFF202124) else Color(0xFF8A8F98),
+            maxLines = 1
+        )
+        Spacer(Modifier.height(7.dp))
+        Box(
+            modifier = Modifier
+                .width(if (selected) 28.dp else 0.dp)
+                .height(3.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(if (selected) HurryBlue else Color.Transparent)
+        )
+        Spacer(Modifier.height(2.dp))
+    }
+}
