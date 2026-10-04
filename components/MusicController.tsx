@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 interface MusicTrack {
   id: string;
@@ -23,7 +23,6 @@ interface MusicControllerProps {
   onClose: () => void;
   onMinimize: () => void;
   onMaximize: () => void;
-  onAddSong: () => void; // Song add karne ke liye naya prop
 }
 
 export default function MusicController({
@@ -40,12 +39,8 @@ export default function MusicController({
   onPrevTrack,
   onClose,
   onMinimize,
-  onMaximize,
-  onAddSong,
+  onMaximize
 }: MusicControllerProps) {
-  // Right side speaker button ke volume slider ko toggle karne ke liye state
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
-
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
@@ -94,27 +89,27 @@ export default function MusicController({
           boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
         }}
       >
-        {/* --- TOP LEFT: Add Song Button --- */}
-        <button
-          onClick={onAddSong}
-          className="absolute top-2 left-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
-          aria-label="Add song"
-        >
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-        </button>
-
-        {/* --- TOP RIGHT: Minimize Button --- */}
+        {/* LEFT SIDE BUTTON (Ab yeh Minimize/Double Arrow hai) */}
         <button
           onClick={onMinimize}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+          className="absolute top-2 left-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
           aria-label="Minimize music controller"
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
             <line x1="7" y1="17" x2="17" y2="7" />
             <polyline points="7 7 17 7 17 17" />
+          </svg>
+        </button>
+
+        {/* RIGHT SIDE BUTTON (Ab yeh Close/Power icon hai) */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10"
+          aria-label="Close music controller"
+        >
+          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.72 0" />
+            <line x1="12" y1="2" x2="12" y2="12" />
           </svg>
         </button>
 
@@ -182,41 +177,12 @@ export default function MusicController({
           </button>
         </div>
 
-        {/* --- BOTTOM SECTION: Volume Control --- */}
-        <div className="flex items-center gap-3 px-2 relative">
-          
-          {/* Vertical Volume Slider (Speaker click par open hoga) */}
-          {showVolumeSlider && (
-            <div className="absolute bottom-12 left-0 mb-2 p-2 bg-black/95 rounded-lg border border-white/20 shadow-xl z-50">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={onVolumeChange}
-                className="w-24 h-2 rounded-lg appearance-none cursor-pointer music-volume-slider"
-                style={{
-                  background: `linear-gradient(to right, #3b82f6 ${volume * 100}%, rgba(255,255,255,0.3) ${volume * 100}%)`,
-                }}
-              />
-            </div>
-          )}
-
-          {/* Speaker Button (Clickable to toggle volume slider) */}
-          <button 
-            onClick={() => setShowVolumeSlider(!showVolumeSlider)}
-            className="p-1 rounded-full hover:bg-white/10 transition-colors cursor-pointer shrink-0"
-            aria-label="Toggle Volume Slider"
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white">
-              <path d="M3 9v6h4l5 5V4L7 9H3z" />
-              <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
-              <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
-            </svg>
-          </button>
-
-          {/* Horizontal Volume Slider (Same as before) */}
+        <div className="flex items-center gap-3 px-2">
+          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white shrink-0">
+            <path d="M3 9v6h4l5 5V4L7 9H3z" />
+            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z" />
+            <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+          </svg>
           <input
             type="range"
             min="0"
