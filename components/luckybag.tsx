@@ -151,7 +151,6 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* Number of people Section */}
-              {/* Yahan mb-6 ki jagah mb-3 kar diya taaki countdown bilkul niche chipka rahe */}
               <div className="mb-3 shrink-0">
                 <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[16px] mb-2 ml-1">
                   Number of people
@@ -177,8 +176,8 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
               </div>
 
               {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
-              {/* Yahan koi mt-6 nahi hai, bilkul upar chipka hua hai */}
-              <div className="mb-5 shrink-0 flex flex-col gap-2">
+              {/* mt-10 diya taaki countdown niche shift ho jaye */}
+              <div className="mt-10 mb-5 shrink-0 flex flex-col gap-2">
                 
                 {/* Countdown Header */}
                 <div className="flex items-center justify-center gap-2 px-1">
@@ -212,10 +211,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* Send Button - mb-10 kar diya taaki aur niche aaye */}
+              {/* Send Button - mb-16 kar diya taaki aur niche aaye */}
               <button
                 onClick={() => setShowClaim(true)}
-                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-10"
+                className="w-[90%] mx-auto h-[48px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[20px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mb-16"
               >
                 Send
               </button>
