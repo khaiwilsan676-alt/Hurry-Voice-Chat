@@ -16,7 +16,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [showClaim, setShowClaim] = useState(false)
   const [showRules, setShowRules] = useState(false)
   
-  // New state for countdown selection
+  // Naya state countdown ke liye
   const [selectedTime, setSelectedTime] = useState<string>('Now')
   const timeOptions = ['Now', '5 min', '10 min', '20 min']
 
@@ -175,8 +175,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </div>
               </div>
 
-              {/* ================= COUNTDOWN & TIME OPTIONS SECTION ================= */}
-              {/* Added just above the Send button as requested */}
+              {/* ================= COUNTDOWN & TIME OPTIONS ================= */}
               <div className="mb-5 shrink-0 flex flex-col gap-3">
                 
                 {/* Countdown Header */}
@@ -190,18 +189,18 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                   <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#F5D9A8] to-[#F5D9A8]"></div>
                 </div>
 
-                {/* Time Options */}
-                <div className="flex justify-between gap-2 px-1">
+                {/* Time Buttons - Exactly same style as existing buttons */}
+                <div className="flex flex-wrap gap-2 px-1">
                   {timeOptions.map((time) => {
                     const isSelected = selectedTime === time
                     return (
                       <button
                         key={time}
                         onClick={() => setSelectedTime(time)}
-                        className={`flex-1 h-[36px] rounded-full font-bold text-[13px] transition-all flex items-center justify-center ${
+                        className={`h-[36px] flex-1 min-w-[60px] max-w-[80px] rounded-full font-bold text-[14px] transition-all flex items-center justify-center ${
                           isSelected
-                            ? 'bg-[#FE3C68] text-white shadow-md border border-[#FE3C68]'
-                            : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border border-transparent'
+                            ? 'bg-[#FE3C68] text-white shadow-md'
+                            : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A]'
                         }`}
                       >
                         {time}
