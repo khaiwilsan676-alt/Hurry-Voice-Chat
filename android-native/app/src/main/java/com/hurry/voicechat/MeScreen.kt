@@ -27,7 +27,7 @@ private const val RAW_ME = "https://raw.githubusercontent.com/khaiwilsan676-alt/
 private data class MeMenu(val label: String, val asset: String)
 
 @Composable
-fun MeScreen() {
+fun MeScreen(onOpen: (String) -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
     val uid = prefs.getString("uid", "") ?: ""
@@ -116,7 +116,7 @@ fun MeScreen() {
             Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 2.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
                 bottom.forEach { label ->
                     Row(
-                        Modifier.fillMaxWidth().clickable { }.padding(horizontal = 16.dp, vertical = 15.dp),
+                        Modifier.fillMaxWidth().clickable { onOpen(label) }.padding(horizontal = 16.dp, vertical = 15.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         MeMenuIcon(
@@ -195,7 +195,7 @@ private fun MeMenuIcon(type: MeIconType) {
 @Composable private fun MenuCard(items: List<MeMenu>, modifier: Modifier = Modifier) {
     Column(modifier.padding(horizontal = 16.dp, vertical = 0.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
         items.forEach { item ->
-            Row(Modifier.fillMaxWidth().clickable { }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable { onOpen(item.label) }.padding(horizontal = 16.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
                 AsyncImage(RAW_ME + item.asset, null, Modifier.size(if (item.label == "Seller Center") 40.dp else 32.dp), contentScale = ContentScale.Crop)
                 Spacer(Modifier.width(16.dp))
                 Text(item.label, Modifier.weight(1f), fontSize = 15.sp, fontWeight = FontWeight.Normal, color = Color(0xFF171717))
