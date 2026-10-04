@@ -1,7 +1,7 @@
 package com.hurry.voicechat
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -20,7 +19,7 @@ import coil3.compose.AsyncImage
 @Composable
 fun MineNativePage(onBack: () -> Unit) {
     var recent by remember { mutableStateOf(false) }
-    val card = Modifier.fillMaxWidth().height(112.dp).pointerInput(Unit) { detectTapGestures(onTap = {}) }
+    val card = Modifier.fillMaxWidth().height(112.dp)
     LazyColumn(
         Modifier.fillMaxSize().background(Color.White),
         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 80.dp)
@@ -28,10 +27,25 @@ fun MineNativePage(onBack: () -> Unit) {
         item {
             Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
+                    Box(
+                        Modifier
+                            .wrapContentSize()
+                            .clickable { onBack() }
+                    ) {
                         Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryText)
+                        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                            val p = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(size.width * 0.22f, size.height * 0.98f)
+                                quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
+                            }
+                            drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                        }
                     }
-                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onBack() }) }) {
+                    Box(
+                        Modifier
+                            .wrapContentSize()
+                            .clickable { onBack() }
+                    ) {
                         Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
                     }
                 }
@@ -59,7 +73,7 @@ fun MineNativePage(onBack: () -> Unit) {
             Row(Modifier.padding(top=12.dp).pointerInput(Unit){detectTapGestures(onTap={})}, horizontalArrangement=Arrangement.spacedBy(16.dp)) {
                 Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
                 Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF),
-                    modifier=Modifier.pointerInput(Unit){detectTapGestures(onTap={recent=true})})
+                    modifier=Modifier.clickable { recent=true })
             }
         }
         item {
