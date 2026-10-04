@@ -204,34 +204,34 @@ private fun HurryHouseIcon() {
         val w = size.width
         val h = size.height
 
-        // Same visual as the real Hurry app: blue circular badge + solid white home.
-        drawCircle(color = blue, radius = minOf(w, h) * 0.322f, center = center)
+        // Real-app style: compact blue circular badge with a white house.
+        drawCircle(
+            color = blue,
+            radius = w * 0.32f,
+            center = Offset(w * 0.5f, h * 0.5f)
+        )
 
-        val path = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * .31f, h * .49f)
-            lineTo(w * .48f, h * .34f)
-            cubicTo(w * .50f, h * .32f, w * .52f, h * .32f, w * .54f, h * .34f)
-            lineTo(w * .71f, h * .49f)
-            quadraticTo(w * .72f, h * .50f, w * .70f, h * .51f)
-            lineTo(w * .68f, h * .51f)
-            lineTo(w * .68f, h * .67f)
-            quadraticTo(w * .68f, h * .69f, w * .66f, h * .69f)
-            lineTo(w * .35f, h * .69f)
-            quadraticTo(w * .33f, h * .69f, w * .33f, h * .67f)
-            lineTo(w * .33f, h * .51f)
-            lineTo(w * .31f, h * .51f)
-            quadraticTo(w * .29f, h * .50f, w * .31f, h * .49f)
+        val house = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.30f, h * 0.49f)
+            lineTo(w * 0.50f, h * 0.32f)
+            lineTo(w * 0.70f, h * 0.49f)
+            lineTo(w * 0.67f, h * 0.49f)
+            lineTo(w * 0.67f, h * 0.69f)
+            lineTo(w * 0.33f, h * 0.69f)
+            lineTo(w * 0.33f, h * 0.49f)
             close()
         }
-        drawPath(path, white)
+        drawPath(house, white)
 
-        // Door cut-out, matching the web icon proportions.
-        drawRoundRect(
-            color = blue,
-            topLeft = Offset(w * .455f, h * .555f),
-            size = androidx.compose.ui.geometry.Size(w * .09f, h * .135f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5.dp.toPx())
-        )
+        // Door cut-out.
+        val door = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * 0.455f, h * 0.55f)
+            lineTo(w * 0.545f, h * 0.55f)
+            lineTo(w * 0.545f, h * 0.69f)
+            lineTo(w * 0.455f, h * 0.69f)
+            close()
+        }
+        drawPath(door, blue)
     }
 }
 
