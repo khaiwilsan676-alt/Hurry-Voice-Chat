@@ -45,7 +45,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           {/* ===== Top-Left Corner Document Icon (with Y) ===== */}
           <button
             onClick={() => setShowClaim(true)}
-            className="absolute top-8 left-4 z-30 w-6 h-6 active:scale-95 transition"
+            className="absolute top-7 left-4 z-30 w-6 h-6 active:scale-95 transition"
             aria-label="Open claim details"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" className="w-full h-full">
@@ -62,7 +62,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           {/* ===== Top-Right Question Mark Icon ===== */}
           <button
             onClick={() => setShowRules(true)}
-            className="absolute top-8 right-4 z-30 w-6 h-6 cursor-pointer active:scale-95 transition"
+            className="absolute top-7 right-4 z-30 w-6 h-6 cursor-pointer active:scale-95 transition"
             aria-label="Help"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 512 512">
@@ -75,21 +75,21 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
           </button>
 
           {/* ===== Content Area (Scrollable with hidden scrollbar) ===== */}
-          <div className="w-full h-full px-4 pb-5 pt-16 flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden relative z-20">
+          <div className="w-full h-full px-4 pb-4 pt-8 flex flex-col overflow-y-auto [&::-webkit-scrollbar]:hidden relative z-20">
             
             {/* Gold Quantity Section */}
-            <div className="mb-3 shrink-0 mt-1">
-              <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[14px] mb-1.5 ml-1">
+            <div className="mb-2 shrink-0 mt-1">
+              <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[13px] mb-1 ml-1">
                 Gold Quantity
               </h3>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {coinOptions.map((coins) => {
                   const isSelected = selectedCoins === coins
                   return (
                     <button
                       key={coins}
                       onClick={() => setSelectedCoins(coins)}
-                      className={`h-[30px] px-3 rounded-full font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[28px] px-3 rounded-full font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -103,18 +103,18 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </div>
 
             {/* Number of people Section */}
-            <div className="mb-3 shrink-0">
-              <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[14px] mb-1.5 ml-1">
+            <div className="mb-2 shrink-0">
+              <h3 className="text-[#8B5E3C] drop-shadow-sm font-bold text-[13px] mb-1 ml-1">
                 Number of people
               </h3>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {recipientOptions.map((num) => {
                   const isSelected = recipients === num
                   return (
                     <button
                       key={num}
                       onClick={() => setRecipients(num)}
-                      className={`h-[30px] flex-1 min-w-[50px] max-w-[70px] rounded-full font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[28px] flex-1 min-w-[45px] max-w-[65px] rounded-full font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -128,24 +128,24 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             </div>
 
             {/* Countdown Section */}
-            <div className="mb-3 shrink-0">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="h-[1px] w-10 bg-white/40" />
+            <div className="mb-2 shrink-0">
+              <div className="flex items-center justify-center gap-2 mb-1.5">
+                <div className="h-[1px] w-8 bg-white/40" />
                 <div className="flex items-center gap-2">
-                  <span className="text-white/80 text-[12px] font-medium tracking-wide">
+                  <span className="text-white/80 text-[11px] font-medium tracking-wide">
                     countdown
                   </span>
                 </div>
-                <div className="h-[1px] w-10 bg-white/40" />
+                <div className="h-[1px] w-8 bg-white/40" />
               </div>
-              <div className="flex flex-wrap gap-1.5 justify-center">
+              <div className="flex flex-wrap gap-1 justify-center">
                 {countdownOptions.map((option) => {
                   const isSelected = selectedCountdown === option
                   return (
                     <button
                       key={option}
                       onClick={() => setSelectedCountdown(option)}
-                      className={`h-[32px] px-4 rounded-xl font-bold text-[12px] transition-all flex items-center justify-center border-2 ${
+                      className={`h-[30px] px-4 rounded-xl font-bold text-[11px] transition-all flex items-center justify-center border-2 ${
                         isSelected
                           ? 'bg-[#FE3C68] text-white shadow-md border-[#FE3C68]'
                           : 'bg-[#F5D9A8] text-[#8B5E3C] hover:bg-[#EFC98A] border-[#D4A76A]'
@@ -161,7 +161,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             {/* Send Button */}
             <button
               onClick={() => setShowClaim(true)}
-              className="w-[90%] mx-auto h-[42px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[17px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mt-auto mb-1 shrink-0"
+              className="w-[90%] mx-auto h-[38px] bg-[#FE3C68] active:bg-[#E8335D] text-white font-bold text-[16px] rounded-full shadow-md transition-transform active:scale-95 flex items-center justify-center mt-auto mb-1 shrink-0"
             >
               Send
             </button>
