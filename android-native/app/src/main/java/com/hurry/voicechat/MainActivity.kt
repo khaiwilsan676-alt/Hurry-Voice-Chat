@@ -177,7 +177,9 @@ private fun HurryNativeRoot() {
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
                                 openedChat = Triple(uid, name, image)
                             }
-                            HurryTab.ME -> if (openedMePage != null) MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null }) else MeScreen(onOpen = { openedMePage = it })
+                            HurryTab.ME -> if (openedMePage == "Coins") CoinsNativePage(onBack = { openedMePage = null })
+                            else if (openedMePage != null) MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null })
+                            else MeScreen(onOpen = { openedMePage = it })
                         }
                     }
                     HurryBottomNav(tab, onTab = { tab = it })
