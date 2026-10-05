@@ -971,17 +971,17 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             <div className="flex-1 overflow-y-auto px-4 py-6">
               <div className="grid grid-cols-2 gap-4">
                 
-                {/* ---------- PLUS BUTTON CARD (Chota Icon + Text) ---------- */}
+                {/* ---------- PLUS BUTTON CARD (Bilkul Screenshot Jaisa) ---------- */}
                 {!customThemeImage && (
                   <button
                     onClick={() => themeFileInputRef.current?.click()}
                     className="flex flex-col rounded-xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-gray-50 transition-all items-center justify-center min-h-[260px]"
                   >
-                    <svg viewBox="0 0 24 24" className="w-8 h-8 stroke-gray-400 stroke-[1.5] fill-none">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 stroke-gray-400 stroke-[1.5] fill-none">
                       <line x1="12" y1="5" x2="12" y2="19" />
                       <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    <span className="text-sm font-medium text-gray-500 mt-2">Add Custom</span>
+                    <span className="text-xs font-medium text-gray-500 mt-1.5">Add Custom</span>
                   </button>
                 )}
 
