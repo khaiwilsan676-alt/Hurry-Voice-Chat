@@ -1898,7 +1898,9 @@ export default function PublicProfile({
           )}
         </div>
 
-        <div className="absolute bottom-12 left-6 flex items-center z-30 pointer-events-none">
+        {/* --- AVATAR & CHANGE PHOTO BUTTON --- */}
+        <div className="absolute bottom-12 left-6 flex flex-col items-center z-30">
+          {/* Avatar Container */}
           <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
@@ -1926,6 +1928,17 @@ export default function PublicProfile({
               />
             </div>
           </div>
+
+          {/* ✅ NEW: Change Photo Button (Only for own profile) */}
+          {!isOtherUser && (
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              className="mt-1 bg-[#6b7280] hover:bg-[#4b5563] text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-md transition-colors z-40 whitespace-nowrap"
+            >
+              <Camera size={14} />
+              Change photo
+            </button>
+          )}
         </div>
       </div>
 
