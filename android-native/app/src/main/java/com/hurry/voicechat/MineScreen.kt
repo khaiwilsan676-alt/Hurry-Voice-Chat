@@ -25,41 +25,34 @@ fun MineNativePage(onBack: () -> Unit) {
         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 80.dp)
     ) {
         item {
-            Column(
-                Modifier.fillMaxWidth().background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White)
-                    )
-                )
-            ) {
-                Row(
-                    Modifier.fillMaxWidth().statusBarsPadding().height(56.dp).padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box(
-                            Modifier.wrapContentSize().clickable { onBack() }
-                        ) {
-                            Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = Color.White)
-                            androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-                                val p = androidx.compose.ui.graphics.Path().apply {
-                                    moveTo(size.width * 0.22f, size.height * 0.98f)
-                                    quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
-                                }
-                                drawPath(p, Color.White, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Box(
+                        Modifier
+                            .wrapContentSize()
+                            .clickable { onBack() }
+                    ) {
+                        Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
+                        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                            val p = androidx.compose.ui.graphics.Path().apply {
+                                moveTo(size.width * 0.22f, size.height * 0.98f)
+                                quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
                             }
-                        }
-                        Box(
-                            Modifier.wrapContentSize().clickable { onBack() }
-                        ) {
-                            Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = Color.White.copy(alpha = 0.72f))
+                            drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                         }
                     }
-                    Spacer(Modifier.weight(1f))
-                    HurrySearchIcon()
-                    Spacer(Modifier.width(10.dp))
-                    HurryHouseIcon()
+                    Box(
+                        Modifier
+                            .wrapContentSize()
+                            .clickable { onBack() }
+                    ) {
+                        Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryMuted)
+                    }
                 }
+                Spacer(Modifier.weight(1f))
+                HurrySearchIcon()
+                Spacer(Modifier.width(10.dp))
+                HurryHouseIcon()
             }
         }
         item {
