@@ -154,10 +154,10 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL COMPONENT (FIXED) ----------
+// ---------- CROP MODAL COMPONENT (FULL SCREEN + FIXED BOX) ----------
 // ------------------------------------------------------------
 function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel: () => void; onCrop: (cropped: string) => void }) {
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)   // full screen wrapper
   const imgRef = useRef<HTMLImageElement>(null)
 
   const [scale, setScale] = useState(1)
@@ -166,27 +166,42 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [imageLoaded, setImageLoaded] = useState(false)
   const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 })
+  const [cropBoxSize, setCropBoxSize] = useState(0)
 
-  // Image load hone par initial scale set karo taaki wo box ko cover kare
+  // Screen / crop box setup
+  useEffect(() => {
+    const updateSize = () => {
+      const container = containerRef.current
+      if (!container) return
+      const w = container.offsetWidth
+      const h = container.offsetHeight
+      // Square crop box = 90% of smaller side
+      const boxSize = Math.min(w, h) * 0.9
+      setCropBoxSize(boxSize)
+    }
+    updateSize()
+    window.addEventListener('resize', updateSize)
+    return () => window.removeEventListener('resize', updateSize)
+  }, [])
+
+  // Jab image load ho jaaye — usko screen ke crop box ko cover karne layak scale karo
   const handleImageLoad = () => {
     const img = imgRef.current
     const container = containerRef.current
     if (!img || !container) return
 
-    const containerSize = container.offsetWidth
     const naturalW = img.naturalWidth
     const naturalH = img.naturalHeight
-
     setNaturalSize({ w: naturalW, h: naturalH })
 
-    const imgRatio = naturalW / naturalH
-    let initialScale = 1
+    const screenW = container.offsetWidth
+    const screenH = container.offsetHeight
+    const boxSize = Math.min(screenW, screenH) * 0.9
 
-    if (imgRatio > 1) {
-      initialScale = containerSize / naturalH
-    } else {
-      initialScale = containerSize / naturalW
-    }
+    // Image ko cover karna hai crop box ko
+    const scaleX = boxSize / naturalW
+    const scaleY = boxSize / naturalH
+    const initialScale = Math.max(scaleX, scaleY)
 
     setScale(initialScale)
     setPosition({ x: 0, y: 0 })
@@ -221,57 +236,173 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
 
   const handleTouchEnd = () => setIsDragging(false)
 
-  // ✅ FIXED: Crop & Save logic
+  // ✅ Crop Logic — crop box ke andar jo image dikh rahi hai wahi crop hogi
   const handleCrop = () => {
     const img = imgRef.current
     const container = containerRef.current
-    if (!img || !container || !imageLoaded) return
+    if (!img || !container || !imageLoaded || cropBoxSize === 0) return
 
-    const containerSize = container.offsetWidth
     const outputSize = 640
-
     const canvas = document.createElement('canvas')
     canvas.width = outputSize
     canvas.height = outputSize
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // White background
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, outputSize, outputSize)
 
-    // Image displayed size on screen (in container pixels)
+    // Container center
+    const containerW = container.offsetWidth
+    const containerH = container.offsetHeight
+    const containerCenterX = containerW / 2
+    const containerCenterY = containerH / 2
+
+    // Crop box ka top-left (container ke andar)
+    const boxLeft = containerCenterX - cropBoxSize / 2
+    const boxTop = containerCenterY - cropBoxSize / 2
+
+    // Image displayed size
     const displayedW = naturalSize.w * scale
     const displayedH = naturalSize.h * scale
 
-    // Image top-left position relative to container
-    const containerCenter = containerSize / 2
-    const imgLeft = containerCenter + position.x - displayedW / 2
-    const imgTop = containerCenter + position.y - displayedH / 2
+    // Image top-left position (container ke andar)
+    const imgLeft = containerCenterX + position.x - displayedW / 2
+    const imgTop = containerCenterY + position.y - displayedH / 2
 
-    // Scale factor from container to output
-    const ratio = outputSize / containerSize
+    // Crop box ke andar image ka offset
+    const offsetX = boxLeft - imgLeft
+    const offsetY = boxTop - imgTop
+
+    // Source coordinates (original image mein)
+    const srcX = offsetX / scale
+    const srcY = offsetY / scale
+    const srcW = cropBoxSize / scale
+    const srcH = cropBoxSize / scale
 
     ctx.drawImage(
       img,
-      imgLeft * ratio,
-      imgTop * ratio,
-      displayedW * ratio,
-      displayedH * ratio
+      srcX,
+      srcY,
+      srcW,
+      srcH,
+      0,
+      0,
+      outputSize,
+      outputSize
     )
 
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9)
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92)
     onCrop(croppedDataUrl)
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
-      {/* ✅ Top Bar: Left Back Button + Center Title + Right Tick Button */}
-      <div className="flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 flex-shrink-0">
-        {/* Left: Back Button */}
+    <div ref={containerRef} className="fixed inset-0 z-[9999] bg-black select-none overflow-hidden">
+      {/* Full Screen Image (draggable) */}
+      {imageLoaded && (
+        <img
+          ref={imgRef}
+          src={imageSrc}
+          alt="Crop"
+          onLoad={handleImageLoad}
+          className="absolute select-none pointer-events-none"
+          style={{
+            left: '50%',
+            top: '50%',
+            transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transformOrigin: 'center center',
+            maxWidth: 'none',
+            maxHeight: 'none',
+          }}
+          draggable={false}
+        />
+      )}
+
+      {/* Hidden image to trigger onLoad before we render visible one */}
+      {!imageLoaded && (
+        <img
+          src={imageSrc}
+          alt="loading"
+          onLoad={handleImageLoad}
+          className="hidden"
+          draggable={false}
+        />
+      )}
+
+      {/* Dark overlay with fixed crop box */}
+      {imageLoaded && cropBoxSize > 0 && (
+        <div className="absolute inset-0 pointer-events-none">
+          {/* 4 dark overlays around the crop box */}
+          <div
+            className="absolute bg-black/60"
+            style={{ top: 0, left: 0, right: 0, height: `calc(50% - ${cropBoxSize / 2}px)` }}
+          />
+          <div
+            className="absolute bg-black/60"
+            style={{ bottom: 0, left: 0, right: 0, height: `calc(50% - ${cropBoxSize / 2}px)` }}
+          />
+          <div
+            className="absolute bg-black/60"
+            style={{
+              top: `calc(50% - ${cropBoxSize / 2}px)`,
+              bottom: `calc(50% - ${cropBoxSize / 2}px)`,
+              left: 0,
+              width: `calc(50% - ${cropBoxSize / 2}px)`,
+            }}
+          />
+          <div
+            className="absolute bg-black/60"
+            style={{
+              top: `calc(50% - ${cropBoxSize / 2}px)`,
+              bottom: `calc(50% - ${cropBoxSize / 2}px)`,
+              right: 0,
+              width: `calc(50% - ${cropBoxSize / 2}px)`,
+            }}
+          />
+
+          {/* Crop Box Border */}
+          <div
+            className="absolute border-2 border-white"
+            style={{
+              width: cropBoxSize,
+              height: cropBoxSize,
+              top: `calc(50% - ${cropBoxSize / 2}px)`,
+              left: `calc(50% - ${cropBoxSize / 2}px)`,
+            }}
+          >
+            {/* Grid lines */}
+            <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white/60" />
+            <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white/60" />
+            <div className="absolute left-0 right-0 top-1/3 h-px bg-white/60" />
+            <div className="absolute left-0 right-0 top-2/3 h-px bg-white/60" />
+
+            {/* Corner handles */}
+            <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-white" />
+            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-white" />
+            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-white" />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-white" />
+          </div>
+        </div>
+      )}
+
+      {/* Drag Layer — image ko move karne ke liye transparent layer */}
+      <div
+        className="absolute inset-0 touch-none"
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      />
+
+      {/* ✅ Top Bar: Back + Title + Tick */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 z-10 pointer-events-none">
         <button
           onClick={onCancel}
-          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors pointer-events-auto"
           aria-label="Back"
         >
           <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-white stroke-[2.5]">
@@ -279,14 +410,12 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
           </svg>
         </button>
 
-        {/* Center: Title */}
-        <h3 className="text-white font-bold text-lg">Crop Image</h3>
+        <h3 className="text-white font-bold text-lg drop-shadow-lg">Crop Image</h3>
 
-        {/* Right: Tick / Confirm Button */}
         <button
           onClick={handleCrop}
           disabled={!imageLoaded}
-          className={`p-2 -mr-2 rounded-full transition-colors ${
+          className={`p-2 -mr-2 rounded-full transition-colors pointer-events-auto ${
             imageLoaded ? 'hover:bg-white/10' : 'opacity-40 cursor-not-allowed'
           }`}
           aria-label="Confirm Crop"
@@ -295,55 +424,6 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
             <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      </div>
-
-      {/* Crop Area - Center */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
-          {/* Crop Box */}
-          <div
-            ref={containerRef}
-            className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden cursor-move touch-none"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Grid Overlay */}
-            <div className="absolute inset-0 pointer-events-none z-10 opacity-30">
-              <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white" />
-              <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white" />
-              <div className="absolute left-0 right-0 top-1/3 h-px bg-white" />
-              <div className="absolute left-0 right-0 top-2/3 h-px bg-white" />
-            </div>
-
-            {!imageLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
-                Loading...
-              </div>
-            )}
-
-            <img
-              ref={imgRef}
-              src={imageSrc}
-              alt="Crop"
-              onLoad={handleImageLoad}
-              className="absolute select-none pointer-events-none"
-              style={{
-                left: '50%',
-                top: '50%',
-                transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                transformOrigin: 'center center',
-                maxWidth: 'none',
-                maxHeight: 'none',
-              }}
-              draggable={false}
-            />
-          </div>
-        </div>
       </div>
     </div>
   )
@@ -421,7 +501,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' },
   ]
 
-  // ✅ IMAGE UPLOAD - ab crop modal open karega
+  // ✅ IMAGE UPLOAD
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
