@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
 
 // ==========================================
@@ -195,6 +195,13 @@ export default function Family({ onBack }: FamilyProps) {
   // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
 
+  // NEW STATES FOR CREATE PAGE
+  const [familyName, setFamilyName] = useState('')
+  const [familyAnnouncement, setFamilyAnnouncement] = useState('')
+  const [familyImage, setFamilyImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [userCoins, setUserCoins] = useState(0) // Initially 0 coins
+
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
     if (savedMembers) {
@@ -205,6 +212,17 @@ export default function Family({ onBack }: FamilyProps) {
     if (savedCode) {
       setFamilyCode(savedCode)
     }
+
+    // Load saved family details if any
+    const savedFamilyName = localStorage.getItem('familyName')
+    const savedFamilyAnnouncement = localStorage.getItem('familyAnnouncement')
+    const savedFamilyImage = localStorage.getItem('familyImage')
+    const savedApplyMode = localStorage.getItem('applyMode')
+    
+    if (savedFamilyName) setFamilyName(savedFamilyName)
+    if (savedFamilyAnnouncement) setFamilyAnnouncement(savedFamilyAnnouncement)
+    if (savedFamilyImage) setFamilyImage(savedFamilyImage)
+    if (savedApplyMode) setApplyModeState(savedApplyMode as 'free' | 'admin')
 
     const timer = setInterval(() => {
       const now = new Date()
@@ -228,6 +246,57 @@ export default function Family({ onBack }: FamilyProps) {
 
     return () => clearInterval(timer)
   }, [])
+
+  // ---- CREATE & SAVE LOGIC ----
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFamilyImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCreate = () => {
+    if (!familyName.trim()) {
+      alert("Please enter a Family Name.")
+      return
+    }
+    if (userCoins < 10000000) {
+      alert("You need 10,000,000 coins to create a family.")
+      return
+    }
+    
+    // Save data
+    localStorage.setItem('familyName', familyName)
+    localStorage.setItem('familyAnnouncement', familyAnnouncement)
+    if (familyImage) localStorage.setItem('familyImage', familyImage)
+    localStorage.setItem('applyMode', applyModeState)
+    
+    // Deduct coins (simulation)
+    const newBalance = userCoins - 10000000
+    setUserCoins(newBalance)
+    alert("Family created successfully!")
+    setCurrentView('main')
+  }
+
+  const handleSave = () => {
+    if (!familyName.trim()) {
+      alert("Please enter a Family Name.")
+      return
+    }
+    
+    // Save data without deducting coins
+    localStorage.setItem('familyName', familyName)
+    localStorage.setItem('familyAnnouncement', familyAnnouncement)
+    if (familyImage) localStorage.setItem('familyImage', familyImage)
+    localStorage.setItem('applyMode', applyModeState)
+    
+    alert("Changes saved successfully!")
+    setCurrentView('main')
+  }
 
   // ==========================================
   // VIEW 4: TOP RANKINGS PAGE
@@ -538,23 +607,50 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-black" />
           </button>
           <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
-          <button className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
+          <button onClick={handleSave} className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
         </div>
 
         <div className="flex-1 w-full pb-36">
           <div className="flex flex-col items-center mt-8">
-            <div className="w-24 h-24 border-2 border-[#FFD700] rounded-lg flex items-center justify-center cursor-pointer bg-gray-50/50">
-              <Plus size={36} className="text-gray-400" />
+            {/* UPDATED: Clickable Image Upload Area */}
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload} 
+              className="hidden" 
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()} 
+              className="w-24 h-24 border-2 border-[#FFD700] rounded-lg flex items-center justify-center cursor-pointer bg-gray-50/50 overflow-hidden relative"
+            >
+              {familyImage ? (
+                <img src={familyImage} alt="Family" className="w-full h-full object-cover" />
+              ) : (
+                <Plus size={36} className="text-gray-400" />
+              )}
             </div>
             <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
           </div>
           <div className="px-5 mt-8">
             <label className="block text-sm font-bold text-black mb-2">Family name</label>
-            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+            <input 
+              type="text" 
+              value={familyName}
+              onChange={(e) => setFamilyName(e.target.value)}
+              className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" 
+              placeholder="" 
+            />
           </div>
           <div className="px-5 mt-5">
             <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
-            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+            <input 
+              type="text" 
+              value={familyAnnouncement}
+              onChange={(e) => setFamilyAnnouncement(e.target.value)}
+              className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" 
+              placeholder="" 
+            />
           </div>
           <div className="px-5 mt-8">
             <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
@@ -567,7 +663,10 @@ export default function Family({ onBack }: FamilyProps) {
 
         {/* MODIFIED: Hata diya brown background bas transparent background par image button rakhi hai */}
         <div className="fixed bottom-0 left-0 w-full h-[10vh] flex items-center justify-center z-50 bg-transparent pointer-events-none">
-          <button onClick={() => setCurrentView('main')} className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
+          <button 
+            onClick={handleCreate} 
+            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center"
+          >
             <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
           </button>
         </div>
