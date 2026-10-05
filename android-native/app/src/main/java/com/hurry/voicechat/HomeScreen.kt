@@ -51,8 +51,6 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     val pager = rememberPagerState(pageCount = { banners.size })
     val scope = rememberCoroutineScope()
 
-    // Match the real app banner behavior: automatic 5s advance while
-    // keeping native horizontal swipe/fling scrolling smooth and bounded.
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(5000)
@@ -72,8 +70,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
-                            Text("Me", fontSize=21.sp, fontWeight=FontWeight.Bold,
-                                color=if(mine) HurryText else HurryMuted)
+                            Text("Me", fontSize=21.sp, fontWeight=FontWeight.Bold, color=if(mine) HurryText else HurryMuted)
                             if (mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
@@ -85,8 +82,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                             }
                         }
                         Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
-                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Bold else FontWeight.Normal,
-                                color=if(!mine) HurryText else HurryMuted)
+                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Bold else FontWeight.Normal, color=if(!mine) HurryText else HurryMuted)
                             if (!mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                     val p = androidx.compose.ui.graphics.Path().apply {
@@ -105,42 +101,13 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                     Spacer(Modifier.width(2.dp))
                 }
                 Spacer(Modifier.height(5.dp))
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
-                        .clip(RoundedCornerShape(6.dp))
-                ) {
-                    HorizontalPager(
-                        state = pager,
-                        modifier = Modifier.fillMaxSize(),
-                        userScrollEnabled = true,
-                        pageSpacing = 0.dp
-                    ) { page ->
-                        AsyncImage(
-                            model=banners[page],
-                            contentDescription=null,
-                            modifier=Modifier.fillMaxSize(),
-                            contentScale=ContentScale.Crop
-                        )
+                Box(Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp).clip(RoundedCornerShape(6.dp))) {
+                    HorizontalPager(state = pager, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, pageSpacing = 0.dp) { page ->
+                        AsyncImage(model=banners[page], contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
                     }
-                    Row(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 5.dp),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
+                    Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp), horizontalArrangement = Arrangement.Center) {
                         repeat(banners.size) { i ->
-                            Box(
-                                Modifier
-                                    .padding(horizontal=1.5.dp)
-                                    .size(5.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(
-                                        if(i==pager.currentPage) Color.White
-                                        else Color.White.copy(alpha=0.75f)
-                                    )
-                            )
+                            Box(Modifier.padding(horizontal=1.5.dp).size(5.dp).clip(RoundedCornerShape(50)).background(if(i==pager.currentPage) Color.White else Color.White.copy(alpha=0.75f)))
                         }
                     }
                 }
@@ -148,7 +115,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp, bottom = 1.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 3.dp, bottom = 1.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
@@ -158,25 +125,14 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
 
         if (rooms == null) {
-            item {
-                Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment=Alignment.Center) {
-                    CircularProgressIndicator(color=HurryBlue, strokeWidth=2.dp)
-                }
-            }
+            item { Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment=Alignment.Center) { CircularProgressIndicator(color=HurryBlue, strokeWidth=2.dp) } }
         } else if (rooms!!.isEmpty()) {
-            item {
-                Text("No rooms available", Modifier.padding(20.dp), color=HurryMuted, fontSize=14.sp)
-            }
+            item { Text("No rooms available", Modifier.padding(20.dp), color=HurryMuted, fontSize=14.sp) }
         } else {
             val roomRows = rooms!!.chunked(2)
             items(roomRows) { row ->
-                Row(
-                    Modifier.fillMaxWidth().padding(horizontal=2.dp),
-                    horizontalArrangement=Arrangement.spacedBy(0.dp)
-                ) {
-                    row.forEach { room ->
-                        RoomListCard(room, onRoom, Modifier.weight(1f))
-                    }
+                Row(Modifier.fillMaxWidth().padding(horizontal=2.dp), horizontalArrangement=Arrangement.spacedBy(0.dp)) {
+                    row.forEach { room -> RoomListCard(room, onRoom, Modifier.weight(1f)) }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
@@ -199,19 +155,9 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
 @Composable
 fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
-        val c = Color(0xFF2D2D2D)
-        val w = size.width
-        val h = size.height
+        val c = Color(0xFF2D2D2D); val w = size.width; val h = size.height
         val p = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w*.50f,h*.11f)
-            cubicTo(w*.42f,h*.11f,w*.10f,h*.25f,w*.10f,h*.43f)
-            lineTo(w*.10f,h*.68f)
-            cubicTo(w*.10f,h*.86f,w*.23f,h*.94f,w*.39f,h*.94f)
-            lineTo(w*.61f,h*.94f)
-            cubicTo(w*.77f,h*.94f,w*.90f,h*.86f,w*.90f,h*.68f)
-            lineTo(w*.90f,h*.43f)
-            cubicTo(w*.90f,h*.25f,w*.58f,h*.11f,w*.50f,h*.11f)
-            close()
+            moveTo(w*.50f,h*.11f); cubicTo(w*.42f,h*.11f,w*.10f,h*.25f,w*.10f,h*.43f); lineTo(w*.10f,h*.68f); cubicTo(w*.10f,h*.86f,w*.23f,h*.94f,w*.39f,h*.94f); lineTo(w*.61f,h*.94f); cubicTo(w*.77f,h*.94f,w*.90f,h*.86f,w*.90f,h*.68f); lineTo(w*.90f,h*.43f); cubicTo(w*.90f,h*.25f,w*.58f,h*.11f,w*.50f,h*.11f); close()
         }
         drawPath(p,c,style=androidx.compose.ui.graphics.drawscope.Stroke(2.2.dp.toPx(),join=androidx.compose.ui.graphics.StrokeJoin.Round))
         drawRoundRect(c,topLeft=Offset(w*.28f,h*.45f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
@@ -223,27 +169,9 @@ fun HurryHouseIcon() {
 @Composable
 private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier) {
     androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
-        AsyncImage(
-            model=bg,
-            contentDescription=label,
-            modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer {
-                scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f
-                scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f
-            },
-            contentScale=ContentScale.Fit
-        )
-        Text(
-            text=label.uppercase(),
-            modifier=Modifier.fillMaxWidth().padding(top=16.dp),
-            textAlign=androidx.compose.ui.text.style.TextAlign.Center,
-            fontSize=11.sp,
-            fontWeight=FontWeight.Black,
-            color=Color.White
-        )
-        androidx.compose.foundation.layout.Box(
-            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f)
-                .padding(bottom=4.dp).offset(y=2.dp)
-        ) {
+        AsyncImage(model=bg, contentDescription=label, modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer { scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f; scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f }, contentScale=ContentScale.Fit)
+        Text(text=label.uppercase(), modifier=Modifier.fillMaxWidth().padding(top=16.dp), textAlign=androidx.compose.ui.text.style.TextAlign.Center, fontSize=11.sp, fontWeight=FontWeight.Black, color=Color.White)
+        androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=4.dp).offset(y=2.dp)) {
             AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(end=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
