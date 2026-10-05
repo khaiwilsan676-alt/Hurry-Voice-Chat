@@ -520,7 +520,7 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
   )
 }
 
-// ============ Crop Screen Component ============
+// ============ Crop Screen Component (UPDATED) ============
 const CropScreen = ({
   imageSrc,
   onBack,
@@ -536,6 +536,7 @@ const CropScreen = ({
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   const [cropBox, setCropBox] = useState({ x: 50, y: 50, width: 200, height: 200 });
 
+  // Interaction states
   const [interaction, setInteraction] = useState<{
     type: 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'zoom' | null;
     startX: number;
@@ -545,8 +546,10 @@ const CropScreen = ({
     startScale: number;
   } | null>(null);
 
+  // Zoom state (Image fixed, only scales from center)
   const [scale, setScale] = useState(1);
 
+  // Reset states on image load
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const { naturalWidth, naturalHeight } = img;
@@ -572,6 +575,7 @@ const CropScreen = ({
       
       setDisplaySize({ width: displayW, height: displayH });
       
+      // Center crop box initially
       const initialSize = Math.min(displayW, displayH) * 0.7;
       setCropBox({
         x: (displayW - initialSize) / 2,
@@ -600,6 +604,7 @@ const CropScreen = ({
       const touch = e.touches[0];
       const { clientX, clientY } = touch;
       
+      // Determine if touching corner or box
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
       
@@ -715,15 +720,47 @@ const CropScreen = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
+      // Map crop box (relative to container) to image natural coordinates
+      const scaleX = img.naturalWidth / displaySize.width;
+      const scaleY = img.naturalHeight / displaySize.height;
+      
+      // Since image is fixed & centered, and scales from center:
+      // We need to calculate the source area on the original image that falls inside the crop box
+      
+      const imgDisplayedW = displaySize.width * scale;
+      const imgDisplayedH = displaySize.height * scale;
+      
+      // Offset of image center from container center (should be 0 since fixed)
+      // Image is centered in container
+      const imgCenterX = displaySize.width / 2;
+      const imgCenterY = displaySize.height / 2;
+      
+      // Crop box center relative to image center
+      const cropCenterX = cropBox.x + cropBox.width / 2;
+      const cropCenterY = cropBox.y + cropBox.height / 2;
+      
+      // Distance from image center to crop center
+      const deltaX = cropCenterX - imgCenterX;
+      const deltaY = cropCenterY - imgCenterY;
+
+      // In scaled image coords (where image is scaled by `scale`)
+      // The image displayed spans from: imgCenterX - imgDisplayedW/2 to imgCenterX + imgDisplayedW/2
+      // Convert to natural image coords
+      
+      // Natural image size
       const naturalW = img.naturalWidth;
       const naturalH = img.naturalHeight;
       
+      // Displayed image size on screen at scale=1
       const baseW = displaySize.width;
       const baseH = displaySize.height;
       
+      // The image is scaled by `scale`. So displayed size = baseW*scale
+      // Image top-left on screen (in container coords) when scale=1 and centered:
       const imgLeftBase = (containerRef.current!.clientWidth - baseW) / 2;
       const imgTopBase = (containerRef.current!.clientHeight - baseH) / 2;
       
+      // With scale, the image expands from its center
       const imgCenterScreenX = imgLeftBase + baseW / 2;
       const imgCenterScreenY = imgTopBase + baseH / 2;
       
@@ -733,11 +770,14 @@ const CropScreen = ({
       const imgLeftScaled = imgCenterScreenX - scaledW / 2;
       const imgTopScaled = imgCenterScreenY - scaledH / 2;
       
+      // Crop box in screen/container coords
       const cropScreenX = cropBox.x;
       const cropScreenY = cropBox.y;
       const cropW = cropBox.width;
       const cropH = cropBox.height;
       
+      // Convert crop box screen coords to natural image coords
+      // The image natural size maps to scaledW x scaledH on screen
       const pxToNaturalX = naturalW / scaledW;
       const pxToNaturalY = naturalH / scaledH;
       
@@ -746,6 +786,7 @@ const CropScreen = ({
       const sourceW = cropW * pxToNaturalX;
       const sourceH = cropH * pxToNaturalY;
       
+      // Clamp values
       const finalX = Math.max(0, Math.min(sourceX, naturalW - sourceW));
       const finalY = Math.max(0, Math.min(sourceY, naturalH - sourceH));
       const finalW = Math.min(sourceW, naturalW);
@@ -767,6 +808,7 @@ const CropScreen = ({
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col select-none">
+      {/* Top Header */}
       <div className="flex items-center justify-between px-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] bg-black z-20">
         <button onClick={onBack} className="text-white p-1">
           <ArrowLeft size={28} />
@@ -777,6 +819,7 @@ const CropScreen = ({
         </button>
       </div>
 
+      {/* Main Image Area */}
       <div 
         ref={containerRef}
         className="flex-1 relative overflow-hidden flex items-center justify-center bg-black"
@@ -784,6 +827,7 @@ const CropScreen = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
+        {/* The Image - Fixed Center, only scales */}
         <div 
           className="relative flex items-center justify-center"
           style={{
@@ -802,6 +846,7 @@ const CropScreen = ({
           />
         </div>
 
+        {/* Dark Overlay with Mask */}
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'rgba(0,0,0,0.6)',
           clipPath: `polygon(
@@ -818,6 +863,7 @@ const CropScreen = ({
           )`
         }} />
 
+        {/* Crop Box UI */}
         <div 
           className="absolute border-2 border-white pointer-events-none"
           style={{
@@ -827,6 +873,7 @@ const CropScreen = ({
             height: cropBox.height,
           }}
         >
+          {/* Grid Lines */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/3 left-0 right-0 h-[1px] bg-white/40"></div>
             <div className="absolute top-2/3 left-0 right-0 h-[1px] bg-white/40"></div>
@@ -834,6 +881,7 @@ const CropScreen = ({
             <div className="absolute left-2/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
           </div>
 
+          {/* Corner Handles */}
           <div className="absolute -top-2.5 -left-2.5 w-5 h-5 border-t-2 border-l-2 border-white pointer-events-none"></div>
           <div className="absolute -top-2.5 -right-2.5 w-5 h-5 border-t-2 border-r-2 border-white pointer-events-none"></div>
           <div className="absolute -bottom-2.5 -left-2.5 w-5 h-5 border-b-2 border-l-2 border-white pointer-events-none"></div>
@@ -855,6 +903,7 @@ export default function PublicProfile({
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   
+  // Timer for Long Press logic
   const longPressTimer = useRef<NodeJS.Timeout | null>(null)
 
   const [user, setUser] = useState(() => {
@@ -920,6 +969,7 @@ export default function PublicProfile({
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
 
+  // Crop Screen State
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
   const [ownedFrameItems, setOwnedFrameItems] = useState<Array<{ id: string; image: string; name: string }>>([])
@@ -995,11 +1045,13 @@ export default function PublicProfile({
 
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0)
 
+  // Sheets Control
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showNameScreen, setShowNameScreen] = useState(false)
   const [showAgeScreen, setShowAgeScreen] = useState(false)
   const [showBioScreen, setShowBioScreen] = useState(false)
 
+  // Edit Values
   const [editName, setEditName] = useState(user.name)
   const [editAge, setEditAge] = useState(user.age.toString())
   const [editBio, setEditBio] = useState(user.bio)
@@ -1013,12 +1065,15 @@ export default function PublicProfile({
 
   const [activeTab, setActiveTab] = useState('profile')
   
+  // ✅ Fullscreen Album Image Viewer State
   const [fullImageIndex, setFullImageIndex] = useState<number | null>(null)
 
+  // ✅ Zoom & Swipe Refs
   const touchStartXRef = useRef<number>(0)
   const touchEndXRef = useRef<number>(0)
   const imageContainerRef = useRef<HTMLDivElement>(null)
 
+  // Zoom State
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const lastTouchDistRef = useRef<number>(0)
@@ -1037,6 +1092,7 @@ export default function PublicProfile({
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
+  // --- Birthday Picker States ---
   const [birthYear, setBirthYear] = useState(2003)
   const [birthMonth, setBirthMonth] = useState(4)
   const [birthDay, setBirthDay] = useState(8)
@@ -1044,10 +1100,12 @@ export default function PublicProfile({
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
+  // Refs for auto-scroll
   const yearRef = useRef<HTMLDivElement>(null)
   const monthRef = useRef<HTMLDivElement>(null)
   const dayRef = useRef<HTMLDivElement>(null)
 
+  // Auto scroll to selected value when screen opens
   useEffect(() => {
     if (showAgeScreen) {
       setTimeout(() => {
@@ -1081,6 +1139,7 @@ export default function PublicProfile({
     }
   }, [user.coverPhoto])
 
+  // Reset zoom when image changes
   useEffect(() => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
@@ -1504,6 +1563,7 @@ export default function PublicProfile({
     await saveToMongoDB({ coverPhoto: primary, coverImage: primary, coverPhotos: updated })
   }
 
+  // ==== Long Press Album Logic ====
   const handleTouchStart = (index: number) => {
     longPressTimer.current = setTimeout(() => {
       handlePinAlbumImage(index)
@@ -1556,6 +1616,7 @@ export default function PublicProfile({
     await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
+  // Handle Crop Save
   const handleCropSave = async (croppedImage: string) => {
     setCropImageSrc(null)
     localStorage.setItem('userPhoto', croppedImage)
@@ -1584,6 +1645,7 @@ export default function PublicProfile({
     await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos })
   }
 
+  // ✅ New Birthday Confirm Handler
   const handleBirthdayConfirm = async () => {
     const year = birthYear;
     const month = birthMonth;
@@ -1648,6 +1710,7 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
+  // ✅ Full Image Viewer Handlers
   const handleImageClick = (index: number) => {
     setFullImageIndex(index);
     setScale(1);
@@ -1670,14 +1733,17 @@ export default function PublicProfile({
     }
   };
 
+  // ✅ Get distance between two touches
   const getTouchDistance = (touches: React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
+  // ✅ Handle Touch Start (Swipe + Pinch + Drag)
   const handleImageTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Pinch start
       isPinchingRef.current = true;
       lastTouchDistRef.current = getTouchDistance(e.touches);
       return;
@@ -1687,7 +1753,9 @@ export default function PublicProfile({
       const now = Date.now();
       const DOUBLE_TAP_DELAY = 300;
       
+      // Double tap detection
       if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
+        // Double tap: toggle zoom
         if (scale > 1) {
           setScale(1);
           setPosition({ x: 0, y: 0 });
@@ -1699,10 +1767,12 @@ export default function PublicProfile({
       }
       lastTapRef.current = now;
 
+      // For swipe/drag
       touchStartXRef.current = e.touches[0].clientX;
       touchEndXRef.current = 0;
       
       if (scale > 1) {
+        // Dragging zoomed image
         isDraggingRef.current = true;
         dragStartRef.current = {
           x: e.touches[0].clientX - position.x,
@@ -1712,8 +1782,10 @@ export default function PublicProfile({
     }
   };
 
+  // ✅ Handle Touch Move (Swipe + Pinch + Drag)
   const handleImageTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Pinch move
       e.preventDefault();
       const currentDist = getTouchDistance(e.touches);
       if (lastTouchDistRef.current > 0) {
@@ -1730,16 +1802,19 @@ export default function PublicProfile({
       e.preventDefault();
       
       if (scale > 1 && isDraggingRef.current) {
+        // Drag zoomed image
         const newX = e.touches[0].clientX - dragStartRef.current.x;
         const newY = e.touches[0].clientY - dragStartRef.current.y;
         setPosition({ x: newX, y: newY });
         return;
       }
 
+      // For swipe
       touchEndXRef.current = e.touches[0].clientX;
     }
   };
 
+  // ✅ Handle Touch End (Swipe + Pinch end)
   const handleImageTouchEnd = (e: React.TouchEvent) => {
     if (isPinchingRef.current) {
       isPinchingRef.current = false;
@@ -1753,7 +1828,7 @@ export default function PublicProfile({
 
     isDraggingRef.current = false;
 
-    if (scale > 1) return;
+    if (scale > 1) return; // Don't swipe when zoomed
 
     const startX = touchStartXRef.current;
     const endX = touchEndXRef.current;
@@ -1823,8 +1898,7 @@ export default function PublicProfile({
           )}
         </div>
 
-        {/* Avatar - No touch (pointer-events-none) */}
-        <div className="absolute bottom-12 left-6 z-30 pointer-events-none">
+        <div className="absolute bottom-12 left-6 flex items-center z-30 pointer-events-none">
           <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
@@ -2064,7 +2138,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Full Image View Modal */}
+      {/* ✅ Full Image View Modal with Swipe + Zoom + Drag */}
       {fullImageIndex !== null && (
         <div 
           className="fixed inset-0 z-[60] bg-black flex flex-col select-none overflow-hidden"
@@ -2073,6 +2147,7 @@ export default function PublicProfile({
           onTouchMove={handleImageTouchMove}
           onTouchEnd={handleImageTouchEnd}
         >
+          {/* Top Bar with Back and Counter - CORNER FIXED */}
           <div className="absolute top-0 left-0 right-0 z-20 flex items-start justify-between px-1 pt-1 pointer-events-none">
             <button
               onClick={() => setFullImageIndex(null)}
@@ -2086,6 +2161,7 @@ export default function PublicProfile({
             </span>
           </div>
 
+          {/* Main Image Container */}
           <div 
             ref={imageContainerRef}
             className="flex-1 flex items-center justify-center overflow-hidden"
@@ -2103,12 +2179,14 @@ export default function PublicProfile({
             />
           </div>
 
+          {/* Zoom Indicator */}
           {scale > 1 && (
             <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-20 pointer-events-none">
               {Math.round(scale * 100)}%
             </div>
           )}
 
+          {/* Desktop Navigation Buttons */}
           {fullImageIndex > 0 && (
             <button 
               onClick={handlePrevImage}
@@ -2128,7 +2206,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Crop Screen Modal */}
+      {/* ✅ Crop Screen Modal */}
       {cropImageSrc && (
         <CropScreen
           imageSrc={cropImageSrc}
@@ -2137,12 +2215,13 @@ export default function PublicProfile({
         />
       )}
 
-      {/* ✅ Edit Profile Bottom Sheet - Only this part changed */}
+      {/* ✅ Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
           <div className="relative bg-white w-full max-w-md rounded-[6px] animate-slide-up flex flex-col h-[70vh]">
+            {/* Fixed Header */}
             <div className="flex items-center justify-between px-3 py-4 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -2151,16 +2230,20 @@ export default function PublicProfile({
               <div className="w-6"></div>
             </div>
 
-            <div className="overflow-y-auto px-5 py-4 space-y-6 flex-1">
+            {/* Scrollable Content */}
+            <div className="overflow-hidden px-5 py-4 space-y-6 flex-1">
               <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* 1. Avatar Row - with Change Photo button on right */}
+              {/* 1. Avatar */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 shrink-0">
+                <div className="flex items-center gap-2">
+                   <div
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
+                  >
                     {user.photo ? (
                       <img src={user.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -2169,18 +2252,11 @@ export default function PublicProfile({
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="flex items-center gap-1 bg-gray-500/90 hover:bg-gray-600 text-white text-[11px] font-medium px-2.5 py-1 rounded-full shadow transition-colors"
-                  >
-                    <Camera size={12} />
-                    <span>Change photo</span>
-                  </button>
                 </div>
               </div>
 
-              {/* 2. Nickname - shifted down slightly */}
-              <div className="flex items-center justify-between pt-1">
+              {/* 2. Nickname */}
+              <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
                 <button onClick={() => setShowNameScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
                   <span className="max-w-[150px] truncate">{editName || 'Enter name'}</span>
@@ -2197,7 +2273,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 4. BACKGROUND */}
+              {/* 4. BACKGROUND — max 4 */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -2239,7 +2315,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 6. ALBUM */}
+              {/* 6. ALBUM Inline — max 9 */}
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -2320,11 +2396,12 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* Birthday Wheel Picker */}
+      {/* ✅ FIXED: Birthday Wheel Picker (Age Edit) — Day / Month / Year Order */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgeScreen(false)}></div>
           <div className="relative bg-white w-full max-w-md rounded-t-2xl animate-slide-up flex flex-col pt-2 pb-8">
+            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 shrink-0 border-b border-gray-100">
               <button onClick={() => setShowAgeScreen(false)} className="text-gray-500 text-base font-medium">
                 Cancel
@@ -2335,10 +2412,13 @@ export default function PublicProfile({
               </button>
             </div>
 
+            {/* Wheel Picker Container */}
             <div className="relative flex justify-center items-center h-[250px] overflow-hidden">
+              {/* Highlight Bar */}
               <div className="absolute top-1/2 left-0 right-0 h-[50px] -mt-[25px] border-t border-b border-gray-200 bg-gray-50/50 pointer-events-none z-0"></div>
               
               <div className="flex w-full justify-between px-12 z-10 h-full">
+                {/* Day Wheel (First) */}
                 <div 
                   ref={dayRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2358,6 +2438,7 @@ export default function PublicProfile({
                   <div className="h-[100px]"></div>
                 </div>
 
+                {/* Month Wheel (Second) */}
                 <div 
                   ref={monthRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2377,6 +2458,7 @@ export default function PublicProfile({
                   <div className="h-[100px]"></div>
                 </div>
 
+                {/* Year Wheel (Third) */}
                 <div 
                   ref={yearRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2508,7 +2590,7 @@ export default function PublicProfile({
       )}
 
       {isOtherUser && showUserReport && targetUser && (
-        <div className="fixed inset-0">
+        <div className="fixed inset-0 ]">
           <UserReport
             currentUser={getCurrentUserData()}
             targetUser={targetUser}
@@ -2525,12 +2607,14 @@ export default function PublicProfile({
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
         }
+        /* Hide scrollbar for Chrome, Safari and Opera */
         .overflow-y-scroll::-webkit-scrollbar {
           display: none;
         }
+        /* Hide scrollbar for IE, Edge and Firefox */
         .overflow-y-scroll {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
         }
       `}</style>
     </div>
