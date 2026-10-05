@@ -147,7 +147,7 @@ enum class MeIconType { LANGUAGE, SETTINGS, SUPPORT, HELP }
 
 @Composable
 private fun MeMenuIcon(type: MeIconType) {
-    androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+    androidx.compose.foundation.Canvas(Modifier.size(if (type == MeIconType.SUPPORT) 20.dp else 24.dp)) {
         val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
             width = 2.dp.toPx(),
             cap = androidx.compose.ui.graphics.StrokeCap.Round,
