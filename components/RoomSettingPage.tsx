@@ -152,7 +152,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL (FIXED CROP + BOX MOVABLE) ----------
+// ---------- CROP MODAL (BOX SLIDE + IMAGE FIXED + PINCH ZOOM) ----------
 // ------------------------------------------------------------
 type HandleType = 'tl' | 'tr' | 'bl' | 'br'
 
@@ -171,23 +171,31 @@ function CropModal({
   const [imageLoaded, setImageLoaded] = useState(false)
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 })
 
-  // Crop box: top-left x,y and size
   const [box, setBox] = useState({ x: 0, y: 0, size: 300 })
 
-  // Dragging state
   const [activeHandle, setActiveHandle] = useState<HandleType | 'move' | null>(null)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [startBox, setStartBox] = useState({ x: 0, y: 0, size: 300 })
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 })
 
-  // Pinch zoom
   const [initialPinchDist, setInitialPinchDist] = useState(0)
   const [initialPinchScale, setInitialPinchScale] = useState(1)
 
   const MIN_BOX = 100
 
-  // Init box in center
+  const getImageBounds = () => {
+    const c = containerRef.current
+    if (!c) return { left: 0, top: 0, right: 0, bottom: 0 }
+    const cW = c.offsetWidth
+    const cH = c.offsetHeight
+    const dispW = naturalSize.w * scale
+    const dispH = naturalSize.h * scale
+    const left = cW / 2 + position.x - dispW / 2
+    const top = cH / 2 + position.y - dispH / 2
+    return { left, top, right: left + dispW, bottom: top + dispH }
+  }
+
   useEffect(() => {
     const update = () => {
       const c = containerRef.current
@@ -202,7 +210,6 @@ function CropModal({
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  // On image load — scale to cover the box
   const handleImageLoad = () => {
     const img = imgRef.current
     const c = containerRef.current
@@ -210,29 +217,38 @@ function CropModal({
 
     const nw = img.naturalWidth
     const nh = img.naturalHeight
+    setNaturalSize({ w: nw, h: nh })
+
     const cW = c.offsetWidth
     const cH = c.offsetHeight
-    const size = Math.min(cW, cH) * 0.9
-    const initialBox = { x: (cW - size) / 2, y: (cH - size) / 2, size }
 
-    const initialScale = Math.max(size / nw, size / nh)
-
-    setBox(initialBox)
+    const initialScale = Math.min(cW / nw, cH / nh)
     setScale(initialScale)
     setPosition({ x: 0, y: 0 })
+
+    const dispW = nw * initialScale
+    const dispH = nh * initialScale
+    const imgLeft = cW / 2 - dispW / 2
+    const imgTop = cH / 2 - dispH / 2
+
+    const imgMinSide = Math.min(dispW, dispH)
+    const initialBoxSize = imgMinSide * 0.8
+
+    setBox({
+      x: imgLeft + (dispW - initialBoxSize) / 2,
+      y: imgTop + (dispH - initialBoxSize) / 2,
+      size: initialBoxSize,
+    })
     setImageLoaded(true)
   }
 
-  // Start drag (move box OR resize)
   const startDrag = (e: React.MouseEvent | React.TouchEvent, handle: HandleType | 'move') => {
     const point = 'touches' in e ? e.touches[0] : (e as React.MouseEvent)
     setActiveHandle(handle)
     setDragStart({ x: point.clientX, y: point.clientY })
     setStartBox({ ...box })
-    setStartPos({ ...position })
   }
 
-  // Move handler
   const onMove = (e: React.MouseEvent | React.TouchEvent) => {
     if (!activeHandle) return
     const point = 'touches' in e ? e.touches[0] : (e as React.MouseEvent)
@@ -240,27 +256,22 @@ function CropModal({
     const dy = point.clientY - dragStart.y
     const c = containerRef.current
     if (!c) return
-    const cW = c.offsetWidth
-    const cH = c.offsetHeight
 
-    // ✅ MOVE MODE: Box + Image dono move karo (Instagram style)
+    const bounds = getImageBounds()
+
     if (activeHandle === 'move') {
       let newX = startBox.x + dx
       let newY = startBox.y + dy
 
-      // Clamp box inside container
-      if (newX < 0) newX = 0
-      if (newY < 0) newY = 0
-      if (newX + startBox.size > cW) newX = cW - startBox.size
-      if (newY + startBox.size > cH) newY = cH - startBox.size
+      if (newX < bounds.left) newX = bounds.left
+      if (newY < bounds.top) newY = bounds.top
+      if (newX + startBox.size > bounds.right) newX = bounds.right - startBox.size
+      if (newY + startBox.size > bounds.bottom) newY = bounds.bottom - startBox.size
 
-      // Image bhi utna hi move karo
       setBox({ ...box, x: newX, y: newY })
-      setPosition({ x: startPos.x + dx, y: startPos.y + dy })
       return
     }
 
-    // RESIZE MODE — corner handles
     let newSize = startBox.size
     let newX = startBox.x
     let newY = startBox.y
@@ -274,12 +285,10 @@ function CropModal({
       newX = startBox.x + delta
       newY = startBox.y + delta
     } else if (activeHandle === 'tr') {
-      // Top-right: left stays, bottom stays, top & right move
       const sizeDelta = (dx - dy) / 2
       newSize = startBox.size + sizeDelta
       newX = startBox.x + (startBox.size - newSize)
     } else if (activeHandle === 'bl') {
-      // Bottom-left: top stays, right stays
       const sizeDelta = (-dx + dy) / 2
       newSize = startBox.size + sizeDelta
       newY = startBox.y + (startBox.size - newSize)
@@ -287,18 +296,28 @@ function CropModal({
 
     if (newSize < MIN_BOX) newSize = MIN_BOX
 
-    // Clamp inside container
-    if (newX < 0) newX = 0
-    if (newY < 0) newY = 0
-    if (newX + newSize > cW) newX = cW - newSize
-    if (newY + newSize > cH) newY = cH - newSize
+    if (newX < bounds.left) {
+      newSize -= (bounds.left - newX)
+      newX = bounds.left
+    }
+    if (newY < bounds.top) {
+      newSize -= (bounds.top - newY)
+      newY = bounds.top
+    }
+    if (newX + newSize > bounds.right) {
+      newSize = bounds.right - newX
+    }
+    if (newY + newSize > bounds.bottom) {
+      newSize = bounds.bottom - newY
+    }
+
+    if (newSize < MIN_BOX) newSize = MIN_BOX
 
     setBox({ x: newX, y: newY, size: newSize })
   }
 
   const endDrag = () => setActiveHandle(null)
 
-  // Global listeners for smooth dragging
   useEffect(() => {
     if (!activeHandle) return
     const moveHandler = (e: MouseEvent | TouchEvent) => onMove(e as any)
@@ -317,9 +336,9 @@ function CropModal({
       window.removeEventListener('touchend', upHandler)
       window.removeEventListener('touchcancel', upHandler)
     }
-  }, [activeHandle, dragStart, box, position])
+  }, [activeHandle, dragStart, box])
 
-  // Pinch zoom (inside box)
+  // Pinch zoom
   const onTouchStartPinch = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const [a, b] = [e.touches[0], e.touches[1]]
@@ -336,14 +355,30 @@ function CropModal({
       const ratio = dist / initialPinchDist
       let newScale = initialPinchScale * ratio
 
-      // Min scale — image should cover box
       const img = imgRef.current
       if (img) {
         const minCover = Math.max(box.size / img.naturalWidth, box.size / img.naturalHeight)
         if (newScale < minCover) newScale = minCover
       }
 
+      const maxScale = 5
+      if (newScale > maxScale) newScale = maxScale
+
       setScale(newScale)
+
+      const c = containerRef.current
+      if (c) {
+        const cW = c.offsetWidth
+        const cH = c.offsetHeight
+        const boxCenterX = box.x + box.size / 2
+        const boxCenterY = box.y + box.size / 2
+        const imgCenterX = cW / 2 + position.x
+        const imgCenterY = cH / 2 + position.y
+        setPosition({
+          x: position.x + (boxCenterX - imgCenterX) * 0.1,
+          y: position.y + (boxCenterY - imgCenterY) * 0.1,
+        })
+      }
     }
   }
 
@@ -351,7 +386,6 @@ function CropModal({
     setInitialPinchDist(0)
   }
 
-  // ✅ FIXED CROP — Box ke andar jo hai wahi crop hoga
   const handleCrop = () => {
     const img = imgRef.current
     const c = containerRef.current
@@ -369,42 +403,26 @@ function CropModal({
     const cCenterX = cW / 2
     const cCenterY = cH / 2
 
-    // Displayed image size on screen
     const dispW = img.naturalWidth * scale
     const dispH = img.naturalHeight * scale
-
-    // Image top-left on screen (container coords)
     const imgLeft = cCenterX + position.x - dispW / 2
     const imgTop = cCenterY + position.y - dispH / 2
 
-    // Crop box ke andar image ka offset (container coords)
     const offsetX = box.x - imgLeft
     const offsetY = box.y - imgTop
 
-    // Original image coordinates mein convert karo
     const srcX = offsetX / scale
     const srcY = offsetY / scale
     const srcSize = box.size / scale
 
-    // Clamp source rect inside image bounds (safety)
     let finalSrcX = srcX
     let finalSrcY = srcY
     let finalSrcSize = srcSize
 
-    if (finalSrcX < 0) {
-      finalSrcSize += finalSrcX
-      finalSrcX = 0
-    }
-    if (finalSrcY < 0) {
-      finalSrcSize += finalSrcY
-      finalSrcY = 0
-    }
-    if (finalSrcX + finalSrcSize > img.naturalWidth) {
-      finalSrcSize = img.naturalWidth - finalSrcX
-    }
-    if (finalSrcY + finalSrcSize > img.naturalHeight) {
-      finalSrcSize = img.naturalHeight - finalSrcY
-    }
+    if (finalSrcX < 0) { finalSrcSize += finalSrcX; finalSrcX = 0 }
+    if (finalSrcY < 0) { finalSrcSize += finalSrcY; finalSrcY = 0 }
+    if (finalSrcX + finalSrcSize > img.naturalWidth) finalSrcSize = img.naturalWidth - finalSrcX
+    if (finalSrcY + finalSrcSize > img.naturalHeight) finalSrcSize = img.naturalHeight - finalSrcY
 
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, outputSize, outputSize)
@@ -430,7 +448,6 @@ function CropModal({
       ref={containerRef}
       className="fixed inset-0 z-[9999] bg-black overflow-hidden select-none touch-none"
     >
-      {/* Image */}
       <img
         ref={imgRef}
         src={imageSrc}
@@ -455,7 +472,6 @@ function CropModal({
         </div>
       )}
 
-      {/* Dark overlay around box */}
       {imageLoaded && (
         <>
           <div className="absolute bg-black/60 pointer-events-none" style={{ left: 0, right: 0, top: 0, height: box.y }} />
@@ -465,7 +481,6 @@ function CropModal({
         </>
       )}
 
-      {/* Crop box */}
       {imageLoaded && (
         <div
           className="absolute border-2 border-white"
@@ -476,7 +491,6 @@ function CropModal({
             height: box.size,
           }}
         >
-          {/* ✅ Inside drag layer — poora box slide ho jaye (image ke saath) */}
           <div
             className="absolute inset-0 touch-none cursor-move"
             style={{ zIndex: 5 }}
@@ -496,13 +510,11 @@ function CropModal({
             }}
           />
 
-          {/* Grid lines */}
           <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white/40 pointer-events-none" />
           <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white/40 pointer-events-none" />
           <div className="absolute left-0 right-0 top-1/3 h-px bg-white/40 pointer-events-none" />
           <div className="absolute left-0 right-0 top-2/3 h-px bg-white/40 pointer-events-none" />
 
-          {/* Corner handles */}
           <div
             className="absolute -top-1 -left-1 w-7 h-7 cursor-nwse-resize touch-none"
             style={{ zIndex: 10 }}
@@ -541,7 +553,6 @@ function CropModal({
         </div>
       )}
 
-      {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 z-20">
         <button
           onClick={onCancel}
