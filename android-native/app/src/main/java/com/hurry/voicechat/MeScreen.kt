@@ -94,8 +94,12 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
 
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FeatureImage("file_00000000f26c81f88083bc494a0f229b.png", Modifier.weight(1f).height(56.dp))
-                FeatureImage("file_00000000fe848207abf557a118ff8a5b.png", Modifier.weight(1f).height(56.dp))
+                Box(Modifier.weight(1f).height(56.dp).clip(RoundedCornerShape(8.dp)).clickable { onOpen("Coins") }) {
+                    FeatureImage("file_00000000f26c81f88083bc494a0f229b.png", Modifier.fillMaxSize())
+                }
+                Box(Modifier.weight(1f).height(56.dp).clip(RoundedCornerShape(8.dp)).clickable { onOpen("Diamonds") }) {
+                    FeatureImage("file_00000000fe848207abf557a118ff8a5b.png", Modifier.fillMaxSize())
+                }
             }
         }
 
