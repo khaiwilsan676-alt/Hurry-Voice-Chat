@@ -665,12 +665,9 @@ export default function Family({ onBack }: FamilyProps) {
               <ChevronRight className="text-gray-400" size={20} />
             </div>
           </div>
-        </div>
 
-        {/* Text + Button - Bilkul screen ke bottom par */}
-        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-2">
-          
-          <div className="text-left w-full px-6 mb-2 pointer-events-auto">
+          {/* 5. 3 Lines Text - Setting ke just niche */}
+          <div className="px-6 mt-4">
             <p className="text-[13px] text-gray-400 leading-snug mb-1">
               1. Creating a family requires ≥ LV.5
             </p>
@@ -682,6 +679,19 @@ export default function Family({ onBack }: FamilyProps) {
             </p>
           </div>
 
+          {/* 6. Naya Green Save Button - Image jaisa */}
+          <div className="px-5 mt-6">
+            <button 
+              onClick={handleSave} 
+              className="w-full h-[52px] flex items-center justify-center bg-[#00C9A7] hover:bg-[#00B4D8] active:scale-95 transition-transform rounded-full cursor-pointer shadow-lg"
+            >
+              <span className="text-white font-bold text-base tracking-wide">Save</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Niche wala Button - Bilkul screen ke bottom par */}
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-4">
           <button 
             onClick={handleCreate} 
             className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] rounded-full px-8 min-w-[280px] w-auto"
