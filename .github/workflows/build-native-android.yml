@@ -7,6 +7,9 @@ on:
       - 'android-native/**'
       - '.github/workflows/build-native-android.yml'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,13 +35,24 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Build native debug APK
+      - name: Build native release APK
         working-directory: android-native
-        run: gradle assembleDebug --no-daemon --stacktrace
+        env:
+          HURRY_VERSION_NAME: "1.0.${{ github.run_number }}"
+        run: gradle assembleRelease --no-daemon --stacktrace
 
-      - name: Upload APK
+      - name: Publish latest Native APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hurry-native-${{ github.run_number }}
+          name: Hurry Native ${{ github.run_number }}
+          body: Automatic Native APK update for commit ${{ github.sha }}
+          make_latest: true
+          files: android-native/app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: hurry-native-debug
-          path: android-native/app/build/outputs/apk/debug/app-debug.apk
+          name: hurry-native-release
+          path: android-native/app/build/outputs/apk/release/app-release-unsigned.apk
           if-no-files-found: error
