@@ -28,7 +28,7 @@ fun MineNativePage(onBack: () -> Unit) {
             Column(
                 Modifier.fillMaxWidth().background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF3B82F6), Color(0xFF8FC4F4), Color(0xFFF3F8FD))
+                        listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White)
                     )
                 )
             ) {
