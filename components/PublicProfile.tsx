@@ -1823,8 +1823,8 @@ export default function PublicProfile({
           )}
         </div>
 
-        {/* ✅ UPDATED: Avatar + Change Photo Button (Touch on avatar disabled) */}
-        <div className="absolute bottom-12 left-6 flex flex-col items-center z-30 pointer-events-none">
+        {/* Avatar - No touch (pointer-events-none) */}
+        <div className="absolute bottom-12 left-6 z-30 pointer-events-none">
           <div className="relative w-24 h-24 rounded-full shadow-lg bg-gray-700">
             <div className="w-full h-full rounded-full overflow-hidden">
               {user.photo ? (
@@ -1852,17 +1852,6 @@ export default function PublicProfile({
               />
             </div>
           </div>
-          
-          {/* Change Photo Button (sirf apni profile pe dikhega) */}
-          {!isOtherUser && (
-            <button
-              onClick={() => avatarInputRef.current?.click()}
-              className="mt-2 flex items-center gap-1.5 bg-gray-500/90 hover:bg-gray-600 text-white text-[10px] font-medium px-3 py-1 rounded-full shadow-md transition-colors pointer-events-auto whitespace-nowrap z-40"
-            >
-              <Camera size={12} />
-              <span>Change photo</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -2075,7 +2064,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Full Image View Modal with Swipe + Zoom + Drag */}
+      {/* Full Image View Modal */}
       {fullImageIndex !== null && (
         <div 
           className="fixed inset-0 z-[60] bg-black flex flex-col select-none overflow-hidden"
@@ -2139,7 +2128,7 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ Crop Screen Modal */}
+      {/* Crop Screen Modal */}
       {cropImageSrc && (
         <CropScreen
           imageSrc={cropImageSrc}
@@ -2148,7 +2137,7 @@ export default function PublicProfile({
         />
       )}
 
-      {/* ✅ Edit Profile Bottom Sheet */}
+      {/* ✅ Edit Profile Bottom Sheet - Only this part changed */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
@@ -2162,19 +2151,16 @@ export default function PublicProfile({
               <div className="w-6"></div>
             </div>
 
-            <div className="overflow-hidden px-5 py-4 space-y-6 flex-1">
+            <div className="overflow-y-auto px-5 py-4 space-y-6 flex-1">
               <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* 1. Avatar */}
+              {/* 1. Avatar Row - with Change Photo button on right */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
-                <div className="flex items-center gap-2">
-                   <div
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
-                  >
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 shrink-0">
                     {user.photo ? (
                       <img src={user.photo} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -2183,11 +2169,18 @@ export default function PublicProfile({
                       </div>
                     )}
                   </div>
+                  <button
+                    onClick={() => avatarInputRef.current?.click()}
+                    className="flex items-center gap-1 bg-gray-500/90 hover:bg-gray-600 text-white text-[11px] font-medium px-2.5 py-1 rounded-full shadow transition-colors"
+                  >
+                    <Camera size={12} />
+                    <span>Change photo</span>
+                  </button>
                 </div>
               </div>
 
-              {/* 2. Nickname */}
-              <div className="flex items-center justify-between">
+              {/* 2. Nickname - shifted down slightly */}
+              <div className="flex items-center justify-between pt-1">
                 <span className="text-sm font-medium text-gray-700">Nickname</span>
                 <button onClick={() => setShowNameScreen(true)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition">
                   <span className="max-w-[150px] truncate">{editName || 'Enter name'}</span>
@@ -2204,7 +2197,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 4. BACKGROUND — max 4 */}
+              {/* 4. BACKGROUND */}
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -2246,7 +2239,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 6. ALBUM Inline — max 9 */}
+              {/* 6. ALBUM */}
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
