@@ -72,7 +72,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
-                            Text("Me", fontSize=21.sp, fontWeight=if(mine) FontWeight.Normal else FontWeight.Normal,
+                            Text("Me", fontSize=21.sp, fontWeight=FontWeight.Bold,
                                 color=if(mine) HurryText else HurryMuted)
                             if (mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
@@ -85,7 +85,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                             }
                         }
                         Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
-                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Normal else FontWeight.Normal,
+                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Bold else FontWeight.Normal,
                                 color=if(!mine) HurryText else HurryMuted)
                             if (!mine) {
                                 androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
