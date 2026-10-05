@@ -154,7 +154,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL COMPONENT ----------
+// ---------- CROP MODAL COMPONENT (UPDATED) ----------
 // ------------------------------------------------------------
 function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel: () => void; onCrop: (cropped: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -176,12 +176,9 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
     const imgRatio = img.naturalWidth / img.naturalHeight
     let initialScale = 1
 
-    // Agar image wide hai to height ke hisaab se scale karo, warna width ke hisaab se
     if (imgRatio > 1) {
-      // Landscape: Height match karo
       initialScale = containerSize / img.naturalHeight
     } else {
-      // Portrait/Square: Width match karo
       initialScale = containerSize / img.naturalWidth
     }
 
@@ -218,19 +215,14 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
 
   const handleTouchEnd = () => setIsDragging(false)
 
-  // Zoom handler
-  const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setScale(parseFloat(e.target.value))
-  }
-
   // Crop & Save logic
   const handleCrop = () => {
     const img = imgRef.current
     const container = containerRef.current
     if (!img || !container) return
 
-    const containerSize = container.offsetWidth // Square box size (e.g. 300px)
-    const outputSize = 640 // Final image size (640x640)
+    const containerSize = container.offsetWidth
+    const outputSize = 640
 
     const canvas = document.createElement('canvas')
     canvas.width = outputSize
@@ -238,21 +230,16 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // White background bharo (transparent ke liye)
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, outputSize, outputSize)
 
-    // Image ka original size aur current scale calculate karo
     const imgW = img.naturalWidth * scale
     const imgH = img.naturalHeight * scale
 
-    // Image ka top-left position relative to container
-    // Container center se image center tak ka offset
     const containerCenter = containerSize / 2
     const imgLeft = containerCenter + position.x - imgW / 2
     const imgTop = containerCenter + position.y - imgH / 2
 
-    // Canvas mein draw karo (scale factor: outputSize / containerSize)
     const ratio = outputSize / containerSize
     ctx.drawImage(
       img,
@@ -267,84 +254,103 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/90 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <h3 className="text-white text-center font-bold text-lg mb-4">Crop Image</h3>
-
-        {/* Crop Box */}
-        <div
-          ref={containerRef}
-          className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden cursor-move touch-none"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
+      {/* ✅ Top Bar: Left Back Button + Center Title + Right Tick Button */}
+      <div className="flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 flex-shrink-0">
+        {/* Left: Back Button */}
+        <button
+          onClick={onCancel}
+          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Back"
         >
-          {/* Grid Overlay (jaise WhatsApp mein hota hai) */}
-          <div className="absolute inset-0 pointer-events-none z-10 opacity-30">
-            <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white" />
-            <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white" />
-            <div className="absolute left-0 right-0 top-1/3 h-px bg-white" />
-            <div className="absolute left-0 right-0 top-2/3 h-px bg-white" />
+          <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-white stroke-[2.5]">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
+          </svg>
+        </button>
+
+        {/* Center: Title */}
+        <h3 className="text-white font-bold text-lg">Crop Image</h3>
+
+        {/* Right: Tick / Confirm Button */}
+        <button
+          onClick={handleCrop}
+          disabled={!imageLoaded}
+          className={`p-2 -mr-2 rounded-full transition-colors ${
+            imageLoaded ? 'hover:bg-white/10' : 'opacity-40 cursor-not-allowed'
+          }`}
+          aria-label="Confirm Crop"
+        >
+          <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-green-400 stroke-[3]">
+            <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Crop Area - Center */}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-sm">
+          {/* Crop Box */}
+          <div
+            ref={containerRef}
+            className="relative w-full aspect-square bg-black rounded-2xl overflow-hidden cursor-move touch-none"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Grid Overlay */}
+            <div className="absolute inset-0 pointer-events-none z-10 opacity-30">
+              <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white" />
+              <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white" />
+              <div className="absolute left-0 right-0 top-1/3 h-px bg-white" />
+              <div className="absolute left-0 right-0 top-2/3 h-px bg-white" />
+            </div>
+
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+                Loading...
+              </div>
+            )}
+
+            <img
+              ref={imgRef}
+              src={imageSrc}
+              alt="Crop"
+              onLoad={handleImageLoad}
+              className="absolute select-none pointer-events-none"
+              style={{
+                left: '50%',
+                top: '50%',
+                transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                transformOrigin: 'center center',
+                maxWidth: 'none',
+                maxHeight: 'none',
+              }}
+              draggable={false}
+            />
           </div>
 
-          {!imageLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
-              Loading...
-            </div>
-          )}
-
-          <img
-            ref={imgRef}
-            src={imageSrc}
-            alt="Crop"
-            onLoad={handleImageLoad}
-            className="absolute select-none pointer-events-none"
-            style={{
-              left: '50%',
-              top: '50%',
-              transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-              transformOrigin: 'center center',
-              maxWidth: 'none',
-              maxHeight: 'none',
-            }}
-            draggable={false}
-          />
-        </div>
-
-        {/* Zoom Slider */}
-        <div className="mt-5 px-2">
-          <input
-            type="range"
-            min="0.1"
-            max="5"
-            step="0.01"
-            value={scale}
-            onChange={handleZoom}
-            className="w-full accent-blue-500"
-          />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 mt-5">
-          <button
-            onClick={onCancel}
-            className="flex-1 py-3 rounded-xl font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleCrop}
-            disabled={!imageLoaded}
-            className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${
-              imageLoaded ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 cursor-not-allowed'
-            }`}
-          >
-            Crop & Save
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-3 mt-8">
+            <button
+              onClick={onCancel}
+              className="flex-1 py-3 rounded-xl font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCrop}
+              disabled={!imageLoaded}
+              className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${
+                imageLoaded ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Crop & Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
