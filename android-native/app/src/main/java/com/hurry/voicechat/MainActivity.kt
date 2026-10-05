@@ -1,5 +1,7 @@
 package com.hurry.voicechat
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -28,7 +30,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,11 +52,59 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 kotlinx.coroutines.delay(900)
                 showLaunch = false
+                checkForHurryUpdate()
             }
             if (showLaunch) {
                 HurryLaunchScreen()
             } else {
                 HurryNativeRoot()
+            }
+        }
+    }
+
+    private suspend fun checkForHurryUpdate() {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val api = URL("https://api.github.com/repos/khaiwilsan676-alt/Hurry-Voice-Chat/releases/latest")
+                val connection = (api.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 8000
+                    readTimeout = 8000
+                    setRequestProperty("Accept", "application/vnd.github+json")
+                    setRequestProperty("User-Agent", "Hurry-Native")
+                }
+                val json = connection.inputStream.bufferedReader().use { it.readText() }
+                connection.disconnect()
+
+                val tag = JSONObject(json).optString("tag_name")
+                val remoteCode = tag.substringAfterLast("-").toIntOrNull() ?: return@runCatching
+                val localCode = packageManager.getPackageInfo(packageName, 0).longVersionCode.toInt()
+                if (remoteCode <= localCode) return@runCatching
+
+                val assets = JSONObject(json).optJSONArray("assets") ?: return@runCatching
+                val asset = (0 until assets.length()).map { assets.getJSONObject(it) }
+                    .firstOrNull { it.optString("name") == "hurry-native.apk" }
+                    ?: return@runCatching
+                val downloadUrl = asset.optString("browser_download_url")
+                if (downloadUrl.isBlank()) return@runCatching
+
+                val apk = File(cacheDir, "hurry-native-update.apk")
+                val dl = (URL(downloadUrl).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = 15000
+                    readTimeout = 30000
+                    setRequestProperty("User-Agent", "Hurry-Native")
+                }
+                dl.inputStream.use { input -> apk.outputStream().use { output -> input.copyTo(output) } }
+                dl.disconnect()
+
+                runOnUiThread {
+                    val uri: Uri = FileProvider.getUriForFile(this@MainActivity, "$packageName.fileprovider", apk)
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(uri, "application/vnd.android.package-archive")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                }
             }
         }
     }
@@ -79,12 +136,7 @@ private fun HurryLaunchScreen() {
                 modifier = Modifier.width(104.dp).height(104.dp)
             )
             Spacer(Modifier.height(12.dp))
-            Text(
-                "Hurry",
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Hurry", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     }
 }
@@ -134,7 +186,6 @@ private fun HurryNativeRoot() {
         }
     }
 }
-
 
 @Composable
 private fun MeNativeSubPage(title: String, onBack: () -> Unit) {
