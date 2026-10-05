@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsControllerCompat
@@ -37,7 +39,41 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
-        setContent { HurryNativeRoot() }
+        setContent {
+            var showLaunch by remember { mutableStateOf(true) }
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(900)
+                showLaunch = false
+            }
+            if (showLaunch) {
+                HurryLaunchScreen()
+            } else {
+                HurryNativeRoot()
+            }
+        }
+    }
+}
+
+@Composable
+private fun HurryLaunchScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color(0xFF2196F3)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.hurry_logo),
+                contentDescription = "Hurry logo",
+                modifier = Modifier.width(118.dp).height(118.dp)
+            )
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "Hurry",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
 }
 
