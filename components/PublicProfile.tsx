@@ -16,6 +16,7 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
+  Check,
 } from 'lucide-react'
 
 import ChatScreen from './ChatScreen'
@@ -153,13 +154,6 @@ const isValidName = (val?: string | null): boolean => {
   if (!val) return false;
   const clean = val.trim().toLowerCase();
   return clean !== '' && clean !== 'guest' && clean !== 'user' && clean !== 'null' && clean !== 'undefined';
-}
-
-const getDefaultAvatar = (gender: string): string => {
-  if (gender === '♀' || gender === 'female') {
-    return '/IMG_20260804_211013.jpg'
-  }
-  return '/IMG_20260804_211031.jpg'
 }
 
 const getOrCreateAccountNumber = (uid: string) => {
@@ -526,6 +520,332 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
   )
 }
 
+// ============ Crop Screen Component ============
+const CropScreen = ({
+  imageSrc,
+  onBack,
+  onSave,
+}: {
+  imageSrc: string;
+  onBack: () => void;
+  onSave: (croppedImage: string) => void;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
+  const [cropBox, setCropBox] = useState({ x: 50, y: 50, width: 200, height: 200 });
+
+  // Interaction states
+  const [interaction, setInteraction] = useState<{
+    type: 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'pan' | 'zoom' | null;
+    startX: number;
+    startY: number;
+    startCrop: { x: number; y: number; width: number; height: number };
+    startDist?: number;
+    startScale: number;
+  } | null>(null);
+
+  const [scale, setScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+
+  // Reset states on image load
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const { naturalWidth, naturalHeight } = img;
+    setImageSize({ width: naturalWidth, height: naturalHeight });
+    
+    const container = containerRef.current;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      const containerW = rect.width;
+      const containerH = rect.height;
+      
+      const imgAspect = naturalWidth / naturalHeight;
+      const containerAspect = containerW / containerH;
+
+      let displayW, displayH;
+      if (imgAspect > containerAspect) {
+        displayW = containerW;
+        displayH = containerW / imgAspect;
+      } else {
+        displayH = containerH;
+        displayW = containerH * imgAspect;
+      }
+      
+      setDisplaySize({ width: displayW, height: displayH });
+      
+      // Center crop box initially
+      const initialSize = Math.min(displayW, displayH) * 0.7;
+      setCropBox({
+        x: (displayW - initialSize) / 2,
+        y: (displayH - initialSize) / 2,
+        width: initialSize,
+        height: initialSize,
+      });
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setInteraction({
+        type: 'zoom',
+        startX: 0, startY: 0,
+        startCrop: cropBox,
+        startDist: dist,
+        startScale: scale,
+      });
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const { clientX, clientY } = touch;
+      
+      // Determine if touching corner or box
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      
+      const handleSize = 30;
+      const { x: cx, y: cy, width: cw, height: ch } = cropBox;
+      
+      const isTL = Math.abs(x - cx) < handleSize && Math.abs(y - cy) < handleSize;
+      const isTR = Math.abs(x - (cx + cw)) < handleSize && Math.abs(y - cy) < handleSize;
+      const isBL = Math.abs(x - cx) < handleSize && Math.abs(y - (cy + ch)) < handleSize;
+      const isBR = Math.abs(x - (cx + cw)) < handleSize && Math.abs(y - (cy + ch)) < handleSize;
+      const isInside = x >= cx && x <= cx + cw && y >= cy && y <= cy + ch;
+
+      if (isTL) setInteraction({ type: 'resize-tl', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isTR) setInteraction({ type: 'resize-tr', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isBL) setInteraction({ type: 'resize-bl', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isBR) setInteraction({ type: 'resize-br', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isInside) setInteraction({ type: 'move', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else setInteraction({ type: 'pan', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!interaction) return;
+    e.preventDefault();
+
+    if (interaction.type === 'zoom' && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const newScale = Math.min(Math.max(interaction.startScale * (dist / interaction.startDist!), 1), 4);
+      setScale(newScale);
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const { clientX, clientY } = e.touches[0];
+      const deltaX = clientX - interaction.startX;
+      const deltaY = clientY - interaction.startY;
+
+      if (interaction.type === 'move') {
+        let newX = interaction.startCrop.x + deltaX;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        newX = Math.max(0, Math.min(newX, displaySize.width - cropBox.width));
+        newY = Math.max(0, Math.min(newY, displaySize.height - cropBox.height));
+        
+        setCropBox(prev => ({ ...prev, x: newX, y: newY }));
+      } 
+      else if (interaction.type === 'resize-tl') {
+        let newW = interaction.startCrop.width - deltaX;
+        let newH = interaction.startCrop.height - deltaY;
+        let newX = interaction.startCrop.x + deltaX;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        if (newX < 0) { newW += newX; newX = 0; }
+        if (newY < 0) { newH += newY; newY = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: newX, y: newY, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-tr') {
+        let newW = interaction.startCrop.width + deltaX;
+        let newH = interaction.startCrop.height - deltaY;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        if (newY < 0) { newH += newY; newY = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: interaction.startCrop.x, y: newY, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-bl') {
+        let newW = interaction.startCrop.width - deltaX;
+        let newH = interaction.startCrop.height + deltaY;
+        let newX = interaction.startCrop.x + deltaX;
+        
+        if (newX < 0) { newW += newX; newX = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: newX, y: interaction.startCrop.y, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-br') {
+        let newW = interaction.startCrop.width + deltaX;
+        let newH = interaction.startCrop.height + deltaY;
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: interaction.startCrop.x, y: interaction.startCrop.y, width: newW, height: newH });
+      }
+      else if (interaction.type === 'pan') {
+        setPanOffset({
+          x: interaction.startX + deltaX,
+          y: interaction.startY + deltaY,
+        });
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setInteraction(null);
+  };
+
+  const handleSave = () => {
+    if (!imageRef.current || !containerRef.current) return;
+    
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Calculate source coordinates based on crop box and current scale/pan
+      const imgRect = imageRef.current!.getBoundingClientRect();
+      const containerRect = containerRef.current!.getBoundingClientRect();
+      
+      // Map crop box (relative to container) to image natural coordinates
+      const scaleX = img.naturalWidth / displaySize.width;
+      const scaleY = img.naturalHeight / displaySize.height;
+      
+      const sourceX = (cropBox.x - panOffset.x) * scaleX / scale;
+      const sourceY = (cropBox.y - panOffset.y) * scaleY / scale;
+      const sourceWidth = cropBox.width * scaleX / scale;
+      const sourceHeight = cropBox.height * scaleY / scale;
+
+      // Clamp values
+      const finalX = Math.max(0, Math.min(sourceX, img.naturalWidth - sourceWidth));
+      const finalY = Math.max(0, Math.min(sourceY, img.naturalHeight - sourceHeight));
+      const finalW = Math.min(sourceWidth, img.naturalWidth);
+      const finalH = Math.min(sourceHeight, img.naturalHeight);
+
+      canvas.width = finalW;
+      canvas.height = finalH;
+      
+      ctx.drawImage(
+        img,
+        finalX, finalY, finalW, finalH,
+        0, 0, finalW, finalH
+      );
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      onSave(croppedDataUrl);
+    };
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col select-none">
+      {/* Top Header */}
+      <div className="flex items-center justify-between px-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] bg-black z-20">
+        <button onClick={onBack} className="text-white p-1">
+          <ArrowLeft size={28} />
+        </button>
+        <h2 className="text-white text-lg font-semibold">Crop Image</h2>
+        <button onClick={handleSave} className="text-green-400 p-1">
+          <Check size={28} />
+        </button>
+      </div>
+
+      {/* Main Image Area */}
+      <div 
+        ref={containerRef}
+        className="flex-1 relative overflow-hidden flex items-center justify-center bg-black"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* The Image */}
+        <div 
+          className="relative"
+          style={{
+            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
+            transition: interaction ? 'none' : 'transform 0.2s ease-out',
+          }}
+        >
+          <img
+            ref={imageRef}
+            src={imageSrc}
+            alt="Crop"
+            onLoad={handleImageLoad}
+            className="max-w-full max-h-[70vh] object-contain select-none pointer-events-none"
+            style={{ display: 'block' }}
+          />
+        </div>
+
+        {/* Dark Overlay with Mask */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'rgba(0,0,0,0.6)',
+          clipPath: `polygon(
+            0% 0%, 
+            100% 0%, 
+            100% 100%, 
+            0% 100%, 
+            0% 0%,
+            ${cropBox.x}px ${cropBox.y}px,
+            ${cropBox.x}px ${cropBox.y + cropBox.height}px,
+            ${cropBox.x + cropBox.width}px ${cropBox.y + cropBox.height}px,
+            ${cropBox.x + cropBox.width}px ${cropBox.y}px,
+            ${cropBox.x}px ${cropBox.y}px
+          )`
+        }} />
+
+        {/* Crop Box UI */}
+        <div 
+          className="absolute border-2 border-white pointer-events-none"
+          style={{
+            left: cropBox.x,
+            top: cropBox.y,
+            width: cropBox.width,
+            height: cropBox.height,
+          }}
+        >
+          {/* Grid Lines */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/3 left-0 right-0 h-[1px] bg-white/40"></div>
+            <div className="absolute top-2/3 left-0 right-0 h-[1px] bg-white/40"></div>
+            <div className="absolute left-1/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
+            <div className="absolute left-2/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
+          </div>
+
+          {/* Corner Handles */}
+          <div className="absolute -top-2.5 -left-2.5 w-5 h-5 border-t-2 border-l-2 border-white pointer-events-none"></div>
+          <div className="absolute -top-2.5 -right-2.5 w-5 h-5 border-t-2 border-r-2 border-white pointer-events-none"></div>
+          <div className="absolute -bottom-2.5 -left-2.5 w-5 h-5 border-b-2 border-l-2 border-white pointer-events-none"></div>
+          <div className="absolute -bottom-2.5 -right-2.5 w-5 h-5 border-b-2 border-r-2 border-white pointer-events-none"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function PublicProfile({
   onBack,
   onJoinRoom,
@@ -601,6 +921,9 @@ export default function PublicProfile({
     const storedAlbum = localStorage.getItem('userAlbumImages')
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
+
+  // Crop Screen State
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
   const [ownedFrameItems, setOwnedFrameItems] = useState<Array<{ id: string; image: string; name: string }>>([])
   const [receivedGifts, setReceivedGifts] = useState<Array<{ id: string; name: string; image: string }>>([])
@@ -1149,12 +1472,12 @@ export default function PublicProfile({
     const file = e.target.files?.[0]
     if (file) {
       try {
-        const compressedBase64 = await compressImage(file, 300, 300, 0.7)
-        localStorage.setItem('userPhoto', compressedBase64)
-        setUser((prev) => ({ ...prev, photo: compressedBase64 }))
-        await saveToMongoDB({ photo: compressedBase64, image: compressedBase64, photoURL: compressedBase64 })
+        const compressedBase64 = await compressImage(file, 800, 800, 0.85)
+        setCropImageSrc(compressedBase64)
       } catch (err) {
         console.error('Avatar compression error:', err)
+      } finally {
+        e.target.value = ''
       }
     }
   }
@@ -1244,6 +1567,15 @@ export default function PublicProfile({
     setAlbumImages(updated)
     localStorage.setItem('userAlbumImages', JSON.stringify(updated))
     await saveToMongoDB({ albumImages: updated, album: updated })
+  }
+
+  // Handle Crop Save
+  const handleCropSave = async (croppedImage: string) => {
+    setCropImageSrc(null)
+    localStorage.setItem('userPhoto', croppedImage)
+    setUser((prev) => ({ ...prev, photo: croppedImage }))
+    await saveToMongoDB({ photo: croppedImage, image: croppedImage, photoURL: croppedImage })
+    await saveProfileToDB({ ...user, photo: croppedImage, albumImages, coverPhotos })
   }
 
   const handleNameSave = async () => {
@@ -1825,6 +2157,15 @@ export default function PublicProfile({
             </button>
           )}
         </div>
+      )}
+
+      {/* ✅ Crop Screen Modal */}
+      {cropImageSrc && (
+        <CropScreen
+          imageSrc={cropImageSrc}
+          onBack={() => setCropImageSrc(null)}
+          onSave={handleCropSave}
+        />
       )}
 
       {/* ✅ Edit Profile Bottom Sheet */}
