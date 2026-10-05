@@ -99,7 +99,6 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 
   const handleInput = (index: number, inputValue: string) => {
     const numberValue = inputValue.replace(/[^0-9]/g, '')
-
     if (numberValue.length > 1) {
       const newPassword = (value.slice(0, index) + numberValue).slice(0, 4)
       onChange(newPassword)
@@ -107,7 +106,6 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
       inputRefs.current[nextEmpty]?.focus()
       return
     }
-
     if (numberValue) {
       const newDigits = value.split('')
       newDigits[index] = numberValue.slice(-1)
@@ -154,93 +152,85 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL COMPONENT (FULL SCREEN + FIXED BOX) ----------
+// ---------- CROP MODAL (SIMPLE + WORKING) ----------
 // ------------------------------------------------------------
-function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel: () => void; onCrop: (cropped: string) => void }) {
-  const containerRef = useRef<HTMLDivElement>(null)   // full screen wrapper
+function CropModal({
+  imageSrc,
+  onCancel,
+  onCrop,
+}: {
+  imageSrc: string
+  onCancel: () => void
+  onCrop: (cropped: string) => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const imgRef = useRef<HTMLImageElement>(null)
 
+  const [imageLoaded, setImageLoaded] = useState(false)
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 })
-  const [cropBoxSize, setCropBoxSize] = useState(0)
+  const [cropBoxSize, setCropBoxSize] = useState(300)
 
-  // Screen / crop box setup
+  // Calculate crop box size (square = min(width,height) * 0.9)
   useEffect(() => {
-    const updateSize = () => {
-      const container = containerRef.current
-      if (!container) return
-      const w = container.offsetWidth
-      const h = container.offsetHeight
-      // Square crop box = 90% of smaller side
-      const boxSize = Math.min(w, h) * 0.9
-      setCropBoxSize(boxSize)
+    const update = () => {
+      const c = containerRef.current
+      if (!c) return
+      const size = Math.min(c.offsetWidth, c.offsetHeight) * 0.9
+      setCropBoxSize(size)
     }
-    updateSize()
-    window.addEventListener('resize', updateSize)
-    return () => window.removeEventListener('resize', updateSize)
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
 
-  // Jab image load ho jaaye — usko screen ke crop box ko cover karne layak scale karo
+  // Jab image load ho — crop box ko cover karne ke liye scale set karo
   const handleImageLoad = () => {
     const img = imgRef.current
-    const container = containerRef.current
-    if (!img || !container) return
+    const c = containerRef.current
+    if (!img || !c) return
 
-    const naturalW = img.naturalWidth
-    const naturalH = img.naturalHeight
-    setNaturalSize({ w: naturalW, h: naturalH })
+    const nw = img.naturalWidth
+    const nh = img.naturalHeight
+    const size = Math.min(c.offsetWidth, c.offsetHeight) * 0.9
 
-    const screenW = container.offsetWidth
-    const screenH = container.offsetHeight
-    const boxSize = Math.min(screenW, screenH) * 0.9
-
-    // Image ko cover karna hai crop box ko
-    const scaleX = boxSize / naturalW
-    const scaleY = boxSize / naturalH
-    const initialScale = Math.max(scaleX, scaleY)
-
+    const initialScale = Math.max(size / nw, size / nh)
     setScale(initialScale)
     setPosition({ x: 0, y: 0 })
     setImageLoaded(true)
   }
 
-  // Drag handlers (Mouse)
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Mouse drag
+  const onMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true)
     setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
   }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const onMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return
     setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
   }
+  const onMouseUp = () => setIsDragging(false)
 
-  const handleMouseUp = () => setIsDragging(false)
-
-  // Drag handlers (Touch)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0]
+  // Touch drag
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0]
     setIsDragging(true)
-    setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y })
+    setDragStart({ x: t.clientX - position.x, y: t.clientY - position.y })
   }
-
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const onTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return
-    const touch = e.touches[0]
-    setPosition({ x: touch.clientX - dragStart.x, y: touch.clientY - dragStart.y })
+    const t = e.touches[0]
+    setPosition({ x: t.clientX - dragStart.x, y: t.clientY - dragStart.y })
   }
+  const onTouchEnd = () => setIsDragging(false)
 
-  const handleTouchEnd = () => setIsDragging(false)
-
-  // ✅ Crop Logic — crop box ke andar jo image dikh rahi hai wahi crop hogi
+  // ✅ Crop function
   const handleCrop = () => {
     const img = imgRef.current
-    const container = containerRef.current
-    if (!img || !container || !imageLoaded || cropBoxSize === 0) return
+    const c = containerRef.current
+    if (!img || !c || !imageLoaded) return
 
     const outputSize = 640
     const canvas = document.createElement('canvas')
@@ -249,118 +239,128 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, outputSize, outputSize)
+    const cW = c.offsetWidth
+    const cH = c.offsetHeight
+    const cCenterX = cW / 2
+    const cCenterY = cH / 2
 
-    // Container center
-    const containerW = container.offsetWidth
-    const containerH = container.offsetHeight
-    const containerCenterX = containerW / 2
-    const containerCenterY = containerH / 2
-
-    // Crop box ka top-left (container ke andar)
-    const boxLeft = containerCenterX - cropBoxSize / 2
-    const boxTop = containerCenterY - cropBoxSize / 2
+    // Crop box top-left in container coords
+    const boxLeft = cCenterX - cropBoxSize / 2
+    const boxTop = cCenterY - cropBoxSize / 2
 
     // Image displayed size
-    const displayedW = naturalSize.w * scale
-    const displayedH = naturalSize.h * scale
+    const dispW = img.naturalWidth * scale
+    const dispH = img.naturalHeight * scale
 
-    // Image top-left position (container ke andar)
-    const imgLeft = containerCenterX + position.x - displayedW / 2
-    const imgTop = containerCenterY + position.y - displayedH / 2
+    // Image top-left in container coords
+    const imgLeft = cCenterX + position.x - dispW / 2
+    const imgTop = cCenterY + position.y - dispH / 2
 
-    // Crop box ke andar image ka offset
+    // Offset of crop box inside image (in displayed px)
     const offsetX = boxLeft - imgLeft
     const offsetY = boxTop - imgTop
 
-    // Source coordinates (original image mein)
+    // Convert to original image coordinates
     const srcX = offsetX / scale
     const srcY = offsetY / scale
-    const srcW = cropBoxSize / scale
-    const srcH = cropBoxSize / scale
+    const srcSize = cropBoxSize / scale
+
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, outputSize, outputSize)
 
     ctx.drawImage(
       img,
       srcX,
       srcY,
-      srcW,
-      srcH,
+      srcSize,
+      srcSize,
       0,
       0,
       outputSize,
       outputSize
     )
 
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92)
-    onCrop(croppedDataUrl)
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92)
+    onCrop(dataUrl)
   }
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-[9999] bg-black select-none overflow-hidden">
-      {/* Full Screen Image (draggable) */}
-      {imageLoaded && (
-        <img
-          ref={imgRef}
-          src={imageSrc}
-          alt="Crop"
-          onLoad={handleImageLoad}
-          className="absolute select-none pointer-events-none"
-          style={{
-            left: '50%',
-            top: '50%',
-            transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
-            transformOrigin: 'center center',
-            maxWidth: 'none',
-            maxHeight: 'none',
-          }}
-          draggable={false}
-        />
-      )}
+    <div ref={containerRef} className="fixed inset-0 z-[9999] bg-black overflow-hidden select-none">
 
-      {/* Hidden image to trigger onLoad before we render visible one */}
+      {/* Image full screen (draggable) */}
+      <img
+        ref={imgRef}
+        src={imageSrc}
+        alt="Crop"
+        onLoad={handleImageLoad}
+        draggable={false}
+        className="absolute select-none pointer-events-none"
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          transformOrigin: 'center center',
+          maxWidth: 'none',
+          maxHeight: 'none',
+          opacity: imageLoaded ? 1 : 0,
+        }}
+      />
+
+      {/* Loading indicator */}
       {!imageLoaded && (
-        <img
-          src={imageSrc}
-          alt="loading"
-          onLoad={handleImageLoad}
-          className="hidden"
-          draggable={false}
-        />
+        <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+          Loading...
+        </div>
       )}
 
-      {/* Dark overlay with fixed crop box */}
-      {imageLoaded && cropBoxSize > 0 && (
+      {/* Drag layer (transparent, covers whole screen) */}
+      <div
+        className="absolute inset-0 touch-none"
+        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      />
+
+      {/* Dark overlay + fixed crop box */}
+      {imageLoaded && (
         <div className="absolute inset-0 pointer-events-none">
-          {/* 4 dark overlays around the crop box */}
+          {/* Top */}
           <div
-            className="absolute bg-black/60"
-            style={{ top: 0, left: 0, right: 0, height: `calc(50% - ${cropBoxSize / 2}px)` }}
+            className="absolute bg-black/60 left-0 right-0 top-0"
+            style={{ height: `calc(50% - ${cropBoxSize / 2}px)` }}
           />
+          {/* Bottom */}
           <div
-            className="absolute bg-black/60"
-            style={{ bottom: 0, left: 0, right: 0, height: `calc(50% - ${cropBoxSize / 2}px)` }}
+            className="absolute bg-black/60 left-0 right-0 bottom-0"
+            style={{ height: `calc(50% - ${cropBoxSize / 2}px)` }}
           />
+          {/* Left */}
           <div
             className="absolute bg-black/60"
             style={{
               top: `calc(50% - ${cropBoxSize / 2}px)`,
-              bottom: `calc(50% - ${cropBoxSize / 2}px)`,
+              height: cropBoxSize,
               left: 0,
               width: `calc(50% - ${cropBoxSize / 2}px)`,
             }}
           />
+          {/* Right */}
           <div
             className="absolute bg-black/60"
             style={{
               top: `calc(50% - ${cropBoxSize / 2}px)`,
-              bottom: `calc(50% - ${cropBoxSize / 2}px)`,
+              height: cropBoxSize,
               right: 0,
               width: `calc(50% - ${cropBoxSize / 2}px)`,
             }}
           />
 
-          {/* Crop Box Border */}
+          {/* Crop box border + grid */}
           <div
             className="absolute border-2 border-white"
             style={{
@@ -370,13 +370,10 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
               left: `calc(50% - ${cropBoxSize / 2}px)`,
             }}
           >
-            {/* Grid lines */}
             <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white/60" />
             <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white/60" />
             <div className="absolute left-0 right-0 top-1/3 h-px bg-white/60" />
             <div className="absolute left-0 right-0 top-2/3 h-px bg-white/60" />
-
-            {/* Corner handles */}
             <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-white" />
             <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-white" />
             <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-white" />
@@ -385,24 +382,11 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
         </div>
       )}
 
-      {/* Drag Layer — image ko move karne ke liye transparent layer */}
-      <div
-        className="absolute inset-0 touch-none"
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      />
-
-      {/* ✅ Top Bar: Back + Title + Tick */}
-      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 z-10 pointer-events-none">
+      {/* Top bar: back + title + tick */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 z-20">
         <button
           onClick={onCancel}
-          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors pointer-events-auto"
+          className="p-2 -ml-2 rounded-full hover:bg-white/10 transition-colors"
           aria-label="Back"
         >
           <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-white stroke-[2.5]">
@@ -415,7 +399,7 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
         <button
           onClick={handleCrop}
           disabled={!imageLoaded}
-          className={`p-2 -mr-2 rounded-full transition-colors pointer-events-auto ${
+          className={`p-2 -mr-2 rounded-full transition-colors ${
             imageLoaded ? 'hover:bg-white/10' : 'opacity-40 cursor-not-allowed'
           }`}
           aria-label="Confirm Crop"
@@ -450,11 +434,9 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
 
   const [isSaving, setIsSaving] = useState(false)
-
-  // ✅ CROP MODAL STATE
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
-  // ============ FETCH ROOM MEMBERS ============
+  // Fetch room members
   useEffect(() => {
     if (!roomOwnerId) return
 
@@ -501,7 +483,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' },
   ]
 
-  // ✅ IMAGE UPLOAD
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -517,7 +498,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     e.target.value = ''
   }
 
-  // ✅ CROP COMPLETE
   const handleCropComplete = (croppedDataUrl: string) => {
     setRoomDp(croppedDataUrl)
     setCropImageSrc(null)
@@ -545,7 +525,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     )
   }
 
-  // ============ SAVE ============
   const handleSave = async () => {
     if (isSaving) return
     setIsSaving(true)
@@ -631,16 +610,13 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       onBack()
     } catch (err: any) {
       console.error('Save error:', err)
-
       const statusMatch = String(err?.message || '').match(/Save failed: (\d+)/)
       const status = statusMatch ? statusMatch[1] : 'unknown'
-
       let hint = ''
       if (status === '404') hint = '\n\n(API route /api/rooms nahi mil rahi)'
       else if (status === '413') hint = '\n\n(DP bahut bada hai, chhota image use karo)'
       else if (status === '400') hint = '\n\n(Data format galat hai)'
       else if (status === '500') hint = '\n\n(Server error — MongoDB check karo)'
-
       alert(`Save failed!\n\nStatus: ${status}${hint}\n\nMessage: ${err?.message || 'Network error'}`)
     } finally {
       setIsSaving(false)
@@ -654,14 +630,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
   return (
     <>
-      {/* MAIN SETTINGS PAGE */}
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
         {/* Header */}
         <div className="flex items-center px-2 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-3 flex-shrink-0 bg-white">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-          >
+          <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-800 stroke-[2.5]">
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
             </svg>
@@ -680,7 +652,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
-          {/* Room Cover / Photo Section */}
           <div className="mb-6 flex flex-col items-center">
             <label className="cursor-pointer relative group">
               <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
@@ -703,7 +674,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* Room Name */}
           <div className="mb-5">
             <div className="flex items-center justify-between px-1">
               <label className="text-sm font-medium text-gray-600">Room Name</label>
@@ -717,7 +687,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
           </div>
 
-          {/* Announcement */}
           <div className="mb-5">
             <div className="flex items-start justify-between px-1">
               <label className="text-sm font-medium text-gray-600 pt-1">Room Announcement</label>
@@ -731,7 +700,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
           </div>
 
-          {/* Theme */}
           <div className="mb-5">
             <button
               onClick={() => setShowThemePage(true)}
@@ -744,7 +712,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* Admin */}
           <div className="mb-5">
             <button
               onClick={() => setShowAdminSheet(true)}
@@ -760,7 +727,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* Lock Room */}
           <div className="mb-5">
             <button
               onClick={() => { setPassword(isLocked ? roomPassword : ''); setShowLockCard(true) }}
@@ -776,7 +742,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* Mic Mode */}
           <div className="mb-5">
             <div className="flex items-center justify-between px-1">
               <label className="text-sm font-medium text-gray-600">Mic Mode</label>
@@ -793,14 +758,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
         </div>
 
-        {/* Theme Full Page */}
         {showThemePage && (
           <div className="fixed inset-0 z-50 bg-white flex flex-col">
             <div className="flex items-center px-4 py-3 flex-shrink-0 bg-white">
-              <button
-                onClick={() => setShowThemePage(false)}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
+              <button onClick={() => setShowThemePage(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-800 stroke-[2.5]">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
                 </svg>
@@ -829,7 +790,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
         )}
 
-        {/* Lock Room Card */}
         {showLockCard && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowLockCard(false)} />
@@ -837,10 +797,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               <h3 className="text-lg font-bold text-gray-800 text-center mb-6">Set Room Password</h3>
               <PasswordInput value={password} onChange={setPassword} />
               {isLocked && password === roomPassword ? (
-                <button
-                  onClick={handleUnlockPassword}
-                  className="w-full mt-6 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition-all"
-                >
+                <button onClick={handleUnlockPassword} className="w-full mt-6 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition-all">
                   Unlock Room
                 </button>
               ) : (
@@ -854,17 +811,13 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   {isLocked ? 'Update Password' : 'Set Password'}
                 </button>
               )}
-              <button
-                onClick={() => { setShowLockCard(false); setPassword('') }}
-                className="w-full mt-3 py-2 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl"
-              >
+              <button onClick={() => { setShowLockCard(false); setPassword('') }} className="w-full mt-3 py-2 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl">
                 Cancel
               </button>
             </div>
           </div>
         )}
 
-        {/* Mic Mode Sheet */}
         {showMicModeSheet && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowMicModeSheet(false)} />
@@ -886,10 +839,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   </button>
                 ))}
               </div>
-              <button
-                onClick={() => setShowMicModeSheet(false)}
-                className="w-full mt-4 py-3 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl"
-              >
+              <button onClick={() => setShowMicModeSheet(false)} className="w-full mt-4 py-3 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl">
                 Cancel
               </button>
             </div>
@@ -897,7 +847,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         )}
       </div>
 
-      {/* ✅ CROP MODAL */}
       {cropImageSrc && (
         <CropModal
           imageSrc={cropImageSrc}
@@ -906,7 +855,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         />
       )}
 
-      {/* ADMIN SHEET */}
       {showAdminSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAdminSheet(false)} />
@@ -916,10 +864,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center px-4 py-3 flex-shrink-0">
-              <button
-                onClick={() => setShowAdminSheet(false)}
-                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
-              >
+              <button onClick={() => setShowAdminSheet(false)} className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
