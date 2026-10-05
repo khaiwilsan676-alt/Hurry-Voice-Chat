@@ -2210,6 +2210,7 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
+                  {/* ✅ + icon PEHLE */}
                   {coverPhotos.length < 4 && (
                     <button
                       onClick={() => coverInputRef.current?.click()}
@@ -2224,11 +2225,18 @@ export default function PublicProfile({
                       className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
                     >
                       <img src={photo} alt="" className="w-full h-full object-cover" />
+                      {/* ✅ Trash icon (image jaisa) */}
                       <button
                         onClick={() => handleRemoveCoverPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow z-10"
                       >
-                        ×
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 7H20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M5 7L6 20C6 20.5304 6.21071 21.0391 6.58579 21.4142C6.96086 21.7893 7.46957 22 8 22H16C16.5304 22 17.0391 21.7893 17.4142 21.4142C17.7893 21.0391 18 20.5304 18 20L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M9 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M15 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M10 4V2H14V4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </div>
                   ))}
@@ -2252,6 +2260,15 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
+                  {/* ✅ + icon PEHLE, uske baad images */}
+                  {albumImages.length < 4 && (
+                    <button
+                      onClick={() => albumInputRef.current?.click()}
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
+                    >
+                      <span className="text-3xl font-thin leading-none">+</span>
+                    </button>
+                  )}
                   {albumImages.map((img, idx) => (
                     <div
                       key={idx}
@@ -2264,38 +2281,37 @@ export default function PublicProfile({
                     >
                       <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
 
-                      {idx !== 0 && (
+                      {/* Pin button — sirf pinned image par (index 0) */}
+                      {idx === 0 && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handlePinAlbumImage(idx);
                           }}
-                          className="absolute top-1 left-1 bg-blue-500/90 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-blue-600 transition-colors shadow z-10"
-                          title="Pin to first"
+                          className="absolute top-1 left-1 bg-blue-500/90 text-white rounded-full w-5 h-5 flex items-center justify-center shadow z-10"
+                          title="Pinned"
                         >
                           <Pin size={11} className="fill-white" />
                         </button>
                       )}
 
+                      {/* ✅ Trash icon (image jaisa) */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveAlbumImage(idx);
                         }}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow z-10"
                       >
-                        ×
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 7H20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M5 7L6 20C6 20.5304 6.21071 21.0391 6.58579 21.4142C6.96086 21.7893 7.46957 22 8 22H16C16.5304 22 17.0391 21.7893 17.4142 21.4142C17.7893 21.0391 18 20.5304 18 20L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M9 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M15 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M10 4V2H14V4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 4 && (
-                    <button
-                      onClick={() => albumInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
                 </div>
               </div>
 
