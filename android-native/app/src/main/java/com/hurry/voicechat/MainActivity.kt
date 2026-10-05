@@ -178,6 +178,7 @@ private fun HurryNativeRoot() {
                                 openedChat = Triple(uid, name, image)
                             }
                             HurryTab.ME -> if (openedMePage == "Coins") CoinsNativePage(onBack = { openedMePage = null })
+                            else if (openedMePage == "Diamonds") DiamondsNativePage(onBack = { openedMePage = null })
                             else if (openedMePage != null) MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null })
                             else MeScreen(onOpen = { openedMePage = it })
                         }
