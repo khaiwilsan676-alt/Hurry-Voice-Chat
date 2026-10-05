@@ -2762,11 +2762,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   }
                 >
                   <div
-                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
-                    style={{ width: '100%', aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
+                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
+                    style={{ minWidth: 0, minHeight: 0 }}
                   >
-                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative"
-                      style={{ width: '100%', height: '100%', aspectRatio: '1 / 1' }}>
+                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
                       <img
                         src={
                           room.image && room.image !== "undefined" && room.image !== "null"
