@@ -968,29 +968,27 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               <h3 className="flex-1 text-center text-lg font-bold text-gray-800">Room Theme</h3>
               <div className="w-10"></div>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-6">
-              <div className="grid grid-cols-2 gap-4">
+            <div className="flex-1 overflow-y-auto px-3 py-4">
+              {/* Chhota size: grid-cols-3 aur gap-2 */}
+              <div className="grid grid-cols-3 gap-2">
                 
-                {/* ---------- PLUS BUTTON CARD (Chhota Size + 3:4 Ratio) ---------- */}
+                {/* ---------- PLUS BUTTON CARD (Chhota) ---------- */}
                 {!customThemeImage && (
                   <button
                     onClick={() => themeFileInputRef.current?.click()}
-                    className="flex flex-col rounded-xl overflow-hidden border border-dashed border-gray-300 hover:border-gray-400 transition-all items-center justify-center aspect-[3/4] bg-gray-50"
+                    className="flex flex-col rounded-lg overflow-hidden border border-dashed border-gray-300 hover:border-gray-400 transition-all items-center justify-center aspect-[3/4] bg-gray-50"
                   >
-                    {/* Plus Icon - Chhota */}
                     <svg 
                       viewBox="0 0 24 24" 
-                      className="w-5 h-5 stroke-gray-400 stroke-[1.5] fill-none"
+                      className="w-4 h-4 stroke-gray-400 stroke-[1.5] fill-none"
                     >
                       <line x1="12" y1="5" x2="12" y2="19" />
                       <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    {/* Text - Chhota */}
-                    <span className="text-xs font-normal text-gray-500 mt-1">Custom</span>
+                    <span className="text-[10px] font-normal text-gray-500 mt-0.5">Custom</span>
                   </button>
                 )}
 
-                {/* Hidden input for theme image */}
                 <input
                   ref={themeFileInputRef}
                   type="file"
@@ -999,24 +997,24 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   className="hidden"
                 />
 
-                {/* ---------- THEME CARDS (3:4 Portrait Ratio) ---------- */}
+                {/* ---------- THEME CARDS (Chhota Size 3:4) ---------- */}
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
                     onClick={() => { setSelectedTheme(theme.id); setShowThemePage(false) }}
-                    className={`flex flex-col rounded-xl overflow-hidden transition-all ${
-                      selectedTheme === theme.id ? 'ring-2 ring-blue-400 ring-offset-2' : 'hover:opacity-90'
+                    className={`flex flex-col rounded-lg overflow-hidden transition-all ${
+                      selectedTheme === theme.id ? 'ring-2 ring-blue-400 ring-offset-1' : 'hover:opacity-90'
                     }`}
                   >
-                    <div className="w-full aspect-[3/4] rounded-xl overflow-hidden relative">
+                    <div className="w-full aspect-[3/4] rounded-lg overflow-hidden relative">
                       <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
                       {theme.id === 'custom' && (
-                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
+                        <div className="absolute top-1 left-1 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded">
                           Custom
                         </div>
                       )}
                     </div>
-                    <span className="text-sm font-medium text-gray-700 mt-2 mb-1 text-center">{theme.name}</span>
+                    <span className="text-[10px] font-medium text-gray-700 mt-1 mb-0.5 text-center">{theme.name}</span>
                   </button>
                 ))}
               </div>
