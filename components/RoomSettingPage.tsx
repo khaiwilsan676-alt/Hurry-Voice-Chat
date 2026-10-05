@@ -971,11 +971,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             <div className="flex-1 overflow-y-auto px-4 py-6">
               <div className="grid grid-cols-2 gap-4">
                 
-                {/* ---------- PLUS BUTTON CARD (Chhota Size - Screenshot Jaisa) ---------- */}
+                {/* ---------- PLUS BUTTON CARD (Chhota Size + 3:4 Ratio) ---------- */}
                 {!customThemeImage && (
                   <button
                     onClick={() => themeFileInputRef.current?.click()}
-                    className="flex flex-col rounded-xl overflow-hidden border border-dashed border-gray-300 hover:border-gray-400 transition-all items-center justify-center min-h-[260px] bg-gray-50"
+                    className="flex flex-col rounded-xl overflow-hidden border border-dashed border-gray-300 hover:border-gray-400 transition-all items-center justify-center aspect-[3/4] bg-gray-50"
                   >
                     {/* Plus Icon - Chhota */}
                     <svg 
@@ -999,7 +999,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   className="hidden"
                 />
 
-                {/* ---------- THEME CARDS ---------- */}
+                {/* ---------- THEME CARDS (3:4 Portrait Ratio) ---------- */}
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
@@ -1008,7 +1008,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                       selectedTheme === theme.id ? 'ring-2 ring-blue-400 ring-offset-2' : 'hover:opacity-90'
                     }`}
                   >
-                    <div className="w-full h-64 rounded-xl overflow-hidden relative">
+                    <div className="w-full aspect-[3/4] rounded-xl overflow-hidden relative">
                       <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
                       {theme.id === 'custom' && (
                         <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
