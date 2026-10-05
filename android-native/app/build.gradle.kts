@@ -6,8 +6,8 @@ android {
         applicationId = "com.hurry.voicechat"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 1
+        versionName = System.getenv("HURRY_VERSION_NAME") ?: "1.0"
     }
     buildFeatures { compose = true }
     compileOptions {
