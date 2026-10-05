@@ -515,7 +515,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop 
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[85vh] object-cover" 
@@ -532,7 +532,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop 
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[70vh] object-cover" 
@@ -552,7 +552,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
@@ -661,21 +661,30 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UPDATED: Naya Create Button with Coins */}
-        <div className="fixed bottom-0 left-0 w-full h-[10vh] flex items-center justify-center z-50 bg-transparent pointer-events-none">
+        {/* UPDATED: Text + Naya Create Button with Coins */}
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-8">
+          
+          {/* Naya Text Add Kiya */}
+          <div className="text-left w-full px-6 mb-6 pointer-events-auto">
+            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+              1. Creating a family requires ≥ LV.5
+            </p>
+            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+              2. Family info can be modified once a week
+            </p>
+            <p className="text-[13px] text-gray-400 leading-snug">
+              3. If family with only 1 member for 7 days will be disbanded automatically
+            </p>
+          </div>
+
+          {/* Naya Cyan Gradient Button */}
           <button 
             onClick={handleCreate} 
-            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center gap-2 bg-[#E5E7EB] rounded-full px-6 min-w-[280px] w-auto"
+            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] rounded-full px-8 min-w-[280px] w-auto"
           >
-            <span className="text-[#9CA3AF] font-bold text-base tracking-wide whitespace-nowrap">
-              Create with 10,000,000
+            <span className="text-white font-bold text-base tracking-wide whitespace-nowrap">
+              Created with 10,000,000 coins
             </span>
-            <img 
-              src="/IMG_20260901_161001.png" 
-              alt="Coin" 
-              className="w-6 h-6 object-contain" 
-              style={{ filter: 'url(#remove-green)' }} 
-            />
           </button>
         </div>
 
