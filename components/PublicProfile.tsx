@@ -520,7 +520,7 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
   )
 }
 
-// ============ Crop Screen Component ============
+// ============ Crop Screen Component (UPDATED) ============
 const CropScreen = ({
   imageSrc,
   onBack,
@@ -538,7 +538,7 @@ const CropScreen = ({
 
   // Interaction states
   const [interaction, setInteraction] = useState<{
-    type: 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'pan' | 'zoom' | null;
+    type: 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'zoom' | null;
     startX: number;
     startY: number;
     startCrop: { x: number; y: number; width: number; height: number };
@@ -546,8 +546,8 @@ const CropScreen = ({
     startScale: number;
   } | null>(null);
 
+  // Zoom state (Image fixed, only scales from center)
   const [scale, setScale] = useState(1);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   // Reset states on image load
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -625,7 +625,6 @@ const CropScreen = ({
       else if (isBL) setInteraction({ type: 'resize-bl', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
       else if (isBR) setInteraction({ type: 'resize-br', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
       else if (isInside) setInteraction({ type: 'move', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
-      else setInteraction({ type: 'pan', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
     }
   };
 
@@ -704,12 +703,6 @@ const CropScreen = ({
         
         setCropBox({ x: interaction.startCrop.x, y: interaction.startCrop.y, width: newW, height: newH });
       }
-      else if (interaction.type === 'pan') {
-        setPanOffset({
-          x: interaction.startX + deltaX,
-          y: interaction.startY + deltaY,
-        });
-      }
     }
   };
 
@@ -727,24 +720,57 @@ const CropScreen = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Calculate source coordinates based on crop box and current scale/pan
-      const imgRect = imageRef.current!.getBoundingClientRect();
-      const containerRect = containerRef.current!.getBoundingClientRect();
-      
       // Map crop box (relative to container) to image natural coordinates
       const scaleX = img.naturalWidth / displaySize.width;
       const scaleY = img.naturalHeight / displaySize.height;
       
-      const sourceX = (cropBox.x - panOffset.x) * scaleX / scale;
-      const sourceY = (cropBox.y - panOffset.y) * scaleY / scale;
-      const sourceWidth = cropBox.width * scaleX / scale;
-      const sourceHeight = cropBox.height * scaleY / scale;
+      const imgDisplayedW = displaySize.width * scale;
+      const imgDisplayedH = displaySize.height * scale;
+      
+      const imgCenterX = displaySize.width / 2;
+      const imgCenterY = displaySize.height / 2;
+      
+      const cropCenterX = cropBox.x + cropBox.width / 2;
+      const cropCenterY = cropBox.y + cropBox.height / 2;
+      
+      const deltaX = cropCenterX - imgCenterX;
+      const deltaY = cropCenterY - imgCenterY;
 
-      // Clamp values
-      const finalX = Math.max(0, Math.min(sourceX, img.naturalWidth - sourceWidth));
-      const finalY = Math.max(0, Math.min(sourceY, img.naturalHeight - sourceHeight));
-      const finalW = Math.min(sourceWidth, img.naturalWidth);
-      const finalH = Math.min(sourceHeight, img.naturalHeight);
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+      
+      const baseW = displaySize.width;
+      const baseH = displaySize.height;
+      
+      const imgLeftBase = (containerRef.current!.clientWidth - baseW) / 2;
+      const imgTopBase = (containerRef.current!.clientHeight - baseH) / 2;
+      
+      const imgCenterScreenX = imgLeftBase + baseW / 2;
+      const imgCenterScreenY = imgTopBase + baseH / 2;
+      
+      const scaledW = baseW * scale;
+      const scaledH = baseH * scale;
+      
+      const imgLeftScaled = imgCenterScreenX - scaledW / 2;
+      const imgTopScaled = imgCenterScreenY - scaledH / 2;
+      
+      const cropScreenX = cropBox.x;
+      const cropScreenY = cropBox.y;
+      const cropW = cropBox.width;
+      const cropH = cropBox.height;
+      
+      const pxToNaturalX = naturalW / scaledW;
+      const pxToNaturalY = naturalH / scaledH;
+      
+      const sourceX = (cropScreenX - imgLeftScaled) * pxToNaturalX;
+      const sourceY = (cropScreenY - imgTopScaled) * pxToNaturalY;
+      const sourceW = cropW * pxToNaturalX;
+      const sourceH = cropH * pxToNaturalY;
+      
+      const finalX = Math.max(0, Math.min(sourceX, naturalW - sourceW));
+      const finalY = Math.max(0, Math.min(sourceY, naturalH - sourceH));
+      const finalW = Math.min(sourceW, naturalW);
+      const finalH = Math.min(sourceH, naturalH);
 
       canvas.width = finalW;
       canvas.height = finalH;
@@ -781,12 +807,13 @@ const CropScreen = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* The Image */}
+        {/* The Image - Fixed Center, only scales */}
         <div 
-          className="relative"
+          className="relative flex items-center justify-center"
           style={{
-            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
-            transition: interaction ? 'none' : 'transform 0.2s ease-out',
+            transform: `scale(${scale})`,
+            transition: interaction?.type === 'zoom' ? 'none' : 'transform 0.2s ease-out',
+            transformOrigin: 'center center',
           }}
         >
           <img
@@ -2189,23 +2216,24 @@ export default function PublicProfile({
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* 1. Avatar */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Avatar</span>
-                <div className="flex items-center gap-2">
-                   <div
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
-                  >
-                    {user.photo ? (
-                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
-                        {avatarLetter}
-                      </div>
-                    )}
-                  </div>
+              {/* 1. Avatar with Change Photo Button */}
+              <div className="flex flex-col items-center justify-center pt-2 pb-4 gap-3">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 shrink-0">
+                  {user.photo ? (
+                    <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-600 flex items-center justify-center text-3xl text-white font-bold">
+                      {avatarLetter}
+                    </div>
+                  )}
                 </div>
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  className="flex items-center gap-1.5 bg-[#7a7a7a]/80 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-[#6a6a6a] transition-colors"
+                >
+                  <Camera size={16} />
+                  <span>Change photo</span>
+                </button>
               </div>
 
               {/* 2. Nickname */}
