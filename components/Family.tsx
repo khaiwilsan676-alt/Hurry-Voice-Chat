@@ -661,15 +661,15 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UPDATED: Text + Naya Create Button with Coins */}
-        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-8">
+        {/* UPDATED: Text + Naya Create Button with Coins (Overlap Fix) */}
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-12">
           
-          {/* Naya Text Add Kiya */}
-          <div className="text-left w-full px-6 mb-6 pointer-events-auto">
-            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+          {/* Naya Text Add Kiya (Thoda upar kiya) */}
+          <div className="text-left w-full px-6 mb-10 pointer-events-auto">
+            <p className="text-[13px] text-gray-400 leading-snug mb-1.5">
               1. Creating a family requires ≥ LV.5
             </p>
-            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+            <p className="text-[13px] text-gray-400 leading-snug mb-1.5">
               2. Family info can be modified once a week
             </p>
             <p className="text-[13px] text-gray-400 leading-snug">
@@ -677,7 +677,7 @@ export default function Family({ onBack }: FamilyProps) {
             </p>
           </div>
 
-          {/* Naya Cyan Gradient Button */}
+          {/* Naya Cyan Gradient Button (Thoda niche kiya) */}
           <button 
             onClick={handleCreate} 
             className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] rounded-full px-8 min-w-[280px] w-auto"
