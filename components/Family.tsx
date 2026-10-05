@@ -279,7 +279,7 @@ export default function Family({ onBack }: FamilyProps) {
     const newBalance = userCoins - 10000000
     setUserCoins(newBalance)
     alert("Family created successfully!")
-    setCurrentView('topRankings') // UPDATED: Ab create hone ke baad Top Rankings page par jayega
+    setCurrentView('topRankings')
   }
 
   const handleSave = () => {
@@ -295,7 +295,7 @@ export default function Family({ onBack }: FamilyProps) {
     localStorage.setItem('applyMode', applyModeState)
     
     alert("Changes saved successfully!")
-    setCurrentView('topRankings') // UPDATED: Ab save hone ke baad Top Rankings page par jayega
+    setCurrentView('topRankings')
   }
 
   // ==========================================
@@ -661,11 +661,11 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UPDATED: Text just above button and button at bottom */}
-        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-6">
+        {/* UPDATED: Text + Button (Dono ko thoda aur niche kiya) */}
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-4">
           
           {/* Text just above button */}
-          <div className="text-left w-full px-6 mb-3 pointer-events-auto">
+          <div className="text-left w-full px-6 mb-2 pointer-events-auto">
             <p className="text-[13px] text-gray-400 leading-snug mb-1">
               1. Creating a family requires ≥ LV.5
             </p>
