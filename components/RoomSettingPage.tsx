@@ -598,6 +598,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomPassword, setRoomPassword] = useState(roomData?.roomPassword || '')
   const [selectedTheme, setSelectedTheme] = useState(roomData?.theme || 'forest-night')
 
+  // Custom theme state
+  const [customThemeImage, setCustomThemeImage] = useState<string | null>(null)
+  const themeFileInputRef = useRef<HTMLInputElement>(null)
+
   const [showAdminSheet, setShowAdminSheet] = useState(false)
   const [adminSearchQuery, setAdminSearchQuery] = useState('')
   const [roomMembers, setRoomMembers] = useState<RoomUser[]>([])
@@ -649,10 +653,14 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
   const micModes = [5, 10, 15]
 
-  const themes = [
+  const defaultThemes = [
     { id: 'forest-night', name: 'Forest Night', image: '/1784875884052~2.jpg' },
     { id: 'mood-light', name: 'Moon Light', image: '/1784533036732~2.jpg' },
   ]
+
+  const themes = customThemeImage 
+    ? [{ id: 'custom', name: 'Custom', image: customThemeImage }, ...defaultThemes]
+    : defaultThemes
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -672,6 +680,24 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const handleCropComplete = (croppedDataUrl: string) => {
     setRoomDp(croppedDataUrl)
     setCropImageSrc(null)
+  }
+
+  // Theme custom image upload (direct, no crop)
+  const handleThemeImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { alert('Please select an image file'); return }
+    if (file.size > 10 * 1024 * 1024) { alert('Image size should be less than 10MB'); return }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const dataUrl = String(event.target?.result || '')
+      setCustomThemeImage(dataUrl)
+      setSelectedTheme('custom')
+      setShowThemePage(false) // Close theme page after selection
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleSetPassword = () => {
@@ -822,12 +848,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mb-6 flex flex-col items-center">
-            {/* DP image — no click, not a label */}
             <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
               <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
             </div>
 
-            {/* Hidden file input, only opened via the button */}
             <input
               ref={fileInputRef}
               type="file"
@@ -946,6 +970,31 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-6">
               <div className="grid grid-cols-2 gap-4">
+                
+                {/* ---------- PLUS BUTTON CARD (Custom Image Upload) ---------- */}
+                {!customThemeImage && (
+                  <button
+                    onClick={() => themeFileInputRef.current?.click()}
+                    className="flex flex-col rounded-xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-gray-50 transition-all items-center justify-center min-h-[260px]"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-12 h-12 stroke-gray-400 stroke-[1.5] fill-none">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span className="text-sm font-medium text-gray-500 mt-2">Add Custom</span>
+                  </button>
+                )}
+
+                {/* Hidden input for theme image */}
+                <input
+                  ref={themeFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleThemeImageUpload}
+                  className="hidden"
+                />
+
+                {/* ---------- THEME CARDS ---------- */}
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
@@ -954,8 +1003,13 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                       selectedTheme === theme.id ? 'ring-2 ring-blue-400 ring-offset-2' : 'hover:opacity-90'
                     }`}
                   >
-                    <div className="w-full h-64 rounded-xl overflow-hidden">
+                    <div className="w-full h-64 rounded-xl overflow-hidden relative">
                       <img src={theme.image} alt={theme.name} className="w-full h-full object-cover" />
+                      {theme.id === 'custom' && (
+                        <div className="absolute top-2 left-2 bg-black/60 text-white text-[10px] px-2 py-0.5 rounded">
+                          Custom
+                        </div>
+                      )}
                     </div>
                     <span className="text-sm font-medium text-gray-700 mt-2 mb-1 text-center">{theme.name}</span>
                   </button>
