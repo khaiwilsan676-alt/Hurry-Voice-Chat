@@ -154,7 +154,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL COMPONENT (UPDATED) ----------
+// ---------- CROP MODAL COMPONENT (FIXED) ----------
 // ------------------------------------------------------------
 function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel: () => void; onCrop: (cropped: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -165,6 +165,7 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [naturalSize, setNaturalSize] = useState({ w: 0, h: 0 })
 
   // Image load hone par initial scale set karo taaki wo box ko cover kare
   const handleImageLoad = () => {
@@ -172,14 +173,19 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
     const container = containerRef.current
     if (!img || !container) return
 
-    const containerSize = container.offsetWidth // Square box (e.g. 300px)
-    const imgRatio = img.naturalWidth / img.naturalHeight
+    const containerSize = container.offsetWidth
+    const naturalW = img.naturalWidth
+    const naturalH = img.naturalHeight
+
+    setNaturalSize({ w: naturalW, h: naturalH })
+
+    const imgRatio = naturalW / naturalH
     let initialScale = 1
 
     if (imgRatio > 1) {
-      initialScale = containerSize / img.naturalHeight
+      initialScale = containerSize / naturalH
     } else {
-      initialScale = containerSize / img.naturalWidth
+      initialScale = containerSize / naturalW
     }
 
     setScale(initialScale)
@@ -215,11 +221,11 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
 
   const handleTouchEnd = () => setIsDragging(false)
 
-  // Crop & Save logic
+  // ✅ FIXED: Crop & Save logic
   const handleCrop = () => {
     const img = imgRef.current
     const container = containerRef.current
-    if (!img || !container) return
+    if (!img || !container || !imageLoaded) return
 
     const containerSize = container.offsetWidth
     const outputSize = 640
@@ -230,26 +236,31 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // White background
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, outputSize, outputSize)
 
-    const imgW = img.naturalWidth * scale
-    const imgH = img.naturalHeight * scale
+    // Image displayed size on screen (in container pixels)
+    const displayedW = naturalSize.w * scale
+    const displayedH = naturalSize.h * scale
 
+    // Image top-left position relative to container
     const containerCenter = containerSize / 2
-    const imgLeft = containerCenter + position.x - imgW / 2
-    const imgTop = containerCenter + position.y - imgH / 2
+    const imgLeft = containerCenter + position.x - displayedW / 2
+    const imgTop = containerCenter + position.y - displayedH / 2
 
+    // Scale factor from container to output
     const ratio = outputSize / containerSize
+
     ctx.drawImage(
       img,
       imgLeft * ratio,
       imgTop * ratio,
-      imgW * ratio,
-      imgH * ratio
+      displayedW * ratio,
+      displayedH * ratio
     )
 
-    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9)
     onCrop(croppedDataUrl)
   }
 
@@ -280,7 +291,7 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
           }`}
           aria-label="Confirm Crop"
         >
-          <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-green-400 stroke-[3]">
+          <svg viewBox="0 0 24 24" className="w-7 h-7 fill-none stroke-green-400 stroke-[3]">
             <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
@@ -331,25 +342,6 @@ function CropModal({ imageSrc, onCancel, onCrop }: { imageSrc: string; onCancel:
               }}
               draggable={false}
             />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-8">
-            <button
-              onClick={onCancel}
-              className="flex-1 py-3 rounded-xl font-semibold text-gray-800 bg-gray-200 hover:bg-gray-300 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCrop}
-              disabled={!imageLoaded}
-              className={`flex-1 py-3 rounded-xl font-semibold text-white transition-colors ${
-                imageLoaded ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 cursor-not-allowed'
-              }`}
-            >
-              Crop & Save
-            </button>
           </div>
         </div>
       </div>
@@ -439,14 +431,13 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     const reader = new FileReader()
     reader.onload = (event) => {
       const source = String(event.target?.result || '')
-      setCropImageSrc(source) // Crop modal open karo
+      setCropImageSrc(source)
     }
     reader.readAsDataURL(file)
-    // Input reset karo taaki same file dobara select kar sake
     e.target.value = ''
   }
 
-  // ✅ CROP COMPLETE - yahan se DP set hogi
+  // ✅ CROP COMPLETE
   const handleCropComplete = (croppedDataUrl: string) => {
     setRoomDp(croppedDataUrl)
     setCropImageSrc(null)
@@ -474,7 +465,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     )
   }
 
-  // ============ SAVE — ASLI FIX ============
+  // ============ SAVE ============
   const handleSave = async () => {
     if (isSaving) return
     setIsSaving(true)
