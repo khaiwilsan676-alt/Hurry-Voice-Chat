@@ -611,8 +611,8 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         <div className="flex-1 w-full pb-36">
-          {/* 1. Upload Image - Thoda upar kiya */}
-          <div className="flex flex-col items-center mt-4">
+          {/* 1. Upload Image - Aur upar kiya */}
+          <div className="flex flex-col items-center mt-2">
             <input 
               type="file" 
               accept="image/*" 
@@ -633,8 +633,8 @@ export default function Family({ onBack }: FamilyProps) {
             <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
           </div>
           
-          {/* 2. Family Name - Thoda upar kiya */}
-          <div className="px-5 mt-5">
+          {/* 2. Family Name - Aur upar kiya */}
+          <div className="px-5 mt-3">
             <label className="block text-sm font-bold text-black mb-2">Family name</label>
             <input 
               type="text" 
@@ -645,8 +645,8 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 3. Family Announcement - Thoda upar kiya */}
-          <div className="px-5 mt-4">
+          {/* 3. Family Announcement - Aur upar kiya */}
+          <div className="px-5 mt-3">
             <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
             <input 
               type="text" 
@@ -657,8 +657,8 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 4. Setting - Thoda upar kiya */}
-          <div className="px-5 mt-5">
+          {/* 4. Setting - Aur upar kiya */}
+          <div className="px-5 mt-3">
             <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
             <div onClick={() => setShowApplyMode(true)} className="flex items-center justify-between bg-[#F3F4F6] p-4 rounded-xl cursor-pointer">
               <span className="font-bold text-black">Apply Mode</span>
