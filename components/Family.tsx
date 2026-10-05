@@ -611,8 +611,8 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         <div className="flex-1 w-full pb-36">
-          {/* 1. Upload Image - Aur upar kiya */}
-          <div className="flex flex-col items-center mt-2">
+          {/* 1. Upload Image - Top "Create" heading ke just niche */}
+          <div className="flex flex-col items-center mt-1">
             <input 
               type="file" 
               accept="image/*" 
@@ -633,8 +633,8 @@ export default function Family({ onBack }: FamilyProps) {
             <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
           </div>
           
-          {/* 2. Family Name - Aur upar kiya */}
-          <div className="px-5 mt-3">
+          {/* 2. Family Name - Upar shift kiya */}
+          <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family name</label>
             <input 
               type="text" 
@@ -645,8 +645,8 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 3. Family Announcement - Aur upar kiya */}
-          <div className="px-5 mt-3">
+          {/* 3. Family Announcement - Upar shift kiya */}
+          <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
             <input 
               type="text" 
@@ -657,8 +657,8 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 4. Setting - Aur upar kiya */}
-          <div className="px-5 mt-3">
+          {/* 4. Setting - Upar shift kiya */}
+          <div className="px-5 mt-2">
             <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
             <div onClick={() => setShowApplyMode(true)} className="flex items-center justify-between bg-[#F3F4F6] p-4 rounded-xl cursor-pointer">
               <span className="font-bold text-black">Apply Mode</span>
@@ -667,8 +667,8 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* Text + Button (Dono waise hi hain jaise pehle the) */}
-        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-4">
+        {/* Text + Button - Bilkul screen ke bottom par */}
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-2">
           
           <div className="text-left w-full px-6 mb-2 pointer-events-auto">
             <p className="text-[13px] text-gray-400 leading-snug mb-1">
