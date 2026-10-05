@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Row
@@ -27,12 +28,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowInsetsControllerCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -57,16 +56,29 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HurryLaunchScreen() {
     Box(
-        modifier = Modifier.fillMaxSize().background(Color(0xFF2196F3)),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize().background(
+            androidx.compose.ui.graphics.Brush.verticalGradient(
+                colorStops = arrayOf(
+                    0.00f to Color(0xFF2196F3),
+                    0.18f to Color(0xFF2196F3),
+                    0.30f to Color(0xFF7DBBF0),
+                    0.45f to Color(0xFFDCEEFF),
+                    0.62f to Color(0xFFF5FAFF),
+                    1.00f to Color.White
+                )
+            )
+        )
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.20f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.hurry_logo),
                 contentDescription = "Hurry logo",
-                modifier = Modifier.width(118.dp).height(118.dp)
+                modifier = Modifier.width(104.dp).height(104.dp)
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(12.dp))
             Text(
                 "Hurry",
                 fontSize = 30.sp,
