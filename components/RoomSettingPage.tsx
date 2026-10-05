@@ -606,6 +606,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [isSaving, setIsSaving] = useState(false)
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     if (!roomOwnerId) return
 
@@ -820,17 +822,23 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mb-6 flex flex-col items-center">
-            <label className="cursor-pointer relative group">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
-                <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
-              </div>
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-            </label>
+            {/* DP image — no click, not a label */}
+            <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-gray-200 shadow-md">
+              <img src={roomDp} alt="Room Cover" className="w-full h-full object-cover" />
+            </div>
+
+            {/* Hidden file input, only opened via the button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
             <button
-              onClick={() => {
-                const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-                if (input) input.click();
-              }}
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="mt-3 flex items-center gap-1.5 px-4 py-1.5 border border-gray-300 rounded-full text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
               <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-none stroke-gray-700 stroke-[2]">
