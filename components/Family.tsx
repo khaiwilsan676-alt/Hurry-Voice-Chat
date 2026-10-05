@@ -279,7 +279,7 @@ export default function Family({ onBack }: FamilyProps) {
     const newBalance = userCoins - 10000000
     setUserCoins(newBalance)
     alert("Family created successfully!")
-    setCurrentView('main')
+    setCurrentView('topRankings') // UPDATED: Ab create hone ke baad Top Rankings page par jayega
   }
 
   const handleSave = () => {
@@ -295,7 +295,7 @@ export default function Family({ onBack }: FamilyProps) {
     localStorage.setItem('applyMode', applyModeState)
     
     alert("Changes saved successfully!")
-    setCurrentView('main')
+    setCurrentView('topRankings') // UPDATED: Ab save hone ke baad Top Rankings page par jayega
   }
 
   // ==========================================
@@ -661,13 +661,21 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* MODIFIED: Hata diya brown background bas transparent background par image button rakhi hai */}
+        {/* UPDATED: Naya Create Button with Coins */}
         <div className="fixed bottom-0 left-0 w-full h-[10vh] flex items-center justify-center z-50 bg-transparent pointer-events-none">
           <button 
             onClick={handleCreate} 
-            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center"
+            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center gap-2 bg-[#E5E7EB] rounded-full px-6 min-w-[280px] w-auto"
           >
-            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
+            <span className="text-[#9CA3AF] font-bold text-base tracking-wide whitespace-nowrap">
+              Create with 10,000,000
+            </span>
+            <img 
+              src="/IMG_20260901_161001.png" 
+              alt="Coin" 
+              className="w-6 h-6 object-contain" 
+              style={{ filter: 'url(#remove-green)' }} 
+            />
           </button>
         </div>
 
