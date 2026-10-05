@@ -152,8 +152,13 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL (SIMPLE + WORKING) ----------
+// ---------- CROP MODAL (RESIZABLE CROP BOX) ----------
 // ------------------------------------------------------------
+type HandleType =
+  | 'move'
+  | 'tl' | 'tr' | 'bl' | 'br'
+  | 'top' | 'bottom' | 'left' | 'right'
+
 function CropModal({
   imageSrc,
   onCancel,
@@ -169,24 +174,35 @@ function CropModal({
   const [imageLoaded, setImageLoaded] = useState(false)
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-  const [cropBoxSize, setCropBoxSize] = useState(300)
 
-  // Calculate crop box size (square = min(width,height) * 0.9)
+  // Crop box: center + size (square)
+  const [boxSize, setBoxSize] = useState(300)
+  const [boxCenter, setBoxCenter] = useState({ x: 0, y: 0 })
+
+  const [activeHandle, setActiveHandle] = useState<HandleType | null>(null)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [startBox, setStartBox] = useState({ size: 300, cx: 0, cy: 0 })
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 })
+
+  const MIN_BOX = 80
+
+  // Init container size + crop box initial center
   useEffect(() => {
     const update = () => {
       const c = containerRef.current
       if (!c) return
-      const size = Math.min(c.offsetWidth, c.offsetHeight) * 0.9
-      setCropBoxSize(size)
+      const w = c.offsetWidth
+      const h = c.offsetHeight
+      const size = Math.min(w, h) * 0.9
+      setBoxSize(size)
+      setBoxCenter({ x: w / 2, y: h / 2 })
     }
     update()
     window.addEventListener('resize', update)
     return () => window.removeEventListener('resize', update)
   }, [])
 
-  // Jab image load ho — crop box ko cover karne ke liye scale set karo
+  // On image load — scale to cover crop box initially
   const handleImageLoad = () => {
     const img = imgRef.current
     const c = containerRef.current
@@ -195,38 +211,124 @@ function CropModal({
     const nw = img.naturalWidth
     const nh = img.naturalHeight
     const size = Math.min(c.offsetWidth, c.offsetHeight) * 0.9
-
     const initialScale = Math.max(size / nw, size / nh)
+
     setScale(initialScale)
     setPosition({ x: 0, y: 0 })
+    setBoxSize(size)
+    setBoxCenter({ x: c.offsetWidth / 2, y: c.offsetHeight / 2 })
     setImageLoaded(true)
   }
 
-  // Mouse drag
-  const onMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true)
-    setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y })
+  // ---- Unified pointer start handler ----
+  const startDrag = (e: React.MouseEvent | React.TouchEvent, handle: HandleType) => {
+    const point = 'touches' in e ? e.touches[0] : (e as React.MouseEvent)
+    setActiveHandle(handle)
+    setDragStart({ x: point.clientX, y: point.clientY })
+    setStartBox({ size: boxSize, cx: boxCenter.x, cy: boxCenter.y })
+    setStartPos({ x: position.x, y: position.y })
   }
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return
-    setPosition({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y })
-  }
-  const onMouseUp = () => setIsDragging(false)
 
-  // Touch drag
-  const onTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0]
-    setIsDragging(true)
-    setDragStart({ x: t.clientX - position.x, y: t.clientY - position.y })
-  }
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return
-    const t = e.touches[0]
-    setPosition({ x: t.clientX - dragStart.x, y: t.clientY - dragStart.y })
-  }
-  const onTouchEnd = () => setIsDragging(false)
+  // ---- Unified move handler ----
+  const onMove = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!activeHandle) return
+    const point = 'touches' in e ? e.touches[0] : (e as React.MouseEvent)
+    const dx = point.clientX - dragStart.x
+    const dy = point.clientY - dragStart.y
+    const c = containerRef.current
+    if (!c) return
 
-  // ✅ Crop function
+    const cW = c.offsetWidth
+    const cH = c.offsetHeight
+
+    if (activeHandle === 'move') {
+      // Move image
+      setPosition({ x: startPos.x + dx, y: startPos.y + dy })
+      return
+    }
+
+    // Resize box from corners/edges
+    let newSize = startBox.size
+    let newCx = startBox.cx
+    let newCy = startBox.cy
+
+    const half = startBox.size / 2
+
+    // Calculate delta based on which handle
+    if (activeHandle === 'br') {
+      newSize = startBox.size + Math.max(dx, dy)
+      newCx = startBox.cx + Math.max(dx, dy) / 2
+      newCy = startBox.cy + Math.max(dx, dy) / 2
+    } else if (activeHandle === 'tl') {
+      const delta = Math.min(dx, dy)
+      newSize = startBox.size - delta
+      newCx = startBox.cx + delta / 2
+      newCy = startBox.cy + delta / 2
+    } else if (activeHandle === 'tr') {
+      const delta = Math.max(dx, -dy)
+      // top-right: right edge moves by dx, top edge moves by -dy
+      const sizeDelta = (dx - dy) / 2
+      newSize = startBox.size + sizeDelta
+      newCx = startBox.cx + sizeDelta / 2
+      newCy = startBox.cy - sizeDelta / 2
+    } else if (activeHandle === 'bl') {
+      const sizeDelta = (-dx + dy) / 2
+      newSize = startBox.size + sizeDelta
+      newCx = startBox.cx - sizeDelta / 2
+      newCy = startBox.cy + sizeDelta / 2
+    } else if (activeHandle === 'top') {
+      newSize = startBox.size - dy
+      newCy = startBox.cy + dy / 2
+    } else if (activeHandle === 'bottom') {
+      newSize = startBox.size + dy
+      newCy = startBox.cy + dy / 2
+    } else if (activeHandle === 'left') {
+      newSize = startBox.size - dx
+      newCx = startBox.cx + dx / 2
+    } else if (activeHandle === 'right') {
+      newSize = startBox.size + dx
+      newCx = startBox.cx + dx / 2
+    }
+
+    // Min size clamp
+    if (newSize < MIN_BOX) {
+      newSize = MIN_BOX
+    }
+
+    // Keep box inside container
+    newCx = Math.max(newSize / 2, Math.min(cW - newSize / 2, newCx))
+    newCy = Math.max(newSize / 2, Math.min(cH - newSize / 2, newCy))
+
+    setBoxSize(newSize)
+    setBoxCenter({ x: newCx, y: newCy })
+  }
+
+  const endDrag = () => setActiveHandle(null)
+
+  // Attach global mouse/touch move for smooth resize
+  useEffect(() => {
+    if (!activeHandle) return
+    const moveHandler = (e: MouseEvent | TouchEvent) => {
+      onMove(e as any)
+    }
+    const upHandler = () => endDrag()
+
+    window.addEventListener('mousemove', moveHandler)
+    window.addEventListener('mouseup', upHandler)
+    window.addEventListener('touchmove', moveHandler, { passive: false })
+    window.addEventListener('touchend', upHandler)
+    window.addEventListener('touchcancel', upHandler)
+
+    return () => {
+      window.removeEventListener('mousemove', moveHandler)
+      window.removeEventListener('mouseup', upHandler)
+      window.removeEventListener('touchmove', moveHandler)
+      window.removeEventListener('touchend', upHandler)
+      window.removeEventListener('touchcancel', upHandler)
+    }
+  }, [activeHandle, dragStart, boxSize, boxCenter, position])
+
+  // ✅ Crop function — uses current crop box
   const handleCrop = () => {
     const img = imgRef.current
     const c = containerRef.current
@@ -245,25 +347,21 @@ function CropModal({
     const cCenterY = cH / 2
 
     // Crop box top-left in container coords
-    const boxLeft = cCenterX - cropBoxSize / 2
-    const boxTop = cCenterY - cropBoxSize / 2
+    const boxLeft = boxCenter.x - boxSize / 2
+    const boxTop = boxCenter.y - boxSize / 2
 
-    // Image displayed size
     const dispW = img.naturalWidth * scale
     const dispH = img.naturalHeight * scale
 
-    // Image top-left in container coords
     const imgLeft = cCenterX + position.x - dispW / 2
     const imgTop = cCenterY + position.y - dispH / 2
 
-    // Offset of crop box inside image (in displayed px)
     const offsetX = boxLeft - imgLeft
     const offsetY = boxTop - imgTop
 
-    // Convert to original image coordinates
     const srcX = offsetX / scale
     const srcY = offsetY / scale
-    const srcSize = cropBoxSize / scale
+    const srcSize = boxSize / scale
 
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, outputSize, outputSize)
@@ -284,10 +382,18 @@ function CropModal({
     onCrop(dataUrl)
   }
 
-  return (
-    <div ref={containerRef} className="fixed inset-0 z-[9999] bg-black overflow-hidden select-none">
+  // Compute overlay rectangles from boxCenter + boxSize
+  const boxLeft = boxCenter.x - boxSize / 2
+  const boxTop = boxCenter.y - boxSize / 2
+  const boxRight = boxCenter.x + boxSize / 2
+  const boxBottom = boxCenter.y + boxSize / 2
 
-      {/* Image full screen (draggable) */}
+  return (
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-[9999] bg-black overflow-hidden select-none touch-none"
+    >
+      {/* Image */}
       <img
         ref={imgRef}
         src={imageSrc}
@@ -306,83 +412,113 @@ function CropModal({
         }}
       />
 
-      {/* Loading indicator */}
       {!imageLoaded && (
         <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
           Loading...
         </div>
       )}
 
-      {/* Drag layer (transparent, covers whole screen) */}
+      {/* Image drag layer (move) — placed BEHIND crop box but covering screen */}
       <div
-        className="absolute inset-0 touch-none"
-        style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        className="absolute inset-0"
+        style={{ cursor: activeHandle === 'move' ? 'grabbing' : 'grab' }}
+        onMouseDown={(e) => {
+          // Only start move if target is not a handle (handles are above with higher z-index)
+          startDrag(e, 'move')
+        }}
+        onTouchStart={(e) => startDrag(e, 'move')}
       />
 
-      {/* Dark overlay + fixed crop box */}
+      {/* Dark overlay — 4 sides of the crop box */}
       {imageLoaded && (
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Top */}
+        <>
+          <div className="absolute bg-black/60 pointer-events-none" style={{ left: 0, right: 0, top: 0, height: boxTop }} />
+          <div className="absolute bg-black/60 pointer-events-none" style={{ left: 0, right: 0, top: boxBottom, bottom: 0 }} />
+          <div className="absolute bg-black/60 pointer-events-none" style={{ left: 0, width: boxLeft, top: boxTop, height: boxSize }} />
+          <div className="absolute bg-black/60 pointer-events-none" style={{ left: boxRight, right: 0, top: boxTop, height: boxSize }} />
+        </>
+      )}
+
+      {/* Crop box */}
+      {imageLoaded && (
+        <div
+          className="absolute border-2 border-white"
+          style={{
+            left: boxLeft,
+            top: boxTop,
+            width: boxSize,
+            height: boxSize,
+          }}
+        >
+          {/* Grid lines */}
+          <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white/60 pointer-events-none" />
+          <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white/60 pointer-events-none" />
+          <div className="absolute left-0 right-0 top-1/3 h-px bg-white/60 pointer-events-none" />
+          <div className="absolute left-0 right-0 top-2/3 h-px bg-white/60 pointer-events-none" />
+
+          {/* --- Edge handles (only resize, not move) --- */}
+          {/* Top edge */}
           <div
-            className="absolute bg-black/60 left-0 right-0 top-0"
-            style={{ height: `calc(50% - ${cropBoxSize / 2}px)` }}
+            className="absolute -top-3 left-8 right-8 h-6 cursor-ns-resize touch-none"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'top') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'top') }}
           />
-          {/* Bottom */}
+          {/* Bottom edge */}
           <div
-            className="absolute bg-black/60 left-0 right-0 bottom-0"
-            style={{ height: `calc(50% - ${cropBoxSize / 2}px)` }}
+            className="absolute -bottom-3 left-8 right-8 h-6 cursor-ns-resize touch-none"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'bottom') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'bottom') }}
           />
-          {/* Left */}
+          {/* Left edge */}
           <div
-            className="absolute bg-black/60"
-            style={{
-              top: `calc(50% - ${cropBoxSize / 2}px)`,
-              height: cropBoxSize,
-              left: 0,
-              width: `calc(50% - ${cropBoxSize / 2}px)`,
-            }}
+            className="absolute top-8 bottom-8 -left-3 w-6 cursor-ew-resize touch-none"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'left') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'left') }}
           />
-          {/* Right */}
+          {/* Right edge */}
           <div
-            className="absolute bg-black/60"
-            style={{
-              top: `calc(50% - ${cropBoxSize / 2}px)`,
-              height: cropBoxSize,
-              right: 0,
-              width: `calc(50% - ${cropBoxSize / 2}px)`,
-            }}
+            className="absolute top-8 bottom-8 -right-3 w-6 cursor-ew-resize touch-none"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'right') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'right') }}
           />
 
-          {/* Crop box border + grid */}
+          {/* --- Corner handles --- */}
+          {/* Top-Left */}
           <div
-            className="absolute border-2 border-white"
-            style={{
-              width: cropBoxSize,
-              height: cropBoxSize,
-              top: `calc(50% - ${cropBoxSize / 2}px)`,
-              left: `calc(50% - ${cropBoxSize / 2}px)`,
-            }}
+            className="absolute -top-4 -left-4 w-8 h-8 cursor-nwse-resize touch-none flex items-start justify-start"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'tl') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'tl') }}
           >
-            <div className="absolute top-0 bottom-0 left-1/3 w-px bg-white/60" />
-            <div className="absolute top-0 bottom-0 left-2/3 w-px bg-white/60" />
-            <div className="absolute left-0 right-0 top-1/3 h-px bg-white/60" />
-            <div className="absolute left-0 right-0 top-2/3 h-px bg-white/60" />
-            <div className="absolute -top-1 -left-1 w-4 h-4 border-t-4 border-l-4 border-white" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 border-t-4 border-r-4 border-white" />
-            <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-4 border-l-4 border-white" />
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-4 border-r-4 border-white" />
+            <div className="w-5 h-5 border-t-4 border-l-4 border-white rounded-tl" />
+          </div>
+          {/* Top-Right */}
+          <div
+            className="absolute -top-4 -right-4 w-8 h-8 cursor-nesw-resize touch-none flex items-start justify-end"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'tr') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'tr') }}
+          >
+            <div className="w-5 h-5 border-t-4 border-r-4 border-white rounded-tr" />
+          </div>
+          {/* Bottom-Left */}
+          <div
+            className="absolute -bottom-4 -left-4 w-8 h-8 cursor-nesw-resize touch-none flex items-end justify-start"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'bl') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'bl') }}
+          >
+            <div className="w-5 h-5 border-b-4 border-l-4 border-white rounded-bl" />
+          </div>
+          {/* Bottom-Right */}
+          <div
+            className="absolute -bottom-4 -right-4 w-8 h-8 cursor-nwse-resize touch-none flex items-end justify-end"
+            onMouseDown={(e) => { e.stopPropagation(); startDrag(e, 'br') }}
+            onTouchStart={(e) => { e.stopPropagation(); startDrag(e, 'br') }}
+          >
+            <div className="w-5 h-5 border-b-4 border-r-4 border-white rounded-br" />
           </div>
         </div>
       )}
 
-      {/* Top bar: back + title + tick */}
+      {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 z-20">
         <button
           onClick={onCancel}
@@ -436,7 +572,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [isSaving, setIsSaving] = useState(false)
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
-  // Fetch room members
   useEffect(() => {
     if (!roomOwnerId) return
 
@@ -631,7 +766,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   return (
     <>
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
-        {/* Header */}
         <div className="flex items-center px-2 pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-3 flex-shrink-0 bg-white">
           <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
             <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-800 stroke-[2.5]">
@@ -650,7 +784,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto px-4 py-6">
           <div className="mb-6 flex flex-col items-center">
             <label className="cursor-pointer relative group">
