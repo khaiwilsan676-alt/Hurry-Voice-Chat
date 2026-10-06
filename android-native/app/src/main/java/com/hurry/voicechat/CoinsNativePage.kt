@@ -96,10 +96,10 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
       Pack("1,000,000","₹ 100","+Bounce 30,000",Modifier.width(120.dp)){pay=true}
      }
     }else if(tab==1){
-     Column(Modifier.fillMaxWidth().padding(top=20.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFF0F7FF)).padding(14.dp)){
+     Column(Modifier.fillMaxWidth().padding(horizontal=16.dp).padding(top=20.dp).clip(RoundedCornerShape(16.dp)).background(Color.White).padding(16.dp)){
       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){
-       Text("Exchange",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Color(0xFF1F2937))
-       Text("100 = 🪙 33",fontSize=11.sp,fontWeight=FontWeight.SemiBold,color=Color.Gray)
+       Text("Exchange",fontSize=15.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+       Text("100 = 🪙 33",fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=Color(0xFF6B7280))
       }
       Row(Modifier.fillMaxWidth().padding(top=12.dp),verticalAlignment=Alignment.CenterVertically){
        Input("Input multiple",din,Modifier.weight(1f)){din=it;cin=((it.toLongOrNull()?:0)*33/100).toString()}
@@ -150,7 +150,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
 }
 
 @Composable private fun Input(h:String,v:String,m:Modifier,on:(String)->Unit){
- OutlinedTextField(v,onValueChange=on,modifier=m,singleLine=true,placeholder={Text(h,fontSize=12.sp)},shape=RoundedCornerShape(12.dp))
+ OutlinedTextField(v,onValueChange=on,modifier=m.height(52.dp),singleLine=true,placeholder={Text(h,fontSize=13.sp,color=Color(0xFF9CA3AF))},shape=RoundedCornerShape(12.dp),colors=OutlinedTextFieldDefaults.colors(focusedBorderColor=Color(0xFF0044FF),unfocusedBorderColor=Color(0xFFE5E7EB),focusedContainerColor=Color(0xFFF9FAFB),unfocusedContainerColor=Color(0xFFF9FAFB),focusedTextColor=Color(0xFF111827),unfocusedTextColor=Color(0xFF111827)),textStyle=LocalTextStyle.current.copy(fontSize=14.sp,fontWeight=FontWeight.Medium))
 }
 
 @Composable private fun ChatIcon(){
