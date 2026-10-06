@@ -145,6 +145,8 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) 
+  const [isGiftRulesPopupOpen, setIsGiftRulesPopupOpen] = useState(false)
+  const [isRechargeRulesPopupOpen, setIsRechargeRulesPopupOpen] = useState(false)
   
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
   const inviteCode = userId !== 'N/A' ? userId : 'WELCOME123'
@@ -235,7 +237,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <span className="text-yellow-400 font-bold text-sm leading-tight">Friends Recharge</span>
               <span className="text-yellow-300 text-[10px] font-medium tracking-wider">&gt;500000 Coins</span>
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '175px', right: '35px' }}>
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '175px', right: '35px' }}
+              onClick={() => setIsRechargeRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
@@ -249,7 +255,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <span className="text-yellow-400 font-bold text-sm leading-tight">Friends Send</span>
               <span className="text-yellow-400 font-bold text-sm leading-tight">Gift</span>
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '255px', right: '35px' }}>
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '255px', right: '35px' }}
+              onClick={() => setIsGiftRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold pr-1">6%</span>
@@ -328,7 +338,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* --- UPDATED RULES POPUP START --- */}
+      {/* --- INVITE FRIENDS RULES POPUP START --- */}
       {isRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -340,13 +350,9 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             onClick={(e) => e.stopPropagation()}
           >
             
-            {/* Removed Ornate Header (image) */}
-            
             {/* Purple Box - Text Background Colour matched to Screenshot */}
             <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
               
-              {/* Removed Close Button (X icon) */}
-
               {/* Centered Heading "Rules" added at the top of the card */}
               <div className="text-center mb-3">
                 <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
@@ -357,23 +363,85 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               {/* Text Content - Made Smaller Font */}
               <div className="text-white text-center text-[12px] leading-relaxed font-medium">
                 Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
-                <br /><br />
-                <span className="text-yellow-300 font-semibold">
-                  All rewards will be Send by our Hurry team On 1st of Every month
-                </span>
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* --- UPDATED RULES POPUP END --- */}
+      {/* --- INVITE FRIENDS RULES POPUP END --- */}
+
+      {/* --- FRIENDS SEND GIFT RULES POPUP START --- */}
+      {isGiftRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsGiftRulesPopupOpen(false)}
+        >
+          {/* Popup Container - Made Smaller */}
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- FRIENDS SEND GIFT RULES POPUP END --- */}
+
+      {/* --- FRIENDS RECHARGE RULES POPUP START --- */}
+      {isRechargeRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsRechargeRulesPopupOpen(false)}
+        >
+          {/* Popup Container - Made Smaller */}
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+              </div>
+
+              {/* New line added for the monthly rewards note */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium mt-2">
+                All rewards will be Send by our Hurry team On 1st of Every month
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- FRIENDS RECHARGE RULES POPUP END --- */}
 
       {/* Backdrop for Bottom Sheet */}
       {isSheetOpen && (
-        <div 
-          onClick={() => setIsSheetOpen(false)} 
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" 
-        />
+        <div onClick={() => setIsSheetOpen(false)} className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" />
       )}
 
       {/* Bottom Sheet */}
@@ -402,12 +470,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <span className="text-[11px] font-medium text-gray-800">More</span>
           </button>
         </div>
-        
-        {/* Reward note added to the bottom sheet */}
-        <div className="text-center text-[10px] text-gray-500 font-medium pb-1">
-          All rewards will be Send by our Hurry team On 1st of Every month
-        </div>
-        
         {copied && <div className="text-center text-[11px] text-blue-600 font-medium pb-1 animate-pulse">✓ Link copied!</div>}
       </div>
     </div>
