@@ -699,10 +699,11 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
   if (showFeedbackPage) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col pb-[8vh]">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {/* Header - compact */}
         <div
-          className="flex items-center p-4 bg-white safe-top"
-          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
+          className="flex items-center px-3 py-2 bg-white safe-top"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
         >
           <button
             onClick={() => {
@@ -713,38 +714,39 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
               setProblemDescription('');
               setContactInfo('');
             }}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           >
-            <ArrowLeft size={24} className="text-gray-700" />
+            <ArrowLeft size={20} className="text-gray-700" />
           </button>
-          <h1 className="text-lg font-semibold text-gray-900 ml-3">{t.helpFeedback}</h1>
+          <h1 className="text-base font-semibold text-gray-900 ml-2">{t.helpFeedback}</h1>
         </div>
 
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="max-w-md mx-auto">
+        <div className="flex-1 px-3 py-2 overflow-hidden">
+          <div className="max-w-md mx-auto h-full flex flex-col">
             {feedbackSuccess ? (
-              <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
-                <div className="text-4xl mb-4">✅</div>
-                <h2 className="text-xl font-bold text-green-700 mb-2">Thank You!</h2>
-                <p className="text-green-600">Your feedback has been submitted successfully.</p>
+              <div className="bg-green-50 border border-green-200 rounded-md p-6 text-center mt-4">
+                <div className="text-3xl mb-2">✅</div>
+                <h2 className="text-lg font-bold text-green-700 mb-1">Thank You!</h2>
+                <p className="text-green-600 text-sm">Your feedback has been submitted successfully.</p>
               </div>
             ) : (
-              <form onSubmit={handleFeedbackSubmit} className="space-y-6">
+              <form onSubmit={handleFeedbackSubmit} className="flex flex-col h-full justify-between gap-2">
+                {/* Type of Issue */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Type of Issue</h2>
-                  <div className="grid grid-cols-2 gap-3">
+                  <h2 className="text-xs font-semibold text-gray-800 mb-1.5">Type of Issue</h2>
+                  <div className="grid grid-cols-2 gap-1.5">
                     {FEEDBACK_TYPES.map((type) => (
                       <button
                         key={type.id}
                         type="button"
                         onClick={() => setSelectedType(type.id)}
-                        className={`p-4 rounded-md border-2 transition-all cursor-pointer ${
+                        className={`py-2 px-2 rounded-md border transition-all cursor-pointer text-center ${
                           selectedType === type.id
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            ? 'border-blue-500 bg-blue-50 shadow-sm'
                             : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
                       >
-                        <div className={`text-sm font-medium ${
+                        <div className={`text-xs font-medium ${
                           selectedType === type.id ? 'text-blue-700' : 'text-gray-700'
                         }`}>
                           {type.label}
@@ -754,43 +756,44 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 </div>
 
+                {/* Problem Description - compact height */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Problem Description</h2>
+                  <h2 className="text-xs font-semibold text-gray-800 mb-1.5">Problem description</h2>
                   <div className="relative">
                     <textarea
                       value={problemDescription}
                       onChange={(e) => {
-                        if (e.target.value.length <= 400) {
+                        if (e.target.value.length <= 300) {
                           setProblemDescription(e.target.value);
                         }
                       }}
-                      placeholder="Describe your issue or suggestion..."
-                      maxLength={400}
-                      rows={5}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white resize-none"
+                      placeholder="Problem description"
+                      maxLength={300}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-sm text-gray-900 placeholder-gray-400 bg-gray-50 resize-none"
                     />
-                    <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                      {problemDescription.length}/400
+                    <div className="absolute bottom-1.5 right-2 text-[10px] text-gray-400">
+                      {problemDescription.length}/300
                     </div>
                   </div>
                 </div>
 
-                {/* ✅ Image Evidence (Optional) Section */}
+                {/* Image Evidence (Optional) - small box */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">
+                  <h2 className="text-xs font-semibold text-gray-800 mb-1.5">
                     Image Evidence<span className="text-gray-400 font-normal">(Optional)</span>
                   </h2>
-                  <div className="w-24 h-24 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-16 h-16 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                   </div>
                 </div>
 
-                {/* ✅ Contact Information (Optional) Section - Moved above Submit */}
+                {/* Contact Information (Optional) */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">
+                  <h2 className="text-xs font-semibold text-gray-800 mb-1.5">
                     Contact Information<span className="text-gray-400 font-normal">(Optional)</span>
                   </h2>
                   <input
@@ -798,26 +801,27 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                     value={contactInfo}
                     onChange={(e) => setContactInfo(e.target.value)}
                     placeholder="Phone or Email"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-blue-500 transition-colors text-sm text-gray-900 placeholder-gray-400 bg-gray-50"
                   />
                 </div>
 
+                {/* Error */}
                 {feedbackError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs">
                     {feedbackError}
                   </div>
                 )}
 
-                {/* ✅ Submit Button - Full width, Blue color, at the bottom */}
-                <div className="pt-4 pb-2">
+                {/* Submit Button - Full width, Blue, at bottom */}
+                <div className="pt-1">
                   <button
                     type="submit"
                     disabled={feedbackSubmitting}
-                    className="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-full transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-blue-600/20 text-base"
+                    className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-full transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-md shadow-blue-600/20 text-sm"
                   >
                     {feedbackSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                         </svg>
@@ -827,7 +831,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                       'Submit'
                     )}
                   </button>
-                  <p className="text-center text-gray-500 text-xs mt-3">
+                  <p className="text-center text-gray-500 text-[10px] mt-1.5">
                     Thank you! Feel free to give us any feedback.
                   </p>
                 </div>
