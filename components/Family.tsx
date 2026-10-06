@@ -200,6 +200,32 @@ const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, classN
   </svg>
 );
 
+// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT
+const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
+  <div 
+    className="fixed inset-0 bg-black/50 z-[100] flex items-end"
+    onClick={onClose}
+  >
+    <div 
+      className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
+      <div className="text-black/80 text-sm space-y-3 pb-6">
+        <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
+        <p>2. There is no need to wait for official approval.</p>
+        <p>3. A family can have a maximum of 100 members.</p>
+        <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
+        <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
+        <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
+        <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
+        <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
+        <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -223,9 +249,9 @@ export default function Family({ onBack }: FamilyProps) {
   const [familyAnnouncement, setFamilyAnnouncement] = useState('')
   const [familyImage, setFamilyImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [userCoins, setUserCoins] = useState(0) // Initially 0 coins
+  const [userCoins, setUserCoins] = useState(0)
 
-  // NEW STATE FOR FAMILY RULES SHEET
+  // ⭐ FAMILY RULES SHEET STATE
   const [showRulesSheet, setShowRulesSheet] = useState(false)
 
   useEffect(() => {
@@ -239,7 +265,6 @@ export default function Family({ onBack }: FamilyProps) {
       setFamilyCode(savedCode)
     }
 
-    // Load saved family details if any
     const savedFamilyName = localStorage.getItem('familyName')
     const savedFamilyAnnouncement = localStorage.getItem('familyAnnouncement')
     const savedFamilyImage = localStorage.getItem('familyImage')
@@ -295,13 +320,11 @@ export default function Family({ onBack }: FamilyProps) {
       return
     }
     
-    // Save data
     localStorage.setItem('familyName', familyName)
     localStorage.setItem('familyAnnouncement', familyAnnouncement)
     if (familyImage) localStorage.setItem('familyImage', familyImage)
     localStorage.setItem('applyMode', applyModeState)
     
-    // Deduct coins (simulation)
     const newBalance = userCoins - 10000000
     setUserCoins(newBalance)
     alert("Family created successfully!")
@@ -314,7 +337,6 @@ export default function Family({ onBack }: FamilyProps) {
       return
     }
     
-    // Save data without deducting coins
     localStorage.setItem('familyName', familyName)
     localStorage.setItem('familyAnnouncement', familyAnnouncement)
     if (familyImage) localStorage.setItem('familyImage', familyImage)
@@ -379,6 +401,7 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
+          {/* ⭐ CHANGED: alert("Details") → setShowRulesSheet(true) */}
           <button
             type="button"
             onClick={() => setShowRulesSheet(true)}
@@ -608,31 +631,8 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         )}
 
-        {/* FAMILY RULES SHEET (TOP RANKINGS) */}
-        {showRulesSheet && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-[60] flex items-end"
-            onClick={() => setShowRulesSheet(false)}
-          >
-            <div 
-              className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
-              <div className="text-black/80 text-sm space-y-3 pb-6">
-                <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
-                <p>2. There is no need to wait for official approval.</p>
-                <p>3. A family can have a maximum of 100 members.</p>
-                <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
-                <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
-                <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
-                <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
-                <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
-                <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ⭐ FAMILY RULES SHEET (TOP RANKINGS PAGE) */}
+        {showRulesSheet && <FamilyRulesSheet onClose={() => setShowRulesSheet(false)} />}
       </div>
     )
   }
@@ -671,7 +671,6 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
 
         <div className="flex-1 w-full pb-36">
-          {/* 1. Upload Image - Top "Create" heading ke just niche */}
           <div className="flex flex-col items-center mt-1">
             <input 
               type="file" 
@@ -693,7 +692,6 @@ export default function Family({ onBack }: FamilyProps) {
             <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
           </div>
           
-          {/* 2. Family Name - Upar shift kiya */}
           <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family name</label>
             <input 
@@ -705,7 +703,6 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 3. Family Announcement - Upar shift kiya */}
           <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
             <input 
@@ -717,7 +714,6 @@ export default function Family({ onBack }: FamilyProps) {
             />
           </div>
           
-          {/* 4. Setting - Upar shift kiya */}
           <div className="px-5 mt-2">
             <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
             <div onClick={() => setShowApplyMode(true)} className="flex items-center justify-between bg-[#F3F4F6] p-4 rounded-xl cursor-pointer">
@@ -726,7 +722,6 @@ export default function Family({ onBack }: FamilyProps) {
             </div>
           </div>
 
-          {/* 5. 3 Lines Text - Setting ke just niche */}
           <div className="px-6 mt-4">
             <p className="text-[13px] text-gray-400 leading-snug mb-1">
               1. Creating a family requires ≥ LV.5
@@ -740,7 +735,6 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* Niche wala Button - Bilkul screen ke bottom par */}
         <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-4">
           <button 
             onClick={handleCreate} 
@@ -813,6 +807,7 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
+          {/* ⭐ CHANGED: alert("Details") → setShowRulesSheet(true) */}
           <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
@@ -885,16 +880,14 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* NEW: Edge to edge bottom bar with overlap create button */}
+      {/* Edge to edge bottom bar with overlap create button */}
       <div className="fixed -bottom-6 left-0 w-full z-40 pointer-events-none">
         <div className="relative w-full">
-          {/* Edge to edge background image */}
           <img 
             src="/file_000000009d1081f59878648feb821b5e.png" 
             alt="Bottom Background" 
             className="w-full h-auto block pointer-events-auto" 
           />
-          {/* Centered overlap image button */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <button 
               onClick={() => setCurrentView('create')}
@@ -910,31 +903,8 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
       </div>
 
-      {/* FAMILY RULES SHEET (MAIN VIEW) */}
-      {showRulesSheet && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-[60] flex items-end"
-          onClick={() => setShowRulesSheet(false)}
-        >
-          <div 
-            className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
-            <div className="text-black/80 text-sm space-y-3 pb-6">
-              <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
-              <p>2. There is no need to wait for official approval.</p>
-              <p>3. A family can have a maximum of 100 members.</p>
-              <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
-              <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
-              <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
-              <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
-              <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
-              <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ⭐ FAMILY RULES SHEET (MAIN PAGE) */}
+      {showRulesSheet && <FamilyRulesSheet onClose={() => setShowRulesSheet(false)} />}
     </div>
   )
 }
