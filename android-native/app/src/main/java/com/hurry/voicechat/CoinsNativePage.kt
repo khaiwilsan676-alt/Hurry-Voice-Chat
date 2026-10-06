@@ -69,7 +69,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
       listOf("20%","40%","60%","80%","100%").forEach{r->Box(Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp)).background(if(rate==r)Color(0xFF0044FF) else Color.White).clickable{rate=r},contentAlignment=Alignment.Center){Text(r,fontSize=11.sp,fontWeight=FontWeight.Bold,color=if(rate==r)Color.White else Color(0xFF0044FF))}}
      }
      Spacer(Modifier.height(42.dp))
-     Box(Modifier.fillMaxWidth(.75f).height(50.dp).align(Alignment.CenterHorizontally).clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF)).clickable{
+     Box(Modifier.fillMaxWidth(.75f).height(50.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF)).clickable{
       val d=din.toLongOrNull()?:0;val c=cin.toLongOrNull()?:0;if(d>0&&d<=diamonds&&c>0){diamonds-=d;coins+=c;din="";cin=""}
      },contentAlignment=Alignment.Center){Text("Exchange",color=Color.White,fontWeight=FontWeight.Bold)}
     }else{
