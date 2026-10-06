@@ -38,8 +38,6 @@ fun MineNativePage(onBack: () -> Unit) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(Modifier.wrapContentSize().clickable { onBack() }) {
                             Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
-                                drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                            }
                         }
                         Box(Modifier.wrapContentSize().clickable { }) {
                             Text("Mine", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
