@@ -447,11 +447,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <div className="text-white text-center text-[12px] leading-relaxed font-medium">
                 If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
               </div>
-
-              {/* New line added for the monthly rewards note */}
-              <div className="text-white text-center text-[12px] leading-relaxed font-medium mt-2">
-                All rewards will be Send by our Hurry team On 1st of Every month
-              </div>
             </div>
           </div>
         </div>
