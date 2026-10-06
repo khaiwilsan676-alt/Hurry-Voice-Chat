@@ -58,42 +58,56 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(bottom = 12.dp)
+    Column(
+        Modifier.fillMaxSize().background(Color(0xFFF3F6FA))
     ) {
-        item {
-            Column(
-                Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
-                            Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Bold else FontWeight.Normal, color=if(!mine) HurryText else HurryMuted)
-                        }
-                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
-                            Text("Mine", fontSize=21.sp, fontWeight=FontWeight.Normal, color=HurryMuted)
-                        }
+        Column(
+            Modifier.fillMaxWidth().background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color(0xFFF3F6FA))
+                )
+            ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
+                        Text("Popular", fontSize=21.sp, fontWeight=FontWeight.Bold, color=HurryText)
                     }
-                    Spacer(Modifier.weight(1f))
-                    HurrySearchIcon()
-                    Spacer(Modifier.width(10.dp))
-                    HurryHouseIcon()
-                    Spacer(Modifier.width(2.dp))
+                    Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
+                        Text("Mine", fontSize=21.sp, fontWeight=FontWeight.Normal, color=HurryMuted)
+                    }
                 }
-                Spacer(Modifier.height(7.dp))
-                Box(Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp).clip(RoundedCornerShape(6.dp))) {
-                    HorizontalPager(state = pager, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, pageSpacing = 0.dp) { page ->
-                        AsyncImage(model=banners[page], contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
-                    }
-                    Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp), horizontalArrangement = Arrangement.Center) {
-                        repeat(banners.size) { i ->
-                            Box(Modifier.padding(horizontal=1.5.dp).size(5.dp).clip(RoundedCornerShape(50)).background(if(i==pager.currentPage) Color.White else Color.White.copy(alpha=0.75f)))
+                Spacer(Modifier.weight(1f))
+                HurrySearchIcon()
+                Spacer(Modifier.width(10.dp))
+                HurryHouseIcon()
+                Spacer(Modifier.width(2.dp))
+            }
+        }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().background(Color(0xFFF3F6FA)),
+            contentPadding = PaddingValues(bottom = 12.dp)
+        ) {
+            item {
+                Column(
+                    Modifier.fillMaxWidth().background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(Color(0xFFEFF6FF), Color(0xFFF3F6FA))
+                        )
+                    ).padding(top = 7.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                ) {
+                    Box(Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp).clip(RoundedCornerShape(6.dp))) {
+                        HorizontalPager(state = pager, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, pageSpacing = 0.dp) { page ->
+                            AsyncImage(model=banners[page], contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
+                        }
+                        Row(Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp), horizontalArrangement = Arrangement.Center) {
+                            repeat(banners.size) { i ->
+                                Box(Modifier.padding(horizontal=1.5.dp).size(5.dp).clip(RoundedCornerShape(50)).background(if(i==pager.currentPage) Color.White else Color.White.copy(alpha=0.75f)))
+                            }
                         }
                     }
                 }
             }
-        }
         item {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-4).dp).padding(top = 0.dp, bottom = 1.dp),
@@ -118,6 +132,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                 }
             }
         }
+    }
     }
 }
 
