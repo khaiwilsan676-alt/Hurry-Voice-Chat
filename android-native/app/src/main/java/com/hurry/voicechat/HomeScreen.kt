@@ -160,9 +160,9 @@ fun HurryHouseIcon() {
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.dp.toPx()),
             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.2.dp.toPx())
         )
-        drawRoundRect(c,topLeft=Offset(w*.28f,h*.45f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
-        drawRoundRect(c,topLeft=Offset(w*.445f,h*.37f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.28f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
-        drawRoundRect(c,topLeft=Offset(w*.61f,h*.43f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.22f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawRoundRect(color=c, topLeft=Offset(w*.28f,h*.45f), size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f), cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawRoundRect(color=c, topLeft=Offset(w*.445f,h*.37f), size=androidx.compose.ui.geometry.Size(w*.11f,h*.28f), cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
+        drawRoundRect(color=c, topLeft=Offset(w*.61f,h*.43f), size=androidx.compose.ui.geometry.Size(w*.11f,h*.22f), cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
     }
 }
 
