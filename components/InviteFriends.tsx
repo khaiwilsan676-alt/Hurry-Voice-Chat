@@ -354,56 +354,31 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             className="relative w-full max-w-[340px]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close X Button at Top Right */}
-            <button
-              onClick={() => setIsRulesPopupOpen(false)}
-              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={20} strokeWidth={2.5} />
-            </button>
-
-            {/* Rules Banner Image (Top ornamental header) */}
-            <div className="relative flex justify-center -mb-4 z-10">
-              <ChromaKeyImage 
-                src="/1788074201753~2.jpg" 
-                alt="Rules Banner" 
-                className="object-contain pointer-events-none"
-                style={{ width: '220px', height: 'auto' }}
-              />
-              {/* "Rules" text over the banner */}
-              <div className="absolute inset-0 flex items-center justify-center pt-1">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
+            
+            {/* Purple Box */}
+            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] p-5 pt-7 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* "Rules" Text at top inside the box */}
+              <div className="text-center mb-4">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
                   Rules
                 </span>
               </div>
-            </div>
 
-            {/* Main Purple Content Box */}
-            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
               {/* Text Content */}
-              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
-                
-                {/* Paragraph 1 */}
+              <div className="text-white text-left text-[12px] leading-relaxed font-medium space-y-3">
                 <p>
-                  If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+                  1. If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
                 </p>
-
-                {/* Paragraph 2 */}
                 <p>
-                  If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+                  2. If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
                 </p>
-
-                {/* Paragraph 3 */}
                 <p>
-                  All rewards will be Send by our Hurry team On 1st of Every month.
+                  3. All rewards will be Send by our Hurry team On 1st of Every month.
                 </p>
-
-                {/* Paragraph 4 */}
                 <p>
-                  The friend's phone must never have downloaded and registered the Hurry app before, and must not be on the same network as other accounts. Only by meeting all these conditions will the invitation be successful and rewards be granted
+                  4. The friend's phone must never have downloaded and registered the Hurry app before, and must not be on the same network as other accounts. Only by meeting all these conditions will the invitation be successful and rewards be granted
                 </p>
-
               </div>
             </div>
           </div>
@@ -417,41 +392,25 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsGiftRulesPopupOpen(false)}
         >
-          {/* Popup Container */}
+          {/* Popup Container - Made Smaller */}
           <div 
-            className="relative w-full max-w-[340px]"
+            className="relative w-full max-w-[300px]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close X Button at Top Right */}
-            <button
-              onClick={() => setIsGiftRulesPopupOpen(false)}
-              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={20} strokeWidth={2.5} />
-            </button>
-
-            {/* Rules Banner Image */}
-            <div className="relative flex justify-center -mb-4 z-10">
-              <ChromaKeyImage 
-                src="/1788074201753~2.jpg" 
-                alt="Rules Banner" 
-                className="object-contain pointer-events-none"
-                style={{ width: '220px', height: 'auto' }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center pt-1">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
+            
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
                   Rules
                 </span>
               </div>
-            </div>
 
-            {/* Main Purple Content Box */}
-            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
-              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
-                <p>
-                  If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
-                </p>
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
               </div>
             </div>
           </div>
@@ -465,44 +424,30 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsRechargeRulesPopupOpen(false)}
         >
-          {/* Popup Container */}
+          {/* Popup Container - Made Smaller */}
           <div 
-            className="relative w-full max-w-[340px]"
+            className="relative w-full max-w-[300px]"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close X Button at Top Right */}
-            <button
-              onClick={() => setIsRechargeRulesPopupOpen(false)}
-              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
-              aria-label="Close"
-            >
-              <X size={20} strokeWidth={2.5} />
-            </button>
-
-            {/* Rules Banner Image */}
-            <div className="relative flex justify-center -mb-4 z-10">
-              <ChromaKeyImage 
-                src="/1788074201753~2.jpg" 
-                alt="Rules Banner" 
-                className="object-contain pointer-events-none"
-                style={{ width: '220px', height: 'auto' }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center pt-1">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
+            
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
                   Rules
                 </span>
               </div>
-            </div>
 
-            {/* Main Purple Content Box */}
-            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
-              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
-                <p>
-                  If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
-                </p>
-                <p>
-                  All rewards will be Send by our Hurry team On 1st of Every month
-                </p>
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+              </div>
+
+              {/* New line added for the monthly rewards note */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium mt-2">
+                All rewards will be Send by our Hurry team On 1st of Every month
               </div>
             </div>
           </div>
@@ -517,8 +462,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
       {/* Bottom Sheet */}
       <div className={`fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out shadow-2xl flex flex-col px-4 py-2 border-0 outline-none ${ isSheetOpen ? 'translate-y-0' : 'translate-y-full' }`} style={{ border: 'none' }}>
-        {/* REMOVED: Close X Button row */}
-
         <div className="flex-1 grid grid-cols-4 gap-2 items-center justify-center text-center pb-2 pt-4">
           <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center justify-center gap-1.5 group cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><WhatsAppIcon size={24} /></div>
