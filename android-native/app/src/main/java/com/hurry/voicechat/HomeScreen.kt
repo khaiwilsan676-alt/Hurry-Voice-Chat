@@ -110,37 +110,40 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                     }
                 }
             }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-4).dp).padding(top = 0.dp, bottom = 1.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
-                HurryCategoryCard("Charm", CHARM_BG, Modifier.weight(1f))
-                HurryCategoryCard("Room", ROOM_BG, Modifier.weight(1f))
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-4).dp).padding(top = 0.dp, bottom = 1.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
+                    HurryCategoryCard("Charm", CHARM_BG, Modifier.weight(1f))
+                    HurryCategoryCard("Room", ROOM_BG, Modifier.weight(1f))
+                }
             }
-        }
 
-        if (rooms == null) {
-            item { Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment=Alignment.Center) { CircularProgressIndicator(color=HurryBlue, strokeWidth=2.dp) } }
-        } else if (rooms!!.isEmpty()) {
-            item { Text("No rooms available", Modifier.padding(20.dp), color=HurryMuted, fontSize=14.sp) }
-        } else {
-            val roomRows = rooms!!.chunked(2)
-            items(roomRows) { row ->
-                Row(Modifier.fillMaxWidth().padding(horizontal=0.dp), horizontalArrangement=Arrangement.spacedBy(0.dp)) {
-                    row.forEach { room -> RoomListCard(room, onRoom, Modifier.weight(1f)) }
-                    if (row.size == 1) Spacer(Modifier.weight(1f))
+            if (rooms == null) {
+                item { Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment=Alignment.Center) { CircularProgressIndicator(color=HurryBlue, strokeWidth=2.dp) } }
+            } else if (rooms!!.isEmpty()) {
+                item { Text("No rooms available", Modifier.padding(20.dp), color=HurryMuted, fontSize=14.sp) }
+            } else {
+                val roomRows = rooms!!.chunked(2)
+                items(roomRows) { row ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal=12.dp),
+                        horizontalArrangement=Arrangement.spacedBy(4.dp)
+                    ) {
+                        row.forEach { room -> RoomListCard(room, onRoom, Modifier.weight(1f)) }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
                 }
             }
         }
-    }
     }
 }
 
 @Composable
 private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxWidth().padding(horizontal=6.dp, vertical=2.dp).clickable { onRoom(room) }) {
+    Column(modifier.fillMaxWidth().clickable { onRoom(room) }) {
         Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(10.dp))) {
             AsyncImage(model=if(room.image.startsWith("http")) room.image else RAW + room.image.trimStart('/'), contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
         }
