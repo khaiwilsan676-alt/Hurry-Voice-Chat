@@ -235,25 +235,72 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
 }
 
 @Composable private fun PaymentSheet(onClose:()->Unit,onRecharge:()->Unit){
- Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
-  Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart=28.dp,topEnd=28.dp)).background(Color.White).padding(bottom=20.dp)){
-   Row(Modifier.fillMaxWidth().padding(vertical=16.dp,horizontal=20.dp),verticalAlignment=Alignment.CenterVertically){
-    Spacer(Modifier.width(44.dp));Text("Payment Method",Modifier.weight(1f),textAlign=TextAlign.Center,fontSize=18.sp,fontWeight=FontWeight.Bold)
-    Text("×",Modifier.size(44.dp).clickable{onClose()},fontSize=24.sp,textAlign=TextAlign.Center)
+ Box(Modifier.fillMaxSize().clickable{onClose()},contentAlignment=Alignment.BottomCenter){
+  Column(
+   Modifier
+    .fillMaxWidth()
+    .clickable(enabled=false){}
+    .clip(RoundedCornerShape(topStart=28.dp,topEnd=28.dp))
+    .background(Color.White)
+  ){
+   Row(
+    Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=16.dp),
+    verticalAlignment=Alignment.CenterVertically
+   ){
+    Text("Payment Method",Modifier.weight(1f),textAlign=TextAlign.Center,fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+    Row(
+     Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFFF3F4F6)).padding(horizontal=8.dp,vertical=4.dp),
+     verticalAlignment=Alignment.CenterVertically
+    ){
+     Text("🇮🇳",fontSize=12.sp)
+     Text("in",Modifier.padding(start=5.dp),fontSize=13.sp,fontWeight=FontWeight.Medium,color=Color(0xFF374151))
+    }
    }
-   Row(Modifier.fillMaxWidth().padding(horizontal=20.dp).background(Color(0xFFF8F9FA),RoundedCornerShape(12.dp)).padding(14.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
-    Column{Text("Coins",fontSize=13.sp,color=Color.Gray);Row(verticalAlignment=Alignment.CenterVertically){AsyncImage(RAW_WALLET+"file_00000000e56882119c217d508b6733dc.png",null,Modifier.size(20.dp));Text("1,030,000",Modifier.padding(start=6.dp),fontSize=18.sp,fontWeight=FontWeight.Bold)}}
-    Column(horizontalAlignment=Alignment.End){Text("Price",fontSize=13.sp,color=Color.Gray);Text("₹100.00",fontSize=18.sp,fontWeight=FontWeight.Bold)}
+   Row(
+    Modifier.fillMaxWidth().padding(horizontal=20.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFFF8F9FA)).padding(14.dp),
+    verticalAlignment=Alignment.CenterVertically,
+    horizontalArrangement=Arrangement.SpaceBetween
+   ){
+    Column{
+     Text("Coins",fontSize=13.sp,color=Color(0xFF6B7280),fontWeight=FontWeight.Medium)
+     Row(Modifier.padding(top=4.dp),verticalAlignment=Alignment.CenterVertically){
+      AsyncImage(RAW_WALLET+"file_00000000e56882119c217d508b6733dc.png",null,Modifier.size(20.dp),contentScale=ContentScale.Fit)
+      Text("1,030,000",Modifier.padding(start=6.dp),fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+     }
+    }
+    Column(horizontalAlignment=Alignment.End){
+     Text("Price",fontSize=13.sp,color=Color(0xFF6B7280),fontWeight=FontWeight.Medium)
+     Text("₹100.00",Modifier.padding(top=4.dp),fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+    }
    }
-   Text("Select payment method",Modifier.padding(20.dp),fontSize=13.sp,color=Color.Gray)
-   Row(Modifier.fillMaxWidth().padding(horizontal=20.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(14.dp)){
-    Text("UPI",fontSize=18.sp,fontWeight=FontWeight.Black)
-    Text("G",fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color(0xFF4285F4))
-    Text("पे",fontSize=13.sp,fontWeight=FontWeight.Bold,color=Color(0xFF5F259F))
-    Text("Paytm",fontSize=13.sp,fontWeight=FontWeight.Black,color=Color(0xFF002970))
-    Spacer(Modifier.weight(1f));Text("🪙 1,030,000",fontSize=12.sp,fontWeight=FontWeight.SemiBold)
+   Text("Select payment method",Modifier.padding(start=20.dp,top=16.dp,bottom=14.dp),fontSize=13.sp,color=Color(0xFF6B7280),fontWeight=FontWeight.Medium)
+   Row(
+    Modifier.fillMaxWidth().padding(horizontal=20.dp),
+    verticalAlignment=Alignment.CenterVertically
+   ){
+    Text("UPI",fontSize=18.sp,fontWeight=FontWeight.Black,color=Color(0xFF1F2937))
+    Box(Modifier.padding(start=10.dp).size(18.dp),contentAlignment=Alignment.Center){
+     Text("G",fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color(0xFF4285F4))
+    }
+    Box(Modifier.padding(start=8.dp).size(18.dp).clip(RoundedCornerShape(4.dp)).background(Color(0xFF5F259F)),contentAlignment=Alignment.Center){
+     Text("पे",fontSize=10.sp,fontWeight=FontWeight.Bold,color=Color.White)
+    }
+    Text("Paytm",Modifier.padding(start=8.dp),fontSize=13.sp,fontWeight=FontWeight.Black,color=Color(0xFF002970))
+    Spacer(Modifier.weight(1f))
+    Row(verticalAlignment=Alignment.CenterVertically){
+     AsyncImage(RAW_WALLET+"file_00000000e56882119c217d508b6733dc.png",null,Modifier.size(16.dp),contentScale=ContentScale.Fit)
+     Text("1,030,000",Modifier.padding(start=4.dp),fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=Color(0xFF111827))
+    }
+    Box(Modifier.padding(start=12.dp).size(20.dp).clip(RoundedCornerShape(50)).border(2.dp,Color(0xFF22C55E),RoundedCornerShape(50)),contentAlignment=Alignment.Center){
+     Box(Modifier.size(10.dp).clip(RoundedCornerShape(50)).background(Color(0xFF22C55E)))
+    }
    }
-   Button(onClick=onRecharge,Modifier.fillMaxWidth().padding(20.dp),shape=RoundedCornerShape(12.dp),colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF0044FF))){Text("Recharge",fontSize=16.sp,fontWeight=FontWeight.Bold)}
+   Box(
+    Modifier.fillMaxWidth().padding(horizontal=20.dp,vertical=20.dp).height(50.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF0044FF)).clickable{onRecharge()},
+    contentAlignment=Alignment.Center
+   ){
+    Text("Recharge",fontSize=16.sp,fontWeight=FontWeight.Bold,color=Color.White)
+   }
   }
  }
 }
