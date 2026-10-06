@@ -107,12 +107,12 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
        Input("Coins",cin,Modifier.weight(1f)){cin=it;din=((it.toLongOrNull()?:0)*100/33).toString()}
       }
      }
-     Text("exchange rate",Modifier.padding(top=16.dp),fontSize=11.sp,fontWeight=FontWeight.Bold,color=Color.Gray)
-     Row(Modifier.fillMaxWidth().padding(top=7.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
-      listOf("20%","40%","60%","80%","100%").forEach{r->Box(Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp)).background(if(rate==r)Color(0xFF0044FF) else Color.White).clickable{rate=r},contentAlignment=Alignment.Center){Text(r,fontSize=11.sp,fontWeight=FontWeight.Bold,color=if(rate==r)Color.White else Color(0xFF0044FF))}}
+     Text("Exchange rate",Modifier.padding(horizontal=16.dp).padding(top=18.dp),fontSize=14.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+     Row(Modifier.fillMaxWidth().padding(horizontal=16.dp).padding(top=10.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
+      listOf("20%","40%","60%","80%","100%").forEach{r->Box(Modifier.weight(1f).height(42.dp).clip(RoundedCornerShape(10.dp)).background(if(rate==r)Color(0xFF0044FF) else Color.White).clickable{rate=r},contentAlignment=Alignment.Center){Text(r,fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=if(rate==r)Color.White else Color(0xFF0044FF))}}
      }
      Spacer(Modifier.height(54.dp))
-     Box(Modifier.fillMaxWidth(.75f).height(50.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF)).clickable{
+     Box(Modifier.fillMaxWidth().padding(horizontal=16.dp).height(50.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF0044FF)).clickable{
       val d=din.toLongOrNull()?:0;val c=cin.toLongOrNull()?:0
       if(d>0&&d<=diamonds&&c>0){diamonds-=d;coins+=c;din="";cin=""}
      },contentAlignment=Alignment.Center){Text("Exchange",color=Color.White,fontWeight=FontWeight.Bold,fontSize=15.sp)}
