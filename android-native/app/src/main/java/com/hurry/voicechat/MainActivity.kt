@@ -119,8 +119,15 @@ private fun HurryLaunchScreen() {
     Box(
         Modifier
             .fillMaxSize()
-            .background(Color(0xFF111111))
+            .background(Color.Black)
     ) {
+        AsyncImage(
+            model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000003b34820ba9a4e048344ec207.png",
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,22 +135,12 @@ private fun HurryLaunchScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000003b34820ba9a4e048344ec207.png",
-                contentDescription = null,
-                modifier = Modifier
-                    .width(260.dp)
-                    .height(260.dp)
-                    .clip(RoundedCornerShape(24.dp)),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop
-            )
-            Spacer(Modifier.height(18.dp))
-            AsyncImage(
                 model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/assets/logo.png",
                 contentDescription = "Hurry logo",
                 modifier = Modifier
                     .width(52.dp)
                     .height(52.dp)
-                    .clip(RoundedCornerShape(14.dp)),
+                    .clip(RoundedCornerShape(20.dp)),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
             Spacer(Modifier.height(8.dp))
