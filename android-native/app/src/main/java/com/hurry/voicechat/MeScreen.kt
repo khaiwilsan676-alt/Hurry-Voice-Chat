@@ -112,12 +112,12 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
         }
 
         item {
-            MenuCard(topItems, onOpen, Modifier.offset(y = (-56).dp))
+            MenuCard(topItems, onOpen, Modifier.offset(y = (-68).dp))
         }
 
         item {
             val bottom = listOf("Language Setting", "Settings", "Customer Service", "Help & Feedback")
-            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 2.dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
+            Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 2.dp).offset(y = (-12).dp).clip(RoundedCornerShape(6.dp)).background(Color.White)) {
                 bottom.forEach { label ->
                     Row(
                         Modifier.fillMaxWidth().clickable { onOpen(label) }.padding(horizontal = 16.dp, vertical = 15.dp),
