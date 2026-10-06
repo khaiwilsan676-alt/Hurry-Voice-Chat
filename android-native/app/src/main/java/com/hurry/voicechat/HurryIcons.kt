@@ -16,18 +16,40 @@ import androidx.compose.ui.unit.dp
 fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier.size(25.dp)) {
         val c = if (active) HurryBlue else Color(0xFF303030)
+        val stroke = 2.1.dp.toPx()
+
+        // Clean real-app style home: peaked roof, softly rounded body,
+        // and a single centered doorway — no square/box outline.
         val p = Path().apply {
-            moveTo(size.width * .12f, size.height * .48f)
-            lineTo(size.width * .5f, size.height * .14f)
-            lineTo(size.width * .88f, size.height * .48f)
-            lineTo(size.width * .82f, size.height * .48f)
-            lineTo(size.width * .82f, size.height * .88f)
-            lineTo(size.width * .18f, size.height * .88f)
-            lineTo(size.width * .18f, size.height * .48f)
+            moveTo(size.width * .10f, size.height * .47f)
+            lineTo(size.width * .50f, size.height * .12f)
+            lineTo(size.width * .90f, size.height * .47f)
+            moveTo(size.width * .20f, size.height * .40f)
+            lineTo(size.width * .20f, size.height * .78f)
+            quadraticBezierTo(
+                size.width * .20f, size.height * .88f,
+                size.width * .30f, size.height * .88f
+            )
+            lineTo(size.width * .70f, size.height * .88f)
+            quadraticBezierTo(
+                size.width * .80f, size.height * .88f,
+                size.width * .80f, size.height * .78f
+            )
+            lineTo(size.width * .80f, size.height * .40f)
         }
-        drawPath(path = p, color = c, style = Stroke(width = 2.1.dp.toPx(), join = StrokeJoin.Round))
-        drawLine(color = c, start = Offset(size.width*.43f,size.height*.88f), end = Offset(size.width*.43f,size.height*.61f), strokeWidth = 2.1.dp.toPx(), cap = StrokeCap.Round)
-        drawLine(color = c, start = Offset(size.width*.57f,size.height*.88f), end = Offset(size.width*.57f,size.height*.61f), strokeWidth = 2.1.dp.toPx(), cap = StrokeCap.Round)
+
+        drawPath(
+            path = p,
+            color = c,
+            style = Stroke(width = stroke, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
+        drawRoundRect(
+            color = c,
+            topLeft = Offset(size.width * .40f, size.height * .63f),
+            size = androidx.compose.ui.geometry.Size(size.width * .20f, size.height * .25f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.5.dp.toPx()),
+            style = Stroke(width = stroke, cap = StrokeCap.Round)
+        )
     }
 }
 
