@@ -44,7 +44,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
    ).statusBarsPadding()
   ){
    Row(Modifier.fillMaxWidth().height(48.dp).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically){
-    Box(Modifier.size(44.dp).clickable{onBack()} .indication(null, androidx.compose.foundation.interaction.MutableInteractionSource()),contentAlignment=Alignment.Center){
+    Box(Modifier.size(44.dp).clickable{onBack()},contentAlignment=Alignment.Center){
      androidx.compose.foundation.Canvas(Modifier.size(24.dp)){
       val c=Color.White
       val stroke=androidx.compose.ui.graphics.drawscope.Stroke(width=2.4.dp.toPx(),cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round)
