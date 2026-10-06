@@ -165,9 +165,9 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=4.dp).offset(y=2.dp)) {
             AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(end=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp),contentScale=ContentScale.Crop)
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).padding(start=1.dp).offset(y=1.dp),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(end=1.dp),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp).clip(RoundedCornerShape(50)).then(Modifier.padding(1.5.dp)),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(start=1.dp),contentScale=ContentScale.Crop)
             }
         }
     }
