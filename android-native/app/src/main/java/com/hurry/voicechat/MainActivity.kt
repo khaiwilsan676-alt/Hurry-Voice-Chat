@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showLaunch by remember { mutableStateOf(true) }
             LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(1200)
                 showLaunch = false
                 checkForHurryUpdate()
             }
@@ -114,33 +115,38 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HurryLaunchScreen() {
-    Box(Modifier.fillMaxSize()) {
-        AsyncImage(
-            model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000003b34820ba9a4e048344ec207.png",
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = androidx.compose.ui.layout.ContentScale.Crop
-        )
-        Row(
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color(0xFF111111))
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    top = LocalConfiguration.current.screenHeightDp.dp * 0.20f,
-                    start = 16.dp,
-                    end = 16.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = screenHeight * 0.20f),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/logo.png",
-                contentDescription = "Hurry logo",
+                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000003b34820ba9a4e048344ec207.png",
+                contentDescription = null,
                 modifier = Modifier
-                    .width(58.dp)
-                    .height(58.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .width(260.dp)
+                    .height(260.dp)
+                    .clip(RoundedCornerShape(24.dp)),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.height(18.dp))
+            AsyncImage(
+                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/assets/logo.png",
+                contentDescription = "Hurry logo",
+                modifier = Modifier
+                    .width(52.dp)
+                    .height(52.dp)
+                    .clip(RoundedCornerShape(14.dp)),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+            Spacer(Modifier.height(8.dp))
             Text(
                 "Hurry",
                 fontSize = 28.sp,
@@ -150,7 +156,6 @@ private fun HurryLaunchScreen() {
         }
     }
 }
-
 @Composable
 private fun HurryNativeRoot() {
     var tab by remember { mutableStateOf(HurryTab.HOME) }
