@@ -195,7 +195,9 @@ private fun HurryNativeRoot() {
                             else MeScreen(onOpen = { openedMePage = it })
                         }
                     }
-                    HurryBottomNav(tab, onTab = { tab = it })
+                    if (openedMePage == null) {
+                        HurryBottomNav(tab, onTab = { tab = it })
+                    }
                 }
             }
         }
