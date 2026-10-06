@@ -225,6 +225,9 @@ export default function Family({ onBack }: FamilyProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [userCoins, setUserCoins] = useState(0) // Initially 0 coins
 
+  // RULES SHEET STATE (ONLY FOR TOP RANKINGS PAGE)
+  const [showRules, setShowRules] = useState(false)
+
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
     if (savedMembers) {
@@ -322,7 +325,7 @@ export default function Family({ onBack }: FamilyProps) {
   }
 
   // ==========================================
-  // VIEW 4: TOP RANKINGS PAGE
+  // VIEW 4: TOP RANKINGS PAGE (YAHAN RULES SHEET HAI)
   // ==========================================
   if (currentView === 'topRankings') {
     return (
@@ -376,9 +379,10 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
+          {/* YAHAN RULES SHEET OPEN HOTI HAI */}
           <button
             type="button"
-            onClick={() => alert("Details")}
+            onClick={() => setShowRules(true)}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
           >
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
@@ -604,6 +608,37 @@ export default function Family({ onBack }: FamilyProps) {
             )}
           </div>
         )}
+
+        {/* RULES SHEET MODAL - SIRF TOP RANKINGS PAGE PAR */}
+        {showRules && (
+          <div 
+            className="fixed inset-0 bg-black/70 z-[100] flex items-end justify-center"
+            onClick={() => setShowRules(false)}
+          >
+            <div 
+              className="bg-[#1a1108] w-full max-h-[80vh] rounded-t-3xl flex flex-col shadow-[0_-5px_30px_rgba(0,0,0,0.8)] border-t border-[#FFD700]/30 relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header - NO X BUTTON */}
+              <div className="p-4 border-b border-[#FFD700]/20 sticky top-0 bg-[#1a1108] z-10 rounded-t-3xl">
+                <h2 className="text-xl font-bold text-[#FFD700] tracking-wide">Family rules</h2>
+              </div>
+              
+              {/* Scrollable Content */}
+              <div className="p-5 overflow-y-auto text-gray-300 space-y-4 text-sm leading-relaxed">
+                <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
+                <p>2. There is no need to wait for official approval.</p>
+                <p>3. A family can have a maximum of 100 members.</p>
+                <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
+                <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
+                <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
+                <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
+                <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
+                <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -746,7 +781,7 @@ export default function Family({ onBack }: FamilyProps) {
   }
 
   // ==========================================
-  // VIEW 1: MAIN FAMILY PAGE
+  // VIEW 1: MAIN FAMILY PAGE (YAHAN ALERT HI HAI)
   // ==========================================
   return (
     <div className="min-h-screen bg-[#1a0d06] flex flex-col relative overflow-y-auto overflow-x-hidden font-sans text-white">
@@ -784,7 +819,13 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
-          <button type="button" onClick={() => alert("Details")} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
+          {/* MAIN PAGE ICON - WAPAS ALERT PAR */}
+          <button 
+            type="button" 
+            onClick={() => alert("Details")} 
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" 
+            aria-label="Details"
+          >
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
