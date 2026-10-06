@@ -6,7 +6,8 @@ import {
   Link2, 
   MoreHorizontal, 
   X,
-  ChevronRight
+  ChevronRight,
+  HelpCircle
 } from 'lucide-react'
 
 // WebShader / Chroma Key Component jo sirf GREEN background remove karta hai
@@ -282,18 +283,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '50px', height: '50px' }} />
               <div className="text-yellow-400 font-bold text-3xl drop-shadow-md leading-none mt-1">0</div>
               
-              {/* UPDATED CLAIM BUTTON WITH BORDER */}
+              {/* CLAIM BUTTON (Blue diamonds removed) */}
               <div className="relative mt-3 flex items-center justify-center">
-                {/* Left Diamond */}
-                <div className="absolute -left-[5px] w-2 h-2 rotate-45 bg-gradient-to-br from-cyan-300 to-blue-500 border border-yellow-300 z-20 shadow-[0_0_4px_rgba(0,0,0,0.5)]"></div>
-                
-                {/* Main Button */}
                 <button className="relative z-10 bg-gradient-to-b from-[#e62e2e] via-[#b80d0d] to-[#7a0000] text-yellow-300 font-extrabold text-sm rounded-full px-10 py-1.5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_4px_0_#4a0000] border-[1.5px] border-yellow-400 active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_0px_0_#4a0000] active:translate-y-1 transition-all cursor-pointer drop-shadow-md">
                   Claim
                 </button>
-                
-                {/* Right Diamond */}
-                <div className="absolute -right-[5px] w-2 h-2 rotate-45 bg-gradient-to-br from-cyan-300 to-blue-500 border border-yellow-300 z-20 shadow-[0_0_4px_rgba(0,0,0,0.5)]"></div>
               </div>
               {/* END CLAIM BUTTON */}
 
@@ -338,31 +332,78 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
+      {/* Details / Help Icon - Fixed at Top Right Corner */}
+      <div className="fixed top-0 right-0 z-[60] flex items-center pl-4 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pointer-events-auto">
+        <button
+          onClick={() => setIsRulesPopupOpen(true)}
+          className="p-1 text-white hover:text-white/80 transition-colors cursor-pointer active:scale-95"
+          aria-label="Details"
+        >
+          <HelpCircle size={28} />
+        </button>
+      </div>
+
       {/* --- INVITE FRIENDS RULES POPUP START --- */}
       {isRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsRulesPopupOpen(false)}
         >
-          {/* Popup Container - Made Smaller */}
+          {/* Popup Container */}
           <div 
-            className="relative w-full max-w-[300px]"
+            className="relative w-full max-w-[340px]"
             onClick={(e) => e.stopPropagation()}
           >
-            
-            {/* Purple Box - Text Background Colour matched to Screenshot */}
-            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-              
-              {/* Centered Heading "Rules" added at the top of the card */}
-              <div className="text-center mb-3">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+            {/* Close X Button at Top Right */}
+            <button
+              onClick={() => setIsRulesPopupOpen(false)}
+              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+
+            {/* Rules Banner Image (Top ornamental header) */}
+            <div className="relative flex justify-center -mb-4 z-10">
+              <ChromaKeyImage 
+                src="/1788074201753~2.jpg" 
+                alt="Rules Banner" 
+                className="object-contain pointer-events-none"
+                style={{ width: '220px', height: 'auto' }}
+              />
+              {/* "Rules" text over the banner */}
+              <div className="absolute inset-0 flex items-center justify-center pt-1">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
                   Rules
                 </span>
               </div>
+            </div>
 
-              {/* Text Content - Made Smaller Font */}
-              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
-                Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
+            {/* Main Purple Content Box */}
+            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
+              {/* Text Content */}
+              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
+                
+                {/* Paragraph 1 */}
+                <p>
+                  If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+                </p>
+
+                {/* Paragraph 2 */}
+                <p>
+                  If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+                </p>
+
+                {/* Paragraph 3 */}
+                <p>
+                  All rewards will be Send by our Hurry team On 1st of Every month.
+                </p>
+
+                {/* Paragraph 4 */}
+                <p>
+                  The friend's phone must never have downloaded and registered the Hurry app before, and must not be on the same network as other accounts. Only by meeting all these conditions will the invitation be successful and rewards be granted
+                </p>
+
               </div>
             </div>
           </div>
@@ -376,25 +417,41 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsGiftRulesPopupOpen(false)}
         >
-          {/* Popup Container - Made Smaller */}
+          {/* Popup Container */}
           <div 
-            className="relative w-full max-w-[300px]"
+            className="relative w-full max-w-[340px]"
             onClick={(e) => e.stopPropagation()}
           >
-            
-            {/* Purple Box - Text Background Colour matched to Screenshot */}
-            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-              
-              {/* Centered Heading "Rules" added at the top of the card */}
-              <div className="text-center mb-3">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+            {/* Close X Button at Top Right */}
+            <button
+              onClick={() => setIsGiftRulesPopupOpen(false)}
+              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+
+            {/* Rules Banner Image */}
+            <div className="relative flex justify-center -mb-4 z-10">
+              <ChromaKeyImage 
+                src="/1788074201753~2.jpg" 
+                alt="Rules Banner" 
+                className="object-contain pointer-events-none"
+                style={{ width: '220px', height: 'auto' }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center pt-1">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
                   Rules
                 </span>
               </div>
+            </div>
 
-              {/* Text Content - Made Smaller Font */}
-              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
-                If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+            {/* Main Purple Content Box */}
+            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
+              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
+                <p>
+                  If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+                </p>
               </div>
             </div>
           </div>
@@ -408,30 +465,44 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsRechargeRulesPopupOpen(false)}
         >
-          {/* Popup Container - Made Smaller */}
+          {/* Popup Container */}
           <div 
-            className="relative w-full max-w-[300px]"
+            className="relative w-full max-w-[340px]"
             onClick={(e) => e.stopPropagation()}
           >
-            
-            {/* Purple Box - Text Background Colour matched to Screenshot */}
-            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-              
-              {/* Centered Heading "Rules" added at the top of the card */}
-              <div className="text-center mb-3">
-                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+            {/* Close X Button at Top Right */}
+            <button
+              onClick={() => setIsRechargeRulesPopupOpen(false)}
+              className="absolute -top-10 right-0 z-20 w-9 h-9 rounded-full bg-transparent border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-colors cursor-pointer"
+              aria-label="Close"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+
+            {/* Rules Banner Image */}
+            <div className="relative flex justify-center -mb-4 z-10">
+              <ChromaKeyImage 
+                src="/1788074201753~2.jpg" 
+                alt="Rules Banner" 
+                className="object-contain pointer-events-none"
+                style={{ width: '220px', height: 'auto' }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center pt-1">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)] tracking-wider">
                   Rules
                 </span>
               </div>
+            </div>
 
-              {/* Text Content - Made Smaller Font */}
-              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
-                If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
-              </div>
-
-              {/* New line added for the monthly rewards note */}
-              <div className="text-white text-center text-[12px] leading-relaxed font-medium mt-2">
-                All rewards will be Send by our Hurry team On 1st of Every month
+            {/* Main Purple Content Box */}
+            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] px-5 pt-8 pb-5 shadow-[0_0_25px_rgba(250,204,21,0.35)]">
+              <div className="text-white text-left text-[13px] leading-relaxed font-medium space-y-4">
+                <p>
+                  If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+                </p>
+                <p>
+                  All rewards will be Send by our Hurry team On 1st of Every month
+                </p>
               </div>
             </div>
           </div>
