@@ -35,11 +35,40 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
  val banner=if(tab==1)"file_0000000085a482088fb089cb76f3d1af.png" else "file_00000000f3d88211964f0057da4bc797.png"
 
  Box(Modifier.fillMaxSize().background(Color.White)){
-  Column(Modifier.fillMaxSize().statusBarsPadding()){
+  Column(
+   Modifier.fillMaxSize().background(
+    androidx.compose.ui.graphics.Brush.verticalGradient(
+     listOf(Color(0xFF3B82F6),Color(0xFF60A5FA),Color(0xFFEFF6FF)),
+     startY=0f,endY=180f
+    )
+   ).statusBarsPadding()
+  ){
    Row(Modifier.fillMaxWidth().height(48.dp).padding(horizontal=4.dp),verticalAlignment=Alignment.CenterVertically){
-    Text("‹",Modifier.size(44.dp).clickable{onBack()},fontSize=38.sp,color=Color(0xFF111827),textAlign=TextAlign.Center)
-    Text("Recharge",Modifier.weight(1f),textAlign=TextAlign.Center,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
-    Box(Modifier.size(44.dp),contentAlignment=Alignment.Center){Text("▤",fontSize=20.sp,color=Color(0xFF111827))}
+    Box(Modifier.size(44.dp).clickable{onBack()},contentAlignment=Alignment.Center){
+     androidx.compose.foundation.Canvas(Modifier.size(24.dp)){
+      val c=Color.White
+      val stroke=androidx.compose.ui.graphics.drawscope.Stroke(width=2.4.dp.toPx(),cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),strokeWidth=stroke.width)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.22f),strokeWidth=stroke.width)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.78f),strokeWidth=stroke.width)
+     }
+    }
+    Text("Recharge",Modifier.weight(1f),textAlign=TextAlign.Center,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White)
+    Box(Modifier.size(44.dp),contentAlignment=Alignment.Center){
+     androidx.compose.foundation.Canvas(Modifier.size(23.dp)){
+      val c=Color.White
+      val stroke=androidx.compose.ui.graphics.drawscope.Stroke(width=2.dp.toPx(),join=androidx.compose.ui.graphics.StrokeJoin.Round)
+      val p=androidx.compose.ui.graphics.Path().apply{
+       moveTo(size.width*.25f,size.height*.10f); lineTo(size.width*.65f,size.height*.10f); lineTo(size.width*.82f,size.height*.27f)
+       lineTo(size.width*.82f,size.height*.90f); lineTo(size.width*.25f,size.height*.90f); close()
+      }
+      drawPath(p,c,style=stroke)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.10f),androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),strokeWidth=stroke.width)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.28f),strokeWidth=stroke.width)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.47f),androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.47f),strokeWidth=stroke.width)
+      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.64f),androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.64f),strokeWidth=stroke.width)
+     }
+    }
    }
 
    Column(Modifier.fillMaxSize().padding(horizontal=16.dp)){
