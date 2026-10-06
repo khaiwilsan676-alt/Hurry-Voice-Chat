@@ -166,7 +166,7 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
             AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
             Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(end=1.dp),contentScale=ContentScale.Crop)
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp).clip(RoundedCornerShape(50)).then(Modifier.padding(1.5.dp)),contentScale=ContentScale.Crop)
+                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp).clip(RoundedCornerShape(50)).padding(1.5.dp),contentScale=ContentScale.Crop)
                 AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(start=1.dp),contentScale=ContentScale.Crop)
             }
         }
