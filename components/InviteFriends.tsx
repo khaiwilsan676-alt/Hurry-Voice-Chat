@@ -343,7 +343,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* --- INVITE FRIENDS RULES POPUP START --- */}
+      {/* --- INVITE FRIENDS RULES POPUP START (Top Right Help Icon wala - PURANA 4 POINT TEXT) --- */}
       {isRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -365,10 +365,22 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                 </span>
               </div>
 
-              {/* Text Content - Made Smaller Font */}
+              {/* Text Content - PURANA 4 POINT WALA TEXT WAPAS */}
               <div className="text-white text-left text-[11px] leading-relaxed font-medium space-y-2">
                 <p>
-                  Invite one friend get 1,50,000 coin for the first day and get 1,00,000 coin if the Invited login again within 3 days you can get a maximum of 2,50,000 coin for inviting one friend.
+                  1. Invite a friend to register and receive instant coins. You will get 100,000 coins when they log in. If your friend logs into the Hurry app the next day or within 3 days, they will receive an additional 150,000 coins.
+                </p>
+                <p>
+                  2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.
+                </p>
+                <p>
+                  3. The Hurry app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.
+                </p>
+                <p>
+                  4. Invite your friends; you will earn free coins when they recharge or send gifts.
+                </p>
+                <p className="pt-1 text-center">
+                  (Best regards  The Hurry Team)
                 </p>
               </div>
             </div>
