@@ -306,19 +306,62 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
 }
 
 @Composable private fun PaySheet(onClose:()->Unit,onSelect:()->Unit){
- Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
-  Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart=28.dp,topEnd=28.dp)).background(Color.White).padding(bottom=20.dp)){
-   Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically){
-    Spacer(Modifier.weight(1f));Text("Pay Using",Modifier.weight(2f),textAlign=TextAlign.Center,fontSize=17.sp,fontWeight=FontWeight.Bold);Text("×",Modifier.weight(1f).clickable{onClose()},fontSize=24.sp,textAlign=TextAlign.Center)
-   }
-   listOf("GPay","PhonePe","Paytm","Other").forEachIndexed{idx,n->
-    Row(Modifier.fillMaxWidth().clickable{onSelect()}.padding(horizontal=20.dp,vertical=14.dp),verticalAlignment=Alignment.CenterVertically){
-     Box(Modifier.size(44.dp).clip(RoundedCornerShape(50)).background(if(n=="PhonePe")Color(0xFF5F259F) else Color(0xFFF3F4F6)),contentAlignment=Alignment.Center){
-      Text(if(n=="GPay")"G" else if(n=="PhonePe")"पे" else if(n=="Paytm")"Paytm" else "…",fontWeight=FontWeight.Bold,color=if(n=="PhonePe")Color.White else Color(0xFF111827),fontSize=if(n=="Paytm")11.sp else 17.sp)
-     }
-     Text(n,Modifier.padding(start=16.dp),fontSize=16.sp,color=Color(0xFF111827))
+ Box(Modifier.fillMaxSize().clickable{onClose()},contentAlignment=Alignment.BottomCenter){
+  Column(
+   Modifier
+    .fillMaxWidth()
+    .clickable(enabled=false){}
+    .clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp))
+    .background(Color.White)
+    .padding(bottom=8.dp)
+  ){
+   Row(
+    Modifier.fillMaxWidth().padding(vertical=16.dp,horizontal=16.dp).border(1.dp,Color(0xFFF3F4F6),RoundedCornerShape(topStart=24.dp,topEnd=24.dp)),
+    verticalAlignment=Alignment.CenterVertically
+   ){
+    Spacer(Modifier.weight(1f))
+    Text("Pay Using",Modifier.weight(2f),textAlign=TextAlign.Center,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color(0xFF111827))
+    Box(Modifier.weight(1f),contentAlignment=Alignment.CenterEnd){
+     Text("×",Modifier.size(28.dp).clickable{onClose()},fontSize=24.sp,color=Color(0xFF111827),textAlign=TextAlign.Center)
     }
-    if(idx<3)HorizontalDivider(color=Color(0xFFF3F4F6))
+   }
+   Column(Modifier.fillMaxWidth().padding(horizontal=20.dp)){
+    Row(Modifier.fillMaxWidth().clickable{onSelect()}.padding(vertical=16.dp),verticalAlignment=Alignment.CenterVertically){
+     Box(Modifier.size(44.dp).clip(RoundedCornerShape(50)).background(Color.White).border(1.dp,Color(0xFFE5E7EB),RoundedCornerShape(50)),contentAlignment=Alignment.Center){
+      androidx.compose.foundation.Image(
+       painter=androidx.compose.ui.res.painterResource(com.hurry.voicechat.R.drawable.ic_gpay),
+       contentDescription=null,
+       modifier=Modifier.size(22.dp)
+      )
+     }
+     Text("GPay",Modifier.padding(start=16.dp),fontSize=16.sp,fontWeight=FontWeight.Medium,color=Color(0xFF111827))
+    }
+    HorizontalDivider(color=Color(0xFFF9FAFB))
+    Row(Modifier.fillMaxWidth().clickable{onSelect()}.padding(vertical=16.dp),verticalAlignment=Alignment.CenterVertically){
+     Box(Modifier.size(44.dp).clip(RoundedCornerShape(50)),contentAlignment=Alignment.Center){
+      Box(Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)).background(Color(0xFF5F259F)),contentAlignment=Alignment.Center){
+       Text("पे",fontSize=26.sp,fontWeight=FontWeight.Bold,color=Color.White,lineHeight=26.sp)
+      }
+     }
+     Text("PhonePe",Modifier.padding(start=16.dp),fontSize=16.sp,fontWeight=FontWeight.Medium,color=Color(0xFF111827))
+    }
+    HorizontalDivider(color=Color(0xFFF9FAFB))
+    Row(Modifier.fillMaxWidth().clickable{onSelect()}.padding(vertical=16.dp),verticalAlignment=Alignment.CenterVertically){
+     Box(Modifier.size(44.dp).clip(RoundedCornerShape(50)).background(Color.White).border(1.dp,Color(0xFFE5E7EB),RoundedCornerShape(50)),contentAlignment=Alignment.Center){
+      Row{
+       Text("Pay",fontSize=15.sp,fontWeight=FontWeight.Black,color=Color(0xFF002970))
+       Text("tm",fontSize=15.sp,fontWeight=FontWeight.Black,color=Color(0xFF00BAF2))
+      }
+     }
+     Text("Paytm",Modifier.padding(start=16.dp),fontSize=16.sp,fontWeight=FontWeight.Medium,color=Color(0xFF111827))
+    }
+    HorizontalDivider(color=Color(0xFFF9FAFB))
+    Row(Modifier.fillMaxWidth().clickable{onSelect()}.padding(vertical=16.dp),verticalAlignment=Alignment.CenterVertically){
+     Box(Modifier.size(44.dp).clip(RoundedCornerShape(50)).background(Color(0xFFF3F4F6)),contentAlignment=Alignment.Center){
+      Text("...",fontSize=17.sp,fontWeight=FontWeight.Black,color=Color(0xFF9CA3AF))
+     }
+     Text("Other",Modifier.padding(start=16.dp),fontSize=16.sp,fontWeight=FontWeight.Medium,color=Color(0xFF111827))
+    }
    }
   }
  }
