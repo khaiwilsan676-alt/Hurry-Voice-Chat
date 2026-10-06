@@ -131,15 +131,15 @@ private fun HurryLaunchScreen() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = screenHeight * 0.20f),
+                .padding(top = screenHeight * 0.35f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
                 model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/assets/logo.png",
                 contentDescription = "Hurry logo",
                 modifier = Modifier
-                    .width(52.dp)
-                    .height(52.dp)
+                    .width(68.dp)
+                    .height(68.dp)
                     .clip(RoundedCornerShape(20.dp)),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
