@@ -144,7 +144,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const handleBack = onBack || onClose || (() => {})
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) // New state for Rules Popup
+  const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) 
   
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
   const inviteCode = userId !== 'N/A' ? userId : 'WELCOME123'
@@ -328,13 +328,14 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* --- NEW RULES POPUP START --- */}
+      {/* --- UPDATED RULES POPUP START --- */}
       {isRulesPopupOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-[360px]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+          {/* Popup Container - Made Smaller */}
+          <div className="relative w-full max-w-[300px]">
             
             {/* Ornate Header */}
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 w-[200px] pointer-events-none drop-shadow-lg">
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 w-[160px] pointer-events-none drop-shadow-lg">
               <ChromaKeyImage 
                 src="/1788074201753~2.jpg" 
                 alt="Header Ornament" 
@@ -347,26 +348,26 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               </div>
             </div>
 
-            {/* Purple Box */}
-            <div className="relative bg-[#6d196d] rounded-2xl border-[3px] border-[#facc15] p-6 pt-12 pb-8 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-12 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
               
               {/* Close Button */}
               <button 
                 onClick={() => setIsRulesPopupOpen(false)}
-                className="absolute -top-3 -right-3 w-8 h-8 bg-[#4d0515] rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-red-700 transition-colors cursor-pointer z-30 shadow-lg"
+                className="absolute -top-3 -right-3 w-7 h-7 bg-[#4d0515] rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-red-700 transition-colors cursor-pointer z-30 shadow-lg"
               >
-                <X size={20} strokeWidth={3} />
+                <X size={16} strokeWidth={3} />
               </button>
 
-              {/* Text Content */}
-              <div className="text-white text-center text-[14px] leading-relaxed font-medium">
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
                 Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* --- NEW RULES POPUP END --- */}
+      {/* --- UPDATED RULES POPUP END --- */}
 
       {/* Backdrop for Bottom Sheet */}
       {isSheetOpen && (
