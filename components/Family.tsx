@@ -331,21 +331,6 @@ export default function Family({ onBack }: FamilyProps) {
     setCurrentView('topRankings')
   }
 
-  const handleSave = () => {
-    if (!familyName.trim()) {
-      alert("Please enter a Family Name.")
-      return
-    }
-    
-    localStorage.setItem('familyName', familyName)
-    localStorage.setItem('familyAnnouncement', familyAnnouncement)
-    if (familyImage) localStorage.setItem('familyImage', familyImage)
-    localStorage.setItem('applyMode', applyModeState)
-    
-    alert("Changes saved successfully!")
-    setCurrentView('topRankings')
-  }
-
   // ==========================================
   // VIEW 4: TOP RANKINGS PAGE
   // ==========================================
@@ -401,7 +386,7 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
-          {/* ⭐ CHANGED: alert("Details") → setShowRulesSheet(true) */}
+          {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button
             type="button"
             onClick={() => setShowRulesSheet(true)}
@@ -667,7 +652,7 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-black" />
           </button>
           <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
-          <button onClick={handleSave} className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
+          {/* ⭐ SAVE BUTTON REMOVED */}
         </div>
 
         <div className="flex-1 w-full pb-36">
@@ -807,7 +792,7 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
-          {/* ⭐ CHANGED: alert("Details") → setShowRulesSheet(true) */}
+          {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
