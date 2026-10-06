@@ -32,9 +32,9 @@ fun MineNativePage(onBack: () -> Unit) {
                         0.60f to Color(0xFFEFF6FF),
                         1.0f to Color.White
                     )
-                )
+                ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
             ) {
-                Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(Modifier.wrapContentSize().clickable { onBack() }) {
                             Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
