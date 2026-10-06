@@ -46,7 +46,7 @@ fun MineNativePage(onBack: () -> Unit) {
                                 drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                             }
                         }
-                        Box(Modifier.wrapContentSize()) {
+                        Box(Modifier.wrapContentSize().clickable { }) {
                             Text("Mine", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
                             androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                 val p = androidx.compose.ui.graphics.Path().apply { moveTo(size.width * 0.22f, size.height * 0.98f); quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f) }
