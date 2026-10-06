@@ -112,7 +112,7 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
         }
 
         item {
-            MenuCard(topItems, onOpen, Modifier.offset(y = (-68).dp))
+            MenuCard(topItems, onOpen, Modifier.offset(y = (-76).dp))
         }
 
         item {
