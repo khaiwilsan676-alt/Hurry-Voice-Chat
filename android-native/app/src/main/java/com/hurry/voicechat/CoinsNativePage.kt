@@ -59,22 +59,36 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
       val c=Color.White
       val stroke=androidx.compose.ui.graphics.drawscope.Stroke(width=2.dp.toPx(),join=androidx.compose.ui.graphics.StrokeJoin.Round)
       val p=androidx.compose.ui.graphics.Path().apply{
-       moveTo(size.width*.25f,size.height*.10f); lineTo(size.width*.65f,size.height*.10f); lineTo(size.width*.82f,size.height*.27f)
-       lineTo(size.width*.82f,size.height*.90f); lineTo(size.width*.25f,size.height*.90f); close()
+       moveTo(size.width*.30f,size.height*.08f)
+       lineTo(size.width*.57f,size.height*.08f)
+       lineTo(size.width*.82f,size.height*.33f)
+       lineTo(size.width*.82f,size.height*.90f)
+       lineTo(size.width*.30f,size.height*.90f)
+       close()
       }
-      drawPath(path = p, color = c, style = stroke)
-      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.10f), end = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f), strokeWidth=stroke.width)
-      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f), end = androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.28f), strokeWidth=stroke.width)
-      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.47f), end = androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.47f), strokeWidth=stroke.width)
-      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.64f), end = androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.64f), strokeWidth=stroke.width)
+      drawPath(path=p,color=c,style=stroke)
+      drawLine(color=c,start=androidx.compose.ui.geometry.Offset(size.width*.57f,size.height*.08f),end=androidx.compose.ui.geometry.Offset(size.width*.57f,size.height*.33f),strokeWidth=stroke.width)
+      drawLine(color=c,start=androidx.compose.ui.geometry.Offset(size.width*.57f,size.height*.33f),end=androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.33f),strokeWidth=stroke.width)
+      drawLine(color=c,start=androidx.compose.ui.geometry.Offset(size.width*.40f,size.height*.50f),end=androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.50f),strokeWidth=stroke.width)
+      drawLine(color=c,start=androidx.compose.ui.geometry.Offset(size.width*.40f,size.height*.66f),end=androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.66f),strokeWidth=stroke.width)
      }
     }
    }
 
    Column(Modifier.fillMaxSize().navigationBarsPadding()){
     // Real-app banner: edge-to-edge, no artificial card frame around the image.
-    Box(Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(0.dp))){
-     AsyncImage(RAW_WALLET+banner,null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+    Box(
+     Modifier
+      .fillMaxWidth()
+      .aspectRatio(2.7f)
+      .clip(RoundedCornerShape(0.dp))
+     ){
+     AsyncImage(
+      RAW_WALLET+banner,
+      null,
+      Modifier.fillMaxSize(),
+      contentScale=ContentScale.FillBounds
+     )
      Column(Modifier.padding(start=24.dp,top=26.dp)){
       Text(if(tab==1)"My Diamonds" else "My Coins",fontSize=14.sp,color=Color(0xFFE5E7EB),fontWeight=FontWeight.Medium)
       Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(7.dp)){
