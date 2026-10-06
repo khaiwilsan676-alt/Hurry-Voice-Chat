@@ -678,16 +678,6 @@ export default function Family({ onBack }: FamilyProps) {
               3. If family with only 1 member for 7 days will be disbanded automatically
             </p>
           </div>
-
-          {/* 6. Naya Green Save Button - Image jaisa */}
-          <div className="px-5 mt-6">
-            <button 
-              onClick={handleSave} 
-              className="w-full h-[52px] flex items-center justify-center bg-[#00C9A7] hover:bg-[#00B4D8] active:scale-95 transition-transform rounded-full cursor-pointer shadow-lg"
-            >
-              <span className="text-white font-bold text-base tracking-wide">Save</span>
-            </button>
-          </div>
         </div>
 
         {/* Niche wala Button - Bilkul screen ke bottom par */}
