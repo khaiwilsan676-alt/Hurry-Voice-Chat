@@ -9,7 +9,8 @@ import { getTranslation, LanguageCode } from '../lib/translations'
 interface SettingPageProps {
   onBack?: () => void
   onLogout?: () => void
-  onAboutPress?: () => void // ✅ Removed onBlocklistPress here
+  onAboutPress?: () => void
+  onBlocklistPress?: () => void // ✅ Added onBlocklistPress
 }
 
 const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005']
@@ -18,7 +19,8 @@ const ADMIN_IDS = ['700001', '700002', '700003']
 export default function SettingPage({
   onBack,
   onLogout,
-  onAboutPress, // ✅ Removed onBlocklistPress here
+  onAboutPress,
+  onBlocklistPress, // ✅ Added onBlocklistPress
 }: SettingPageProps) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true)
   const [appLang, setAppLang] = useState<LanguageCode>('en')
@@ -197,7 +199,16 @@ export default function SettingPage({
           </button>
         </div>
 
-        {/* ✅ Blocklist UI div is completely removed from here */}
+        {/* ✅ Blocklist Button - Position 2 */}
+        <div
+          onClick={() => {
+            if (onBlocklistPress) onBlocklistPress()
+          }}
+          className="flex items-center justify-between px-5 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors"
+        >
+          <span className="text-base text-slate-800">{t.blocklist || "Blocklist"}</span>
+          <ChevronRight size={20} className="text-slate-400" />
+        </div>
 
         <div
           onClick={() => {
@@ -222,4 +233,3 @@ export default function SettingPage({
     </div>
   )
 }
-
