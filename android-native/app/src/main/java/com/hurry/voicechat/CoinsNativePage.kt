@@ -217,12 +217,19 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
 
 @Composable private fun ChatIcon(){
  Box(Modifier.size(44.dp).clickable{},contentAlignment=Alignment.Center){
-  Box(Modifier.size(40.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)),contentAlignment=Alignment.Center){
-   Box(Modifier.size(25.dp).clip(RoundedCornerShape(50)).background(Color.White)){
-    Row(Modifier.fillMaxSize().padding(horizontal=5.dp),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically){
+  Box(Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)),contentAlignment=Alignment.Center){
+   Box(Modifier.size(19.dp).clip(RoundedCornerShape(50)).background(Color.White)){
+    Row(Modifier.fillMaxSize().padding(horizontal=3.dp),horizontalArrangement=Arrangement.SpaceEvenly,verticalAlignment=Alignment.CenterVertically){
      repeat(3){Box(Modifier.size(3.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)))}
     }
    }
+   Box(
+    Modifier
+     .size(6.dp)
+     .offset(x=(-5).dp,y=7.dp)
+     .rotate(45f)
+     .background(Color.White)
+   )
   }
  }
 }
