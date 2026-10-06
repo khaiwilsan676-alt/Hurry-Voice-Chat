@@ -68,18 +68,6 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
-                            Text("Me", fontSize=21.sp, fontWeight=FontWeight.Bold, color=if(mine) HurryText else HurryMuted)
-                            if (mine) {
-                                androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-                                    val p = androidx.compose.ui.graphics.Path().apply {
-                                        moveTo(size.width * 0.22f, size.height * 0.98f)
-                                        quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f)
-                                    }
-                                    drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                                }
-                            }
-                        }
                         Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onPopular() }) }) {
                             Text("Popular", fontSize=21.sp, fontWeight=if(!mine) FontWeight.Bold else FontWeight.Normal, color=if(!mine) HurryText else HurryMuted)
                             if (!mine) {
@@ -91,6 +79,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                                     drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                                 }
                             }
+                        }
+                        Box(Modifier.wrapContentSize().pointerInput(Unit) { detectTapGestures(onTap = { onMine() }) }) {
+                            Text("Mine", fontSize=21.sp, fontWeight=FontWeight.Normal, color=HurryMuted)
                         }
                     }
                     Spacer(Modifier.weight(1f))
