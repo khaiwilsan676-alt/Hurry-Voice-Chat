@@ -365,7 +365,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                 </span>
               </div>
 
-              {/* Text Content - PURANA 4 POINT WALA TEXT WAPAS */}
+              {/* Text Content - PURANA 4 POINT WALA TEXT */}
               <div className="text-white text-left text-[11px] leading-relaxed font-medium space-y-2">
                 <p>
                   1. Invite a friend to register and receive instant coins. You will get 100,000 coins when they log in. If your friend logs into the Hurry app the next day or within 3 days, they will receive an additional 150,000 coins.
