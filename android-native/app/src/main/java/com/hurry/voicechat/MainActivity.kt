@@ -31,7 +31,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import androidx.compose.ui.Alignment
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
