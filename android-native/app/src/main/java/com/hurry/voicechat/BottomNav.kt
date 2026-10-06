@@ -72,13 +72,13 @@ private fun NavItem(
                         cubicTo(5.8f*s,8.2f*s,15.8f*s,2.8f*s,18f*s,2.8f*s)
                         close()
                     }
-                    drawPath(q, fill)
-                    drawPath(q, stroke, style = Stroke(2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
-                    drawPath(path {
+                    drawPath(path = q, color = fill)
+                    drawPath(path = q, color = stroke, style = Stroke(2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                    drawPath(path = path {
                         moveTo(12.2f*s,14.2f*s)
                         cubicTo(13.3f*s,12.6f*s,14.9f*s,12.1f*s,16.8f*s,13.4f*s)
                     }, stroke, style = Stroke(1.8f*s, cap = StrokeCap.Round))
-                    drawPath(path {
+                    drawPath(path = path {
                         moveTo(11.2f*s,20.8f*s)
                         cubicTo(12.5f*s,24.2f*s,21f*s,25.6f*s,24.3f*s,20.2f*s)
                     }, stroke, style = Stroke(1.8f*s, cap = StrokeCap.Round))
@@ -98,9 +98,9 @@ private fun NavItem(
                         cubicTo(8.3f*s,22f*s,6f*s,20f*s,6f*s,16.5f*s)
                         close()
                     }
-                    drawPath(q, fill)
-                    drawPath(q, stroke, style = Stroke(2.4f*s))
-                    drawPath(path {
+                    drawPath(path = q, color = fill)
+                    drawPath(path = q, color = stroke, style = Stroke(2.4f*s))
+                    drawPath(path = path {
                         moveTo(12f*s,14.5f*s)
                         cubicTo(13.5f*s,12.5f*s,15.5f*s,14.5f*s,19.5f*s,12.5f*s)
                         cubicTo(21.5f*s,14.5f*s,24f*s,14.5f*s,24f*s,14.5f*s)
@@ -122,10 +122,10 @@ private fun NavItem(
                         cubicTo(8f*s,8.5f*s,12.5f*s,4.5f*s,18f*s,4.5f*s)
                         close()
                     }
-                    drawPath(q, fill)
-                    drawPath(q, stroke, style = Stroke(2.4f*s))
-                    drawCircle(stroke, 1.6f*s, androidx.compose.ui.geometry.Offset(14f*s,15f*s))
-                    drawCircle(stroke, 1.6f*s, androidx.compose.ui.geometry.Offset(22f*s,15f*s))
+                    drawPath(path = q, color = fill)
+                    drawPath(path = q, color = stroke, style = Stroke(2.4f*s))
+                    drawCircle(color = stroke, radius = 1.6f*s, center = androidx.compose.ui.geometry.Offset(14f*s,15f*s))
+                    drawCircle(color = stroke, radius = 1.6f*s, center = androidx.compose.ui.geometry.Offset(22f*s,15f*s))
                 }
             }
         }
