@@ -349,36 +349,25 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
           onClick={() => setIsRulesPopupOpen(false)}
         >
-          {/* Popup Container */}
+          {/* Popup Container - Made Smaller */}
           <div 
-            className="relative w-full max-w-[340px]"
+            className="relative w-full max-w-[300px]"
             onClick={(e) => e.stopPropagation()}
           >
             
-            {/* Purple Box */}
-            <div className="relative bg-[#8b1a8b] rounded-2xl border-[3px] border-[#facc15] p-5 pt-7 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
               
-              {/* "Rules" Text at top inside the box */}
-              <div className="text-center mb-4">
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
                 <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
                   Rules
                 </span>
               </div>
 
-              {/* Text Content */}
-              <div className="text-white text-left text-[12px] leading-relaxed font-medium space-y-3">
-                <p>
-                  1. If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
-                </p>
-                <p>
-                  2. If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
-                </p>
-                <p>
-                  3. All rewards will be Send by our Hurry team On 1st of Every month.
-                </p>
-                <p>
-                  4. The friend's phone must never have downloaded and registered the Hurry app before, and must not be on the same network as other accounts. Only by meeting all these conditions will the invitation be successful and rewards be granted
-                </p>
+              {/* Text Content - Made Smaller Font */}
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
               </div>
             </div>
           </div>
@@ -462,7 +451,13 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
       {/* Bottom Sheet */}
       <div className={`fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out shadow-2xl flex flex-col px-4 py-2 border-0 outline-none ${ isSheetOpen ? 'translate-y-0' : 'translate-y-full' }`} style={{ border: 'none' }}>
-        <div className="flex-1 grid grid-cols-4 gap-2 items-center justify-center text-center pb-2 pt-4">
+        <div className="flex justify-end pt-1 pr-1">
+          <button onClick={() => setIsSheetOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 grid grid-cols-4 gap-2 items-center justify-center text-center pb-2">
           <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center justify-center gap-1.5 group cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><WhatsAppIcon size={24} /></div>
             <span className="text-[11px] font-medium text-gray-800">WhatsApp</span>
