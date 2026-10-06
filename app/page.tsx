@@ -146,7 +146,7 @@ export default function Page() {
   if (loading) {
     return (
       <div className="flex flex-col items-center" style={{ ...themeStyle, paddingTop: '18vh' }}>
-        <img src="/Hurry-Voice-Chat/logo.png" alt="Hurry Logo" className="w-24 h-24 rounded-2xl object-cover shadow-lg" />
+        <img src="/logo.png" alt="Hurry Logo" className="w-24 h-24 rounded-2xl object-cover shadow-lg" />
         <div style={{ gap: '0.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '0.5rem' }}>
           <h1 className="text-3xl font-bold text-white tracking-wide">Hurry</h1>
         </div>
