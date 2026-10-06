@@ -62,7 +62,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
        moveTo(size.width*.25f,size.height*.10f); lineTo(size.width*.65f,size.height*.10f); lineTo(size.width*.82f,size.height*.27f)
        lineTo(size.width*.82f,size.height*.90f); lineTo(size.width*.25f,size.height*.90f); close()
       }
-      drawPath(p,c,style=stroke)
+      drawPath(path = p, color = c, style = stroke)
       drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.10f),androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),strokeWidth=stroke.width)
       drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.28f),strokeWidth=stroke.width)
       drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.47f),androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.47f),strokeWidth=stroke.width)
