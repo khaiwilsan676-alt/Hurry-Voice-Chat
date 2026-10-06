@@ -64,7 +64,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
     ) {
         item {
             Column(
-                Modifier.fillMaxWidth().statusBarsPadding().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                Modifier.fillMaxWidth().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color.White))).statusBarsPadding().padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -90,7 +90,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
                     HurryHouseIcon()
                     Spacer(Modifier.width(2.dp))
                 }
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(7.dp))
                 Box(Modifier.fillMaxWidth().height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp).clip(RoundedCornerShape(6.dp))) {
                     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize(), userScrollEnabled = true, pageSpacing = 0.dp) { page ->
                         AsyncImage(model=banners[page], contentDescription=null, modifier=Modifier.fillMaxSize(), contentScale=ContentScale.Crop)
@@ -105,7 +105,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 0.dp, bottom = 1.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-2).dp).padding(top = 0.dp, bottom = 1.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
