@@ -25,9 +25,9 @@ fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
             lineTo(size.width * .18f, size.height * .88f)
             lineTo(size.width * .18f, size.height * .48f)
         }
-        drawPath(p, c, style = Stroke(2.1.dp.toPx(), join = StrokeJoin.Round))
-        drawLine(c, Offset(size.width*.43f,size.height*.88f), Offset(size.width*.43f,size.height*.61f), 2.1.dp.toPx(), StrokeCap.Round)
-        drawLine(c, Offset(size.width*.57f,size.height*.88f), Offset(size.width*.57f,size.height*.61f), 2.1.dp.toPx(), StrokeCap.Round)
+        drawPath(path = p, color = c, style = Stroke(width = 2.1.dp.toPx(), join = StrokeJoin.Round))
+        drawLine(color = c, start = Offset(size.width*.43f,size.height*.88f), end = Offset(size.width*.43f,size.height*.61f), strokeWidth = 2.1.dp.toPx(), cap = StrokeCap.Round)
+        drawLine(color = c, start = Offset(size.width*.57f,size.height*.88f), end = Offset(size.width*.57f,size.height*.61f), strokeWidth = 2.1.dp.toPx(), cap = StrokeCap.Round)
     }
 }
 
@@ -35,12 +35,12 @@ fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
 fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier.size(25.dp)) {
         val c = if (active) HurryBlue else Color(0xFF303030)
-        drawRoundRect(c, topLeft = Offset(size.width*.12f,size.height*.16f),
+        drawRoundRect(color = c, topLeft = Offset(size.width*.12f,size.height*.16f),
             size = androidx.compose.ui.geometry.Size(size.width*.76f,size.height*.66f),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()),
             style = Stroke(2.1.dp.toPx()))
-        drawLine(c, Offset(size.width*.25f,size.height*.39f), Offset(size.width*.75f,size.height*.39f), 2.dp.toPx(), StrokeCap.Round)
-        drawLine(c, Offset(size.width*.25f,size.height*.58f), Offset(size.width*.62f,size.height*.58f), 2.dp.toPx(), StrokeCap.Round)
+        drawLine(color = c, start = Offset(size.width*.25f,size.height*.39f), end = Offset(size.width*.75f,size.height*.39f), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
+        drawLine(color = c, start = Offset(size.width*.25f,size.height*.58f), end = Offset(size.width*.62f,size.height*.58f), strokeWidth = 2.dp.toPx(), cap = StrokeCap.Round)
     }
 }
 
@@ -48,8 +48,8 @@ fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
 fun HurryMeIcon(active: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier.size(25.dp)) {
         val c = if (active) HurryBlue else Color(0xFF303030)
-        drawCircle(c, size.minDimension*.22f, Offset(size.width*.5f,size.height*.32f), style=Stroke(2.1.dp.toPx()))
-        drawRoundRect(c, topLeft=Offset(size.width*.2f,size.height*.58f),
+        drawCircle(color = c, radius = size.minDimension*.22f, center = Offset(size.width*.5f,size.height*.32f), style = Stroke(width = 2.1.dp.toPx()))
+        drawRoundRect(color = c, topLeft=Offset(size.width*.2f,size.height*.58f),
             size=androidx.compose.ui.geometry.Size(size.width*.6f,size.height*.27f),
             cornerRadius=androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()),
             style=Stroke(2.1.dp.toPx()))
@@ -60,7 +60,7 @@ fun HurryMeIcon(active: Boolean, modifier: Modifier = Modifier) {
 fun HurrySearchIcon(modifier: Modifier = Modifier) {
     Canvas(modifier.size(26.dp)) {
         val c = Color(0xFF222222)
-        drawCircle(c, size.minDimension*.25f, Offset(size.width*.446f,size.height*.446f), style=Stroke(2.1.dp.toPx()))
-        drawLine(c, Offset(size.width*.65f,size.height*.65f), Offset(size.width*.86f,size.height*.86f), 2.1.dp.toPx(), StrokeCap.Round)
+        drawCircle(color = c, radius = size.minDimension*.25f, center = Offset(size.width*.446f,size.height*.446f), style = Stroke(width = 2.1.dp.toPx()))
+        drawLine(color = c, start = Offset(size.width*.65f,size.height*.65f), end = Offset(size.width*.86f,size.height*.86f), strokeWidth = 2.1.dp.toPx(), cap = StrokeCap.Round)
     }
 }
