@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, ChevronRight, Info } from 'lucide-react'
+import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
 
 // ==========================================
 // MAIN COMPONENT LOGIC
@@ -175,6 +175,29 @@ const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, ima
     </div>
     <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
   </div>
+);
+
+// QUESTION MARK ICON (Custom SVG - "?" symbol)
+const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, className?: string }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path 
+      d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 13.38 12 12 12V13.5" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <circle cx="12" cy="16.5" r="1.2" fill="currentColor" />
+  </svg>
 );
 
 export default function Family({ onBack }: FamilyProps) {
@@ -358,7 +381,7 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => alert("Details")}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
           >
-            <Info size={28} className="text-white drop-shadow-md" />
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
 
@@ -762,7 +785,7 @@ export default function Family({ onBack }: FamilyProps) {
           </button>
           
           <button type="button" onClick={() => alert("Details")} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
-            <Info size={28} className="text-white drop-shadow-md" />
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
 
