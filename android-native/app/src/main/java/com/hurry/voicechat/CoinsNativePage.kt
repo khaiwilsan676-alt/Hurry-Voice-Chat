@@ -146,8 +146,8 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
        }
       }
      }
-     Spacer(Modifier.height(54.dp))
-     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){
+     Spacer(Modifier.weight(1f))
+     Row(Modifier.fillMaxWidth().padding(bottom=16.dp),horizontalArrangement=Arrangement.Center){
      Box(Modifier.fillMaxWidth(.75f).height(50.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF)).clickable{
       val d=din.toLongOrNull()?:0;val c=cin.toLongOrNull()?:0
       if(d>0&&d<=diamonds&&c>0){diamonds-=d;coins+=c;din="";cin=""}
