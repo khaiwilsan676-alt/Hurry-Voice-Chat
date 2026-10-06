@@ -21,7 +21,7 @@ fun MineNativePage(onBack: () -> Unit) {
     var recent by remember { mutableStateOf(false) }
     val card = Modifier.fillMaxWidth().height(112.dp)
     LazyColumn(
-        Modifier.fillMaxSize().background(Color.White),
+        Modifier.fillMaxSize().background(Color(0xFFF3F6FA)),
         contentPadding = PaddingValues(bottom = 80.dp)
     ) {
         item {
@@ -30,7 +30,7 @@ fun MineNativePage(onBack: () -> Unit) {
                     Brush.verticalGradient(
                         0.0f to Color(0xFF3B82F6),
                         0.60f to Color(0xFFEFF6FF),
-                        1.0f to Color.White
+                        1.0f to Color(0xFFF3F6FA)
                     )
                 ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
             ) {
