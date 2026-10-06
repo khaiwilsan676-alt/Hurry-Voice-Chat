@@ -22,7 +22,7 @@ fun MineNativePage(onBack: () -> Unit) {
     val card = Modifier.fillMaxWidth().height(112.dp)
     LazyColumn(
         Modifier.fillMaxSize().background(Color.White),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 80.dp)
+        contentPadding = PaddingValues(bottom = 80.dp)
     ) {
         item {
             Column(
@@ -34,10 +34,10 @@ fun MineNativePage(onBack: () -> Unit) {
                     )
                 )
             ) {
-                Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().statusBarsPadding().height(56.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(Modifier.wrapContentSize().clickable { onBack() }) {
-                            Text("Me", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
+                            Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
                             androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
                                 val p = androidx.compose.ui.graphics.Path().apply {
                                     moveTo(size.width * 0.22f, size.height * 0.98f)
@@ -46,8 +46,12 @@ fun MineNativePage(onBack: () -> Unit) {
                                 drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
                             }
                         }
-                        Box(Modifier.wrapContentSize().clickable { onBack() }) {
-                            Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryMuted)
+                        Box(Modifier.wrapContentSize()) {
+                            Text("Mine", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
+                            androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                                val p = androidx.compose.ui.graphics.Path().apply { moveTo(size.width * 0.22f, size.height * 0.98f); quadraticTo(size.width * 0.50f, size.height * 1.45f, size.width * 0.78f, size.height * 0.98f) }
+                                drawPath(p, HurryText, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                            }
                         }
                     }
                     Spacer(Modifier.weight(1f))
@@ -58,7 +62,7 @@ fun MineNativePage(onBack: () -> Unit) {
             }
         }
         item {
-            Box(card.clip(RoundedCornerShape(6.dp)).background(
+            Box(card.padding(horizontal = 12.dp).clip(RoundedCornerShape(6.dp)).background(
                 Brush.linearGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2)))
             )) {
                 Row(Modifier.fillMaxSize().padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -72,7 +76,7 @@ fun MineNativePage(onBack: () -> Unit) {
                     }
                 }
             }
-            Row(Modifier.padding(top=12.dp), horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+            Row(Modifier.padding(horizontal = 12.dp).padding(top=12.dp), horizontalArrangement=Arrangement.spacedBy(16.dp)) {
                 Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
                 Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF),
                     modifier=Modifier.clickable { recent=true })
