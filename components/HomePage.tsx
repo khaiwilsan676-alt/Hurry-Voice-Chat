@@ -2718,19 +2718,19 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
                       <div className="absolute inset-0 flex flex-row items-center justify-center z-20">
                         <img
-                          src="/logo.png"
+                          src="/Hurry-Voice-Chat/logo.png"
                           alt="Left"
                           className="rounded-full object-cover shadow-sm relative shrink-0"
                           style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginRight: '3%' }}
                         />
                         <img
-                          src="/logo.png"
+                          src="/Hurry-Voice-Chat/logo.png"
                           alt="Middle"
                           className="rounded-full object-cover shadow-md border-[1.5px] border-white/80 relative shrink-0 z-10"
                           style={{ width: '32%', height: 'auto', aspectRatio: '1/1', marginBottom: '3%' }}
                         />
                         <img
-                          src="/logo.png"
+                          src="/Hurry-Voice-Chat/logo.png"
                           alt="Right"
                           className="rounded-full object-cover shadow-sm relative shrink-0"
                           style={{ width: '24%', height: 'auto', aspectRatio: '1/1', marginTop: '4%', marginLeft: '3%' }}
