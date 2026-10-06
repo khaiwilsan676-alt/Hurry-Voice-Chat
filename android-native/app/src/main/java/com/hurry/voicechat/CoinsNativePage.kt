@@ -128,10 +128,22 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
        Input("Coins",cin,Modifier.weight(1f)){cin=it;din=((it.toLongOrNull()?:0)*100/33).toString()}
       }
      }
-     Column(Modifier.fillMaxWidth().padding(horizontal=16.dp).padding(top=8.dp)){
+     Column(Modifier.fillMaxWidth().padding(horizontal=16.dp).padding(top=4.dp)){
       Text("exchange rate",fontSize=11.sp,fontWeight=FontWeight.Bold,color=Color(0xFF6B7280))
       Row(Modifier.fillMaxWidth().padding(top=8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){
-       listOf("20%","40%","60%","80%","100%").forEach{r->Box(Modifier.weight(1f).height(38.dp).clip(RoundedCornerShape(12.dp)).background(if(rate==r)Color(0xFF0044FF) else Color.White).clickable{rate=r},contentAlignment=Alignment.Center){Text(r,fontSize=12.sp,fontWeight=FontWeight.Bold,color=if(rate==r)Color.White else Color(0xFF0044FF))}}
+       listOf("20%","40%","60%","80%","100%").forEachIndexed{index,r->
+        Box(
+         Modifier
+          .weight(1f)
+          .height(38.dp)
+          .clip(RoundedCornerShape(12.dp))
+          .background(if(rate==r)Color(0xFF0044FF) else Color.White)
+          .clickable{rate=r},
+         contentAlignment=Alignment.Center
+        ){
+         Text(r,fontSize=12.sp,fontWeight=FontWeight.Bold,color=if(rate==r)Color.White else Color(0xFF0044FF))
+        }
+       }
       }
      }
      Spacer(Modifier.height(54.dp))
