@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
+  basePath: '/Hurry-Voice-Chat',
+  assetPrefix: '/Hurry-Voice-Chat/',
 
   typescript: {
     ignoreBuildErrors: true,
@@ -10,7 +12,6 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // Keep large icon/component packages out of the initial bundle where possible.
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
