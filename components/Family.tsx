@@ -298,7 +298,7 @@ export default function Family({ onBack }: FamilyProps) {
     return () => clearInterval(timer)
   }, [])
 
-  // ---- CREATE & SAVE LOGIC ----
+  // ---- CREATE LOGIC ----
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -651,8 +651,7 @@ export default function Family({ onBack }: FamilyProps) {
           <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
             <ArrowLeft size={28} className="text-black" />
           </button>
-          <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
-          {/* ⭐ SAVE BUTTON REMOVED */}
+          {/* ⭐ Title aur right side ka sab kuch remove kar diya */}
         </div>
 
         <div className="flex-1 w-full pb-36">
