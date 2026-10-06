@@ -110,8 +110,12 @@ fun NativeChatScreen(
             AsyncImage(
                 model = RAW_MSG + "file_00000000777481f588df50d28908ce63.png",
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize().alpha(0.05f),
-                contentScale = ContentScale.Crop
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .align(Alignment.BottomCenter)
+                    .alpha(0.05f),
+                contentScale = ContentScale.FillWidth
             )
         }
 
