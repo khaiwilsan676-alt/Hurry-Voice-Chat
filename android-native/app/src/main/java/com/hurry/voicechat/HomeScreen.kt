@@ -172,7 +172,7 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
         AsyncImage(model=bg, contentDescription=label, modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer { scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f; scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f }, contentScale=ContentScale.Fit)
         Text(text=label.uppercase(), modifier=Modifier.fillMaxWidth().padding(top=16.dp), textAlign=androidx.compose.ui.text.style.TextAlign.Center, fontSize=11.sp, fontWeight=FontWeight.Black, color=Color.White)
         androidx.compose.foundation.layout.Box(
-            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal=3.dp, bottom=2.dp)
+            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start=3.dp, end=3.dp, bottom=2.dp)
         ) {
             AsyncImage(
                 model=CARD_FRAME,
