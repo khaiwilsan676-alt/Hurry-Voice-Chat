@@ -775,13 +775,29 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 </div>
 
+                {/* ✅ Image Evidence (Optional) Section */}
                 <div>
-                  <h2 className="text-base font-semibold text-gray-800 mb-3">Contact Information</h2>
+                  <h2 className="text-base font-semibold text-gray-800 mb-3">
+                    Image Evidence<span className="text-gray-400 font-normal">(Optional)</span>
+                  </h2>
+                  <div className="w-24 h-24 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </div>
+                </div>
+
+                {/* ✅ Contact Information (Optional) Section - Moved above Submit */}
+                <div>
+                  <h2 className="text-base font-semibold text-gray-800 mb-3">
+                    Contact Information<span className="text-gray-400 font-normal">(Optional)</span>
+                  </h2>
                   <input
                     type="text"
                     value={contactInfo}
                     onChange={(e) => setContactInfo(e.target.value)}
-                    placeholder="Enter your email, Gmail or App ID"
+                    placeholder="Phone or Email"
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-400 bg-white"
                   />
                 </div>
@@ -792,23 +808,29 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={feedbackSubmitting}
-                  className="w-2/3 mx-auto block bg-blue-600 text-white font-semibold py-3.5 rounded-full transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-blue-600/20 text-base"
-                >
-                  {feedbackSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Submitting...
-                    </span>
-                  ) : (
-                    'Submit'
-                  )}
-                </button>
+                {/* ✅ Submit Button - Full width, Blue color, at the bottom */}
+                <div className="pt-4 pb-2">
+                  <button
+                    type="submit"
+                    disabled={feedbackSubmitting}
+                    className="w-full bg-blue-600 text-white font-semibold py-3.5 rounded-full transition-all hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg shadow-blue-600/20 text-base"
+                  >
+                    {feedbackSubmitting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Submitting...
+                      </span>
+                    ) : (
+                      'Submit'
+                    )}
+                  </button>
+                  <p className="text-center text-gray-500 text-xs mt-3">
+                    Thank you! Feel free to give us any feedback.
+                  </p>
+                </div>
               </form>
             )}
           </div>
