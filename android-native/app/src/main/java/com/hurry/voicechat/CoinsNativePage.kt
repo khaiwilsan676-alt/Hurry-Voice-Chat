@@ -71,7 +71,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
     }
    }
 
-   Column(Modifier.fillMaxSize().padding(horizontal=16.dp)){
+   Column(Modifier.fillMaxSize()){
     // Real-app banner: edge-to-edge, no artificial card frame around the image.
     Box(Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(0.dp))){
      AsyncImage(RAW_WALLET+banner,null,Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
@@ -84,7 +84,7 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
      }
     }
 
-    Row(Modifier.fillMaxWidth().padding(top=18.dp).clip(RoundedCornerShape(30.dp)).background(Color(0x33000000)).padding(4.dp)){
+    Row(Modifier.fillMaxWidth().padding(horizontal=16.dp).padding(top=18.dp).clip(RoundedCornerShape(30.dp)).background(Color(0x33000000)).padding(4.dp)){
      Tab("Coins",tab==0,Modifier.weight(1f)){tab=0}
      Tab("Diamonds",tab==1,Modifier.weight(1f)){tab=1}
      Tab("Agent",tab==2,Modifier.weight(1f)){tab=2}
