@@ -96,7 +96,7 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         }
         item {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-2).dp).padding(top = 0.dp, bottom = 1.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).offset(y = (-4).dp).padding(top = 0.dp, bottom = 1.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
