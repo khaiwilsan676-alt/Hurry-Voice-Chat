@@ -153,5 +153,41 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
     androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(model=bg, contentDescription=label, modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer { scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f; scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f }, contentScale=ContentScale.Fit)
         Text(text=label.uppercase(), modifier=Modifier.fillMaxWidth().padding(top=16.dp), textAlign=androidx.compose.ui.text.style.TextAlign.Center, fontSize=11.sp, fontWeight=FontWeight.Black, color=Color.White)
+        androidx.compose.foundation.layout.Box(
+            modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(horizontal=3.dp, bottom=2.dp)
+        ) {
+            AsyncImage(
+                model=CARD_FRAME,
+                contentDescription=null,
+                modifier=Modifier.fillMaxWidth().wrapContentHeight(),
+                contentScale=ContentScale.FillWidth
+            )
+            Row(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth(.68f).height(30.dp).offset(y=(-1).dp),
+                horizontalArrangement=Arrangement.Center,
+                verticalAlignment=Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model=RAW+"logo.png",
+                    contentDescription=null,
+                    modifier=Modifier.size(24.dp).clip(RoundedCornerShape(50)),
+                    contentScale=ContentScale.Crop
+                )
+                Spacer(Modifier.width(2.dp))
+                AsyncImage(
+                    model=RAW+"logo.png",
+                    contentDescription=null,
+                    modifier=Modifier.size(29.dp).clip(RoundedCornerShape(50)).padding(1.dp),
+                    contentScale=ContentScale.Crop
+                )
+                Spacer(Modifier.width(2.dp))
+                AsyncImage(
+                    model=RAW+"logo.png",
+                    contentDescription=null,
+                    modifier=Modifier.size(24.dp).clip(RoundedCornerShape(50)),
+                    contentScale=ContentScale.Crop
+                )
+            }
+        }
     }
 }
