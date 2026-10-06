@@ -153,10 +153,13 @@ private fun RoomListCard(room:HurryRoom, onRoom:(HurryRoom)->Unit, modifier: Mod
 fun HurryHouseIcon() {
     androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
         val c = Color(0xFF2D2D2D); val w = size.width; val h = size.height
-        val p = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w*.50f,h*.11f); cubicTo(w*.42f,h*.11f,w*.10f,h*.25f,w*.10f,h*.43f); lineTo(w*.10f,h*.68f); cubicTo(w*.10f,h*.86f,w*.23f,h*.94f,w*.39f,h*.94f); lineTo(w*.61f,h*.94f); cubicTo(w*.77f,h*.94f,w*.90f,h*.86f,w*.90f,h*.68f); lineTo(w*.90f,h*.43f); cubicTo(w*.90f,h*.25f,w*.58f,h*.11f,w*.50f,h*.11f); close()
-        }
-        drawPath(path = p, color = c, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.2.dp.toPx(), join = androidx.compose.ui.graphics.StrokeJoin.Round))
+        drawRoundRect(
+            color = c,
+            topLeft = Offset(w*.10f, h*.11f),
+            size = androidx.compose.ui.geometry.Size(w*.80f, h*.83f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.dp.toPx()),
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.2.dp.toPx())
+        )
         drawRoundRect(c,topLeft=Offset(w*.28f,h*.45f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.20f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
         drawRoundRect(c,topLeft=Offset(w*.445f,h*.37f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.28f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
         drawRoundRect(c,topLeft=Offset(w*.61f,h*.43f),size=androidx.compose.ui.geometry.Size(w*.11f,h*.22f),cornerRadius=androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()))
