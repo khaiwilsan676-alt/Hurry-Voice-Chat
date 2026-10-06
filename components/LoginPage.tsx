@@ -1053,7 +1053,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             <div className="w-full max-w-sm">
               <div className="text-center mb-6">
                 <img 
-                  src="/Hurry-Voice-Chat/logo.png" 
+                  src="/logo.png" 
                   alt="Hurry"
                   className="w-16 h-16 rounded-2xl mx-auto mb-3 drop-shadow-lg" 
                 />
@@ -1196,7 +1196,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             <div className="w-full max-w-sm">
               <div className="text-center mb-6">
                 <img 
-                  src="/Hurry-Voice-Chat/logo.png" 
+                  src="/logo.png" 
                   alt="Hurry"
                   className="w-16 h-16 rounded-2xl mx-auto mb-3 drop-shadow-lg" 
                 />
@@ -1326,7 +1326,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         <div className="flex flex-col items-center" style={{ marginTop: '16vh' }}>
           <div className="mb-0.5">
             <img 
-              src="/Hurry-Voice-Chat/logo.png" 
+              src="/logo.png" 
               alt="Hurry"
               className="w-20 h-20 rounded-2xl drop-shadow-lg" 
             />
