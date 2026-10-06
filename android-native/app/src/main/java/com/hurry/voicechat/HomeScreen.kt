@@ -64,7 +64,9 @@ fun HomeScreen(onRoom: (HurryRoom) -> Unit, onMine: () -> Unit = {}, onPopular: 
         Column(
             Modifier.fillMaxWidth().background(
                 androidx.compose.ui.graphics.Brush.verticalGradient(
-                    listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color(0xFFF3F6FA))
+                    0.0f to Color(0xFF3B82F6),
+                    0.60f to Color(0xFFEFF6FF),
+                    1.0f to Color(0xFFF3F6FA)
                 )
             ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
         ) {
