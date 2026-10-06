@@ -112,10 +112,12 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
       listOf("20%","40%","60%","80%","100%").forEach{r->Box(Modifier.weight(1f).height(42.dp).clip(RoundedCornerShape(10.dp)).background(if(rate==r)Color(0xFF0044FF) else Color.White).clickable{rate=r},contentAlignment=Alignment.Center){Text(r,fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=if(rate==r)Color.White else Color(0xFF0044FF))}}
      }
      Spacer(Modifier.height(54.dp))
-     Box(Modifier.fillMaxWidth().padding(horizontal=16.dp).height(50.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF0044FF)).clickable{
+     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){
+     Box(Modifier.fillMaxWidth(.75f).height(50.dp).clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF)).clickable{
       val d=din.toLongOrNull()?:0;val c=cin.toLongOrNull()?:0
       if(d>0&&d<=diamonds&&c>0){diamonds-=d;coins+=c;din="";cin=""}
      },contentAlignment=Alignment.Center){Text("Exchange",color=Color.White,fontWeight=FontWeight.Bold,fontSize=15.sp)}
+     }
     }else{
      Row(Modifier.fillMaxWidth().padding(top=20.dp,start=8.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){
       Box(Modifier.size(48.dp).clip(RoundedCornerShape(50)).background(Color(0xFFE5E7EB)),contentAlignment=Alignment.Center){
