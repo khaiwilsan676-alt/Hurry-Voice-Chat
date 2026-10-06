@@ -330,9 +330,15 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
       {/* --- UPDATED RULES POPUP START --- */}
       {isRulesPopupOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsRulesPopupOpen(false)}
+        >
           {/* Popup Container - Made Smaller */}
-          <div className="relative w-full max-w-[300px]">
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Removed Ornate Header (image) */}
             
@@ -351,6 +357,10 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               {/* Text Content - Made Smaller Font */}
               <div className="text-white text-center text-[12px] leading-relaxed font-medium">
                 Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
+                <br /><br />
+                <span className="text-yellow-300 font-semibold">
+                  All rewards will be Send by our Hurry team On 1st of Every month
+                </span>
               </div>
             </div>
           </div>
@@ -360,7 +370,10 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
       {/* Backdrop for Bottom Sheet */}
       {isSheetOpen && (
-        <div onClick={() => setIsSheetOpen(false)} className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" />
+        <div 
+          onClick={() => setIsSheetOpen(false)} 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" 
+        />
       )}
 
       {/* Bottom Sheet */}
@@ -389,6 +402,12 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <span className="text-[11px] font-medium text-gray-800">More</span>
           </button>
         </div>
+        
+        {/* Reward note added to the bottom sheet */}
+        <div className="text-center text-[10px] text-gray-500 font-medium pb-1">
+          All rewards will be Send by our Hurry team On 1st of Every month
+        </div>
+        
         {copied && <div className="text-center text-[11px] text-blue-600 font-medium pb-1 animate-pulse">✓ Link copied!</div>}
       </div>
     </div>
