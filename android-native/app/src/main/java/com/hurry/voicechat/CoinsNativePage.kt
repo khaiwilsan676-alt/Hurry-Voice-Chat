@@ -48,9 +48,9 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
      androidx.compose.foundation.Canvas(Modifier.size(24.dp)){
       val c=Color.White
       val stroke=androidx.compose.ui.graphics.drawscope.Stroke(width=2.4.dp.toPx(),cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),strokeWidth=stroke.width)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.22f),strokeWidth=stroke.width)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f),androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.78f),strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.50f), end = androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f), strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f), end = androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.22f), strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.18f,size.height*.50f), end = androidx.compose.ui.geometry.Offset(size.width*.46f,size.height*.78f), strokeWidth=stroke.width)
      }
     }
     Text("Recharge",Modifier.weight(1f),textAlign=TextAlign.Center,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -63,10 +63,10 @@ private fun RechargeNativePage(onBack:()->Unit, diamondsTab:Boolean){
        lineTo(size.width*.82f,size.height*.90f); lineTo(size.width*.25f,size.height*.90f); close()
       }
       drawPath(path = p, color = c, style = stroke)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.10f),androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),strokeWidth=stroke.width)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f),androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.28f),strokeWidth=stroke.width)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.47f),androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.47f),strokeWidth=stroke.width)
-      drawLine(c,androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.64f),androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.64f),strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.10f), end = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f), strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.65f,size.height*.28f), end = androidx.compose.ui.geometry.Offset(size.width*.82f,size.height*.28f), strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.47f), end = androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.47f), strokeWidth=stroke.width)
+      drawLine(color = c, start = androidx.compose.ui.geometry.Offset(size.width*.38f,size.height*.64f), end = androidx.compose.ui.geometry.Offset(size.width*.69f,size.height*.64f), strokeWidth=stroke.width)
      }
     }
    }
