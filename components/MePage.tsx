@@ -778,20 +778,20 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 </div>
 
-                {/* 3. Image Evidence (Optional) */}
+                {/* 3. Image Evidence (Optional) - ABOVE CONTACT INFO, SMALLER ICON */}
                 <div className="shrink-0">
                   <h2 className="text-base font-semibold text-gray-800 mb-2">
                     Image Evidence<span className="text-gray-400 font-normal">(Optional)</span>
                   </h2>
-                  <div className="w-24 h-24 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-16 h-16 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <line x1="12" y1="5" x2="12" y2="19"></line>
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                   </div>
                 </div>
 
-                {/* 4. Contact Information (Optional) */}
+                {/* 4. Contact Information (Optional) - JUST ABOVE SUBMIT BUTTON */}
                 <div className="shrink-0">
                   <h2 className="text-base font-semibold text-gray-800 mb-2">
                     Contact Information<span className="text-gray-400 font-normal">(Optional)</span>
@@ -812,7 +812,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 )}
 
-                {/* 5. Submit Button - at bottom */}
+                {/* 5. Submit Button - AT THE VERY BOTTOM */}
                 <div className="shrink-0 pt-1">
                   <button
                     type="submit"
