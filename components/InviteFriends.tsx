@@ -380,7 +380,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                   4. Invite your friends; you will earn free coins when they recharge or send gifts.
                 </p>
                 <p className="pt-1 text-center">
-                  (Best regards The Hurry Team)
+                  (Best regards  The Hurry Team)
                 </p>
               </div>
             </div>
