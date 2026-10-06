@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Plus, ChevronRight, Info } from 'lucide-react'
 
 // ==========================================
 // MAIN COMPONENT LOGIC
@@ -342,15 +342,25 @@ export default function Family({ onBack }: FamilyProps) {
         />
 
         <div
-          className="flex flex-row items-center w-full px-2 relative z-30"
+          className="flex flex-row items-center justify-between w-full px-2 relative z-30"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
         >
+          {/* Attractive Back Button */}
           <button
             type="button"
             onClick={() => setCurrentView('main')}
-            className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm"
           >
-            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+            <ArrowLeft size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)] transition-transform duration-300 group-hover:-translate-x-0.5" />
+          </button>
+
+          {/* Attractive Info/Details Icon (Right Side) */}
+          <button
+            type="button"
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm"
+            aria-label="Details"
+          >
+            <Info size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)]" />
           </button>
         </div>
 
@@ -603,11 +613,22 @@ export default function Family({ onBack }: FamilyProps) {
         </svg>
 
         <div className="flex items-center justify-between px-2 py-4 flex-shrink-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
-          <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
-            <ArrowLeft size={28} className="text-black" />
+          {/* Attractive Back Button */}
+          <button 
+            onClick={() => setCurrentView('main')} 
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm"
+          >
+            <ArrowLeft size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)] transition-transform duration-300 group-hover:-translate-x-0.5" />
           </button>
           <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
-          <button onClick={handleSave} className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
+          {/* Attractive Info/Details Icon (Right Side) */}
+          <button
+            type="button"
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm"
+            aria-label="Details"
+          >
+            <Info size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)]" />
+          </button>
         </div>
 
         <div className="flex-1 w-full pb-36">
@@ -748,9 +769,24 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
 
       <div className="relative z-20 flex flex-col w-full">
-        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
-          <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
-            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+        <div className="flex flex-row items-center justify-between w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
+          {/* Attractive Back Button */}
+          <button 
+            type="button" 
+            onClick={onBack} 
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm" 
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)] transition-transform duration-300 group-hover:-translate-x-0.5" />
+          </button>
+          
+          {/* Attractive Info/Details Icon (Right Side) */}
+          <button
+            type="button"
+            className="group relative p-2.5 cursor-pointer z-30 flex items-center justify-center active:scale-90 transition-all duration-300 rounded-full bg-gradient-to-br from-[#FFD700]/25 to-[#FFA500]/10 border border-[#FFD700]/50 shadow-[0_0_15px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,215,0,0.5)] hover:border-[#FFD700] backdrop-blur-sm"
+            aria-label="Details"
+          >
+            <Info size={24} className="text-[#FFD700] drop-shadow-[0_0_6px_rgba(255,215,0,0.9)]" />
           </button>
         </div>
 
