@@ -4,7 +4,7 @@ import { apiUrl } from "../src/lib/api";
 import { socket } from "../src/lib/socket";
 
 import React, { useEffect, useState, useRef } from 'react'
-import { ChevronRight, Copy, ArrowLeft } from 'lucide-react'
+import { ChevronRight, Copy, ArrowLeft, X } from 'lucide-react'
 import SettingPage from './settingpage'
 import PublicProfile from './PublicProfile'
 import HurrySupport from './HurrySupport'
@@ -429,6 +429,12 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
   const [feedbackSuccess, setFeedbackSuccess] = useState(false)
   const [feedbackError, setFeedbackError] = useState<string | null>(null)
 
+  // ✅ NEW: For image/video upload
+  const [evidenceFile, setEvidenceFile] = useState<File | null>(null)
+  const [evidencePreview, setEvidencePreview] = useState<string | null>(null)
+  const [evidenceType, setEvidenceType] = useState<'image' | 'video' | null>(null)
+  const evidenceInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     const savedLang = localStorage.getItem('appLanguage') as LanguageCode
     if (savedLang) {
@@ -507,6 +513,40 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
     }
   }
 
+  // ✅ NEW: Handle evidence file selection
+  const handleEvidenceSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type.startsWith('image/')) {
+      setEvidenceType('image')
+    } else if (file.type.startsWith('video/')) {
+      setEvidenceType('video')
+    } else {
+      alert('Please select an image or video file')
+      return
+    }
+
+    setEvidenceFile(file)
+
+    // Create preview URL
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setEvidencePreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // ✅ NEW: Remove selected evidence
+  const handleRemoveEvidence = () => {
+    setEvidenceFile(null)
+    setEvidencePreview(null)
+    setEvidenceType(null)
+    if (evidenceInputRef.current) {
+      evidenceInputRef.current.value = ''
+    }
+  }
+
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedbackError(null);
@@ -536,6 +576,10 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
       typeLabel: FEEDBACK_TYPES.find(t => t.id === selectedType)?.label || selectedType,
       description: problemDescription.trim(),
       contactInfo: contactInfo.trim(),
+      // ✅ NEW: include evidence info
+      evidenceFileName: evidenceFile?.name || null,
+      evidenceFileType: evidenceType,
+      evidencePreview: evidencePreview || null,
       createdAt: new Date().toISOString(),
       timestamp: Date.now(),
       status: 'pending'
@@ -555,6 +599,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
       setSelectedType('');
       setProblemDescription('');
       setContactInfo('');
+      handleRemoveEvidence();
       
       setTimeout(() => {
         setShowFeedbackPage(false);
@@ -569,6 +614,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         setSelectedType('');
         setProblemDescription('');
         setContactInfo('');
+        handleRemoveEvidence();
         
         setTimeout(() => {
           setShowFeedbackPage(false);
@@ -667,7 +713,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
   const isSpecialUID = user.uid === 'HUSxSvQnabgU029dWYt1TUV04hd2' || user.uid === 'ADqW31RGBMaosOzy0HiqexKSD7h1'
 
   // ============================================================
-  // ✅ FOLLOW LIST (back button ab FollowList/VisitorsPage ke andar se hi aayega)
+  // ✅ FOLLOW LIST
   // ============================================================
   if (showFollowList) {
     if (followListType === 'visitors') {
@@ -713,6 +759,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
               setSelectedType('');
               setProblemDescription('');
               setContactInfo('');
+              handleRemoveEvidence();
             }}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           >
@@ -721,9 +768,9 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
           <h1 className="text-lg font-semibold text-gray-900 ml-3">{t.helpFeedback}</h1>
         </div>
 
-        {/* Form Area - flex column with equal spacing */}
-        <div className="flex-1 px-4 pb-4 overflow-hidden">
-          <div className="max-w-md mx-auto h-full flex flex-col">
+        {/* Form Area */}
+        <div className="flex-1 px-4 pb-4 overflow-y-auto">
+          <div className="max-w-md mx-auto flex flex-col gap-4">
             {feedbackSuccess ? (
               <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center mt-6">
                 <div className="text-4xl mb-4">✅</div>
@@ -731,9 +778,9 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                 <p className="text-green-600">Your feedback has been submitted successfully.</p>
               </div>
             ) : (
-              <form onSubmit={handleFeedbackSubmit} className="h-full flex flex-col gap-3 justify-between">
+              <form onSubmit={handleFeedbackSubmit} className="flex flex-col gap-4">
                 {/* 1. Type of Issue */}
-                <div className="shrink-0">
+                <div>
                   <h2 className="text-base font-semibold text-gray-800 mb-2">Type of Issue</h2>
                   <div className="grid grid-cols-2 gap-3">
                     {FEEDBACK_TYPES.map((type) => (
@@ -757,42 +804,81 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
                   </div>
                 </div>
 
-                {/* 2. Problem description - takes remaining space */}
-                <div className="flex-1 flex flex-col min-h-0">
-                  <h2 className="text-base font-semibold text-gray-800 mb-2 shrink-0">Problem description</h2>
-                  <div className="relative flex-1 min-h-0">
-                    <textarea
-                      value={problemDescription}
-                      onChange={(e) => {
-                        if (e.target.value.length <= 300) {
-                          setProblemDescription(e.target.value);
-                        }
-                      }}
-                      placeholder="Problem description"
-                      maxLength={300}
-                      className="w-full h-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-sm text-gray-900 placeholder-gray-400 bg-gray-50 resize-none"
-                    />
-                    <div className="absolute bottom-2 right-3 text-xs text-gray-400">
-                      {problemDescription.length}/300
-                    </div>
+                {/* 2. Problem description - FIXED OVERLAP */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-base font-semibold text-gray-800">Problem description</h2>
+                    <span className="text-xs text-gray-400">{problemDescription.length}/300</span>
                   </div>
+                  <textarea
+                    value={problemDescription}
+                    onChange={(e) => {
+                      if (e.target.value.length <= 300) {
+                        setProblemDescription(e.target.value);
+                      }
+                    }}
+                    placeholder="Problem description"
+                    maxLength={300}
+                    rows={5}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-md focus:outline-none focus:border-blue-500 transition-colors text-sm text-gray-900 placeholder-gray-400 bg-gray-50 resize-none"
+                  />
                 </div>
 
-                {/* 3. Image Evidence (Optional) - ABOVE CONTACT INFO, SMALLER ICON */}
-                <div className="shrink-0">
+                {/* 3. Image Evidence (Optional) - WITH FILE PICKER */}
+                <div>
                   <h2 className="text-base font-semibold text-gray-800 mb-2">
                     Image Evidence<span className="text-gray-400 font-normal">(Optional)</span>
                   </h2>
-                  <div className="w-16 h-16 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </div>
+
+                  {/* Hidden file input */}
+                  <input
+                    ref={evidenceInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleEvidenceSelect}
+                    className="hidden"
+                  />
+
+                  {/* If no file selected -> show + button */}
+                  {!evidencePreview ? (
+                    <div
+                      onClick={() => evidenceInputRef.current?.click()}
+                      className="w-16 h-16 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors"
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                    </div>
+                  ) : (
+                    /* If file selected -> show preview with remove button */
+                    <div className="relative w-16 h-16">
+                      {evidenceType === 'image' ? (
+                        <img
+                          src={evidencePreview}
+                          alt="Evidence preview"
+                          className="w-16 h-16 rounded-md object-cover border border-gray-200"
+                        />
+                      ) : (
+                        <video
+                          src={evidencePreview}
+                          className="w-16 h-16 rounded-md object-cover border border-gray-200"
+                          muted
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleRemoveEvidence}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-md cursor-pointer hover:bg-red-600 transition-colors"
+                      >
+                        <X size={12} className="text-white" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
-                {/* 4. Contact Information (Optional) - JUST ABOVE SUBMIT BUTTON */}
-                <div className="shrink-0">
+                {/* 4. Contact Information (Optional) */}
+                <div>
                   <h2 className="text-base font-semibold text-gray-800 mb-2">
                     Contact Information<span className="text-gray-400 font-normal">(Optional)</span>
                   </h2>
@@ -807,13 +893,13 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
                 {/* Error */}
                 {feedbackError && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-xl text-xs shrink-0">
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-xl text-xs">
                     {feedbackError}
                   </div>
                 )}
 
-                {/* 5. Submit Button - AT THE VERY BOTTOM */}
-                <div className="shrink-0 pt-1">
+                {/* 5. Submit Button */}
+                <div className="pt-1">
                   <button
                     type="submit"
                     disabled={feedbackSubmitting}
@@ -856,7 +942,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
 
   return (
     <div className="w-full min-h-screen bg-gray-50 pb-16 overflow-y-auto">
-      {/* Profile Header without extra cards inside it */}
+      {/* Profile Header */}
       <div
         className="px-4 pb-4 relative"
         style={{
@@ -953,7 +1039,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
           </button>
         </div>
 
-        {/* Stats Row - Friends | Followers | Following | Visitors */}
+        {/* Stats Row */}
         <div className="flex items-center justify-between mt-2 px-0.5">
           <div
             className="flex-1 text-center cursor-pointer active:scale-95 transition-transform"
@@ -1007,7 +1093,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         </div>
       </div>
 
-      {/* Coins Images Direct Body Par */}
+      {/* Coins Images */}
       <div className="px-3 flex gap-1.5 mt-0 mb-3">
         <div 
           className="flex-1 rounded-lg overflow-hidden cursor-pointer active:scale-95 transition-transform"
@@ -1037,7 +1123,7 @@ export default function MePage({ onLogout, onPublicProfileChange, onNavigate }: 
         </div>
       </div>
 
-      {/* SVIP Image Direct Body Par */}
+      {/* SVIP Banner */}
       <div 
         className="px-3 -mt-10 mb-6 cursor-pointer active:scale-95 transition-transform"
         onClick={() => setShowSvip(true)}
