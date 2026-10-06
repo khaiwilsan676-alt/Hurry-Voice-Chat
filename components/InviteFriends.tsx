@@ -334,30 +334,19 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           {/* Popup Container - Made Smaller */}
           <div className="relative w-full max-w-[300px]">
             
-            {/* Ornate Header */}
-            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 w-[160px] pointer-events-none drop-shadow-lg">
-              <ChromaKeyImage 
-                src="/1788074201753~2.jpg" 
-                alt="Header Ornament" 
-                className="w-full object-contain" 
-              />
-              <div className="absolute inset-0 flex items-center justify-center pb-1">
+            {/* Removed Ornate Header (image) */}
+            
+            {/* Purple Box - Text Background Colour matched to Screenshot */}
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Removed Close Button (X icon) */}
+
+              {/* Centered Heading "Rules" added at the top of the card */}
+              <div className="text-center mb-3">
                 <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
                   Rules
                 </span>
               </div>
-            </div>
-
-            {/* Purple Box - Text Background Colour matched to Screenshot */}
-            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-12 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
-              
-              {/* Close Button */}
-              <button 
-                onClick={() => setIsRulesPopupOpen(false)}
-                className="absolute -top-3 -right-3 w-7 h-7 bg-[#4d0515] rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-red-700 transition-colors cursor-pointer z-30 shadow-lg"
-              >
-                <X size={16} strokeWidth={3} />
-              </button>
 
               {/* Text Content - Made Smaller Font */}
               <div className="text-white text-center text-[12px] leading-relaxed font-medium">
