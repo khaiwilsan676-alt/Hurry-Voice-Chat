@@ -368,7 +368,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               {/* Text Content - Made Smaller Font */}
               <div className="text-white text-left text-[11px] leading-relaxed font-medium space-y-2">
                 <p>
-                  1. Invite a friend to register and receive instant coins. You will get 100,000 coins when they log in. If your friend logs into the Hurry app the next day or within 3 days, they will receive an additional 150,000 coins.
+                  1. Invite one friend get 1,500,000 coin for the first day and get 100,000 coin if the Invited login again within 3 days you can get a maximum of 250,000 coin for inviting one friend.
                 </p>
                 <p>
                   2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.
