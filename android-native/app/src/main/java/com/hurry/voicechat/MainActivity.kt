@@ -29,6 +29,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import coil.compose.AsyncImage
 import androidx.compose.ui.Alignment
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
@@ -50,7 +53,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showLaunch by remember { mutableStateOf(true) }
             LaunchedEffect(Unit) {
-                kotlinx.coroutines.delay(900)
                 showLaunch = false
                 checkForHurryUpdate()
             }
@@ -112,31 +114,39 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun HurryLaunchScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize().background(
-            androidx.compose.ui.graphics.Brush.verticalGradient(
-                colorStops = arrayOf(
-                    0.00f to Color(0xFF2196F3),
-                    0.18f to Color(0xFF2196F3),
-                    0.30f to Color(0xFF7DBBF0),
-                    0.45f to Color(0xFFDCEEFF),
-                    0.62f to Color(0xFFF5FAFF),
-                    1.00f to Color.White
-                )
-            )
+    Box(Modifier.fillMaxSize()) {
+        AsyncImage(
+            model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000003b34820ba9a4e048344ec207.png",
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop
         )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(top = LocalConfiguration.current.screenHeightDp.dp * 0.20f),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = LocalConfiguration.current.screenHeightDp.dp * 0.20f,
+                    start = 16.dp,
+                    end = 16.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.hurry_logo),
+            AsyncImage(
+                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/logo.png",
                 contentDescription = "Hurry logo",
-                modifier = Modifier.width(104.dp).height(104.dp)
+                modifier = Modifier
+                    .width(58.dp)
+                    .height(58.dp)
+                    .clip(RoundedCornerShape(16.dp)),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
             )
-            Spacer(Modifier.height(12.dp))
-            Text("Hurry", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                "Hurry",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
         }
     }
 }
