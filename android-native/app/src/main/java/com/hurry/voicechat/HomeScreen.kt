@@ -153,13 +153,5 @@ private fun HurryCategoryCard(label:String,bg:String,modifier:Modifier=Modifier)
     androidx.compose.foundation.layout.Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
         AsyncImage(model=bg, contentDescription=label, modifier=Modifier.fillMaxSize().offset(y=1.dp).graphicsLayer { scaleX=if (label.equals("Honour", true)) 1.08f else 1.02f; scaleY=if (label.equals("Honour", true)) 1.08f else 1.02f }, contentScale=ContentScale.Fit)
         Text(text=label.uppercase(), modifier=Modifier.fillMaxWidth().padding(top=16.dp), textAlign=androidx.compose.ui.text.style.TextAlign.Center, fontSize=11.sp, fontWeight=FontWeight.Black, color=Color.White)
-        androidx.compose.foundation.layout.Box(modifier=Modifier.align(Alignment.BottomCenter).fillMaxWidth(.85f).padding(bottom=4.dp).offset(y=2.dp)) {
-            AsyncImage(model=CARD_FRAME,contentDescription=null,modifier=Modifier.fillMaxWidth().wrapContentHeight(),contentScale=ContentScale.Fit)
-            Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(end=1.dp),contentScale=ContentScale.Crop)
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.32f).offset(y=(-1).dp).clip(RoundedCornerShape(50)).padding(1.5.dp),contentScale=ContentScale.Crop)
-                AsyncImage(model=RAW+"logo.png",contentDescription=null,modifier=Modifier.fillMaxHeight().aspectRatio(1f).weight(.24f).offset(y=1.dp).padding(start=1.dp),contentScale=ContentScale.Crop)
-            }
-        }
     }
 }
