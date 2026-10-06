@@ -144,6 +144,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const handleBack = onBack || onClose || (() => {})
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) // New state for Rules Popup
   
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
   const inviteCode = userId !== 'N/A' ? userId : 'WELCOME123'
@@ -215,7 +216,12 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <div className="absolute text-yellow-400 font-bold text-sm" style={{ top: '100px', left: '40px' }}>
               Invite Friends
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '100px', right: '35px' }}>
+            {/* Added onClick to open the Rules Popup */}
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '100px', right: '35px' }}
+              onClick={() => setIsRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
@@ -322,7 +328,47 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* Backdrop */}
+      {/* --- NEW RULES POPUP START --- */}
+      {isRulesPopupOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-[360px]">
+            
+            {/* Ornate Header */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 w-[200px] pointer-events-none drop-shadow-lg">
+              <ChromaKeyImage 
+                src="/1788074201753~2.jpg" 
+                alt="Header Ornament" 
+                className="w-full object-contain" 
+              />
+              <div className="absolute inset-0 flex items-center justify-center pb-1">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+            </div>
+
+            {/* Purple Box */}
+            <div className="relative bg-[#6d196d] rounded-2xl border-[3px] border-[#facc15] p-6 pt-12 pb-8 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              
+              {/* Close Button */}
+              <button 
+                onClick={() => setIsRulesPopupOpen(false)}
+                className="absolute -top-3 -right-3 w-8 h-8 bg-[#4d0515] rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-red-700 transition-colors cursor-pointer z-30 shadow-lg"
+              >
+                <X size={20} strokeWidth={3} />
+              </button>
+
+              {/* Text Content */}
+              <div className="text-white text-center text-[14px] leading-relaxed font-medium">
+                Invite one friend to get 150000 coins for the first day and get 100000 coins if the invitee login again within 3 days. You can get a maximum of 250000 coins for inviting one friend.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* --- NEW RULES POPUP END --- */}
+
+      {/* Backdrop for Bottom Sheet */}
       {isSheetOpen && (
         <div onClick={() => setIsSheetOpen(false)} className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" />
       )}
