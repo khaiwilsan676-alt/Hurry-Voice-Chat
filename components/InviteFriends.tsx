@@ -517,13 +517,9 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
 
       {/* Bottom Sheet */}
       <div className={`fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out shadow-2xl flex flex-col px-4 py-2 border-0 outline-none ${ isSheetOpen ? 'translate-y-0' : 'translate-y-full' }`} style={{ border: 'none' }}>
-        <div className="flex justify-end pt-1 pr-1">
-          <button onClick={() => setIsSheetOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer transition-colors">
-            <X size={18} />
-          </button>
-        </div>
+        {/* REMOVED: Close X Button row */}
 
-        <div className="flex-1 grid grid-cols-4 gap-2 items-center justify-center text-center pb-2">
+        <div className="flex-1 grid grid-cols-4 gap-2 items-center justify-center text-center pb-2 pt-4">
           <button onClick={() => handleShare('whatsapp')} className="flex flex-col items-center justify-center gap-1.5 group cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-md group-hover:scale-105 transition-transform"><WhatsAppIcon size={24} /></div>
             <span className="text-[11px] font-medium text-gray-800">WhatsApp</span>
