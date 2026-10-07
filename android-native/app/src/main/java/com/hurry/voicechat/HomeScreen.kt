@@ -77,7 +77,7 @@ interface RoomDao {
     suspend fun getAll(): List<RoomEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(rooms: List<RoomEntity>)
+    suspend fun insertAll(rooms: List<RoomEntity>): List<Long>
 
     @Query("DELETE FROM rooms")
     fun clearAll(): Int
