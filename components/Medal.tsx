@@ -252,12 +252,6 @@ const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           <h1 className="text-xl font-medium text-white tracking-wide">
             Obtained Medals
           </h1>
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <X size={24} className="text-white" />
-          </button>
         </div>
 
         {/* Grid - Scrollable */}
@@ -323,12 +317,6 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
           <h1 className="text-xl font-medium text-white tracking-wide">
             Unequipped Medals
           </h1>
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <X size={24} className="text-white" />
-          </button>
         </div>
 
         {/* Grid - Scrollable */}
@@ -369,10 +357,12 @@ const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
 }
 
 // --- RULES SCREEN (HALF SCREEN BOTTOM SHEET) ---
+// NOTE: Isme koi X (close) icon NAHI hai.
+// Sheet band karne ke liye sirf bahar (overlay) pe touch/click karo.
 const RulesScreen = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col justify-end">
-      {/* Dark Overlay (Peeche ka background) */}
+      {/* Dark Overlay - ispe click karne se sheet band ho jayegi */}
       <div
         className="absolute inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
@@ -380,7 +370,7 @@ const RulesScreen = ({ onClose }: { onClose: () => void }) => {
 
       {/* Bottom Sheet - Medal background ke match karta hua color */}
       <div className="relative w-full h-[75vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-        {/* Header */}
+        {/* Header - NO X icon, only title */}
         <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0 border-b border-white/10">
           <h1 className="text-xl font-medium text-white tracking-wide">
             Rules
@@ -939,6 +929,7 @@ export default function Medal({ onBack }: MedalProps) {
               className="absolute inset-0 w-full h-full object-contain object-top block pointer-events-none select-none"
             />
 
+            {/* Back button - top left */}
             <button
               onClick={closeSheet}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
@@ -947,13 +938,13 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* Question mark icon - top right side */}
+            {/* Question mark button - top right */}
             <button
               onClick={() => setShowRules(true)}
               className="absolute right-0 top-0 z-50 p-1 pr-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
             >
-              <HelpCircle size={24} className="opacity-80" />
+              <HelpCircle size={22} className="opacity-80" />
             </button>
 
             <div
