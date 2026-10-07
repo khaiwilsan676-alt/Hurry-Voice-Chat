@@ -145,11 +145,12 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const handleBack = onBack || onClose || (() => {})
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  // "Invite Friends" (Get 250000) ka CHOTA rules popup
+  
+  // Invite Friends → SIRF EK LINE wala rules
   const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) 
   const [isGiftRulesPopupOpen, setIsGiftRulesPopupOpen] = useState(false)
   const [isRechargeRulesPopupOpen, setIsRechargeRulesPopupOpen] = useState(false)
-  // "?" icon ka ALAG naya rules popup
+  // ? icon → NAYE rules
   const [isHelpRulesPopupOpen, setIsHelpRulesPopupOpen] = useState(false)
   
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
@@ -216,7 +217,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           <ChromaKeyImage src="/1788100666322~2.jpg" alt="My gain" className="w-full object-contain pointer-events-none" />
 
           <div className="absolute inset-0 z-10">
-            {/* ROW 1: Invite Friends → CHOTA wala rules popup khulega */}
+            {/* ROW 1: Invite Friends */}
             <div className="absolute text-yellow-400 font-bold text-sm" style={{ top: '100px', left: '40px' }}>
               Invite Friends
             </div>
@@ -328,7 +329,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* ✅ Question Mark Icon - SIRF NAYA rules popup khulega */}
+      {/* Question Mark Icon */}
       <div className="fixed top-0 right-0 z-[60] flex items-center pl-4 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pointer-events-auto">
         <button
           onClick={() => setIsHelpRulesPopupOpen(true)}
@@ -339,7 +340,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* --- INVITE FRIENDS RULES POPUP (CHOTA wala) --- */}
+      {/* --- INVITE FRIENDS RULES POPUP (SIRF EK LINE) --- */}
       {isRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -355,14 +356,8 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                   Rules
                 </span>
               </div>
-              <div className="text-white text-left text-[11px] leading-relaxed font-medium space-y-2">
-                <p>1. Invite one friend get 1,500,000 coin for the first day and get 100,000 coin if the Invited login again within 3 days you can get a maximum of 250,000 coin for inviting one friend.</p>
-                <p>2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.</p>
-                <p>3. The Hurry app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.</p>
-                <p>4. Invite your friends; you will earn free coins when they recharge or send gifts.</p>
-                <p className="pt-1 text-right text-[10px] italic text-yellow-200">
-                  (Best regards  The Hurry Team)
-                </p>
+              <div className="text-white text-left text-[12px] leading-relaxed font-medium">
+                If invite friend download &amp; enter the Invite code in the input Given. Then a Inverter will Receive a 250,000Coins rewards hand to hand in there coins wallet
               </div>
             </div>
           </div>
@@ -417,7 +412,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </div>
       )}
 
-      {/* --- ❓ QUESTION MARK ICON KA NAYA RULES POPUP --- */}
+      {/* --- ? ICON KA NAYA RULES POPUP --- */}
       {isHelpRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -447,7 +442,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                   4. Invite your friends; you will earn free coins when they recharge or send gifts.
                 </p>
                 <p className="pt-1 text-right text-[10px] italic text-yellow-200">
-                  Best regards Hurry Team
+                  Best regards, The Hurry Team
                 </p>
               </div>
             </div>
@@ -455,9 +450,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </div>
       )}
 
-      {/* ✅ Bottom Sheet ke peeche koi dark backdrop nahi, koi blur nahi */}
-
-      {/* Bottom Sheet (WhatsApp / Facebook / Copy / More) */}
+      {/* Bottom Sheet (WhatsApp / Facebook / Copy / More) - No blur, no dark overlay */}
       <div className={`fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out shadow-2xl flex flex-col px-4 py-2 border-0 outline-none ${ isSheetOpen ? 'translate-y-0' : 'translate-y-full' }`} style={{ border: 'none' }}>
         <div className="flex justify-end pt-1 pr-1">
           <button onClick={() => setIsSheetOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer transition-colors">
@@ -487,4 +480,4 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
       </div>
     </div>
   )
-              }
+      }
