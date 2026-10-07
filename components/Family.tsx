@@ -200,27 +200,41 @@ const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, classN
   </svg>
 );
 
-// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT
+// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT (UPDATED TO MATCH PROVIDED IMAGE)
 const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
   <div 
-    className="fixed inset-0 bg-black/50 z-[100] flex items-end"
+    className="fixed inset-0 bg-black/60 z-[100] flex items-end justify-center"
     onClick={onClose}
   >
     <div 
-      className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
+      className="relative w-full max-h-[85vh] rounded-t-3xl overflow-hidden shadow-2xl flex flex-col"
       onClick={(e) => e.stopPropagation()}
+      style={{
+        backgroundImage: "url('/file_0000000083f8822fa7f06f4b6b7746c9.png')",
+        backgroundSize: '100% 100%',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#0a0f2c' // Fallback dark blue
+      }}
     >
-      <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
-      <div className="text-black/80 text-sm space-y-3 pb-6">
-        <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
-        <p>2. There is no need to wait for official approval.</p>
-        <p>3. A family can have a maximum of 100 members.</p>
-        <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
-        <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
-        <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
-        <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
-        <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
-        <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+      {/* Decorative border/overlay - optional if image lacks it, but the image itself is the frame */}
+      <div className="w-full h-full flex flex-col p-6 overflow-y-auto relative z-10">
+        {/* Spacer for the top ornamental part of the image */}
+        <div className="h-10 w-full flex-shrink-0"></div>
+        
+        <h2 className="text-white font-bold text-xl mb-4 text-center drop-shadow-md tracking-wider">FAMILY RULES</h2>
+        
+        <div className="text-gray-200 text-sm space-y-4 pb-8 px-2 leading-relaxed">
+          <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
+          <p>2. There is no need to wait for official approval.</p>
+          <p>3. A family can have a maximum of 100 members.</p>
+          <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
+          <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
+          <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
+          <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
+          <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
+          <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+        </div>
       </div>
     </div>
   </div>
