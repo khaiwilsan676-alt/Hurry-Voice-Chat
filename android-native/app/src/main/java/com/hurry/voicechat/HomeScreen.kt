@@ -95,7 +95,8 @@ abstract class HurryDatabase : RoomDatabase() {
                     context.applicationContext,
                     HurryDatabase::class.java,
                     "hurry_cache.db"
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration()
+                 .build().also { INSTANCE = it }
             }
     }
 }
