@@ -51,7 +51,7 @@ private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 // MePage wala exact gradient
 private val MePageTopGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
     0.0f  to Color(0xFF3B82F6),
-    0.70f to Color(0xFFEFF6FF),
+    0.85f to Color(0xFFEFF6FF),
     1.0f  to Color(0xFFF9FAFB)
 )
 
@@ -191,7 +191,7 @@ fun HomeScreen(
                 .padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -323,7 +323,7 @@ fun HomeScreen(
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(1.dp)  // gap kam
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)  // gap kam
                     ) {
                         row.forEach { room ->
                             RoomListCard(room, onRoom, Modifier.weight(1f))
