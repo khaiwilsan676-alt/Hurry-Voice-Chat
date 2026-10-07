@@ -218,6 +218,20 @@ const allStoreItems: StoreItem[] = [
 ];
 
 // ==========================================
+// FRIENDS DATA (from screenshot)
+// ==========================================
+interface Friend {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+const friendsList: Friend[] = [
+  { id: "f1", name: "add please", avatar: "/IMG_20260913_090019.png" },
+  { id: "f2", name: "99❤️OWNER KABIR☆khan", avatar: "/IMG_20260913_090057.png" },
+];
+
+// ==========================================
 // SHARED WebGL WHITE-REMOVAL
 // ==========================================
 const processedCache = new Map<string, Promise<string>>();
@@ -634,6 +648,7 @@ export default function StorePage({
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
+  const [sendItem, setSendItem] = useState<StoreItem | null>(null);
 
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
@@ -787,6 +802,11 @@ export default function StorePage({
     }
   };
 
+  const handleSendToFriend = (friend: Friend) => {
+    alert(`Item "${sendItem?.name}" sent to ${friend.name}!`);
+    setSendItem(null);
+  };
+
   useEffect(() => {
     const equippedVehicleId = Array.from(equippedIds).find((id) => {
       const item = allStoreItems.find((it) => it.id === id);
@@ -933,6 +953,7 @@ export default function StorePage({
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
                 const isEquippedItem = isEquipped(item.id);
+                const isActive = isItemActive(item);
 
                 return (
                   <div
@@ -1014,6 +1035,7 @@ export default function StorePage({
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
                       <button
                         type="button"
+                        onClick={() => setSendItem(item)}
                         className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
                       >
                         Send
@@ -1021,7 +1043,7 @@ export default function StorePage({
                       <button
                         type="button"
                         onClick={() => {
-                          if (isOwned) {
+                          if (isOwned && isActive) {
                             handleEquipToggle(item);
                           } else {
                             handleBuy(item);
@@ -1030,7 +1052,7 @@ export default function StorePage({
                         disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {buying === item.id ? '...' : isOwned ? (isEquippedItem ? 'Using' : 'Use') : 'Buy'}
+                        {buying === item.id ? '...' : isOwned && isActive ? (isEquippedItem ? 'Using' : 'Use') : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -1073,7 +1095,6 @@ export default function StorePage({
             className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Content */}
             <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-2">
               <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
 
@@ -1103,10 +1124,8 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Item Name just above 3days */}
               <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
 
-              {/* Balance just above 7days, right side */}
               <div className="w-full flex justify-end mb-1">
                 <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
                   <span>Balance:</span>
@@ -1117,7 +1136,6 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Duration Buttons */}
               <div className="flex items-center gap-2 w-full mb-2">
                 <button
                   type="button"
@@ -1139,12 +1157,14 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Send/Buy Buttons pushed fully to bottom */}
             <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
               <button
                 type="button"
                 className="flex-1 py-3.5 rounded-full bg-[#e0f2fe] text-[#1d4ed8] font-bold text-[15px] hover:bg-[#bae6fd] transition-colors"
-                onClick={() => setTryCenterItem(null)}
+                onClick={() => {
+                  setSendItem(tryCenterItem);
+                  setTryCenterItem(null);
+                }}
               >
                 Send
               </button>
@@ -1152,7 +1172,7 @@ export default function StorePage({
                 type="button"
                 className="flex-1 py-3.5 rounded-full bg-[#00b4d8] text-white font-bold text-[15px] hover:bg-[#0096c7] transition-colors"
                 onClick={async () => {
-                  if (ownedIds.has(tryCenterItem.id)) {
+                  if (ownedIds.has(tryCenterItem.id) && isItemActive(tryCenterItem)) {
                     await handleEquipToggle(tryCenterItem);
                   } else {
                     await handleBuy(tryCenterItem);
@@ -1160,8 +1180,56 @@ export default function StorePage({
                   setTryCenterItem(null);
                 }}
               >
-                Buy
+                {ownedIds.has(tryCenterItem.id) && isItemActive(tryCenterItem) ? (isEquipped(tryCenterItem.id) ? 'Using' : 'Use') : 'Buy'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==========================================
+          SEND TO FRIENDS SHEET MODAL
+          ========================================== */}
+      {sendItem && (
+        <div
+          className="fixed inset-0 z-[110] flex flex-col justify-end bg-black/50 cursor-pointer"
+          onClick={() => setSendItem(null)}
+        >
+          <div
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+            style={{ minHeight: '70vh', maxHeight: '85vh' }}
+          >
+            {/* Header */}
+            <div className="w-full flex flex-col items-center px-5 pt-5 pb-2">
+              <h2 className="text-[22px] font-bold text-gray-900 mt-1 mb-4">Send to friends</h2>
+              <h3 className="text-[16px] font-semibold text-gray-800 w-full text-left mb-2">Contact</h3>
+            </div>
+
+            {/* Friends List */}
+            <div className="w-full flex-1 overflow-y-auto no-scrollbar px-5">
+              {friendsList.map((friend) => (
+                <div key={friend.id} className="flex items-center justify-between w-full mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                      <Image
+                        src={friend.avatar}
+                        alt={friend.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <span className="text-[17px] font-medium text-gray-900">{friend.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSendToFriend(friend)}
+                    className="px-6 py-2 rounded-full bg-[#4dd0e1] text-white font-semibold text-[15px] hover:bg-[#26c6da] transition-colors"
+                  >
+                    Send
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
