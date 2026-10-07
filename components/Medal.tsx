@@ -385,12 +385,6 @@ const RulesScreen = ({ onClose }: { onClose: () => void }) => {
           <h1 className="text-xl font-medium text-white tracking-wide">
             Rules
           </h1>
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <X size={24} className="text-white" />
-          </button>
         </div>
 
         {/* Content - Scrollable */}
