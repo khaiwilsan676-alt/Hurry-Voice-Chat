@@ -470,6 +470,8 @@ const PhonePeSvg = ({ size = 'md' }: { size?: 'sm' | 'md' }) => {
   )
 }
 
+const TABS: TabType[] = ['wallet', 'diamonds', 'agent'];
+
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
   
@@ -485,6 +487,10 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [showPayUsingSheet, setShowPayUsingSheet] = useState(false)
   const [selectedAmountToBuy, setSelectedAmountToBuy] = useState<{coins: number, price: number} | null>(null)
+
+  // Swipe support
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
 
   useEffect(() => {
     let isMounted = true
@@ -506,6 +512,42 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       clearInterval(intervalId)
     }
   }, [])
+
+  // Reset activeTab if initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
+
+  const goToTab = (tab: TabType) => {
+    setActiveTab(tab)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current
+    touchStartX.current = null
+    touchStartY.current = null
+
+    // Only trigger on mostly-horizontal swipes
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
+
+    const currentIndex = TABS.indexOf(activeTab)
+    if (deltaX < 0) {
+      // swipe left → next tab
+      const nextIndex = Math.min(currentIndex + 1, TABS.length - 1)
+      if (nextIndex !== currentIndex) goToTab(TABS[nextIndex])
+    } else {
+      // swipe right → previous tab
+      const prevIndex = Math.max(currentIndex - 1, 0)
+      if (prevIndex !== currentIndex) goToTab(TABS[prevIndex])
+    }
+  }
 
   const handleDiamondChange = (value: string) => {
     setDiamonds(value)
@@ -580,6 +622,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         WebkitTouchCallout: 'none',
         background: 'linear-gradient(180deg, #1A66FF 0%, #1A66FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
       }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <style>{`
         * {
