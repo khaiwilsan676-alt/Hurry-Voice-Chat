@@ -4,19 +4,18 @@ import React, { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, HelpCircle } from 'lucide-react'
 
 // ==========================================
-// UPGRADE SHEET COMPONENT (CHOTA + NO BLUR + OUTSIDE CLICK CLOSE)
+// UPGRADE SHEET COMPONENT (CENTER + MATCHING COLOUR)
 // ==========================================
 function UpgradeSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
   return (
     <div 
-      className="fixed inset-0 z-[200] flex items-end justify-center bg-transparent transition-opacity"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-transparent transition-opacity"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-[340px] bg-[#0a1428] rounded-t-[24px] border-t border-x border-[#1e3a8a]/50 shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}
+        className="w-full max-w-[340px] bg-[#04060a] rounded-[24px] border border-[#1e3a8a]/50 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
