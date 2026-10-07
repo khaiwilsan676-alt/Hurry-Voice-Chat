@@ -808,95 +808,93 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {activeTab === 'diamonds' && (
-          <div className="flex flex-col mt-5 flex-1">
-            <div className="space-y-4 flex-shrink-0">
-              <div
-                className="rounded-xl p-4"
-                style={{
-                  background: 'linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%)',
-                  border: '1px solid #E0EFFF',
-                  boxShadow: '0 2px 10px rgba(59, 130, 246, 0.1)',
-                }}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-xs font-bold text-gray-800">Exchange</h3>
-                  <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
-                    <span>100 =</span>
-                    <div className="w-3.5 h-3.5 inline-block align-middle">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                    <span>33</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-blue-100 shadow-inner">
-                    <div className="w-4 h-4 flex-shrink-0">
-                      <WhiteColorRemovalShader
-                        imageSrc="/1787321690452.png"
-                        className="w-full h-full object-contain"
-                        threshold={0.88}
-                      />
-                    </div>
-                    <input
-                      type="number"
-                      value={diamonds}
-                      onChange={(e) => handleDiamondChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs placeholder:text-gray-400"
-                      placeholder="Input multiple"
+          <div className="flex flex-col mt-5">
+            <div
+              className="rounded-xl p-4"
+              style={{
+                background: 'linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%)',
+                border: '1px solid #E0EFFF',
+                boxShadow: '0 2px 10px rgba(59, 130, 246, 0.1)',
+              }}
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-xs font-bold text-gray-800">Exchange</h3>
+                <div className="text-[11px] font-semibold text-gray-500 flex items-center gap-1">
+                  <span>100 =</span>
+                  <div className="w-3.5 h-3.5 inline-block align-middle">
+                    <img
+                      src="/file_00000000e56882119c217d508b6733dc.png"
+                      className="w-full h-full object-contain"
+                      alt=""
+                      draggable={false}
                     />
-                    <span className="text-[11px] font-bold text-gray-400">x100</span>
                   </div>
-
-                  <span className="text-gray-300 font-bold">=</span>
-
-                  <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
-                    <input
-                      type="number"
-                      value={coins}
-                      onChange={(e) => handleCoinChange(e.target.value)}
-                      className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs text-right placeholder:text-gray-400"
-                      placeholder="Coins"
-                    />
-                    <div className="w-4 h-4 flex-shrink-0 ml-1.5">
-                      <img
-                        src="/file_00000000e56882119c217d508b6733dc.png"
-                        className="w-full h-full object-contain"
-                        alt=""
-                        draggable={false}
-                      />
-                    </div>
-                  </div>
+                  <span>33</span>
                 </div>
               </div>
 
-              <div className="space-y-2 pt-1">
-                <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
-                    <button
-                      key={pct}
-                      onClick={() => handlePercentageSelect(pct)}
-                      className={`py-2 rounded-xl text-xs font-bold transition-all border ${
-                        selectedPercentage === pct
-                          ? 'bg-[#0044FF] text-white border-[#0044FF] shadow-xs'
-                          : 'bg-white text-[#0044FF] border-blue-200'
-                      }`}
-                    >
-                      {pct}
-                    </button>
-                  ))}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center gap-2 border border-blue-100 shadow-inner">
+                  <div className="w-4 h-4 flex-shrink-0">
+                    <WhiteColorRemovalShader
+                      imageSrc="/1787321690452.png"
+                      className="w-full h-full object-contain"
+                      threshold={0.88}
+                    />
+                  </div>
+                  <input
+                    type="number"
+                    value={diamonds}
+                    onChange={(e) => handleDiamondChange(e.target.value)}
+                    className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs placeholder:text-gray-400"
+                    placeholder="Input multiple"
+                  />
+                  <span className="text-[11px] font-bold text-gray-400">x100</span>
+                </div>
+
+                <span className="text-gray-300 font-bold">=</span>
+
+                <div className="flex-1 bg-gray-50/80 rounded-xl p-2.5 flex items-center justify-between border border-gray-200 shadow-inner">
+                  <input
+                    type="number"
+                    value={coins}
+                    onChange={(e) => handleCoinChange(e.target.value)}
+                    className="bg-transparent outline-none w-full font-medium text-gray-700 text-xs text-right placeholder:text-gray-400"
+                    placeholder="Coins"
+                  />
+                  <div className="w-4 h-4 flex-shrink-0 ml-1.5">
+                    <img
+                      src="/file_00000000e56882119c217d508b6733dc.png"
+                      className="w-full h-full object-contain"
+                      alt=""
+                      draggable={false}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Exchange Button — now pinned to the absolute bottom of the scrollable area */}
-            <div className="flex-1 flex items-end justify-center pt-6 pb-4">
+            <div className="space-y-2 pt-1 mt-4">
+              <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
+                  <button
+                    key={pct}
+                    onClick={() => handlePercentageSelect(pct)}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                      selectedPercentage === pct
+                        ? 'bg-[#0044FF] text-white border-[#0044FF] shadow-xs'
+                        : 'bg-white text-[#0044FF] border-blue-200'
+                    }`}
+                  >
+                    {pct}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Exchange Button — pinned to the bottom using mt-auto (pushes to bottom of flex container) */}
+            <div className="mt-auto pt-8 pb-4 flex justify-center">
               <button
                 onClick={handleExchange}
                 className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
