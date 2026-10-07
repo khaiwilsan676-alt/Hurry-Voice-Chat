@@ -891,7 +891,7 @@ export default function StorePage({
             </button>
           </div>
 
-          {/* Category Tabs - now horizontally scrollable */}
+          {/* Category Tabs - horizontally scrollable */}
           <div
             ref={tabsScrollRef}
             className="flex items-center gap-1 pl-3 pr-3 mt-1 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full"
@@ -1103,11 +1103,12 @@ export default function StorePage({
           onClick={() => setTryCenterItem(null)}
         >
           <div
-            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
+            style={{ minHeight: '75vh' }}
           >
             {/* Top content */}
-            <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-0">
+            <div className="w-full flex flex-col items-center px-5 pt-5 pb-0">
               <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
 
               <div className="relative w-[180px] h-[180px] my-2 flex items-center justify-center">
@@ -1136,10 +1137,25 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Item name just above 3 days button */}
+              {/* Item name just above 3 days button - left side */}
               <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
 
-              {/* Current balance just above 7 days button */}
+              {/* 3 days button just below item name - left side */}
+              <div className="flex items-center gap-2 w-full mb-2">
+                <button
+                  type="button"
+                  className="py-[6px] px-4 rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[13px] flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-3.5 h-3.5 rounded-full bg-orange-400 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  3days
+                </button>
+              </div>
+
+              {/* Balance just above 7 days button - right side */}
               <div className="w-full flex justify-end mb-1">
                 <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
                   <span>Balance:</span>
@@ -1150,22 +1166,11 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* 3 days & 7 days buttons just above Send/Buy */}
-              <div className="flex items-center gap-2 w-full mb-1">
+              {/* 7 days button just below balance - right side */}
+              <div className="flex justify-end w-full mb-4">
                 <button
                   type="button"
-                  className="flex-1 py-[6px] rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[13px] flex items-center justify-center gap-1.5"
-                >
-                  <span className="w-3.5 h-3.5 rounded-full bg-orange-400 flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </span>
-                  3days
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 py-[6px] rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
+                  className="py-[6px] px-4 rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
                 >
                   7days
                 </button>
