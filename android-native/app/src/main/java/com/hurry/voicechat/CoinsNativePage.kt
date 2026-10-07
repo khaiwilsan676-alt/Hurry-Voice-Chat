@@ -921,11 +921,11 @@ private fun GoogleGLogo() {
         // Red (top)
         drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
         // Blue (right)
-        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
         // Yellow (left)
-        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
         // Green (bottom)
-        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
     }
 }
 
