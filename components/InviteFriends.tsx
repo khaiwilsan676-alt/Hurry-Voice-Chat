@@ -145,10 +145,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const handleBack = onBack || onClose || (() => {})
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  // "Invite Friends" (Get 250000) ka CHOTA rules popup
   const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) 
   const [isGiftRulesPopupOpen, setIsGiftRulesPopupOpen] = useState(false)
   const [isRechargeRulesPopupOpen, setIsRechargeRulesPopupOpen] = useState(false)
-  // ? icon ke liye alag popup state
+  // "?" icon ka ALAG naya rules popup
   const [isHelpRulesPopupOpen, setIsHelpRulesPopupOpen] = useState(false)
   
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
@@ -215,7 +216,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           <ChromaKeyImage src="/1788100666322~2.jpg" alt="My gain" className="w-full object-contain pointer-events-none" />
 
           <div className="absolute inset-0 z-10">
-            {/* ROW 1: Invite Friends */}
+            {/* ROW 1: Invite Friends → CHOTA wala rules popup khulega */}
             <div className="absolute text-yellow-400 font-bold text-sm" style={{ top: '100px', left: '40px' }}>
               Invite Friends
             </div>
@@ -327,7 +328,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* Question Mark Icon - SIRF naye rules popup ko open karega */}
+      {/* ✅ Question Mark Icon - SIRF NAYA rules popup khulega */}
       <div className="fixed top-0 right-0 z-[60] flex items-center pl-4 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pointer-events-auto">
         <button
           onClick={() => setIsHelpRulesPopupOpen(true)}
@@ -338,7 +339,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* --- INVITE FRIENDS RULES POPUP (Get 250000 wala) --- */}
+      {/* --- INVITE FRIENDS RULES POPUP (CHOTA wala) --- */}
       {isRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -359,7 +360,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                 <p>2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.</p>
                 <p>3. The Hurry app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.</p>
                 <p>4. Invite your friends; you will earn free coins when they recharge or send gifts.</p>
-                {/* ✅ Right Bottom Corner */}
                 <p className="pt-1 text-right text-[10px] italic text-yellow-200">
                   (Best regards  The Hurry Team)
                 </p>
@@ -417,7 +417,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </div>
       )}
 
-      {/* --- QUESTION MARK (?) ICON KA RULES POPUP --- */}
+      {/* --- ❓ QUESTION MARK ICON KA NAYA RULES POPUP --- */}
       {isHelpRulesPopupOpen && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
@@ -446,9 +446,8 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                 <p>
                   4. Invite your friends; you will earn free coins when they recharge or send gifts.
                 </p>
-                {/* ✅ Right Bottom Corner */}
                 <p className="pt-1 text-right text-[10px] italic text-yellow-200">
-                  Best regards,Hurry Team
+                  Best regards Hurry Team
                 </p>
               </div>
             </div>
@@ -488,4 +487,4 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
       </div>
     </div>
   )
-}
+              }
