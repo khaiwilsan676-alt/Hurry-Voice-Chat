@@ -3,6 +3,119 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, HelpCircle } from 'lucide-react'
 
+// ==========================================
+// UPGRADE SHEET COMPONENT (SAME AS SCREENSHOT)
+// ==========================================
+function UpgradeSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+      <div 
+        className="w-full max-w-[440px] bg-[#0a1428] rounded-t-[24px] border-t border-x border-[#1e3a8a]/50 shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-center pt-5 pb-2 relative">
+          <div className="flex items-center gap-2">
+            <span className="text-[#fcd34d] text-lg">◆</span>
+            <h2 className="text-white font-bold text-[18px] tracking-wide">How to upgrade</h2>
+            <span className="text-[#fcd34d] text-lg">◆</span>
+          </div>
+        </div>
+
+        {/* List Items */}
+        <div className="px-5 py-2 flex flex-col gap-1">
+          
+          {/* Send Gifts */}
+          <div className="flex items-center gap-4 py-3 border-b border-[#1e3a8a]/30">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-10 h-10 text-[#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 12v10H4V12h16zm-2-6a2 2 0 0 0-2-2h-1.5a3.5 3.5 0 0 0-2.5 1.05A3.5 3.5 0 0 0 9.5 4H8a2 2 0 0 0-2 2v1h2v2H4v3h16v-3h-4V7h2V6zM8 6h1.5a1.5 1.5 0 0 1 0 3H8V6zm6.5 3a1.5 1.5 0 0 1 0-3H16v3h-1.5z"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-[15px]">Send Gifts</span>
+              <span className="text-gray-400 text-[13px]">1 coins=1 EXP</span>
+            </div>
+          </div>
+
+          {/* Join rooms */}
+          <div className="flex items-center gap-4 py-3 border-b border-[#1e3a8a]/30">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-10 h-10 text-[#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-[15px]">Join rooms</span>
+              <span className="text-gray-400 text-[13px]">2000 EXP/Day</span>
+            </div>
+          </div>
+
+          {/* Share Rooms */}
+          <div className="flex items-center gap-4 py-3 border-b border-[#1e3a8a]/30">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-10 h-10 text-[#60a5fa]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-[15px]">Share Rooms</span>
+              <span className="text-gray-400 text-[13px]">2000 EXP/Day</span>
+            </div>
+          </div>
+
+          {/* Take the mic and unmute in your ov */}
+          <div className="flex items-center gap-4 py-3 border-b border-[#1e3a8a]/30">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-10 h-10 text-[#60a5fa]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-[15px] leading-tight">Take the mic and unmute in your ov</span>
+              <span className="text-gray-400 text-[13px]">1 min = 500 exp, 10000 exp/day</span>
+            </div>
+          </div>
+
+          {/* Take the mic and unmute in others' */}
+          <div className="flex items-center gap-4 py-3">
+            <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <svg className="w-10 h-10 text-[#60a5fa]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-white font-semibold text-[15px] leading-tight">Take the mic and unmute in others'</span>
+              <span className="text-gray-400 text-[13px]">1 min = 500 exp, 20000 exp/day</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Confirm Button */}
+        <div className="p-4 pt-2">
+          <button
+            onClick={onClose}
+            className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] text-white font-bold text-[17px] tracking-wide shadow-[0_4px_15px_rgba(245,158,11,0.5)] active:scale-[0.98] transition-transform"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+// ==========================================
+// END UPGRADE SHEET COMPONENT
+// ==========================================
+
 interface LevelProps {
   onBack?: () => void
 }
@@ -254,6 +367,9 @@ export default function Level({ onBack }: LevelProps) {
   const [userPhoto, setUserPhoto] = useState<string>('')
   const [userUid, setUserUid] = useState<string>('')
 
+  // STATE FOR SHEET
+  const [showUpgradeSheet, setShowUpgradeSheet] = useState(false)
+
   const loadUserFromLocal = () => {
     if (typeof window === 'undefined') return
     const uid = localStorage.getItem('userUID') || localStorage.getItem('userPhone') || localStorage.getItem('userId') || ''
@@ -326,7 +442,7 @@ export default function Level({ onBack }: LevelProps) {
           className="flex items-center justify-center w-full -mx-4 pb-2 pt-2 bg-transparent relative z-50"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)' }}
         >
-          {/* Back Button - Ekdam Strict Corner Left */}
+          {/* Back Button */}
           <button
             onClick={onBack}
             className="absolute left-0 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-50"
@@ -335,13 +451,13 @@ export default function Level({ onBack }: LevelProps) {
             <ArrowLeft size={26} strokeWidth={2.5} className="text-white drop-shadow-md" />
           </button>
           
-<h1 className="flex-1 text-center translate-x-4 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
-  Level
-</h1>
+          <h1 className="flex-1 text-center translate-x-4 text-xl font-extrabold text-white tracking-wide drop-shadow-lg">
+            Level
+          </h1>
 
-
-          {/* Help Button - Ekdam Strict Corner Right */}
+          {/* Help Button (CLICK TO OPEN SHEET) */}
           <button
+            onClick={() => setShowUpgradeSheet(true)}
             className="absolute -right-6 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
             style={{ top: 'calc(max(env(safe-area-inset-top, 0px), var(--status-bar-height, 0px)) + 13px)' }}
           >
@@ -641,6 +757,15 @@ export default function Level({ onBack }: LevelProps) {
           ))}
         </div>
       </div>
+
+      {/* ========================================== */}
+      {/* SHEET RENDER (YAHAN ADD KIYA HAI)          */}
+      {/* ========================================== */}
+      <UpgradeSheet 
+        isOpen={showUpgradeSheet} 
+        onClose={() => setShowUpgradeSheet(false)} 
+      />
+      
     </div>
   )
 }
