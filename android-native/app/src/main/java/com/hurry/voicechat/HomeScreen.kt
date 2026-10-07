@@ -74,10 +74,10 @@ data class RoomEntity(
 @Dao
 interface RoomDao {
     @Query("SELECT * FROM rooms ORDER BY createdAt DESC")
-    suspend fun getAll(): List<RoomEntity>
+    fun getAll(): List<RoomEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(rooms: List<RoomEntity>): List<Long>
+    fun insertAll(rooms: List<RoomEntity>): List<Long>
 
     @Query("DELETE FROM rooms")
     fun clearAll(): Int
