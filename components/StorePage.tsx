@@ -84,9 +84,8 @@ const isItemActive = (item: StoreItem): boolean => {
   return expiry === null || expiry > Date.now();
 };
 
-const saveItemExpiry = (item: StoreItem, customDuration?: string) => {
-  const durationStr = customDuration || item.duration;
-  const ms = durationToMs(durationStr);
+const saveItemExpiry = (item: StoreItem) => {
+  const ms = durationToMs(item.duration);
   if (ms <= 0 || typeof window === "undefined") return;
   localStorage.setItem(getExpiryKey(item.id), String(Date.now() + ms));
 };
@@ -636,107 +635,6 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
 }
 
 // ==========================================
-// PURCHASE SHEET COMPONENT
-// ==========================================
-interface PurchaseSheetProps {
-  item: StoreItem | null;
-  onClose: () => void;
-  onBuy: (item: StoreItem, selectedDuration: string) => void;
-  isBuying: boolean;
-}
-
-function PurchaseSheet({ item, onClose, onBuy, isBuying }: PurchaseSheetProps) {
-  const [selectedDuration, setSelectedDuration] = useState("3days");
-
-  useEffect(() => {
-    if (item) {
-      // Default duration based on item or fallback
-      setSelectedDuration(item.duration === "30D" ? "7days" : "3days");
-    }
-  }, [item]);
-
-  if (!item) return null;
-
-  return (
-    <div className="fixed inset-0 z-[60] flex flex-col justify-end bg-black/40" onClick={onClose}>
-      <div
-        className="bg-white rounded-t-[32px] w-full max-w-md mx-auto p-5 pb-8 flex flex-col items-center animate-slide-up"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <h2 className="text-[20px] font-bold text-gray-900 mb-2">Purchase</h2>
-
-        {/* Item Image */}
-        <div className="relative w-[140px] h-[140px] flex items-center justify-center mb-2">
-          {item.image.endsWith('.mp4') ? (
-            <WebGLVideoAvatar src={item.image} />
-          ) : item.removeGreen ? (
-            <WebGLImageAvatar src={item.image} />
-          ) : (
-            <Image src={item.image} alt={item.name} fill className="object-contain" />
-          )}
-        </div>
-
-        {/* Item Info */}
-        <div className="flex items-center justify-between w-full px-2 mb-4">
-          <span className="text-[18px] font-bold text-gray-900">{item.name}</span>
-          <div className="flex items-center gap-1">
-            <div className="relative w-5 h-5 flex items-center justify-center">
-              <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-            </div>
-            <span className="text-[18px] font-bold text-[#f59e0b]">{item.price}</span>
-          </div>
-        </div>
-
-        {/* Duration Options */}
-        <div className="flex items-center gap-3 w-full mb-6">
-          <button
-            type="button"
-            onClick={() => setSelectedDuration("3days")}
-            className={`flex-1 py-3 rounded-xl text-[15px] font-semibold border-2 transition-colors ${
-              selectedDuration === "3days"
-                ? "bg-[#fff7ed] border-[#f59e0b] text-[#f59e0b]"
-                : "bg-gray-50 border-transparent text-gray-400"
-            }`}
-          >
-            3 days
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedDuration("7days")}
-            className={`flex-1 py-3 rounded-xl text-[15px] font-semibold border-2 transition-colors ${
-              selectedDuration === "7days"
-                ? "bg-[#fff7ed] border-[#f59e0b] text-[#f59e0b]"
-                : "bg-gray-50 border-transparent text-gray-400"
-            }`}
-          >
-            7 days
-          </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3 w-full">
-          <button
-            type="button"
-            className="flex-1 py-3.5 rounded-full bg-[#e0f7fa] text-[#00bcd4] font-bold text-[16px]"
-          >
-            Send
-          </button>
-          <button
-            type="button"
-            onClick={() => onBuy(item, selectedDuration)}
-            disabled={isBuying}
-            className="flex-1 py-3.5 rounded-full bg-[#00bcd4] text-white font-bold text-[16px] disabled:opacity-50"
-          >
-            {isBuying ? "..." : "Buy"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ==========================================
 // Main Component
 // ==========================================
 export default function StorePage({
@@ -750,9 +648,7 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
-  
-  // Purchase Sheet State
-  const [purchaseItem, setPurchaseItem] = useState<StoreItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null); // For the bottom sheet
 
   // Shared wallet
   const [balance, setBalance] = useState<number>(0);
@@ -838,8 +734,8 @@ export default function StorePage({
     }
   };
 
-  // Buy handler (Ab Purchase Sheet ke through)
-  const handleBuy = async (item: StoreItem, customDuration?: string) => {
+  // Buy handler
+  const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = parsePrice(item.price);
 
@@ -852,14 +748,13 @@ export default function StorePage({
     // Optimistic UI
     setBalance((b) => b - cost);
     setOwnedIds((prev) => new Set(prev).add(item.id));
-    saveItemExpiry(item, customDuration);
+    saveItemExpiry(item);
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
     recordTransaction(`Purchased ${item.name}`, -cost);
 
     setBuying(null);
-    setPurchaseItem(null); // Close sheet after purchase
   };
 
   // Equip / Unequip toggle (one equipped item per tab)
@@ -956,6 +851,11 @@ export default function StorePage({
         ★
       </span>
     ));
+  };
+
+  // Helper to open bottom sheet
+  const openItemSheet = (item: StoreItem) => {
+    setSelectedItem(item);
   };
 
   return (
@@ -1160,7 +1060,7 @@ export default function StorePage({
                           if (isOwned) {
                             handleEquipToggle(item);
                           } else {
-                            setPurchaseItem(item); // Open purchase sheet
+                            handleBuy(item);
                           }
                         }}
                         disabled={buying === item.id}
@@ -1169,7 +1069,7 @@ export default function StorePage({
                         {buying === item.id
                           ? '...'
                           : isOwned
-                          ? (isEquipped ? 'Equipped' : 'Equip')
+                          ? (isEquipped ? 'Use' : 'Use') // <-- CHANGED: Equip -> Use
                           : 'Buy'}
                       </button>
                     </div>
@@ -1200,6 +1100,110 @@ export default function StorePage({
           )}
         </div>
       </div>
+
+      {/* ==========================================
+          BOTTOM SHEET (Purchase / Details)
+          ========================================== */}
+      {selectedItem && (
+        <div 
+          className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 animate-in fade-in duration-200"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div 
+            className="w-full max-w-md mx-auto bg-white rounded-t-[28px] shadow-2xl p-5 flex flex-col items-center animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="w-full text-center mb-2">
+              <span className="text-[15px] font-bold text-gray-900">Purchase</span>
+            </div>
+
+            {/* Item Name */}
+            <div className="w-full text-center mb-4">
+              <span className="text-[17px] font-bold text-gray-800">{selectedItem.name}</span>
+            </div>
+
+            {/* Preview Image */}
+            <div className="relative w-[140px] h-[140px] mb-4 flex items-center justify-center">
+              {selectedItem.image.endsWith('.mp4') ? (
+                <WebGLVideoAvatar src={selectedItem.image} />
+              ) : selectedItem.removeGreen ? (
+                <WebGLImageAvatar src={selectedItem.image} />
+              ) : (
+                <Image
+                  src={selectedItem.image}
+                  alt={selectedItem.name}
+                  fill
+                  className="object-contain"
+                />
+              )}
+            </div>
+
+            {/* Price & Duration Row */}
+            <div className="w-full flex items-center justify-between px-2 mb-4">
+              <div className="flex items-center gap-1.5">
+                <div className="relative w-5 h-5">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+                <span className="text-[18px] font-bold text-orange-500">{selectedItem.price}</span>
+              </div>
+
+              {/* Duration selection */}
+              <div className="flex items-center bg-gray-100 rounded-xl p-1">
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
+                    selectedItem.duration === "3D" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500"
+                  }`}
+                >
+                  3days
+                </button>
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
+                    selectedItem.duration === "7D" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500"
+                  }`}
+                >
+                  7days
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="w-full flex items-center gap-3 mt-1">
+              <button
+                type="button"
+                className="flex-1 py-3 rounded-2xl bg-blue-50 text-[#1d4ed8] text-[15px] font-bold hover:bg-blue-100 transition-colors"
+              >
+                Send
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const isOwned = ownedIds.has(selectedItem.id);
+                  if (isOwned) {
+                    handleEquipToggle(selectedItem);
+                  } else {
+                    handleBuy(selectedItem);
+                  }
+                  setSelectedItem(null);
+                }}
+                disabled={buying === selectedItem.id}
+                className="flex-1 py-3 rounded-2xl bg-[#00c2ff] text-white text-[15px] font-bold hover:bg-[#00a5d9] transition-colors shadow-sm disabled:opacity-50"
+              >
+                {buying === selectedItem.id
+                  ? '...'
+                  : ownedIds.has(selectedItem.id)
+                  ? 'Use' // <-- CHANGED: Equipped/Equip -> Use
+                  : 'Buy'}
+              </button>
+            </div>
+
+            {/* Safe area spacing for iOS */}
+            <div className="h-2 w-full" />
+          </div>
+        </div>
+      )}
 
       {/* Vehicle & Frame Try Modal */}
       {tryCenterItem && (
@@ -1260,14 +1264,6 @@ export default function StorePage({
           </div>
         </div>
       )}
-
-      {/* Purchase Sheet */}
-      <PurchaseSheet
-        item={purchaseItem}
-        onClose={() => setPurchaseItem(null)}
-        onBuy={handleBuy}
-        isBuying={buying === purchaseItem?.id}
-      />
     </div>
   );
 }
