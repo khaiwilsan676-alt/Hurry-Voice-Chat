@@ -10,7 +10,7 @@ interface SettingPageProps {
   onBack?: () => void
   onLogout?: () => void
   onAboutPress?: () => void
-  onBlocklistPress?: () => void // ✅ Added onBlocklistPress
+  onBlocklistPress?: () => void 
 }
 
 const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005']
@@ -20,13 +20,16 @@ export default function SettingPage({
   onBack,
   onLogout,
   onAboutPress,
-  onBlocklistPress, // ✅ Added onBlocklistPress
+  onBlocklistPress, 
 }: SettingPageProps) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true)
   const [appLang, setAppLang] = useState<LanguageCode>('en')
   
   // ✅ State to toggle About Us page view
   const [showAboutView, setShowAboutView] = useState(false)
+  
+  // ✅ State to toggle Blocklist page view
+  const [showBlocklistView, setShowBlocklistView] = useState(false)
 
   useEffect(() => {
     const savedNotifications = localStorage.getItem('appNotifications');
@@ -61,11 +64,9 @@ export default function SettingPage({
   const handleLogout = async () => {
     const uid = localStorage.getItem("userUID")
     
-    // ✅ Check if Official or Admin ID
     const isOfficialOrAdmin = OFFICIAL_IDS.includes(uid || '') || ADMIN_IDS.includes(uid || '')
     
     if (isOfficialOrAdmin && uid) {
-      // Update session to false via Google Sheets API
       try {
           const response = await fetch(apiUrl("/api/users"), {
             method: "PUT",
@@ -86,7 +87,6 @@ export default function SettingPage({
         console.error("Error updating logout status:", error);
       }
 
-      // ✅ Official/Admin ID - Owner Panel se connected logout
       const loggedInSessions = JSON.parse(localStorage.getItem('loggedInSessions') || '{}')
       delete loggedInSessions[uid]
       localStorage.setItem('loggedInSessions', JSON.stringify(loggedInSessions))
@@ -94,22 +94,70 @@ export default function SettingPage({
       localStorage.removeItem(`session_${uid}`)
       localStorage.removeItem(`user_data_${uid}`)
       
-      // ✅ Set forceLogout key - Owner Panel track karega
       localStorage.setItem(`forceLogout_${uid}`, Date.now().toString())
     }
     
-    // Clear user session data (sabke liye)
     localStorage.removeItem("userName")
     localStorage.removeItem("userUID")
     localStorage.removeItem("userPhone")
     localStorage.removeItem("userPhoto")
     
-    // Call the onLogout callback
     if (onLogout) {
       onLogout()
     }
     
     window.location.reload()
+  }
+
+  // ✅ BLOCKLIST PAGE RENDER
+  if (showBlocklistView) {
+    return (
+      <div className="w-full min-h-screen bg-white">
+        {/* Top Header with Safe Area for Android/iOS */}
+        <div
+          className="flex items-center px-4 py-3 bg-white relative"
+          style={{
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)'
+          }}
+        >
+          <button 
+            onClick={() => setShowBlocklistView(false)} 
+            className="p-1 hover:bg-slate-100 rounded-full transition-colors z-10"
+          >
+            <ArrowLeft size={24} className="text-slate-900" />
+          </button>
+          <h1 className="text-lg font-semibold text-slate-900 absolute left-0 right-0 text-center pointer-events-none">
+            Blocklist
+          </h1>
+        </div>
+
+        {/* Blocklist Content (Empty State) */}
+        <div className="flex flex-col items-center justify-center pt-24 px-6">
+          {/* Image Container */}
+          <div className="w-64 h-64 mb-6 flex items-center justify-center">
+            {/* ✅ YAHAN APNI ASLI IMAGE KA PATH LAGAYEIN */}
+            <img 
+              src="/images/blocklist-empty.png" 
+              alt="No blocked users" 
+              className="w-full h-full object-contain"
+              // Agar image load na ho toh fallback emoji dikhega
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                if (target.parentElement) {
+                  target.parentElement.innerHTML = '<span class="text-6xl">🦊🚀</span>';
+                }
+              }}
+            />
+          </div>
+
+          {/* No Data Text */}
+          <p className="text-slate-400 text-lg font-medium tracking-wide">
+            No data
+          </p>
+        </div>
+      </div>
+    )
   }
 
   // ✅ ABOUT US PAGE RENDER
@@ -199,10 +247,11 @@ export default function SettingPage({
           </button>
         </div>
 
-        {/* ✅ Blocklist Button - Position 2 */}
+        {/* ✅ Blocklist Button - Opens new view */}
         <div
           onClick={() => {
             if (onBlocklistPress) onBlocklistPress()
+            setShowBlocklistView(true) // ✅ Opens the blocklist page
           }}
           className="flex items-center justify-between px-5 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors"
         >
