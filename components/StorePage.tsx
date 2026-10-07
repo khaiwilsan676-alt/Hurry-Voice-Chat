@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Search } from "lucide-react";
 
 interface StoreItem {
   id: string;
@@ -218,7 +218,7 @@ const allStoreItems: StoreItem[] = [
 ];
 
 // ==========================================
-// FRIENDS DATA (from screenshot)
+// FRIENDS DATA
 // ==========================================
 interface Friend {
   id: string;
@@ -649,6 +649,7 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
   const [sendItem, setSendItem] = useState<StoreItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
@@ -805,6 +806,7 @@ export default function StorePage({
   const handleSendToFriend = (friend: Friend) => {
     alert(`Item "${sendItem?.name}" sent to ${friend.name}!`);
     setSendItem(null);
+    setSearchQuery("");
   };
 
   useEffect(() => {
@@ -835,6 +837,10 @@ export default function StorePage({
     }
     return !item.dailyReward && item.tab === activeTab;
   });
+
+  const filteredFriends = friendsList.filter((friend) =>
+    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderStars = (count: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -1193,43 +1199,66 @@ export default function StorePage({
       {sendItem && (
         <div
           className="fixed inset-0 z-[110] flex flex-col justify-end bg-black/50 cursor-pointer"
-          onClick={() => setSendItem(null)}
+          onClick={() => {
+            setSendItem(null);
+            setSearchQuery("");
+          }}
         >
           <div
             className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
-            style={{ minHeight: '70vh', maxHeight: '85vh' }}
+            style={{ minHeight: '45vh', maxHeight: '65vh' }}
           >
             {/* Header */}
             <div className="w-full flex flex-col items-center px-5 pt-5 pb-2">
-              <h2 className="text-[22px] font-bold text-gray-900 mt-1 mb-4">Send to friends</h2>
-              <h3 className="text-[16px] font-semibold text-gray-800 w-full text-left mb-2">Contact</h3>
+              <h2 className="text-[20px] font-bold text-gray-900 mt-1 mb-3">Send to friends</h2>
+              <h3 className="text-[15px] font-semibold text-gray-800 w-full text-left mb-2">Contact</h3>
+
+              {/* Search Bar */}
+              <div className="w-full flex items-center bg-[#f3f4f6] rounded-full px-4 py-2 mb-3">
+                <Search size={18} className="text-gray-400 mr-2 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search friends..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-[14px] text-gray-800 placeholder-gray-400"
+                />
+              </div>
             </div>
 
             {/* Friends List */}
             <div className="w-full flex-1 overflow-y-auto no-scrollbar px-5">
-              {friendsList.map((friend) => (
-                <div key={friend.id} className="flex items-center justify-between w-full mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 border border-gray-200">
-                      <Image
-                        src={friend.avatar}
-                        alt={friend.name}
-                        fill
-                        className="object-cover"
-                      />
+              {filteredFriends.length > 0 ? (
+                filteredFriends.map((friend) => (
+                  <div key={friend.id} className="flex items-center justify-between w-full mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                        <Image
+                          src={friend.avatar}
+                          alt={friend.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="text-[15px] font-medium text-gray-900 truncate max-w-[160px]">
+                        {friend.name}
+                      </span>
                     </div>
-                    <span className="text-[17px] font-medium text-gray-900">{friend.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSendToFriend(friend)}
+                      className="px-5 py-1.5 rounded-full bg-[#4dd0e1] text-white font-semibold text-[14px] hover:bg-[#26c6da] transition-colors shrink-0"
+                    >
+                      Send
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSendToFriend(friend)}
-                    className="px-6 py-2 rounded-full bg-[#4dd0e1] text-white font-semibold text-[15px] hover:bg-[#26c6da] transition-colors"
-                  >
-                    Send
-                  </button>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 w-full">
+                  <span className="text-gray-400 text-sm font-medium">No friends found</span>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
