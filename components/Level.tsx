@@ -4,16 +4,20 @@ import React, { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, HelpCircle } from 'lucide-react'
 
 // ==========================================
-// UPGRADE SHEET COMPONENT (SAME AS SCREENSHOT)
+// UPGRADE SHEET COMPONENT (CHOTA + NO BLUR + OUTSIDE CLICK CLOSE)
 // ==========================================
 function UpgradeSheet({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity">
+    <div 
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-transparent transition-opacity"
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-[440px] bg-[#0a1428] rounded-t-[24px] border-t border-x border-[#1e3a8a]/50 shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+        className="w-full max-w-[340px] bg-[#0a1428] rounded-t-[24px] border-t border-x border-[#1e3a8a]/50 shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 20px)' }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-center pt-5 pb-2 relative">
@@ -367,7 +371,6 @@ export default function Level({ onBack }: LevelProps) {
   const [userPhoto, setUserPhoto] = useState<string>('')
   const [userUid, setUserUid] = useState<string>('')
 
-  // STATE FOR SHEET
   const [showUpgradeSheet, setShowUpgradeSheet] = useState(false)
 
   const loadUserFromLocal = () => {
@@ -455,7 +458,7 @@ export default function Level({ onBack }: LevelProps) {
             Level
           </h1>
 
-          {/* Help Button (CLICK TO OPEN SHEET) */}
+          {/* Help Button */}
           <button
             onClick={() => setShowUpgradeSheet(true)}
             className="absolute -right-6 p-2 hover:bg-white/10 active:scale-95 rounded-full transition-all cursor-pointer z-[100]"
@@ -759,7 +762,7 @@ export default function Level({ onBack }: LevelProps) {
       </div>
 
       {/* ========================================== */}
-      {/* SHEET RENDER (YAHAN ADD KIYA HAI)          */}
+      {/* SHEET RENDER */}
       {/* ========================================== */}
       <UpgradeSheet 
         isOpen={showUpgradeSheet} 
