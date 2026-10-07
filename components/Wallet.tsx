@@ -622,11 +622,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       </div>
 
       {/* SCROLLABLE BODY */}
-      <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10 flex flex-col">
+      <div className="flex-1 overflow-y-auto px-4 pt-1 pb-6 relative z-10">
         
         {/* Dynamic Banners - Coins Banner for Wallet AND Agent */}
         {(activeTab === 'wallet' || activeTab === 'agent') && (
-          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none flex-shrink-0">
+          <div className="relative w-[calc(100%+2rem)] -mx-4 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
               src="/file_00000000f3d88211964f0057da4bc797.png"
               alt="Coins Banner Background"
@@ -654,7 +654,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
 
         {/* Diamonds Banner — slightly reduced width */}
         {activeTab === 'diamonds' && (
-          <div className="relative w-[calc(100%+1rem)] -mx-2 overflow-hidden mt-0 shadow-none border-0 outline-none flex-shrink-0">
+          <div className="relative w-[calc(100%+1rem)] -mx-2 overflow-hidden mt-0 shadow-none border-0 outline-none">
             <img
               src="/file_0000000085a482088fb089cb76f3d1af.png"
               alt="Diamonds Banner Background"
@@ -680,7 +680,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {/* Pill Tabs — BLACK bg + BLACK text */}
-        <div className="bg-black/20 p-1 mt-5 rounded-full flex relative items-center flex-shrink-0">
+        <div className="bg-black/20 p-1 mt-5 rounded-full flex relative items-center">
           {[
             { id: 'wallet', label: 'Coins' },
             { id: 'diamonds', label: 'Diamonds' },
@@ -808,7 +808,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
         )}
 
         {activeTab === 'diamonds' && (
-          <div className="flex flex-col mt-5">
+          <div className="flex flex-col mt-5 space-y-4">
             <div
               className="rounded-xl p-4"
               style={{
@@ -874,7 +874,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            <div className="space-y-2 pt-1 mt-4">
+            <div className="space-y-2 pt-1">
               <h4 className="text-[11px] font-bold text-gray-500">exchange rate</h4>
               <div className="grid grid-cols-3 gap-2">
                 {['20%', '40%', '60%', '80%', '100%'].map((pct) => (
@@ -892,19 +892,21 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 ))}
               </div>
             </div>
-
-            {/* Exchange Button — pinned to the bottom using mt-auto (pushes to bottom of flex container) */}
-            <div className="mt-auto pt-8 pb-4 flex justify-center">
-              <button
-                onClick={handleExchange}
-                className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
-              >
-                Exchange
-              </button>
-            </div>
           </div>
         )}
       </div>
+
+      {/* Exchange Button — fixed to bottom, only shown on diamonds tab */}
+      {activeTab === 'diamonds' && (
+        <div className="flex-shrink-0 w-full px-4 pb-2 pt-2 z-20 flex justify-center">
+          <button
+            onClick={handleExchange}
+            className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
+          >
+            Exchange
+          </button>
+        </div>
+      )}
 
       {/* OVERLAY FOR SHEETS */}
       {(showPaymentSheet || showPayUsingSheet) && (
