@@ -717,7 +717,6 @@ export default function StorePage({
     }
   };
 
-  // ===== FULL BUY LOGIC =====
   const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = parsePrice(item.price);
@@ -738,7 +737,6 @@ export default function StorePage({
     setBuying(null);
   };
 
-  // ===== FULL EQUIP LOGIC =====
   const handleEquipToggle = async (item: StoreItem) => {
     const next = new Set(equippedIds);
     const wasEquipped = next.has(item.id);
@@ -1032,7 +1030,7 @@ export default function StorePage({
                         disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {buying === item.id ? '...' : 'Buy'}
+                        {buying === item.id ? '...' : isOwned ? (isEquippedItem ? 'Using' : 'Use') : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -1105,8 +1103,10 @@ export default function StorePage({
                 </div>
               </div>
 
-              <h3 className="text-[18px] font-bold text-gray-900 mb-3">{tryCenterItem.name}</h3>
+              {/* ===== ITEM NAME JUST ABOVE DURATION BUTTONS (LEFT SIDE) ===== */}
+              <h3 className="text-[17px] font-bold text-gray-900 mb-3 w-full text-left">{tryCenterItem.name}</h3>
 
+              {/* ===== SMALLER DURATION BUTTONS ===== */}
               <div className="flex items-center gap-2 w-full mb-2">
                 <button
                   type="button"
@@ -1128,6 +1128,7 @@ export default function StorePage({
               </div>
             </div>
 
+            {/* ===== 1. BUY / SEND BUTTONS FULLY AT BOTTOM ===== */}
             <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100">
               <button
                 type="button"
