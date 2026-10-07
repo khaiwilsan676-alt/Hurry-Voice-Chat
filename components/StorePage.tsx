@@ -1103,10 +1103,10 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Item Name (Left side, above duration buttons) */}
-              <h3 className="text-[17px] font-bold text-gray-900 mb-3 w-full text-left">{tryCenterItem.name}</h3>
+              {/* Item Name just above 3days */}
+              <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
 
-              {/* ===== 2. CURRENT COIN BALANCE JUST ABOVE 7DAYS (RIGHT SIDE) ===== */}
+              {/* Balance just above 7days, right side */}
               <div className="w-full flex justify-end mb-1">
                 <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
                   <span>Balance:</span>
@@ -1117,7 +1117,7 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Smaller Duration Buttons */}
+              {/* Duration Buttons */}
               <div className="flex items-center gap-2 w-full mb-2">
                 <button
                   type="button"
@@ -1139,7 +1139,7 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* ===== 1. BUY / SEND BUTTONS FULLY AT BOTTOM (mt-auto) ===== */}
+            {/* Send/Buy Buttons pushed fully to bottom */}
             <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
               <button
                 type="button"
