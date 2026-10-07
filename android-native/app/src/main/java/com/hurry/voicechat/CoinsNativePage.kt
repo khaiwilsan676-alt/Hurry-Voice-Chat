@@ -919,7 +919,7 @@ private fun GoogleGLogo() {
         val arcSize = androidx.compose.ui.geometry.Size(r * 2, r * 2)
 
         // Red (top)
-        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.Stroke(width = strokeW))
         // Blue (right)
         drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
         // Yellow (left)
