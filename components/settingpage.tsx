@@ -10,7 +10,7 @@ interface SettingPageProps {
   onBack?: () => void
   onLogout?: () => void
   onAboutPress?: () => void
-  onBlocklistPress?: () => void 
+  onBlocklistPress?: () => void
 }
 
 const OFFICIAL_IDS = ['500001', '500002', '500003', '500004', '500005']
@@ -20,7 +20,7 @@ export default function SettingPage({
   onBack,
   onLogout,
   onAboutPress,
-  onBlocklistPress, 
+  onBlocklistPress,
 }: SettingPageProps) {
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true)
   const [appLang, setAppLang] = useState<LanguageCode>('en')
@@ -131,30 +131,9 @@ export default function SettingPage({
           </h1>
         </div>
 
-        {/* Blocklist Content (Empty State) */}
-        <div className="flex flex-col items-center justify-center pt-24 px-6">
-          {/* Image Container */}
-          <div className="w-64 h-64 mb-6 flex items-center justify-center">
-            {/* ✅ YAHAN APNI ASLI IMAGE KA PATH LAGAYEIN */}
-            <img 
-              src="/images/blocklist-empty.png" 
-              alt="No blocked users" 
-              className="w-full h-full object-contain"
-              // Agar image load na ho toh fallback emoji dikhega
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                if (target.parentElement) {
-                  target.parentElement.innerHTML = '<span class="text-6xl">🦊🚀</span>';
-                }
-              }}
-            />
-          </div>
-
-          {/* No Data Text */}
-          <p className="text-slate-400 text-lg font-medium tracking-wide">
-            No data
-          </p>
+        {/* Blocklist Content (No Data) */}
+        <div className="flex flex-col items-center justify-center px-6" style={{ minHeight: '60vh' }}>
+          <p className="text-[#9CA3AF] text-[17px] font-medium tracking-wide">No data</p>
         </div>
       </div>
     )
@@ -247,11 +226,11 @@ export default function SettingPage({
           </button>
         </div>
 
-        {/* ✅ Blocklist Button - Opens new view */}
+        {/* ✅ Blocklist Button - Ab yeh view open karega */}
         <div
           onClick={() => {
             if (onBlocklistPress) onBlocklistPress()
-            setShowBlocklistView(true) // ✅ Opens the blocklist page
+            setShowBlocklistView(true) // 👈 Yeh line view open karegi
           }}
           className="flex items-center justify-between px-5 py-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors"
         >
