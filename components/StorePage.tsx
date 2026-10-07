@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ArrowLeft, Clock } from "lucide-react";
-import { deductCoinsFromDB } from "./Wallet";
 
 interface StoreItem {
   id: string;
@@ -20,7 +19,7 @@ interface StoreItem {
 }
 
 // ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// SHARED WALLET DB
 // ==========================================
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
@@ -231,7 +230,7 @@ const allStoreItems: StoreItem[] = [
 ];
 
 // ==========================================
-// SHARED WebGL WHITE-REMOVAL (single context)
+// SHARED WebGL WHITE-REMOVAL
 // ==========================================
 const processedCache = new Map<string, Promise<string>>();
 
@@ -375,7 +374,7 @@ function WebGLCoinIcon({ src, className = 'w-full h-full object-contain' }: { sr
 }
 
 // ==========================================
-// WebGL Image Avatar (green removal - smooth transparency + despill)
+// WebGL Image Avatar (green removal)
 // ==========================================
 const avatarCache = new Map<string, Promise<string>>();
 
@@ -646,9 +645,7 @@ export default function StorePage({
 }) {
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
   const [activeTab, setActiveTab] = useState("Vehicle");
-  const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
-  const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null); // For the bottom sheet
 
   // Shared wallet
   const [balance, setBalance] = useState<number>(0);
@@ -752,7 +749,6 @@ export default function StorePage({
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
-    recordTransaction(`Purchased ${item.name}`, -cost);
 
     setBuying(null);
   };
@@ -791,7 +787,6 @@ export default function StorePage({
     }
 
     // RoomPage uses this exact value for the next Room entry event.
-    // Store the actual playable asset, not only the item ID.
     if (item.tab === "Vehicle") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Vehicle");
@@ -853,10 +848,8 @@ export default function StorePage({
     ));
   };
 
-  // Helper to open bottom sheet
-  const openItemSheet = (item: StoreItem) => {
-    setSelectedItem(item);
-  };
+  // Check if the item is currently owned to show "Equip/Equipped"
+  const isEquipped = (itemId: string) => equippedIds.has(itemId);
 
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
@@ -964,7 +957,7 @@ export default function StorePage({
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
-                const isEquipped = equippedIds.has(item.id);
+                const isEquippedItem = isEquipped(item.id);
 
                 return (
                   <div
@@ -990,11 +983,7 @@ export default function StorePage({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (isTheme) {
-                            setTryThemeItem(item);
-                          } else {
-                            setTryCenterItem(item);
-                          }
+                          setTryCenterItem(item);
                         }}
                         className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
                           isTheme
@@ -1066,11 +1055,7 @@ export default function StorePage({
                         disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {buying === item.id
-                          ? '...'
-                          : isOwned
-                          ? (isEquipped ? 'Use' : 'Use') // <-- CHANGED: Equip -> Use
-                          : 'Buy'}
+                        {buying === item.id ? '...' : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -1102,164 +1087,93 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          BOTTOM SHEET (Purchase / Details)
+          TRY BOTTOM SHEET MODAL (Matching Screenshot)
           ========================================== */}
-      {selectedItem && (
-        <div 
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-black/40 animate-in fade-in duration-200"
-          onClick={() => setSelectedItem(null)}
+      {tryCenterItem && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/50 cursor-pointer"
+          onClick={() => setTryCenterItem(null)}
         >
-          <div 
-            className="w-full max-w-md mx-auto bg-white rounded-t-[28px] shadow-2xl p-5 flex flex-col items-center animate-in slide-in-from-bottom duration-300"
+          <div
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl p-5 flex flex-col items-center cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="w-full text-center mb-2">
-              <span className="text-[15px] font-bold text-gray-900">Purchase</span>
-            </div>
+            <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
+            <h3 className="text-[20px] font-bold text-gray-900 mt-1">{tryCenterItem.name}</h3>
 
-            {/* Item Name */}
-            <div className="w-full text-center mb-4">
-              <span className="text-[17px] font-bold text-gray-800">{selectedItem.name}</span>
-            </div>
-
-            {/* Preview Image */}
-            <div className="relative w-[140px] h-[140px] mb-4 flex items-center justify-center">
-              {selectedItem.image.endsWith('.mp4') ? (
-                <WebGLVideoAvatar src={selectedItem.image} />
-              ) : selectedItem.removeGreen ? (
-                <WebGLImageAvatar src={selectedItem.image} />
+            {/* Center Item Preview */}
+            <div className="relative w-[200px] h-[200px] my-4 flex items-center justify-center">
+              {tryCenterItem.tryVideo ? (
+                <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+              ) : tryCenterItem.image.endsWith('.mp4') ? (
+                <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+              ) : tryCenterItem.removeGreen ? (
+                <WebGLImageAvatar src={tryCenterItem.image} />
               ) : (
                 <Image
-                  src={selectedItem.image}
-                  alt={selectedItem.name}
+                  src={tryCenterItem.image}
+                  alt={tryCenterItem.name}
                   fill
                   className="object-contain"
                 />
               )}
             </div>
 
-            {/* Price & Duration Row */}
-            <div className="w-full flex items-center justify-between px-2 mb-4">
-              <div className="flex items-center gap-1.5">
-                <div className="relative w-5 h-5">
-                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-                </div>
-                <span className="text-[18px] font-bold text-orange-500">{selectedItem.price}</span>
-              </div>
-
-              {/* Duration selection */}
-              <div className="flex items-center bg-gray-100 rounded-xl p-1">
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                    selectedItem.duration === "3D" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500"
-                  }`}
-                >
-                  3days
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-all ${
-                    selectedItem.duration === "7D" ? "bg-white text-orange-500 shadow-sm" : "text-gray-500"
-                  }`}
-                >
-                  7days
-                </button>
+            {/* Price */}
+            <div className="flex items-center gap-1.5 mb-5">
+              <span className="text-[26px] font-bold text-gray-900">
+                {tryCenterItem.price}
+              </span>
+              <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
+                <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="w-full flex items-center gap-3 mt-1">
+            {/* Duration Selection */}
+            <div className="flex items-center gap-3 w-full mb-6">
               <button
                 type="button"
-                className="flex-1 py-3 rounded-2xl bg-blue-50 text-[#1d4ed8] text-[15px] font-bold hover:bg-blue-100 transition-colors"
+                className="flex-1 py-3 rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[15px] flex items-center justify-center gap-2"
+              >
+                <span className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center">
+                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                3days
+              </button>
+              <button
+                type="button"
+                className="flex-1 py-3 rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[15px]"
+              >
+                7days
+              </button>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3 w-full pb-8">
+              <button
+                type="button"
+                className="flex-1 py-3.5 rounded-full bg-[#e0f2fe] text-[#1d4ed8] font-bold text-[15px] hover:bg-[#bae6fd] transition-colors"
+                onClick={() => setTryCenterItem(null)}
               >
                 Send
               </button>
               <button
                 type="button"
+                className="flex-1 py-3.5 rounded-full bg-[#00b4d8] text-white font-bold text-[15px] hover:bg-[#0096c7] transition-colors"
                 onClick={() => {
-                  const isOwned = ownedIds.has(selectedItem.id);
-                  if (isOwned) {
-                    handleEquipToggle(selectedItem);
+                  if (ownedIds.has(tryCenterItem.id)) {
+                    handleEquipToggle(tryCenterItem);
                   } else {
-                    handleBuy(selectedItem);
+                    handleBuy(tryCenterItem);
                   }
-                  setSelectedItem(null);
+                  setTryCenterItem(null);
                 }}
-                disabled={buying === selectedItem.id}
-                className="flex-1 py-3 rounded-2xl bg-[#00c2ff] text-white text-[15px] font-bold hover:bg-[#00a5d9] transition-colors shadow-sm disabled:opacity-50"
               >
-                {buying === selectedItem.id
-                  ? '...'
-                  : ownedIds.has(selectedItem.id)
-                  ? 'Use' // <-- CHANGED: Equipped/Equip -> Use
-                  : 'Buy'}
+                Buy
               </button>
-            </div>
-
-            {/* Safe area spacing for iOS */}
-            <div className="h-2 w-full" />
-          </div>
-        </div>
-      )}
-
-      {/* Vehicle & Frame Try Modal */}
-      {tryCenterItem && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
-          onClick={() => setTryCenterItem(null)}
-        >
-          <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
-            {tryCenterItem.tryVideo ? (
-              <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.image.endsWith('.mp4') ? (
-              <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.removeGreen ? (
-              <WebGLImageAvatar src={tryCenterItem.image} />
-            ) : (
-              <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
-            )}
-          </div>
-
-          <div className="flex items-center justify-center gap-1 mt-4 pointer-events-none">
-            {renderStars(tryCenterItem.stars)}
-          </div>
-
-          <div className="mt-2 text-[20px] font-bold text-gray-900 pointer-events-none">
-            {tryCenterItem.name}
-          </div>
-        </div>
-      )}
-
-      {/* Theme Try Modal */}
-      {tryThemeItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            <button
-              type="button"
-              onClick={() => setTryThemeItem(null)}
-              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
-            >
-              ✕
-            </button>
-
-            <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
-              <Image
-                src={tryThemeItem.image}
-                alt={tryThemeItem.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            <div className="flex items-center justify-center gap-1 mt-4">
-              {renderStars(tryThemeItem.stars)}
-            </div>
-
-            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
-              {tryThemeItem.name}
             </div>
           </div>
         </div>
