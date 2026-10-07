@@ -80,7 +80,7 @@ interface RoomDao {
     suspend fun insertAll(rooms: List<RoomEntity>)
 
     @Query("DELETE FROM rooms")
-    suspend fun clearAll(): Int
+    fun clearAll(): Int
 }
 
 @Database(entities = [RoomEntity::class], version = 1, exportSchema = false)
