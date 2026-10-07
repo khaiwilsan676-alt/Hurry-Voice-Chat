@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -63,9 +64,6 @@ interface WalletDao {
     @Query("SELECT * FROM transactions WHERE type = :type ORDER BY timestamp DESC LIMIT 20")
     suspend fun getRecentTransactions(type: String): List<TransactionEntity>
 
-    @Query("SELECT * FROM transactions WHERE type = :type ORDER BY timestamp DESC")
-    suspend fun getAllTransactions(type: String): List<TransactionEntity>
-
     @Insert
     suspend fun insertTransaction(tx: TransactionEntity)
 
@@ -73,72 +71,47 @@ interface WalletDao {
     suspend fun deleteOldTransactions(cutoff: Long)
 }
 
-@Database(
-    entities = [UserDataEntity::class, TransactionEntity::class],
-    version = 1, exportSchema = false
-)
+@Database(entities = [UserDataEntity::class, TransactionEntity::class], version = 1, exportSchema = false)
 abstract class WalletDatabase : RoomDatabase() {
     abstract fun walletDao(): WalletDao
-
     companion object {
         @Volatile private var INSTANCE: WalletDatabase? = null
-        fun get(context: Context): WalletDatabase =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    WalletDatabase::class.java,
-                    "fruit_party.db"
-                ).build().also { INSTANCE = it }
-            }
+        fun get(context: Context): WalletDatabase = INSTANCE ?: synchronized(this) {
+            INSTANCE ?: Room.databaseBuilder(
+                context.applicationContext, WalletDatabase::class.java, "fruit_party.db"
+            ).build().also { INSTANCE = it }
+        }
     }
 }
 
-// ─── DB helpers (TSX ke addCoinsToDB etc. equivalents) ───
-private suspend fun loadBalance(dao: WalletDao): Long =
-    withContext(Dispatchers.IO) { dao.getUserData()?.balance ?: 0L }
+// ─── DB helpers ───
+private suspend fun loadBalance(dao: WalletDao): Long = withContext(Dispatchers.IO) { dao.getUserData()?.balance ?: 0L }
+private suspend fun loadDiamonds(dao: WalletDao): Long = withContext(Dispatchers.IO) { dao.getUserData()?.diamonds ?: 0L }
 
-private suspend fun loadDiamonds(dao: WalletDao): Long =
-    withContext(Dispatchers.IO) { dao.getUserData()?.diamonds ?: 0L }
-
-private suspend fun addCoinsToDB(dao: WalletDao, amount: Long) {
-    withContext(Dispatchers.IO) {
-        val cur = dao.getUserData() ?: UserDataEntity()
-        dao.saveUserData(cur.copy(balance = (cur.balance + amount).coerceAtLeast(0)))
-    }
+private suspend fun addCoinsToDB(dao: WalletDao, amount: Long) = withContext(Dispatchers.IO) {
+    val cur = dao.getUserData() ?: UserDataEntity()
+    dao.saveUserData(cur.copy(balance = (cur.balance + amount).coerceAtLeast(0)))
 }
 
-private suspend fun subtractDiamondsFromDB(dao: WalletDao, amount: Long): Boolean {
-    return withContext(Dispatchers.IO) {
-        val cur = dao.getUserData() ?: UserDataEntity()
-        if (cur.diamonds < amount) return@withContext false
-        dao.saveUserData(cur.copy(diamonds = cur.diamonds - amount))
-        true
-    }
+private suspend fun subtractDiamondsFromDB(dao: WalletDao, amount: Long): Boolean = withContext(Dispatchers.IO) {
+    val cur = dao.getUserData() ?: UserDataEntity()
+    if (cur.diamonds < amount) return@withContext false
+    dao.saveUserData(cur.copy(diamonds = cur.diamonds - amount))
+    true
 }
 
-private suspend fun recordTransaction(
-    dao: WalletDao, title: String, amount: Long, type: String
-) {
-    withContext(Dispatchers.IO) {
-        val now = java.util.Calendar.getInstance()
-        val dateStr = String.format(
-            "%04d.%02d.%02d %02d:%02d",
-            now.get(java.util.Calendar.YEAR),
-            now.get(java.util.Calendar.MONTH) + 1,
-            now.get(java.util.Calendar.DAY_OF_MONTH),
-            now.get(java.util.Calendar.HOUR_OF_DAY),
-            now.get(java.util.Calendar.MINUTE)
-        )
-        dao.insertTransaction(
-            TransactionEntity(
-                title = title,
-                amount = amount,
-                date = dateStr,
-                timestamp = System.currentTimeMillis(),
-                type = type
-            )
-        )
-    }
+private suspend fun recordTransaction(dao: WalletDao, title: String, amount: Long, type: String) = withContext(Dispatchers.IO) {
+    val now = java.util.Calendar.getInstance()
+    val dateStr = String.format(
+        "%04d.%02d.%02d %02d:%02d",
+        now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH) + 1,
+        now.get(java.util.Calendar.DAY_OF_MONTH),
+        now.get(java.util.Calendar.HOUR_OF_DAY), now.get(java.util.Calendar.MINUTE)
+    )
+    dao.insertTransaction(TransactionEntity(
+        title = title, amount = amount, date = dateStr,
+        timestamp = System.currentTimeMillis(), type = type
+    ))
 }
 
 // ═══════════════════════════════════════════════════════
@@ -165,9 +138,8 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
 
     var showPaymentSheet by remember { mutableStateOf(false) }
     var showPayUsingSheet by remember { mutableStateOf(false) }
-    var showDetails by remember { mutableStateOf<String?>(null) } // "coin" | "diamond"
+    var showDetails by remember { mutableStateOf<String?>(null) }
 
-    // Live poll — 1s
     LaunchedEffect(Unit) {
         while (true) {
             coins = loadBalance(dao)
@@ -176,18 +148,13 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
         }
     }
 
-    // Details page — full screen swap
     if (showDetails != null) {
-        DetailsNativePage(
-            type = showDetails!!,
-            onBack = { showDetails = null }
-        )
+        DetailsNativePage(type = showDetails!!, onBack = { showDetails = null })
         return
     }
 
-    val banner =
-        if (tab == 1) "file_0000000085a482088fb089cb76f3d1af.png"
-        else "file_00000000f3d88211964f0057da4bc797.png"
+    val banner = if (tab == 1) "file_0000000085a482088fb089cb76f3d1af.png"
+                 else "file_00000000f3d88211964f0057da4bc797.png"
 
     val bgGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
         0.0f to Color(0xFF1A66FF),
@@ -198,33 +165,23 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
 
     Box(Modifier.fillMaxSize().background(Color(0xFFF3F4F6))) {
         Column(
-            Modifier
-                .fillMaxSize()
-                .background(bgGradient)
-                .statusBarsPadding()
-                .navigationBarsPadding()
+            Modifier.fillMaxSize().background(bgGradient)
+                .statusBarsPadding().navigationBarsPadding()
         ) {
             // ─── Top Bar ───
             Row(
                 Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    Modifier.size(44.dp).clickable { onBack() },
-                    contentAlignment = Alignment.Center
-                ) { BackArrowWhite() }
-
-                Text(
-                    "Recharge", Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White
-                )
-
+                Box(Modifier.size(44.dp).clickable { onBack() }, contentAlignment = Alignment.Center) {
+                    BackArrowWhite()
+                }
+                Text("Recharge", Modifier.weight(1f), textAlign = TextAlign.Center,
+                    fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 Box(
                     Modifier.size(44.dp).clickable {
                         showDetails = if (tab == 1) "diamond" else "coin"
-                    },
-                    contentAlignment = Alignment.Center
+                    }, contentAlignment = Alignment.Center
                 ) { HistoryIconWhite() }
             }
 
@@ -233,45 +190,25 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
 
                 // ─── Banner ───
                 Box(Modifier.fillMaxWidth()) {
-                    AsyncImage(
-                        RAW_WALLET + banner,
-                        null,
-                        Modifier.fillMaxWidth(),
-                        contentScale = ContentScale.Fit
-                    )
+                    AsyncImage(RAW_WALLET + banner, null, Modifier.fillMaxWidth(),
+                        contentScale = ContentScale.Fit)
                     Column(Modifier.padding(start = 34.dp, top = 34.dp)) {
-                        Text(
-                            if (tab == 1) "My Diamonds" else "My Coins",
-                            fontSize = 14.sp, color = Color(0xFFE5E7EB),
-                            fontWeight = FontWeight.Medium
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(7.dp)
-                        ) {
-                            Text(
-                                (if (tab == 1) diamonds else coins).toString(),
-                                fontSize = 22.sp,
-                                color = Color(0xFFFACC15),
-                                fontWeight = FontWeight.Bold
-                            )
-                            AsyncImage(
-                                RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
-                                null, Modifier.size(20.dp), contentScale = ContentScale.Fit
-                            )
+                        Text(if (tab == 1) "My Diamonds" else "My Coins",
+                            fontSize = 14.sp, color = Color(0xFFE5E7EB), fontWeight = FontWeight.Medium)
+                        Row(verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                            Text((if (tab == 1) diamonds else coins).toString(),
+                                fontSize = 22.sp, color = Color(0xFFFACC15), fontWeight = FontWeight.Bold)
+                            AsyncImage(RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
+                                null, Modifier.size(20.dp), contentScale = ContentScale.Fit)
                         }
                     }
                 }
 
                 // ─── Pill Tabs ───
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 18.dp)
-                        .clip(RoundedCornerShape(30.dp))
-                        .background(Color(0x33000000))
-                        .padding(4.dp)
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 18.dp)
+                        .clip(RoundedCornerShape(30.dp)).background(Color(0x33000000)).padding(4.dp)
                 ) {
                     PillTab("Coins", tab == 0, Modifier.weight(1f)) { tab = 0 }
                     PillTab("Diamonds", tab == 1, Modifier.weight(1f)) { tab = 1 }
@@ -282,14 +219,8 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
                     0 -> CoinsContent(onBuy = { showPaymentSheet = true })
                     1 -> DiamondsContent(
                         din = din, cin = cin, rate = rate, diamonds = diamonds,
-                        onDinChange = { v ->
-                            din = v
-                            cin = ((v.toLongOrNull() ?: 0L) * 33 / 100).toString()
-                        },
-                        onCinChange = { v ->
-                            cin = v
-                            din = ((v.toLongOrNull() ?: 0L) * 100 / 33).toString()
-                        },
+                        onDinChange = { v -> din = v; cin = ((v.toLongOrNull() ?: 0L) * 33 / 100).toString() },
+                        onCinChange = { v -> cin = v; din = ((v.toLongOrNull() ?: 0L) * 100 / 33).toString() },
                         onRateSelect = { r ->
                             rate = r
                             val pct = r.replace("%", "").toLongOrNull() ?: 0L
@@ -305,8 +236,7 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
                                     if (subtractDiamondsFromDB(dao, d)) {
                                         recordTransaction(dao, "Diamond Exchange", -d, "diamond")
                                         addCoinsToDB(dao, c)
-                                        din = ""
-                                        cin = ""
+                                        din = ""; cin = ""
                                     }
                                 }
                             }
@@ -319,48 +249,31 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
             }
         }
 
-        // ─── Overlay ───
         if (showPaymentSheet || showPayUsingSheet) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
-                    .clickable {
-                        showPaymentSheet = false
-                        showPayUsingSheet = false
-                    }
-            )
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f))
+                .clickable { showPaymentSheet = false; showPayUsingSheet = false })
         }
 
-        // ─── Payment Sheet ───
         if (showPaymentSheet) {
-            PaymentSheet(
-                onClose = { showPaymentSheet = false },
-                onRecharge = {
-                    showPaymentSheet = false
-                    showPayUsingSheet = true
-                }
-            )
+            PaymentSheet(onClose = { showPaymentSheet = false },
+                onRecharge = { showPaymentSheet = false; showPayUsingSheet = true })
         }
 
-        // ─── Pay Using Sheet ───
         if (showPayUsingSheet) {
-            PaySheet(
-                onClose = { showPayUsingSheet = false },
+            PaySheet(onClose = { showPayUsingSheet = false },
                 onSelect = {
                     scope.launch {
                         addCoinsToDB(dao, 1_030_000L)
                         recordTransaction(dao, "Buy Coins", 1_030_000L, "coin")
                         showPayUsingSheet = false
                     }
-                }
-            )
+                })
         }
     }
 }
 
 // ═══════════════════════════════════════════════════════
-// DETAILS PAGE (with 24hr reset + 20 limit)
+// DETAILS PAGE
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun DetailsNativePage(type: String, onBack: () -> Unit) {
@@ -369,82 +282,43 @@ private fun DetailsNativePage(type: String, onBack: () -> Unit) {
     var transactions by remember { mutableStateOf<List<TransactionEntity>>(emptyList()) }
 
     LaunchedEffect(type) {
-        // 1️⃣ Delete old (> 24hr)
         val cutoff = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
         withContext(Dispatchers.IO) { dao.deleteOldTransactions(cutoff) }
-
-        // 2️⃣ Load valid (max 20)
-        transactions = withContext(Dispatchers.IO) {
-            dao.getRecentTransactions(type)
-        }
+        transactions = withContext(Dispatchers.IO) { dao.getRecentTransactions(type) }
     }
 
     val valueColor = if (type == "diamond") Color(0xFF3B82F6) else Color(0xFFF59E0B)
 
     Column(
-        Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .statusBarsPadding()
-            .navigationBarsPadding()
+        Modifier.fillMaxSize().background(Color.White)
+            .statusBarsPadding().navigationBarsPadding()
     ) {
-        // Top bar
         Box(Modifier.fillMaxWidth().height(48.dp)) {
-            Box(
-                Modifier.align(Alignment.CenterStart).size(44.dp)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) { BackArrowBlack() }
-
-            Text(
-                "Details",
-                Modifier.align(Alignment.Center),
-                fontSize = 16.sp, fontWeight = FontWeight.Bold,
-                color = Color(0xFF0A0A0A)
-            )
+            Box(Modifier.align(Alignment.CenterStart).size(44.dp).clickable { onBack() },
+                contentAlignment = Alignment.Center) { BackArrowBlack() }
+            Text("Details", Modifier.align(Alignment.Center),
+                fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0A0A0A))
         }
 
-        // List
         if (transactions.isEmpty()) {
-            Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "No recent history",
-                    fontSize = 14.sp, fontWeight = FontWeight.Medium,
-                    color = Color(0xFF9CA3AF)
-                )
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No recent history", fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium, color = Color(0xFF9CA3AF))
             }
         } else {
-            LazyColumn(
-                Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
-            ) {
+            LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)) {
                 items(transactions, key = { it.id }) { tx ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.Top) {
                         Column(Modifier.weight(1f)) {
-                            Text(
-                                tx.title,
-                                fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF111827)
-                            )
-                            Text(
-                                tx.date,
-                                Modifier.padding(top = 4.dp),
-                                fontSize = 13.sp, color = Color(0xFF9CA3AF)
-                            )
+                            Text(tx.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF111827))
+                            Text(tx.date, Modifier.padding(top = 4.dp),
+                                fontSize = 13.sp, color = Color(0xFF9CA3AF))
                         }
-                        Text(
-                            if (tx.amount > 0) "+${tx.amount}" else tx.amount.toString(),
-                            fontSize = 15.sp, fontWeight = FontWeight.Bold,
-                            color = valueColor
-                        )
+                        Text(if (tx.amount > 0) "+${tx.amount}" else tx.amount.toString(),
+                            fontSize = 15.sp, fontWeight = FontWeight.Bold, color = valueColor)
                     }
                     HorizontalDivider(color = Color(0xFFF3F4F6))
                 }
@@ -458,30 +332,24 @@ private fun DetailsNativePage(type: String, onBack: () -> Unit) {
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun CoinsContent(onBuy: () -> Unit) {
-    Column(Modifier.padding(horizontal = 16.dp)) {
-        Text(
-            "Recharge Coins", Modifier.padding(top = 20.dp),
-            fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-        )
-        Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
-            Pack("1,000,000", "₹ 100", "+Bounce 30,000", Modifier.width(120.dp), onBuy)
-        }
+    // "Recharge Coins" text hata diya — TSX me nahi hai
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 20.dp)) {
+        Pack("1,000,000", "₹ 100", "+Bounce 30,000", Modifier.width(120.dp), onBuy)
     }
 }
 
 @Composable
 private fun DiamondsContent(
     din: String, cin: String, rate: String, diamonds: Long,
-    onDinChange: (String) -> Unit,
-    onCinChange: (String) -> Unit,
-    onRateSelect: (String) -> Unit,
-    onExchange: () -> Unit
+    onDinChange: (String) -> Unit, onCinChange: (String) -> Unit,
+    onRateSelect: (String) -> Unit, onExchange: () -> Unit
 ) {
-    Column(Modifier.padding(horizontal = 16.dp).padding(top = 20.dp)) {
-        // Exchange card
+    Column(Modifier.fillMaxWidth().fillMaxHeight().padding(horizontal = 16.dp)) {
+
+        // ─── Exchange card ───
         Column(
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
+                .padding(top = 20.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     androidx.compose.ui.graphics.Brush.verticalGradient(
@@ -491,77 +359,58 @@ private fun DiamondsContent(
                 .border(1.dp, Color(0xFFE0EFFF), RoundedCornerShape(12.dp))
                 .padding(16.dp)
         ) {
-            Row(
-                Modifier.fillMaxWidth().padding(bottom = 12.dp),
+            Row(Modifier.fillMaxWidth().padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                verticalAlignment = Alignment.CenterVertically) {
                 Text("Exchange", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("100 =", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6B7280))
                     AsyncImage(
-                        RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
+                        RAW_WALLET + "1787321690452.png",
                         null, Modifier.size(14.dp), contentScale = ContentScale.Fit
                     )
                     Text("33", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6B7280))
                 }
             }
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 InputBox("Input multiple", din, Modifier.weight(1f), onDinChange, suffix = "x100")
                 Text("=", color = Color(0xFFD1D5DB), fontWeight = FontWeight.Bold)
                 InputBox("Coins", cin, Modifier.weight(1f), onCinChange)
             }
         }
 
-        // Exchange rate
+        // ─── Exchange rate ───
         Column(Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text("exchange rate", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF6B7280))
-            Row(
-                Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("20%", "40%", "60%", "80%", "100%").forEach { r ->
                     Box(
-                        Modifier
-                            .weight(1f)
-                            .height(38.dp)
+                        Modifier.weight(1f).height(38.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (rate == r) Color(0xFF0044FF) else Color.White)
-                            .border(
-                                1.dp,
+                            .border(1.dp,
                                 if (rate == r) Color(0xFF0044FF) else Color(0xFFBFDBFE),
-                                RoundedCornerShape(12.dp)
-                            )
+                                RoundedCornerShape(12.dp))
                             .clickable { onRateSelect(r) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            r, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            color = if (rate == r) Color.White else Color(0xFF0044FF)
-                        )
+                        Text(r, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            color = if (rate == r) Color.White else Color(0xFF0044FF))
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(60.dp))
+        Spacer(Modifier.weight(1f))
 
-        // Exchange button
-        Row(
-            Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
+        // ─── Exchange button at bottom ───
+        Row(Modifier.fillMaxWidth().padding(bottom = 24.dp),
+            horizontalArrangement = Arrangement.Center) {
             Box(
-                Modifier
-                    .fillMaxWidth(.75f)
-                    .height(50.dp)
+                Modifier.fillMaxWidth(.75f).height(50.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(Color(0xFF0044FF))
                     .clickable { onExchange() },
@@ -579,32 +428,25 @@ private fun AgentContent() {
         Modifier.fillMaxWidth().padding(top = 20.dp, start = 8.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            Modifier.size(48.dp).clip(RoundedCornerShape(50)).background(Color(0xFFE5E7EB)),
+        Box(Modifier.size(48.dp).clip(RoundedCornerShape(50)).background(Color(0xFFE5E7EB))
+            .border(2.dp, Color.White, RoundedCornerShape(50)),
             contentAlignment = Alignment.Center
         ) {
             androidx.compose.foundation.Canvas(Modifier.size(34.dp)) {
-                drawCircle(
-                    Color(0xFF9CA3AF),
-                    radius = size.width * .17f,
-                    center = androidx.compose.ui.geometry.Offset(size.width * .5f, size.height * .32f)
-                )
+                drawCircle(Color(0xFF9CA3AF), radius = size.width * .17f,
+                    center = androidx.compose.ui.geometry.Offset(size.width * .5f, size.height * .32f))
                 val p = androidx.compose.ui.graphics.Path().apply {
                     moveTo(size.width * .16f, size.height * .92f)
-                    cubicTo(
-                        size.width * .16f, size.height * .62f,
-                        size.width * .84f, size.height * .62f,
-                        size.width * .84f, size.height * .92f
-                    )
+                    cubicTo(size.width * .16f, size.height * .62f,
+                            size.width * .84f, size.height * .62f,
+                            size.width * .84f, size.height * .92f)
                     close()
                 }
                 drawPath(p, Color(0xFF9CA3AF))
             }
         }
-        Text(
-            "Agent Anmol", Modifier.weight(1f).padding(start = 12.dp),
-            fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-        )
+        Text("Agent Anmol", Modifier.weight(1f).padding(start = 12.dp),
+            fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
         ChatIcon()
     }
 }
@@ -615,64 +457,43 @@ private fun AgentContent() {
 @Composable
 private fun PillTab(t: String, selected: Boolean, m: Modifier, onClick: () -> Unit) {
     Box(
-        m.height(40.dp)
-            .clip(RoundedCornerShape(25.dp))
+        m.height(40.dp).clip(RoundedCornerShape(25.dp))
             .background(if (selected) Color.White else Color.Transparent)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
-    ) {
-        Text(t, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
-    }
+    ) { Text(t, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)) }
 }
 
 @Composable
 private fun Pack(c: String, p: String, b: String, m: Modifier, onClick: () -> Unit) {
     Column(
         m.width(120.dp).aspectRatio(1f)
-            .clip(RoundedCornerShape(6.dp))
-            .background(Color.White)
-            .clickable { onClick() }
-            .padding(8.dp),
+            .clip(RoundedCornerShape(6.dp)).background(Color.White)
+            .clickable { onClick() }.padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        AsyncImage(
-            RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png", null,
-            Modifier.size(32.dp), contentScale = ContentScale.Fit
-        )
-        Text(
-            c, Modifier.padding(top = 6.dp), fontSize = 17.sp,
-            fontWeight = FontWeight.Bold, color = Color(0xFF111827), lineHeight = 17.sp
-        )
-        Text(
-            b,
-            Modifier.padding(top = 5.dp)
-                .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
-                .padding(horizontal = 5.dp, vertical = 3.dp),
-            fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 9.sp
-        )
-        Text(
-            p, Modifier.padding(top = 6.dp), fontSize = 14.sp,
-            color = Color(0xFF6B7280), fontWeight = FontWeight.Medium, lineHeight = 14.sp
-        )
+        AsyncImage(RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png", null,
+            Modifier.size(32.dp), contentScale = ContentScale.Fit)
+        Text(c, Modifier.padding(top = 6.dp), fontSize = 17.sp,
+            fontWeight = FontWeight.Bold, color = Color(0xFF111827), lineHeight = 17.sp)
+        Text(b, Modifier.padding(top = 5.dp)
+            .background(Color(0xFFEF4444), RoundedCornerShape(4.dp))
+            .padding(horizontal = 5.dp, vertical = 3.dp),
+            fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold, lineHeight = 9.sp)
+        Text(p, Modifier.padding(top = 6.dp), fontSize = 14.sp,
+            color = Color(0xFF6B7280), fontWeight = FontWeight.Medium, lineHeight = 14.sp)
     }
 }
 
 @Composable
-private fun InputBox(
-    hint: String, value: String, m: Modifier,
-    onChange: (String) -> Unit, suffix: String? = null
-) {
+private fun InputBox(hint: String, value: String, m: Modifier, onChange: (String) -> Unit, suffix: String? = null) {
     OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        modifier = m.height(52.dp),
-        singleLine = true,
+        value = value, onValueChange = onChange,
+        modifier = m.height(52.dp), singleLine = true,
         placeholder = { Text(hint, fontSize = 13.sp, color = Color(0xFF9CA3AF)) },
         shape = RoundedCornerShape(12.dp),
-        suffix = suffix?.let {
-            { Text(it, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF)) }
-        },
+        suffix = suffix?.let { { Text(it, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF)) } },
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF0044FF),
             unfocusedBorderColor = Color(0xFFE5E7EB),
@@ -685,27 +506,25 @@ private fun InputBox(
     )
 }
 
+// ─── Agent chat icon (blue circle + white bubble + 3 dots) ───
 @Composable
 private fun ChatIcon() {
     Box(Modifier.size(44.dp).clickable {}, contentAlignment = Alignment.Center) {
-        Box(
-            Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)),
+            contentAlignment = Alignment.Center) {
             Box(Modifier.size(19.dp).clip(RoundedCornerShape(50)).background(Color.White)) {
-                Row(
-                    Modifier.fillMaxSize().padding(horizontal = 3.dp),
+                Row(Modifier.fillMaxSize().padding(horizontal = 3.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                    verticalAlignment = Alignment.CenterVertically) {
                     repeat(3) {
-                        Box(
-                            Modifier.size(3.dp).clip(RoundedCornerShape(50))
-                                .background(Color(0xFF0044FF))
-                        )
+                        Box(Modifier.size(3.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)))
                     }
                 }
             }
+            Box(Modifier.size(6.dp)
+                .offset(x = (-5).dp, y = 7.dp)
+                .rotate(45f)
+                .background(Color.White))
         }
     }
 }
@@ -716,105 +535,81 @@ private fun ChatIcon() {
 @Composable
 private fun PaymentSheet(onClose: () -> Unit, onRecharge: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-        Column(
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-                .background(Color.White)
-        ) {
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Payment Method", Modifier.weight(1f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-                )
-                Row(
-                    Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0xFFF3F4F6))
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+        Column(Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+            .background(Color.White)) {
+
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
+                Text("Payment Method", Modifier.align(Alignment.Center),
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
+                Row(Modifier.align(Alignment.CenterEnd)
+                    .clip(RoundedCornerShape(6.dp)).background(Color(0xFFF3F4F6))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text("🇮🇳", fontSize = 12.sp)
-                    Text(
-                        "in", Modifier.padding(start = 5.dp),
-                        fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151)
-                    )
+                    Text("in", Modifier.padding(start = 5.dp),
+                        fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
                 }
             }
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(12.dp)).background(Color(0xFFF8F9FA)).padding(14.dp),
+
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(12.dp)).background(Color(0xFFF8F9FA)).padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
                     Text("Coins", fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Medium)
                     Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                        AsyncImage(
-                            RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
-                            null, Modifier.size(20.dp), contentScale = ContentScale.Fit
-                        )
-                        Text(
-                            "1,030,000", Modifier.padding(start = 6.dp),
-                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-                        )
+                        AsyncImage(RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
+                            null, Modifier.size(20.dp), contentScale = ContentScale.Fit)
+                        Text("1,030,000", Modifier.padding(start = 6.dp),
+                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
                     }
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Price", fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Medium)
-                    Text(
-                        "₹100.00", Modifier.padding(top = 4.dp),
-                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-                    )
+                    Text("₹100.00", Modifier.padding(top = 4.dp),
+                        fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
                 }
             }
-            Text(
-                "Select payment method",
+
+            Text("Select payment method",
                 Modifier.padding(start = 20.dp, top = 16.dp, bottom = 14.dp),
-                fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Medium
-            )
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+                fontSize = 13.sp, color = Color(0xFF6B7280), fontWeight = FontWeight.Medium)
+
+            Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                verticalAlignment = Alignment.CenterVertically) {
                 Text("UPI", fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color(0xFF1F2937))
                 Box(Modifier.padding(start = 10.dp).size(18.dp), contentAlignment = Alignment.Center) {
-                    Text("G", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF4285F4))
+                    GoogleGLogo(Modifier.size(18.dp))
                 }
-                Box(
-                    Modifier.padding(start = 8.dp).size(18.dp).clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFF5F259F)),
-                    contentAlignment = Alignment.Center
-                ) { Text("पे", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White) }
+                Box(Modifier.padding(start = 8.dp).size(18.dp), contentAlignment = Alignment.Center) {
+                    PhonePeLogo(Modifier.fillMaxSize(), 4.dp, 10.sp)
+                }
                 Row(Modifier.padding(start = 8.dp)) {
                     Text("Pay", fontSize = 13.sp, fontWeight = FontWeight.Black, color = Color(0xFF002970))
                     Text("tm", fontSize = 13.sp, fontWeight = FontWeight.Black, color = Color(0xFF00BAF2))
                 }
                 Spacer(Modifier.weight(1f))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
-                        null, Modifier.size(16.dp), contentScale = ContentScale.Fit
-                    )
-                    Text(
-                        "1,030,000", Modifier.padding(start = 4.dp),
-                        fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827)
-                    )
+                    AsyncImage(RAW_WALLET + "file_00000000e56882119c217d508b6733dc.png",
+                        null, Modifier.size(16.dp), contentScale = ContentScale.Fit)
+                    Text("1,030,000", Modifier.padding(start = 4.dp),
+                        fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
                 }
-                Box(
-                    Modifier.padding(start = 12.dp).size(20.dp)
-                        .clip(RoundedCornerShape(50))
-                        .border(2.dp, Color(0xFF22C55E), RoundedCornerShape(50)),
-                    contentAlignment = Alignment.Center
-                ) { Box(Modifier.size(10.dp).clip(RoundedCornerShape(50)).background(Color(0xFF22C55E))) }
+                Box(Modifier.padding(start = 12.dp).size(20.dp)
+                    .clip(RoundedCornerShape(50))
+                    .border(2.dp, Color(0xFF22C55E), RoundedCornerShape(50)),
+                    contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(10.dp).clip(RoundedCornerShape(50)).background(Color(0xFF22C55E)))
+                }
             }
-            Box(
-                Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp).height(50.dp)
-                    .clip(RoundedCornerShape(12.dp)).background(Color(0xFF0044FF))
-                    .clickable { onRecharge() },
-                contentAlignment = Alignment.Center
-            ) { Text("Recharge", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White) }
+
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp).height(50.dp)
+                .clip(RoundedCornerShape(12.dp)).background(Color(0xFF0044FF))
+                .clickable { onRecharge() },
+                contentAlignment = Alignment.Center) {
+                Text("Recharge", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            }
         }
     }
 }
@@ -822,46 +617,29 @@ private fun PaymentSheet(onClose: () -> Unit, onRecharge: () -> Unit) {
 @Composable
 private fun PaySheet(onClose: () -> Unit, onSelect: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-        Column(
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                .background(Color.White)
-                .padding(bottom = 8.dp)
-        ) {
-            Row(
-                Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 16.dp)
-                    .border(
-                        1.dp, Color(0xFFF3F4F6),
-                        RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(Modifier.weight(1f))
-                Text(
-                    "Pay Using", Modifier.weight(2f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827)
-                )
-                Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                    Text(
-                        "×", Modifier.size(28.dp).clickable { onClose() },
-                        fontSize = 24.sp, color = Color(0xFF111827), textAlign = TextAlign.Center
-                    )
+        Column(Modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .background(Color.White).padding(bottom = 8.dp)) {
+
+            Box(Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 16.dp)) {
+                Text("Pay Using", Modifier.align(Alignment.Center),
+                    fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF111827))
+                Box(Modifier.align(Alignment.CenterEnd).size(28.dp).clickable { onClose() },
+                    contentAlignment = Alignment.Center) {
+                    Text("×", fontSize = 24.sp, color = Color(0xFF111827))
                 }
             }
-            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                PayRow("GPay", onSelect) { GoogleGLogo() }
-                HorizontalDivider(color = Color(0xFFF9FAFB))
+            HorizontalDivider(color = Color(0xFFF9FAFB))
 
-                PayRow("PhonePe", onSelect) {
-                    Box(
-                        Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF5F259F)),
-                        contentAlignment = Alignment.Center
-                    ) { Text("पे", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White) }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+                PayRow("GPay", onSelect) {
+                    GoogleGLogo(Modifier.size(22.dp))
                 }
                 HorizontalDivider(color = Color(0xFFF9FAFB))
-
+                PayRow("PhonePe", onSelect) {
+                    PhonePeLogo(Modifier.fillMaxSize(), 12.dp, 26.sp)
+                }
+                HorizontalDivider(color = Color(0xFFF9FAFB))
                 PayRow("Paytm", onSelect) {
                     Row {
                         Text("Pay", fontSize = 15.sp, fontWeight = FontWeight.Black, color = Color(0xFF002970))
@@ -869,7 +647,6 @@ private fun PaySheet(onClose: () -> Unit, onSelect: () -> Unit) {
                     }
                 }
                 HorizontalDivider(color = Color(0xFFF9FAFB))
-
                 PayRow("Other", onSelect) {
                     Text("...", fontSize = 17.sp, fontWeight = FontWeight.Black, color = Color(0xFF9CA3AF))
                 }
@@ -879,10 +656,7 @@ private fun PaySheet(onClose: () -> Unit, onSelect: () -> Unit) {
 }
 
 @Composable
-private fun PayRow(
-    name: String, onClick: () -> Unit,
-    icon: @Composable () -> Unit
-) {
+private fun PayRow(name: String, onClick: () -> Unit, icon: @Composable () -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -900,36 +674,39 @@ private fun PayRow(
                 ),
             contentAlignment = Alignment.Center
         ) { icon() }
-        Text(
-            name, Modifier.padding(start = 16.dp),
-            fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827)
-        )
+        Text(name, Modifier.padding(start = 16.dp),
+            fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF111827))
     }
 }
 
-// ─── Google G logo (Canvas, no drawable) ───
+// ─── Google G logo (Canvas — real 4-color G) ───
 @Composable
-private fun GoogleGLogo() {
-    androidx.compose.foundation.Canvas(Modifier.size(22.dp)) {
+private fun GoogleGLogo(modifier: Modifier = Modifier) {
+    androidx.compose.foundation.Canvas(modifier) {
         val cx = size.width / 2f
         val cy = size.height / 2f
-        val r = size.width * .42f
-        val strokeW = size.width * .22f
+        val r = size.width * .38f
+        val strokeW = size.width * .24f
         val topLeft = androidx.compose.ui.geometry.Offset(cx - r, cy - r)
         val arcSize = androidx.compose.ui.geometry.Size(r * 2, r * 2)
 
-        // Red (top)
-        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
-        // Blue (right)
-        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
-        // Yellow (left)
-        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
-        // Green (bottom)
-        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
+        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
     }
 }
 
-// ─── Icons (Canvas) ───
+// ─── PhonePe logo (purple squircle + white "पे") ───
+@Composable
+private fun PhonePeLogo(modifier: Modifier, cornerRadius: androidx.compose.ui.unit.Dp, textSize: androidx.compose.ui.unit.TextUnit) {
+    Box(modifier.clip(RoundedCornerShape(cornerRadius)).background(Color(0xFF5F259F)),
+        contentAlignment = Alignment.Center) {
+        Text("पे", fontSize = textSize, fontWeight = FontWeight.Bold, color = Color.White)
+    }
+}
+
+// ─── Icons ───
 @Composable
 private fun BackArrowWhite() {
     androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
@@ -963,29 +740,19 @@ private fun HistoryIconWhite() {
     androidx.compose.foundation.Canvas(Modifier.size(23.dp)) {
         val c = Color.White
         val st = androidx.compose.ui.graphics.drawscope.Stroke(
-            width = 2.dp.toPx(),
-            join = androidx.compose.ui.graphics.StrokeJoin.Round
+            width = 2.dp.toPx(), join = androidx.compose.ui.graphics.StrokeJoin.Round
         )
         val p = androidx.compose.ui.graphics.Path().apply {
             moveTo(size.width * .58f, size.height * .08f)
             lineTo(size.width * .27f, size.height * .08f)
-            cubicTo(
-                size.width * .18f, size.height * .08f,
-                size.width * .14f, size.height * .13f,
-                size.width * .14f, size.height * .23f
-            )
+            cubicTo(size.width * .18f, size.height * .08f, size.width * .14f, size.height * .13f,
+                    size.width * .14f, size.height * .23f)
             lineTo(size.width * .14f, size.height * .87f)
-            cubicTo(
-                size.width * .14f, size.height * .96f,
-                size.width * .19f, size.height * .99f,
-                size.width * .28f, size.height * .99f
-            )
+            cubicTo(size.width * .14f, size.height * .96f, size.width * .19f, size.height * .99f,
+                    size.width * .28f, size.height * .99f)
             lineTo(size.width * .79f, size.height * .99f)
-            cubicTo(
-                size.width * .88f, size.height * .99f,
-                size.width * .92f, size.height * .94f,
-                size.width * .92f, size.height * .85f
-            )
+            cubicTo(size.width * .88f, size.height * .99f, size.width * .92f, size.height * .94f,
+                    size.width * .92f, size.height * .85f)
             lineTo(size.width * .92f, size.height * .34f)
             close()
         }
