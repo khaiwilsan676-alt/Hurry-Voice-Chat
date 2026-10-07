@@ -690,10 +690,10 @@ private fun GoogleGLogo(modifier: Modifier = Modifier) {
         val topLeft = androidx.compose.ui.geometry.Offset(cx - r, cy - r)
         val arcSize = androidx.compose.ui.geometry.Size(r * 2, r * 2)
 
-        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
-        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
-        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, strokeWidth = strokeW)
-        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, strokeWidth = strokeW)
+        drawArc(Color(0xFFEA4335), -50f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
+        drawArc(Color(0xFF4285F4), 50f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
+        drawArc(Color(0xFFFBBC05), 140f, 90f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
+        drawArc(Color(0xFF34A853), 230f, 100f, false, topLeft, arcSize, style = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeW))
     }
 }
 
