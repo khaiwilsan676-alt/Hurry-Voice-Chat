@@ -491,6 +491,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   // Swipe support
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
+  const isSwiping = useRef(false)
 
   useEffect(() => {
     let isMounted = true
@@ -523,8 +524,30 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   }
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Ignore if touch starts inside an input, button, or scrollable input area
+    const target = e.target as HTMLElement
+    if (
+      target.closest('input') ||
+      target.closest('button') ||
+      target.closest('select') ||
+      target.closest('textarea')
+    ) {
+      touchStartX.current = null
+      touchStartY.current = null
+      return
+    }
     touchStartX.current = e.touches[0].clientX
     touchStartY.current = e.touches[0].clientY
+    isSwiping.current = false
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const deltaX = e.touches[0].clientX - touchStartX.current
+    const deltaY = e.touches[0].clientY - touchStartY.current
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      isSwiping.current = true
+    }
   }
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -533,6 +556,7 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     const deltaY = e.changedTouches[0].clientY - touchStartY.current
     touchStartX.current = null
     touchStartY.current = null
+    isSwiping.current = false
 
     // Only trigger on mostly-horizontal swipes
     if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
@@ -616,20 +640,20 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     <div
       className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 relative"
       style={{
-        touchAction: 'manipulation',
+        touchAction: 'pan-y',
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
         background: 'linear-gradient(180deg, #1A66FF 0%, #1A66FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
       }}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <style>{`
         * {
           -webkit-text-size-adjust: 100%;
           -ms-text-size-adjust: 100%;
-          touch-action: manipulation;
         }
       `}</style>
 
