@@ -893,8 +893,8 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
               </div>
             </div>
 
-            {/* Exchange Button: moved slightly further down */}
-            <div className="pt-20 pb-4 flex justify-center mt-10">
+            {/* Exchange Button — pushed to the absolute bottom */}
+            <div className="mt-auto pt-16 flex justify-center pb-4">
               <button
                 onClick={handleExchange}
                 className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
@@ -1084,4 +1084,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       
     </div>
   )
-          }
+}
