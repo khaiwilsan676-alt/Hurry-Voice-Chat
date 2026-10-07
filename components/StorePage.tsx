@@ -112,7 +112,6 @@ const getExpiredStoreItemIds = (items: StoreItem[]): string[] => {
   return expired;
 };
 
-// delta positive = add, negative = deduct
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -135,7 +134,6 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// Add item id to ownedItems array (persist)
 const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -158,7 +156,6 @@ const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   }
 };
 
-// Persist equipped items
 const saveEquippedItemsToDB = async (equipped: string[]): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -191,7 +188,6 @@ const tabData = [
 ];
 
 const allStoreItems: StoreItem[] = [
-  // Vehicle
   {
     id: "v1",
     name: "Leopard Roar",
@@ -203,29 +199,21 @@ const allStoreItems: StoreItem[] = [
     price: "1,000,000",
     duration: "5D",
   },
-
-  // Avatar Frame
   { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D" },
   { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
   { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
-
-  // Theme
   { id: "t1", name: "Seafood", image: "/IMG-20260904-WA0004.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t2", name: "Night Sky", image: "/IMG-20260904-WA0005.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t3", name: "Seafood", image: "/IMG-20260904-WA0006.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t4", name: "Night Sky", image: "/IMG-20260904-WA0007.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t5", name: "Seafood", image: "/IMG-20260904-WA0040.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t6", name: "Night Sky", image: "/IMG-20260904-WA0041.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
-
-  // Chat Bubble
   { id: "c1", name: "1", image: "/file_000000003d888211822aa6837fe5013c.png", tab: "Chat Bubble", stars: 4, price: "500,000", duration: "3D" },
   { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" },
   { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" },
   { id: "c4", name: "4", image: "/IMG_20260920_122831.png", tab: "Chat Bubble", stars: 4, price: "246,000", duration: "3D" },
   { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" },
   { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" },
-
-  // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
 ];
 
@@ -647,7 +635,6 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
 
-  // Shared wallet
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
     new Set(allStoreItems.filter((i) => i.isOwned).map((i) => i.id))
@@ -655,7 +642,6 @@ export default function StorePage({
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
-  // Real-time sync
   useEffect(() => {
     let alive = true;
     const sync = async () => {
@@ -731,7 +717,7 @@ export default function StorePage({
     }
   };
 
-  // Buy handler
+  // ===== FULL BUY LOGIC =====
   const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = parsePrice(item.price);
@@ -742,7 +728,6 @@ export default function StorePage({
     }
 
     setBuying(item.id);
-    // Optimistic UI
     setBalance((b) => b - cost);
     setOwnedIds((prev) => new Set(prev).add(item.id));
     saveItemExpiry(item);
@@ -753,7 +738,7 @@ export default function StorePage({
     setBuying(null);
   };
 
-  // Equip / Unequip toggle (one equipped item per tab)
+  // ===== FULL EQUIP LOGIC =====
   const handleEquipToggle = async (item: StoreItem) => {
     const next = new Set(equippedIds);
     const wasEquipped = next.has(item.id);
@@ -761,7 +746,6 @@ export default function StorePage({
     if (wasEquipped) {
       next.delete(item.id);
     } else {
-      // Remove any other equipped item from the same tab.
       allStoreItems.forEach((it) => {
         if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
       });
@@ -771,7 +755,6 @@ export default function StorePage({
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
 
-    // Chat Bubble is local to the user and expires with the purchased duration.
     if (item.tab === "Chat Bubble") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Chat Bubble");
@@ -786,14 +769,12 @@ export default function StorePage({
       window.dispatchEvent(new Event("hurry-chat-bubble-equipped"));
     }
 
-    // RoomPage uses this exact value for the next Room entry event.
     if (item.tab === "Vehicle") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Vehicle");
         localStorage.removeItem("equipped_Vehicle_image");
       } else {
         const vehicleAsset = String(item.tryVideo || "").trim();
-        // Only an actual MP4 can be equipped as an entry vehicle.
         if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
           localStorage.setItem("equipped_Vehicle", vehicleAsset);
           localStorage.setItem("equipped_Vehicle_image", String(item.image || ""));
@@ -808,8 +789,6 @@ export default function StorePage({
     }
   };
 
-  // Keep the legacy RoomPage vehicle key synchronized with the persisted
-  // IndexedDB equipment, including equipment restored after app restart.
   useEffect(() => {
     const equippedVehicleId = Array.from(equippedIds).find((id) => {
       const item = allStoreItems.find((it) => it.id === id);
@@ -836,7 +815,6 @@ export default function StorePage({
     if (currentView === "bag") {
       return isOwned && isActive && item.tab === activeTab;
     }
-    // Expired items are no longer owned, so they appear in Store again as Buy.
     return !item.dailyReward && item.tab === activeTab;
   });
 
@@ -848,7 +826,6 @@ export default function StorePage({
     ));
   };
 
-  // Check if the item is currently owned to show "Equip/Equipped"
   const isEquipped = (itemId: string) => equippedIds.has(itemId);
 
   return (
@@ -1087,7 +1064,7 @@ export default function StorePage({
       </div>
 
       {/* ==========================================
-          TRY BOTTOM SHEET MODAL (Matching Screenshot)
+          TRY BOTTOM SHEET MODAL
           ========================================== */}
       {tryCenterItem && (
         <div
@@ -1095,64 +1072,63 @@ export default function StorePage({
           onClick={() => setTryCenterItem(null)}
         >
           <div
-            className="w-full max-w-md mx-auto bg-white rounded-t-3xl p-5 flex flex-col items-center cursor-default animate-slide-up"
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
-            <h3 className="text-[20px] font-bold text-gray-900 mt-1">{tryCenterItem.name}</h3>
+            {/* Top Content */}
+            <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-2">
+              <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
 
-            {/* Center Item Preview */}
-            <div className="relative w-[200px] h-[200px] my-4 flex items-center justify-center">
-              {tryCenterItem.tryVideo ? (
-                <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-              ) : tryCenterItem.image.endsWith('.mp4') ? (
-                <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-              ) : tryCenterItem.removeGreen ? (
-                <WebGLImageAvatar src={tryCenterItem.image} />
-              ) : (
-                <Image
-                  src={tryCenterItem.image}
-                  alt={tryCenterItem.name}
-                  fill
-                  className="object-contain"
-                />
-              )}
-            </div>
+              <div className="relative w-[180px] h-[180px] my-2 flex items-center justify-center">
+                {tryCenterItem.tryVideo ? (
+                  <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+                ) : tryCenterItem.image.endsWith('.mp4') ? (
+                  <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+                ) : tryCenterItem.removeGreen ? (
+                  <WebGLImageAvatar src={tryCenterItem.image} />
+                ) : (
+                  <Image
+                    src={tryCenterItem.image}
+                    alt={tryCenterItem.name}
+                    fill
+                    className="object-contain"
+                  />
+                )}
+              </div>
 
-            {/* Price */}
-            <div className="flex items-center gap-1.5 mb-5">
-              <span className="text-[26px] font-bold text-gray-900">
-                {tryCenterItem.price}
-              </span>
-              <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
-                <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+              <div className="flex items-center gap-1.5 mb-4">
+                <span className="text-[24px] font-bold text-gray-900">
+                  {tryCenterItem.price}
+                </span>
+                <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+              </div>
+
+              <h3 className="text-[18px] font-bold text-gray-900 mb-3">{tryCenterItem.name}</h3>
+
+              <div className="flex items-center gap-2 w-full mb-2">
+                <button
+                  type="button"
+                  className="flex-1 py-[6px] rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[13px] flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-3.5 h-3.5 rounded-full bg-orange-400 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  3days
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-[6px] rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
+                >
+                  7days
+                </button>
               </div>
             </div>
 
-            {/* Duration Selection */}
-            <div className="flex items-center gap-3 w-full mb-6">
-              <button
-                type="button"
-                className="flex-1 py-3 rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[15px] flex items-center justify-center gap-2"
-              >
-                <span className="w-4 h-4 rounded-full bg-orange-400 flex items-center justify-center">
-                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-                3days
-              </button>
-              <button
-                type="button"
-                className="flex-1 py-3 rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[15px]"
-              >
-                7days
-              </button>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 w-full pb-8">
+            <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100">
               <button
                 type="button"
                 className="flex-1 py-3.5 rounded-full bg-[#e0f2fe] text-[#1d4ed8] font-bold text-[15px] hover:bg-[#bae6fd] transition-colors"
@@ -1163,11 +1139,11 @@ export default function StorePage({
               <button
                 type="button"
                 className="flex-1 py-3.5 rounded-full bg-[#00b4d8] text-white font-bold text-[15px] hover:bg-[#0096c7] transition-colors"
-                onClick={() => {
+                onClick={async () => {
                   if (ownedIds.has(tryCenterItem.id)) {
-                    handleEquipToggle(tryCenterItem);
+                    await handleEquipToggle(tryCenterItem);
                   } else {
-                    handleBuy(tryCenterItem);
+                    await handleBuy(tryCenterItem);
                   }
                   setTryCenterItem(null);
                 }}
