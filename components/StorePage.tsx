@@ -1103,10 +1103,21 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* ===== ITEM NAME JUST ABOVE DURATION BUTTONS (LEFT SIDE) ===== */}
+              {/* Item Name (Left side, above duration buttons) */}
               <h3 className="text-[17px] font-bold text-gray-900 mb-3 w-full text-left">{tryCenterItem.name}</h3>
 
-              {/* ===== SMALLER DURATION BUTTONS ===== */}
+              {/* ===== 2. CURRENT COIN BALANCE JUST ABOVE 7DAYS (RIGHT SIDE) ===== */}
+              <div className="w-full flex justify-end mb-1">
+                <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
+                  <span>Balance:</span>
+                  <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                    <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                  </div>
+                  <span>{balance.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Smaller Duration Buttons */}
               <div className="flex items-center gap-2 w-full mb-2">
                 <button
                   type="button"
@@ -1128,8 +1139,8 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* ===== 1. BUY / SEND BUTTONS FULLY AT BOTTOM ===== */}
-            <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100">
+            {/* ===== 1. BUY / SEND BUTTONS FULLY AT BOTTOM (mt-auto) ===== */}
+            <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
               <button
                 type="button"
                 className="flex-1 py-3.5 rounded-full bg-[#e0f2fe] text-[#1d4ed8] font-bold text-[15px] hover:bg-[#bae6fd] transition-colors"
