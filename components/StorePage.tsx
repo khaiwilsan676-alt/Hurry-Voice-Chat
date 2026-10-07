@@ -1101,7 +1101,8 @@ export default function StorePage({
             className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-2">
+            {/* Top content */}
+            <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-0">
               <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
 
               <div className="relative w-[180px] h-[180px] my-2 flex items-center justify-center">
@@ -1130,8 +1131,12 @@ export default function StorePage({
                 </div>
               </div>
 
+              {/* --- New order: name, balance, 3days, 7days, then buttons --- */}
+
+              {/* 4. Item name just above 3 days button */}
               <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
 
+              {/* 5. Current balance just above 7 days button */}
               <div className="w-full flex justify-end mb-1">
                 <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
                   <span>Balance:</span>
@@ -1142,7 +1147,8 @@ export default function StorePage({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full mb-2">
+              {/* 2. 3 days button just above send button */}
+              <div className="flex items-center gap-2 w-full mb-1">
                 <button
                   type="button"
                   className="flex-1 py-[6px] rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[13px] flex items-center justify-center gap-1.5"
@@ -1154,6 +1160,7 @@ export default function StorePage({
                   </span>
                   3days
                 </button>
+                {/* 3. 7 days button just above buy button */}
                 <button
                   type="button"
                   className="flex-1 py-[6px] rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
@@ -1163,6 +1170,7 @@ export default function StorePage({
               </div>
             </div>
 
+            {/* 1. Send & Buy at the very bottom */}
             <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
               <button
                 type="button"
