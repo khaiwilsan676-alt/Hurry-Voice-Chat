@@ -658,6 +658,8 @@ export default function StorePage({
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
+  const tabsScrollRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     let alive = true;
     const sync = async () => {
@@ -889,8 +891,11 @@ export default function StorePage({
             </button>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-1 mb-3 overflow-hidden shrink-0 w-full">
+          {/* Category Tabs - now horizontally scrollable */}
+          <div
+            ref={tabsScrollRef}
+            className="flex items-center gap-1 pl-3 pr-3 mt-1 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full"
+          >
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
 
@@ -1131,12 +1136,10 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* --- New order: name, balance, 3days, 7days, then buttons --- */}
-
-              {/* 4. Item name just above 3 days button */}
+              {/* Item name just above 3 days button */}
               <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
 
-              {/* 5. Current balance just above 7 days button */}
+              {/* Current balance just above 7 days button */}
               <div className="w-full flex justify-end mb-1">
                 <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
                   <span>Balance:</span>
@@ -1147,7 +1150,7 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* 2. 3 days button just above send button */}
+              {/* 3 days & 7 days buttons just above Send/Buy */}
               <div className="flex items-center gap-2 w-full mb-1">
                 <button
                   type="button"
@@ -1160,7 +1163,6 @@ export default function StorePage({
                   </span>
                   3days
                 </button>
-                {/* 3. 7 days button just above buy button */}
                 <button
                   type="button"
                   className="flex-1 py-[6px] rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
@@ -1170,7 +1172,7 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* 1. Send & Buy at the very bottom */}
+            {/* Send & Buy at the very bottom */}
             <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
               <button
                 type="button"
