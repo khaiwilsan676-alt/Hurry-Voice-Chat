@@ -227,13 +227,7 @@ const TIER_TAB_IMAGES = [
 ]
 
 // --- SCREEN 1: OBTAINED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
-const ObtainedMedalsScreen = ({
-  onClose,
-  onOpenRules,
-}: {
-  onClose: () => void
-  onOpenRules: () => void
-}) => {
+const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   const medalList = [
     { id: 1, name: 'CP Level Badge', img: '/IMG_20260924_132022.png' },
     { id: 2, name: 'Millionaire I', img: '/IMG_20260924_132038.png' },
@@ -258,13 +252,11 @@ const ObtainedMedalsScreen = ({
           <h1 className="text-xl font-medium text-white tracking-wide">
             Obtained Medals
           </h1>
-
-          {/* QUESTION MARK ICON TOP RIGHT (only) */}
           <button
-            onClick={onOpenRules}
-            className="absolute right-4 top-6 p-1 text-gray-200 hover:text-white transition-colors cursor-pointer"
+            onClick={onClose}
+            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <HelpCircle size={24} className="opacity-90" />
+            <X size={24} className="text-white" />
           </button>
         </div>
 
@@ -306,13 +298,7 @@ const ObtainedMedalsScreen = ({
 }
 
 // --- SCREEN 2: UNEQUIPPED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
-const UnequippedMedalsScreen = ({
-  onClose,
-  onOpenRules,
-}: {
-  onClose: () => void
-  onOpenRules: () => void
-}) => {
+const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
   const medalList = [
     { id: 1, name: 'CP Spokesperson', img: '/IMG_20260924_132022.png' },
     { id: 2, name: 'Level Medal', img: '/IMG_20260924_132038.png' },
@@ -337,13 +323,11 @@ const UnequippedMedalsScreen = ({
           <h1 className="text-xl font-medium text-white tracking-wide">
             Unequipped Medals
           </h1>
-
-          {/* QUESTION MARK ICON TOP RIGHT (only) */}
           <button
-            onClick={onOpenRules}
-            className="absolute right-4 top-6 p-1 text-gray-200 hover:text-white transition-colors cursor-pointer"
+            onClick={onClose}
+            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
           >
-            <HelpCircle size={24} className="opacity-90" />
+            <X size={24} className="text-white" />
           </button>
         </div>
 
@@ -401,14 +385,6 @@ const RulesScreen = ({ onClose }: { onClose: () => void }) => {
           <h1 className="text-xl font-medium text-white tracking-wide">
             Rules
           </h1>
-
-          {/* X ICON TOP RIGHT (only in Rules sheet) */}
-          <button
-            onClick={onClose}
-            className="absolute right-4 top-6 p-1 bg-white/10 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <X size={24} className="text-white" />
-          </button>
         </div>
 
         {/* Content - Scrollable */}
@@ -971,13 +947,13 @@ export default function Medal({ onBack }: MedalProps) {
               <ArrowLeft size={28} />
             </button>
 
-            {/* QUESTION MARK ICON TOP RIGHT ON DETAIL SHEET (only) */}
+            {/* Question mark icon - top right side */}
             <button
               onClick={() => setShowRules(true)}
               className="absolute right-0 top-0 z-50 p-1 pr-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
             >
-              <HelpCircle size={28} className="opacity-90" />
+              <HelpCircle size={24} className="opacity-80" />
             </button>
 
             <div
@@ -1086,18 +1062,12 @@ export default function Medal({ onBack }: MedalProps) {
 
       {/* OBTAINED MEDALS OVERLAY (HALF SCREEN) */}
       {showObtained && (
-        <ObtainedMedalsScreen
-          onClose={() => setShowObtained(false)}
-          onOpenRules={() => setShowRules(true)}
-        />
+        <ObtainedMedalsScreen onClose={() => setShowObtained(false)} />
       )}
 
       {/* UNEQUIPPED MEDALS OVERLAY (HALF SCREEN) */}
       {showUnequipped && (
-        <UnequippedMedalsScreen
-          onClose={() => setShowUnequipped(false)}
-          onOpenRules={() => setShowRules(true)}
-        />
+        <UnequippedMedalsScreen onClose={() => setShowUnequipped(false)} />
       )}
 
       {/* RULES OVERLAY (HALF SCREEN) */}
