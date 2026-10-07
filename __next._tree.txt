@@ -1,2 +1,2 @@
 :HL["/_next/static/css/fb76635425569e7a.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"SbrMldZ5ZWi_zvclcsLuv"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"ITT4LUVG8qvl4Nw6jSWV3"}
