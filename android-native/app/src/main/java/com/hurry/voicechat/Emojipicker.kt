@@ -28,7 +28,7 @@ fun EmojiPicker(onClose:()->Unit={},onSelectEmoji:(EmojiSticker)->Unit={}){
   Box(Modifier.fillMaxSize().clickable(onClick=onClose))
   Column(Modifier.fillMaxWidth().fillMaxHeight(.42f).background(Color(0xFF121212)).padding(horizontal=16.dp,vertical=12.dp)){
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){Tab("Emojis",activeTab=="emojis"){activeTab="emojis"};Spacer(Modifier.width(32.dp));Tab("Premium",activeTab=="premium"){activeTab="premium"}}
-   if(activeTab=="emojis")LazyVerticalGrid(columns=GridCells.Fixed(4),contentPadding=PaddingValues(vertical=12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){items(stickers){s->Column(Modifier.fillMaxWidth().clickable{onSelectEmoji(s);onClose()},horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=s.src,contentDescription=s.name,modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit);Text(s.name,11.sp,color=Color.White.copy(alpha=.90f))}}}
+   if(activeTab=="emojis")LazyVerticalGrid(columns=GridCells.Fixed(4),contentPadding=PaddingValues(vertical=12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){items(stickers){s->Column(Modifier.fillMaxWidth().clickable{onSelectEmoji(s);onClose()},horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=s.src,contentDescription=s.name,modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit);Text(s.name,fontSize=11.sp,color=Color.White.copy(alpha=.90f))}}}
    else Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("Premium Emojis Coming Soon",color=Color.White.copy(alpha=.70f),fontSize=12.sp)}
   }
  }
