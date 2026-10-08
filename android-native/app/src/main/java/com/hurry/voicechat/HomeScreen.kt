@@ -9,6 +9,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.stickyHeader
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -343,13 +344,18 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── COUNTRY PILLS (HORIZONTAL + normal scroll) ─────────
-            item {
-                CountryPillRow(
-                    selected = selectedCountry,
-                    onSelect = { selectedCountry = it }
-                )
-                Spacer(Modifier.height(6.dp))
+            // ───────── COUNTRY PILLS (STICKY HEADER) ─────────
+            stickyHeader {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF9FAFB))
+                ) {
+                    CountryPillRow(
+                        selected = selectedCountry,
+                        onSelect = { selectedCountry = it }
+                    )
+                }
             }
 
             // ───────── ROOMS GRID (SCROLL) ─────────
@@ -410,7 +416,8 @@ private fun CountryPillRow(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .graphicsLayer { translationY = -3.dp.toPx() },
+            .graphicsLayer { translationY = -3.dp.toPx() }
+            .height(40.dp),
         contentPadding = PaddingValues(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         userScrollEnabled = true
