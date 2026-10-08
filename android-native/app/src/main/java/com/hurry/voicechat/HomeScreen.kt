@@ -9,7 +9,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.stickyHeader
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -221,6 +221,8 @@ fun HomeScreen(
         RAW + "IMG-20260818-WA0001.jpg"
     )
     val pager = rememberPagerState(pageCount = { banners.size })
+    val listState = rememberLazyListState()
+    val countrySticky by remember { derivedStateOf { listState.firstVisibleItemIndex >= 3 } }
 
     // Auto-scroll — user drag ke time ruk jaata hai
     LaunchedEffect(Unit) {
@@ -289,10 +291,12 @@ fun HomeScreen(
         // ═══════════ END FIXED TOP HEADER ═══════════
 
         // ═══════════ SCROLLABLE AREA ═══════════
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 12.dp)
-        ) {
+        Box(Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 12.dp)
+            ) {
             // ───────── BANNER (SCROLLS) ─────────
             item {
                 Column(
@@ -363,7 +367,7 @@ fun HomeScreen(
             }
 
             // ───────── COUNTRY PILLS (STICKY HEADER) ─────────
-            stickyHeader {
+            item {
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -416,6 +420,20 @@ fun HomeScreen(
                         }
                         if (row.size == 1) Spacer(Modifier.weight(1f))
                     }
+                }
+            }
+            }
+            if (countrySticky) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .background(Color(0xFFF9FAFB))
+                ) {
+                    CountryPillRow(
+                        selected = selectedCountry,
+                        onSelect = { selectedCountry = it }
+                    )
                 }
             }
         }
