@@ -28,7 +28,7 @@ fun RoomInfo(isOpen:Boolean,onClose:()->Unit,isRoomOwner:Boolean,roomOwner:RoomI
   var tab by remember{mutableStateOf(0)}
   Column(Modifier.fillMaxWidth().fillMaxHeight(.50f).clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp)).background(Color.White)){
    Text("Room Information",modifier=Modifier.fillMaxWidth().padding(24.dp),fontSize=18.sp,color=Color(0xFF222222))
-   TabRow(selectedTabIndex=tab){Tab(tab==0,{tab=0},{Text("Profile")});Tab(tab==1,{tab=1},{Text("Members")})}
+   TabRow(selectedTabIndex=tab){Tab(selected=tab==0,onClick={tab=0},text={Text("Profile")});Tab(selected=tab==1,onClick={tab=1},text={Text("Members")})}
    if(tab==0)Column(Modifier.fillMaxWidth().padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
     Row(verticalAlignment=Alignment.CenterVertically){
      AsyncImage(roomData.roomDp,"Room",Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)),contentScale=ContentScale.Crop)
