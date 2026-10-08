@@ -16,7 +16,7 @@ import coil3.compose.AsyncImage
 data class MineRoom(val accountId:String,val name:String,val country:String="🇮🇳",val image:String,val isLocked:Boolean=false)
 
 @Composable
-fun MinePage(isRoomCreated:Boolean,myRoom:MineRoom?=null,userPhoto:String="",userName:String="",followingRooms:List<MineRoom>=emptyList(),recentRooms:List<MineRoom>=emptyList(),onCardClick:()->Unit={},onUserCardClick:(MineRoom)->Unit={}) {
+fun MinePage(isRoomCreated:Boolean,myRoom:MineRoom?=null,userPhoto:String="",userName:String="",followingRooms:List<MineRoom> =emptyList(),recentRooms:List<MineRoom> =emptyList(),onCardClick:()->Unit={},onUserCardClick:(MineRoom)->Unit={}) {
  var tab by remember{mutableStateOf(0)}
  Column(Modifier.fillMaxWidth().padding(horizontal=12.dp).offset(y=(-8).dp)){
   Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Brush.linearGradient(listOf(Color(0xFF667EEA),Color(0xFF764BA2)))).clickable{onCardClick()}.padding(24.dp),horizontalArrangement=Arrangement.spacedBy(16.dp)){
