@@ -109,6 +109,8 @@ fun HomeScreen(
     onRoom: (HurryRoom) -> Unit,
     onMine: () -> Unit = {},
     onPopular: () -> Unit = {},
+    onLeaderboard: (String) -> Unit = {},
+    onInviteFriends: () -> Unit = {},
     mineSelected: Boolean = false
 ) {
     val mine = mineSelected
@@ -272,7 +274,7 @@ fun HomeScreen(
                             AsyncImage(
                                 model = banners[page],
                                 contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().clickable { onInviteFriends() },
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -308,9 +310,9 @@ fun HomeScreen(
                         .graphicsLayer { translationY = -4.dp.toPx() },
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
-                    HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f))
-                    HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f))
+                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f)) { onLeaderboard("honour") }
+                    HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f)) { onLeaderboard("charm") }
+                    HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f)) { onLeaderboard("room") }
                 }
             }
 
@@ -455,9 +457,10 @@ fun HurryHouseIcon(selected: Boolean = false) {
 private fun HurryCategoryCard(
     label: String,
     bg: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
-    Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
+    Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp)).clickable { onClick() }) {
         AsyncImage(
             model = bg,
             contentDescription = label,
