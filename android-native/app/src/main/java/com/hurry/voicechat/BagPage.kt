@@ -1,6 +1,7 @@
 package com.hurry.voicechat
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
@@ -31,4 +32,4 @@ fun BagPage(onBack: () -> Unit = {}) {
 }
 
 private fun Modifier.clickableBack(onBack: () -> Unit): Modifier =
-    this.then(androidx.compose.foundation.clickable { onBack() })
+    this.clickable(onClick = onBack)
