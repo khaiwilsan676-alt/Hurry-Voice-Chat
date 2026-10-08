@@ -384,7 +384,7 @@ fun HomeScreen(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 12.dp, bottom = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         row.forEach { room ->
@@ -409,7 +409,8 @@ private fun CountryPillRow(
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .graphicsLayer { translationY = -3.dp.toPx() },
         contentPadding = PaddingValues(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         userScrollEnabled = true
