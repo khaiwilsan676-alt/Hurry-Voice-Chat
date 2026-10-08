@@ -472,38 +472,27 @@ private fun CountryPillRow(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 if (pill.flag == null) {
-                    androidx.compose.foundation.Canvas(Modifier.size(16.dp)) {
-                        val stroke = 1.6.dp.toPx()
-                        val c = if (active) Color.White else Color(0xFF374151)
-
+                    androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+                        val stroke = 2.dp.toPx()
+                        val c = if (active) Color.White else Color(0xFF1E1E1E)
+                        val s = size.minDimension
                         drawCircle(
                             color = c,
-                            radius = size.minDimension / 2f - stroke / 2,
+                            radius = s * 0.42f,
+                            center = Offset(size.width / 2f, size.height / 2f),
                             style = Stroke(width = stroke)
                         )
-                        drawOval(
+                        drawLine(
                             color = c,
-                            topLeft = Offset(size.width * 0.30f, 0f),
-                            size = Size(size.width * 0.40f, size.height),
-                            style = Stroke(width = stroke * 0.85f)
+                            start = Offset(size.width * 0.08f, size.height / 2f),
+                            end = Offset(size.width * 0.92f, size.height / 2f),
+                            strokeWidth = stroke
                         )
                         drawOval(
                             color = c,
-                            topLeft = Offset(size.width * 0.15f, 0f),
-                            size = Size(size.width * 0.70f, size.height),
-                            style = Stroke(width = stroke * 0.75f)
-                        )
-                        drawOval(
-                            color = c,
-                            topLeft = Offset(0f, size.height * 0.32f),
-                            size = Size(size.width, size.height * 0.36f),
-                            style = Stroke(width = stroke * 0.85f)
-                        )
-                        drawOval(
-                            color = c,
-                            topLeft = Offset(0f, size.height * 0.15f),
-                            size = Size(size.width, size.height * 0.70f),
-                            style = Stroke(width = stroke * 0.75f)
+                            topLeft = Offset(size.width * 0.33f, size.height * 0.08f),
+                            size = Size(size.width * 0.34f, size.height * 0.84f),
+                            style = Stroke(width = stroke)
                         )
                     }
                 } else {
