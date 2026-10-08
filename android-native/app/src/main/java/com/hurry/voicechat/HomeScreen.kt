@@ -83,7 +83,7 @@ interface RoomDao {
     fun clearAll(): Int
 }
 
-@Database(entities = [RoomEntity::class], version = 1, exportSchema = false)
+@Database(entities = [RoomEntity::class], version = 2, exportSchema = false)
 abstract class HurryDatabase : RoomDatabase() {
     abstract fun roomDao(): RoomDao
 
