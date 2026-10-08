@@ -603,6 +603,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const themeFileInputRef = useRef<HTMLInputElement>(null)
 
   const [showAdminSheet, setShowAdminSheet] = useState(false)
+  const [showHelpSheet, setShowHelpSheet] = useState(false) // help sheet state
   const [adminSearchQuery, setAdminSearchQuery] = useState('')
   const [roomMembers, setRoomMembers] = useState<RoomUser[]>([])
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
@@ -1101,7 +1102,18 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-              <h3 className="flex-1 text-center text-base font-bold text-white pr-8">Admin</h3>
+              <h3 className="flex-1 text-center text-base font-bold text-white">Admin</h3>
+              <button
+                onClick={() => setShowHelpSheet(true)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Help"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </button>
             </div>
 
             <div className="px-4 py-3 flex-shrink-0">
@@ -1145,6 +1157,110 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   <p className="text-gray-500 text-xs">No members found</p>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- HELP SHEET (Blue table pattern + Admin info text) ---------- */}
+      {showHelpSheet && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4">
+          <div className="relative bg-[#0b1a2b] rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden border border-blue-900/50">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-blue-900/50 flex-shrink-0">
+              <h3 className="text-white font-bold text-base">Room Admin</h3>
+              <button
+                onClick={() => setShowHelpSheet(false)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Close"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              {/* Blue striped table at top (screenshot jaisa) */}
+              <div className="w-full rounded-lg overflow-hidden border border-blue-900/60 mb-4">
+                {[0, 1, 2, 3].map((row) => (
+                  <div key={row} className="flex h-8">
+                    <div
+                      className="flex-1 border-r border-blue-900/60"
+                      style={{ backgroundColor: row % 2 === 0 ? '#0a6fb5' : '#7fb8e8' }}
+                    />
+                    <div
+                      className="flex-1"
+                      style={{ backgroundColor: row % 2 === 0 ? '#0a6fb5' : '#7fb8e8' }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Admin info text */}
+              <div className="text-white/90 text-[12px] leading-relaxed space-y-3">
+                <p className="font-semibold text-white text-sm">Admin permissions include:</p>
+                <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
+
+                <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
+
+                <p>1. Send gifts in your room. Each gift worth 50M coins adds 1 admin slot. You can increase the number of admins up to 20.</p>
+              </div>
+
+              {/* Table: Coins vs Admins */}
+              <div className="mt-4 rounded-lg overflow-hidden border border-blue-900/60">
+                <div className="flex bg-[#0a6fb5] text-white text-[11px] font-semibold">
+                  <div className="flex-1 px-2 py-2 border-r border-blue-900/60">Coins Accumulated in Room</div>
+                  <div className="flex-1 px-2 py-2 text-center">Number of Room Admins</div>
+                </div>
+                {[
+                  ['50M', '+1'],
+                  ['100M', '+2'],
+                  ['150M', '+3'],
+                  ['200M', '+4'],
+                  ['250M', '+5'],
+                  ['300M', '+6'],
+                  ['350M', '+7'],
+                  ['400M', '+8'],
+                  ['450M', '+9'],
+                  ['500M', '+10'],
+                  ['550M', '+11'],
+                  ['600M', '+12'],
+                  ['650M', '+13'],
+                  ['700M', '+14'],
+                  ['750M', '+15'],
+                  ['800M', '+16'],
+                  ['850M', '+17'],
+                  ['900M', '+18'],
+                  ['950M', '+19'],
+                  ['1B', '+20'],
+                ].map(([coins, adminsCount], idx) => (
+                  <div
+                    key={coins}
+                    className="flex text-[11px]"
+                    style={{ backgroundColor: idx % 2 === 0 ? '#0a6fb5' : '#7fb8e8' }}
+                  >
+                    <div className={`flex-1 px-2 py-1.5 border-r border-blue-900/60 ${idx % 2 === 0 ? 'text-white' : 'text-[#0b1a2b]'}`}>
+                      {coins}
+                    </div>
+                    <div className={`flex-1 px-2 py-1.5 text-center ${idx % 2 === 0 ? 'text-white' : 'text-[#0b1a2b]'}`}>
+                      {adminsCount}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Close button */}
+            <div className="px-4 py-3 border-t border-blue-900/50 flex-shrink-0">
+              <button
+                onClick={() => setShowHelpSheet(false)}
+                className="w-full py-2.5 rounded-lg bg-[#0a6fb5] text-white text-sm font-semibold hover:bg-[#0a5f9e] transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
