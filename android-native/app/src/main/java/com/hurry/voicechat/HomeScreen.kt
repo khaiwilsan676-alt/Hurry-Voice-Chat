@@ -473,26 +473,30 @@ private fun CountryPillRow(
             ) {
                 if (pill.flag == null) {
                     androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
-                        val stroke = 2.dp.toPx()
+                        val stroke = Stroke(
+                            width = 2.dp.toPx(),
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
+                        )
                         val c = if (active) Color.White else Color(0xFF1E1E1E)
-                        val s = size.minDimension
                         drawCircle(
                             color = c,
-                            radius = s * 0.42f,
+                            radius = size.minDimension * 0.42f,
                             center = Offset(size.width / 2f, size.height / 2f),
-                            style = Stroke(width = stroke)
+                            style = stroke
                         )
                         drawLine(
                             color = c,
                             start = Offset(size.width * 0.08f, size.height / 2f),
                             end = Offset(size.width * 0.92f, size.height / 2f),
-                            strokeWidth = stroke
+                            strokeWidth = stroke.width,
+                            cap = StrokeCap.Round
                         )
                         drawOval(
                             color = c,
                             topLeft = Offset(size.width * 0.33f, size.height * 0.08f),
                             size = Size(size.width * 0.34f, size.height * 0.84f),
-                            style = Stroke(width = stroke)
+                            style = stroke
                         )
                     }
                 } else {
