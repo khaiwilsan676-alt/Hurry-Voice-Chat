@@ -412,7 +412,7 @@ fun HomeScreen(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, bottom = 4.dp),
+                            .padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         row.forEach { room ->
