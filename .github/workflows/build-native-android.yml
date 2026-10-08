@@ -41,13 +41,23 @@ jobs:
           HURRY_VERSION_NAME: "1.0.${{ github.run_number }}"
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Publish latest Native APK
+      - name: Publish versioned Native APK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: hurry-native-${{ github.run_number }}
           name: Hurry Native ${{ github.run_number }}
           body: Automatic Native APK update for commit ${{ github.sha }}
           make_latest: true
+          files: android-native/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Publish stable Native APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: hurry-native-latest
+          name: Hurry Native Latest
+          body: Always points to the newest successful native Android build.
+          prerelease: false
+          make_latest: false
           files: android-native/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload APK artifact
