@@ -16,6 +16,8 @@ import {
   Heart,
   MessageCircle,
   AlertTriangle,
+  Check,
+  Pin,
 } from 'lucide-react'
 
 import ChatScreen from './ChatScreen'
@@ -153,13 +155,6 @@ const isValidName = (val?: string | null): boolean => {
   if (!val) return false;
   const clean = val.trim().toLowerCase();
   return clean !== '' && clean !== 'guest' && clean !== 'user' && clean !== 'null' && clean !== 'undefined';
-}
-
-const getDefaultAvatar = (gender: string): string => {
-  if (gender === '♀' || gender === 'female') {
-    return '/IMG_20260804_211013.jpg'
-  }
-  return '/IMG_20260804_211031.jpg'
 }
 
 const getOrCreateAccountNumber = (uid: string) => {
@@ -526,6 +521,340 @@ const GreenColorRemovalVideo = ({ src, className = "" }: { src: string; classNam
   )
 }
 
+// ============ Crop Screen Component (FULL IMAGE + SAME CROP LINES) ============
+const CropScreen = ({
+  imageSrc,
+  onBack,
+  onSave,
+}: {
+  imageSrc: string;
+  onBack: () => void;
+  onSave: (croppedImage: string) => void;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
+  const [cropBox, setCropBox] = useState({ x: 50, y: 50, width: 200, height: 200 });
+
+  const [interaction, setInteraction] = useState<{
+    type: 'move' | 'resize-tl' | 'resize-tr' | 'resize-bl' | 'resize-br' | 'zoom' | null;
+    startX: number;
+    startY: number;
+    startCrop: { x: number; y: number; width: number; height: number };
+    startDist?: number;
+    startScale: number;
+  } | null>(null);
+
+  const [scale, setScale] = useState(1);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const { naturalWidth, naturalHeight } = img;
+    setImageSize({ width: naturalWidth, height: naturalHeight });
+    
+    const container = containerRef.current;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      const containerW = rect.width;
+      const containerH = rect.height;
+      
+      const imgAspect = naturalWidth / naturalHeight;
+      const containerAspect = containerW / containerH;
+
+      // ✅ FULL IMAGE FIT — poori image dikhegi (contain)
+      let displayW, displayH;
+      if (imgAspect > containerAspect) {
+        displayW = containerW;
+        displayH = containerW / imgAspect;
+      } else {
+        displayH = containerH;
+        displayW = containerH * imgAspect;
+      }
+      
+      setDisplaySize({ width: displayW, height: displayH });
+      
+      // ✅ Crop box default = 70% of image (SAME as pehle)
+      const initialSize = Math.min(displayW, displayH) * 0.7;
+      setCropBox({
+        x: (displayW - initialSize) / 2,
+        y: (displayH - initialSize) / 2,
+        width: initialSize,
+        height: initialSize,
+      });
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setInteraction({
+        type: 'zoom',
+        startX: 0, startY: 0,
+        startCrop: cropBox,
+        startDist: dist,
+        startScale: scale,
+      });
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const { clientX, clientY } = touch;
+      
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      
+      const handleSize = 30;
+      const { x: cx, y: cy, width: cw, height: ch } = cropBox;
+      
+      const isTL = Math.abs(x - cx) < handleSize && Math.abs(y - cy) < handleSize;
+      const isTR = Math.abs(x - (cx + cw)) < handleSize && Math.abs(y - cy) < handleSize;
+      const isBL = Math.abs(x - cx) < handleSize && Math.abs(y - (cy + ch)) < handleSize;
+      const isBR = Math.abs(x - (cx + cw)) < handleSize && Math.abs(y - (cy + ch)) < handleSize;
+      const isInside = x >= cx && x <= cx + cw && y >= cy && y <= cy + ch;
+
+      if (isTL) setInteraction({ type: 'resize-tl', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isTR) setInteraction({ type: 'resize-tr', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isBL) setInteraction({ type: 'resize-bl', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isBR) setInteraction({ type: 'resize-br', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+      else if (isInside) setInteraction({ type: 'move', startX: clientX, startY: clientY, startCrop: cropBox, startScale: scale });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!interaction) return;
+    e.preventDefault();
+
+    if (interaction.type === 'zoom' && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const newScale = Math.min(Math.max(interaction.startScale * (dist / interaction.startDist!), 1), 4);
+      setScale(newScale);
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const { clientX, clientY } = e.touches[0];
+      const deltaX = clientX - interaction.startX;
+      const deltaY = clientY - interaction.startY;
+
+      if (interaction.type === 'move') {
+        let newX = interaction.startCrop.x + deltaX;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        newX = Math.max(0, Math.min(newX, displaySize.width - cropBox.width));
+        newY = Math.max(0, Math.min(newY, displaySize.height - cropBox.height));
+        
+        setCropBox(prev => ({ ...prev, x: newX, y: newY }));
+      } 
+      else if (interaction.type === 'resize-tl') {
+        let newW = interaction.startCrop.width - deltaX;
+        let newH = interaction.startCrop.height - deltaY;
+        let newX = interaction.startCrop.x + deltaX;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        if (newX < 0) { newW += newX; newX = 0; }
+        if (newY < 0) { newH += newY; newY = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: newX, y: newY, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-tr') {
+        let newW = interaction.startCrop.width + deltaX;
+        let newH = interaction.startCrop.height - deltaY;
+        let newY = interaction.startCrop.y + deltaY;
+        
+        if (newY < 0) { newH += newY; newY = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: interaction.startCrop.x, y: newY, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-bl') {
+        let newW = interaction.startCrop.width - deltaX;
+        let newH = interaction.startCrop.height + deltaY;
+        let newX = interaction.startCrop.x + deltaX;
+        
+        if (newX < 0) { newW += newX; newX = 0; }
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: newX, y: interaction.startCrop.y, width: newW, height: newH });
+      }
+      else if (interaction.type === 'resize-br') {
+        let newW = interaction.startCrop.width + deltaX;
+        let newH = interaction.startCrop.height + deltaY;
+        
+        newW = Math.max(50, newW);
+        newH = Math.max(50, newH);
+        
+        setCropBox({ x: interaction.startCrop.x, y: interaction.startCrop.y, width: newW, height: newH });
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setInteraction(null);
+  };
+
+  const handleSave = () => {
+    if (!imageRef.current || !containerRef.current) return;
+    
+    const img = new Image();
+    img.src = imageSrc;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+      
+      const baseW = displaySize.width;
+      const baseH = displaySize.height;
+      
+      const imgLeftBase = (containerRef.current!.clientWidth - baseW) / 2;
+      const imgTopBase = (containerRef.current!.clientHeight - baseH) / 2;
+      
+      const imgCenterScreenX = imgLeftBase + baseW / 2;
+      const imgCenterScreenY = imgTopBase + baseH / 2;
+      
+      const scaledW = baseW * scale;
+      const scaledH = baseH * scale;
+      
+      const imgLeftScaled = imgCenterScreenX - scaledW / 2;
+      const imgTopScaled = imgCenterScreenY - scaledH / 2;
+      
+      const cropScreenX = cropBox.x;
+      const cropScreenY = cropBox.y;
+      const cropW = cropBox.width;
+      const cropH = cropBox.height;
+      
+      const pxToNaturalX = naturalW / scaledW;
+      const pxToNaturalY = naturalH / scaledH;
+      
+      const sourceX = (cropScreenX - imgLeftScaled) * pxToNaturalX;
+      const sourceY = (cropScreenY - imgTopScaled) * pxToNaturalY;
+      const sourceW = cropW * pxToNaturalX;
+      const sourceH = cropH * pxToNaturalY;
+      
+      const finalX = Math.max(0, Math.min(sourceX, naturalW - sourceW));
+      const finalY = Math.max(0, Math.min(sourceY, naturalH - sourceH));
+      const finalW = Math.min(sourceW, naturalW);
+      const finalH = Math.min(sourceH, naturalH);
+
+      canvas.width = finalW;
+      canvas.height = finalH;
+      
+      ctx.drawImage(
+        img,
+        finalX, finalY, finalW, finalH,
+        0, 0, finalW, finalH
+      );
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      onSave(croppedDataUrl);
+    };
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col select-none">
+      {/* Top Header */}
+      <div className="flex items-center justify-between px-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] bg-black z-20">
+        <button onClick={onBack} className="text-white p-1">
+          <ArrowLeft size={28} />
+        </button>
+        <h2 className="text-white text-lg font-semibold">Crop Image</h2>
+        <button onClick={handleSave} className="text-green-400 p-1">
+          <Check size={28} />
+        </button>
+      </div>
+
+      {/* Main Image Area — FULL IMAGE VISIBLE + SAME CROP LINES */}
+      <div 
+        ref={containerRef}
+        className="flex-1 relative overflow-hidden flex items-center justify-center bg-black"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* ✅ Image: full fit — poori image dikhti hai */}
+        <div 
+          className="relative flex items-center justify-center"
+          style={{
+            transform: `scale(${scale})`,
+            transition: interaction?.type === 'zoom' ? 'none' : 'transform 0.2s ease-out',
+            transformOrigin: 'center center',
+          }}
+        >
+          <img
+            ref={imageRef}
+            src={imageSrc}
+            alt="Crop"
+            onLoad={handleImageLoad}
+            className="max-w-full max-h-full object-contain select-none pointer-events-none"
+            style={{ display: 'block' }}
+          />
+        </div>
+
+        {/* Dark Overlay with Mask — same as before */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'rgba(0,0,0,0.6)',
+          clipPath: `polygon(
+            0% 0%, 
+            100% 0%, 
+            100% 100%, 
+            0% 100%, 
+            0% 0%,
+            ${cropBox.x}px ${cropBox.y}px,
+            ${cropBox.x}px ${cropBox.y + cropBox.height}px,
+            ${cropBox.x + cropBox.width}px ${cropBox.y + cropBox.height}px,
+            ${cropBox.x + cropBox.width}px ${cropBox.y}px,
+            ${cropBox.x}px ${cropBox.y}px
+          )`
+        }} />
+
+        {/* Crop Box UI — SAME lines (border + grid + corner handles) */}
+        <div 
+          className="absolute border-2 border-white pointer-events-none"
+          style={{
+            left: cropBox.x,
+            top: cropBox.y,
+            width: cropBox.width,
+            height: cropBox.height,
+          }}
+        >
+          {/* Grid Lines */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-1/3 left-0 right-0 h-[1px] bg-white/40"></div>
+            <div className="absolute top-2/3 left-0 right-0 h-[1px] bg-white/40"></div>
+            <div className="absolute left-1/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
+            <div className="absolute left-2/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
+          </div>
+
+          {/* Corner Handles */}
+          <div className="absolute -top-2.5 -left-2.5 w-5 h-5 border-t-2 border-l-2 border-white pointer-events-none"></div>
+          <div className="absolute -top-2.5 -right-2.5 w-5 h-5 border-t-2 border-r-2 border-white pointer-events-none"></div>
+          <div className="absolute -bottom-2.5 -left-2.5 w-5 h-5 border-b-2 border-l-2 border-white pointer-events-none"></div>
+          <div className="absolute -bottom-2.5 -right-2.5 w-5 h-5 border-b-2 border-r-2 border-white pointer-events-none"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function PublicProfile({
   onBack,
   onJoinRoom,
@@ -536,7 +865,6 @@ export default function PublicProfile({
   const albumInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
   
-  // Timer for Long Press logic
   const longPressTimer = useRef<NodeJS.Timeout | null>(null)
 
   const [user, setUser] = useState(() => {
@@ -601,6 +929,8 @@ export default function PublicProfile({
     const storedAlbum = localStorage.getItem('userAlbumImages')
     return storedAlbum ? JSON.parse(storedAlbum) : []
   })
+
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
 
   const [ownedFrameItems, setOwnedFrameItems] = useState<Array<{ id: string; image: string; name: string }>>([])
   const [receivedGifts, setReceivedGifts] = useState<Array<{ id: string; name: string; image: string }>>([])
@@ -675,13 +1005,11 @@ export default function PublicProfile({
 
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0)
 
-  // Sheets Control
   const [showEditSheet, setShowEditSheet] = useState(false)
   const [showNameScreen, setShowNameScreen] = useState(false)
   const [showAgeScreen, setShowAgeScreen] = useState(false)
   const [showBioScreen, setShowBioScreen] = useState(false)
 
-  // Edit Values
   const [editName, setEditName] = useState(user.name)
   const [editAge, setEditAge] = useState(user.age.toString())
   const [editBio, setEditBio] = useState(user.bio)
@@ -695,15 +1023,12 @@ export default function PublicProfile({
 
   const [activeTab, setActiveTab] = useState('profile')
   
-  // ✅ Fullscreen Album Image Viewer State
   const [fullImageIndex, setFullImageIndex] = useState<number | null>(null)
 
-  // ✅ Zoom & Swipe Refs
   const touchStartXRef = useRef<number>(0)
   const touchEndXRef = useRef<number>(0)
   const imageContainerRef = useRef<HTMLDivElement>(null)
 
-  // Zoom State
   const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const lastTouchDistRef = useRef<number>(0)
@@ -722,7 +1047,6 @@ export default function PublicProfile({
 
   const isSpecialAccount = SPECIAL_ACCOUNTS.hasOwnProperty(user.uid || '')
 
-  // --- Birthday Picker States ---
   const [birthYear, setBirthYear] = useState(2003)
   const [birthMonth, setBirthMonth] = useState(4)
   const [birthDay, setBirthDay] = useState(8)
@@ -730,12 +1054,10 @@ export default function PublicProfile({
   const months = Array.from({ length: 12 }, (_, i) => i + 1)
   const days = Array.from({ length: 31 }, (_, i) => i + 1)
 
-  // Refs for auto-scroll
   const yearRef = useRef<HTMLDivElement>(null)
   const monthRef = useRef<HTMLDivElement>(null)
   const dayRef = useRef<HTMLDivElement>(null)
 
-  // Auto scroll to selected value when screen opens
   useEffect(() => {
     if (showAgeScreen) {
       setTimeout(() => {
@@ -769,7 +1091,6 @@ export default function PublicProfile({
     }
   }, [user.coverPhoto])
 
-  // Reset zoom when image changes
   useEffect(() => {
     setScale(1)
     setPosition({ x: 0, y: 0 })
@@ -1149,12 +1470,12 @@ export default function PublicProfile({
     const file = e.target.files?.[0]
     if (file) {
       try {
-        const compressedBase64 = await compressImage(file, 300, 300, 0.7)
-        localStorage.setItem('userPhoto', compressedBase64)
-        setUser((prev) => ({ ...prev, photo: compressedBase64 }))
-        await saveToMongoDB({ photo: compressedBase64, image: compressedBase64, photoURL: compressedBase64 })
+        const compressedBase64 = await compressImage(file, 800, 800, 0.85)
+        setCropImageSrc(compressedBase64)
       } catch (err) {
         console.error('Avatar compression error:', err)
+      } finally {
+        e.target.value = ''
       }
     }
   }
@@ -1193,7 +1514,6 @@ export default function PublicProfile({
     await saveToMongoDB({ coverPhoto: primary, coverImage: primary, coverPhotos: updated })
   }
 
-  // ==== Long Press Album Logic ====
   const handleTouchStart = (index: number) => {
     longPressTimer.current = setTimeout(() => {
       handlePinAlbumImage(index)
@@ -1246,6 +1566,14 @@ export default function PublicProfile({
     await saveToMongoDB({ albumImages: updated, album: updated })
   }
 
+  const handleCropSave = async (croppedImage: string) => {
+    setCropImageSrc(null)
+    localStorage.setItem('userPhoto', croppedImage)
+    setUser((prev) => ({ ...prev, photo: croppedImage }))
+    await saveToMongoDB({ photo: croppedImage, image: croppedImage, photoURL: croppedImage })
+    await saveProfileToDB({ ...user, photo: croppedImage, albumImages, coverPhotos })
+  }
+
   const handleNameSave = async () => {
     const finalNewName = isValidName(editName) ? editName : user.displayAccountNumber
     localStorage.setItem('userName', finalNewName)
@@ -1266,7 +1594,6 @@ export default function PublicProfile({
     await saveProfileToDB({ ...updatedUser, albumImages, coverPhotos })
   }
 
-  // ✅ New Birthday Confirm Handler
   const handleBirthdayConfirm = async () => {
     const year = birthYear;
     const month = birthMonth;
@@ -1331,7 +1658,6 @@ export default function PublicProfile({
 
   const avatarLetter = finalDisplayName ? finalDisplayName.charAt(0).toUpperCase() : '?';
 
-  // ✅ Full Image Viewer Handlers
   const handleImageClick = (index: number) => {
     setFullImageIndex(index);
     setScale(1);
@@ -1354,17 +1680,14 @@ export default function PublicProfile({
     }
   };
 
-  // ✅ Get distance between two touches
   const getTouchDistance = (touches: React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  // ✅ Handle Touch Start (Swipe + Pinch + Drag)
   const handleImageTouchStart = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Pinch start
       isPinchingRef.current = true;
       lastTouchDistRef.current = getTouchDistance(e.touches);
       return;
@@ -1374,9 +1697,7 @@ export default function PublicProfile({
       const now = Date.now();
       const DOUBLE_TAP_DELAY = 300;
       
-      // Double tap detection
       if (now - lastTapRef.current < DOUBLE_TAP_DELAY) {
-        // Double tap: toggle zoom
         if (scale > 1) {
           setScale(1);
           setPosition({ x: 0, y: 0 });
@@ -1388,12 +1709,10 @@ export default function PublicProfile({
       }
       lastTapRef.current = now;
 
-      // For swipe/drag
       touchStartXRef.current = e.touches[0].clientX;
       touchEndXRef.current = 0;
       
       if (scale > 1) {
-        // Dragging zoomed image
         isDraggingRef.current = true;
         dragStartRef.current = {
           x: e.touches[0].clientX - position.x,
@@ -1403,10 +1722,8 @@ export default function PublicProfile({
     }
   };
 
-  // ✅ Handle Touch Move (Swipe + Pinch + Drag)
   const handleImageTouchMove = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
-      // Pinch move
       e.preventDefault();
       const currentDist = getTouchDistance(e.touches);
       if (lastTouchDistRef.current > 0) {
@@ -1423,19 +1740,16 @@ export default function PublicProfile({
       e.preventDefault();
       
       if (scale > 1 && isDraggingRef.current) {
-        // Drag zoomed image
         const newX = e.touches[0].clientX - dragStartRef.current.x;
         const newY = e.touches[0].clientY - dragStartRef.current.y;
         setPosition({ x: newX, y: newY });
         return;
       }
 
-      // For swipe
       touchEndXRef.current = e.touches[0].clientX;
     }
   };
 
-  // ✅ Handle Touch End (Swipe + Pinch end)
   const handleImageTouchEnd = (e: React.TouchEvent) => {
     if (isPinchingRef.current) {
       isPinchingRef.current = false;
@@ -1449,7 +1763,7 @@ export default function PublicProfile({
 
     isDraggingRef.current = false;
 
-    if (scale > 1) return; // Don't swipe when zoomed
+    if (scale > 1) return;
 
     const startX = touchStartXRef.current;
     const endX = touchEndXRef.current;
@@ -1768,7 +2082,6 @@ export default function PublicProfile({
           onTouchMove={handleImageTouchMove}
           onTouchEnd={handleImageTouchEnd}
         >
-          {/* Top Bar with Back and Counter - CORNER FIXED */}
           <div className="absolute top-0 left-0 right-0 z-20 flex items-start justify-between px-1 pt-1 pointer-events-none">
             <button
               onClick={() => setFullImageIndex(null)}
@@ -1782,7 +2095,6 @@ export default function PublicProfile({
             </span>
           </div>
 
-          {/* Main Image Container */}
           <div 
             ref={imageContainerRef}
             className="flex-1 flex items-center justify-center overflow-hidden"
@@ -1800,14 +2112,12 @@ export default function PublicProfile({
             />
           </div>
 
-          {/* Zoom Indicator */}
           {scale > 1 && (
             <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-20 pointer-events-none">
               {Math.round(scale * 100)}%
             </div>
           )}
 
-          {/* Desktop Navigation Buttons */}
           {fullImageIndex > 0 && (
             <button 
               onClick={handlePrevImage}
@@ -1827,13 +2137,21 @@ export default function PublicProfile({
         </div>
       )}
 
+      {/* ✅ Crop Screen Modal */}
+      {cropImageSrc && (
+        <CropScreen
+          imageSrc={cropImageSrc}
+          onBack={() => setCropImageSrc(null)}
+          onSave={handleCropSave}
+        />
+      )}
+
       {/* ✅ Edit Profile Bottom Sheet */}
       {!isOtherUser && showEditSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleCloseEditSheet}></div>
 
           <div className="relative bg-white w-full max-w-md rounded-[6px] animate-slide-up flex flex-col h-[70vh]">
-            {/* Fixed Header */}
             <div className="flex items-center justify-between px-3 py-4 shrink-0">
               <button onClick={handleCloseEditSheet}>
                 <ArrowLeft size={24} className="text-gray-700" />
@@ -1842,7 +2160,6 @@ export default function PublicProfile({
               <div className="w-6"></div>
             </div>
 
-            {/* Scrollable Content */}
             <div className="overflow-hidden px-5 py-4 space-y-6 flex-1">
               <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
@@ -1893,20 +2210,7 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
-                  {coverPhotos.map((photo, idx) => (
-                    <div
-                      key={idx}
-                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
-                    >
-                      <img src={photo} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => handleRemoveCoverPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                  {/* ✅ + icon PEHLE */}
                   {coverPhotos.length < 4 && (
                     <button
                       onClick={() => coverInputRef.current?.click()}
@@ -1915,6 +2219,27 @@ export default function PublicProfile({
                       <span className="text-3xl font-thin leading-none">+</span>
                     </button>
                   )}
+                  {coverPhotos.map((photo, idx) => (
+                    <div
+                      key={idx}
+                      className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
+                    >
+                      <img src={photo} alt="" className="w-full h-full object-cover" />
+                      {/* ✅ Trash icon (image jaisa) */}
+                      <button
+                        onClick={() => handleRemoveCoverPhoto(idx)}
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow z-10"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 7H20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M5 7L6 20C6 20.5304 6.21071 21.0391 6.58579 21.4142C6.96086 21.7893 7.46957 22 8 22H16C16.5304 22 17.0391 21.7893 17.4142 21.4142C17.7893 21.0391 18 20.5304 18 20L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M9 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M15 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M10 4V2H14V4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1927,7 +2252,7 @@ export default function PublicProfile({
                 </button>
               </div>
 
-              {/* 6. ALBUM Inline — max 9 */}
+              {/* 6. ALBUM Inline — max 4 with Pin button */}
               <div className="space-y-3 pt-2 pb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
@@ -1935,6 +2260,15 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
+                  {/* ✅ + icon PEHLE, uske baad images */}
+                  {albumImages.length < 4 && (
+                    <button
+                      onClick={() => albumInputRef.current?.click()}
+                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
+                    >
+                      <span className="text-3xl font-thin leading-none">+</span>
+                    </button>
+                  )}
                   {albumImages.map((img, idx) => (
                     <div
                       key={idx}
@@ -1946,25 +2280,38 @@ export default function PublicProfile({
                       onMouseLeave={handleTouchEnd}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
+
+                      {/* Pin button — sirf pinned image par (index 0) */}
+                      {idx === 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
+                          className="absolute top-1 left-1 bg-blue-500/90 text-white rounded-full w-5 h-5 flex items-center justify-center shadow z-10"
+                          title="Pinned"
+                        >
+                          <Pin size={11} className="fill-white" />
+                        </button>
+                      )}
+
+                      {/* ✅ Trash icon (image jaisa) */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveAlbumImage(idx);
                         }}
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow z-10"
+                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow z-10"
                       >
-                        ×
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M4 7H20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M5 7L6 20C6 20.5304 6.21071 21.0391 6.58579 21.4142C6.96086 21.7893 7.46957 22 8 22H16C16.5304 22 17.0391 21.7893 17.4142 21.4142C17.7893 21.0391 18 20.5304 18 20L19 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M9 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M15 11V17" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M10 4V2H14V4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </div>
                   ))}
-                  {albumImages.length < 4 && (
-                    <button
-                      onClick={() => albumInputRef.current?.click()}
-                      className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-300 hover:bg-gray-200 hover:text-gray-400 transition-colors shrink-0"
-                    >
-                      <span className="text-3xl font-thin leading-none">+</span>
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -2008,12 +2355,11 @@ export default function PublicProfile({
         </div>
       )}
 
-      {/* ✅ FIXED: Birthday Wheel Picker (Age Edit) — Day / Month / Year Order */}
+      {/* Birthday Wheel Picker */}
       {!isOtherUser && showAgeScreen && (
         <div className="fixed inset-0 z-[65] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAgeScreen(false)}></div>
           <div className="relative bg-white w-full max-w-md rounded-t-2xl animate-slide-up flex flex-col pt-2 pb-8">
-            {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 shrink-0 border-b border-gray-100">
               <button onClick={() => setShowAgeScreen(false)} className="text-gray-500 text-base font-medium">
                 Cancel
@@ -2024,13 +2370,10 @@ export default function PublicProfile({
               </button>
             </div>
 
-            {/* Wheel Picker Container */}
             <div className="relative flex justify-center items-center h-[250px] overflow-hidden">
-              {/* Highlight Bar */}
               <div className="absolute top-1/2 left-0 right-0 h-[50px] -mt-[25px] border-t border-b border-gray-200 bg-gray-50/50 pointer-events-none z-0"></div>
               
               <div className="flex w-full justify-between px-12 z-10 h-full">
-                {/* Day Wheel (First) */}
                 <div 
                   ref={dayRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2050,7 +2393,6 @@ export default function PublicProfile({
                   <div className="h-[100px]"></div>
                 </div>
 
-                {/* Month Wheel (Second) */}
                 <div 
                   ref={monthRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2070,7 +2412,6 @@ export default function PublicProfile({
                   <div className="h-[100px]"></div>
                 </div>
 
-                {/* Year Wheel (Third) */}
                 <div 
                   ref={yearRef}
                   className="flex-1 overflow-y-scroll snap-y snap-mandatory text-center h-full relative"
@@ -2219,14 +2560,12 @@ export default function PublicProfile({
         .animate-slide-up {
           animation: slideUp 0.3s ease-out;
         }
-        /* Hide scrollbar for Chrome, Safari and Opera */
         .overflow-y-scroll::-webkit-scrollbar {
           display: none;
         }
-        /* Hide scrollbar for IE, Edge and Firefox */
         .overflow-y-scroll {
-          -ms-overflow-style: none;  /* IE and Edge */
-          scrollbar-width: none;  /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </div>

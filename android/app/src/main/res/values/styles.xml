@@ -13,5 +13,10 @@
 
     <style name="AppTheme.NoActionBar" parent="@style/AppTheme" />
 
+    <style name="AppTheme.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#60A5FA</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
 
 </resources>

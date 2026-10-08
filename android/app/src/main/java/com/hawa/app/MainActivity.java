@@ -5,7 +5,10 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowInsets;
@@ -20,6 +23,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Keep the real Hurry launch screen visible immediately after Android's
+        // system splash, instead of showing a white WebView while the app starts.
+        showNativeSplash();
 
         // Jitsi voice/video uses Android runtime permissions.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -37,7 +44,6 @@ public class MainActivity extends BridgeActivity {
 
         Window window = getWindow();
 
-        // Keep Android system bars visible and reserve their space for the WebView.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(true);
         }
@@ -55,7 +61,6 @@ public class MainActivity extends BridgeActivity {
             window.getDecorView().setSystemUiVisibility(0);
         }
 
-        // Android WebView compatibility for media/storage features.
         if (bridge != null && bridge.getWebView() != null) {
             android.webkit.WebSettings settings = bridge.getWebView().getSettings();
             settings.setDomStorageEnabled(true);
@@ -82,12 +87,8 @@ public class MainActivity extends BridgeActivity {
             }
         }
 
-        // Keep screen awake while the app is open.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        // Android Back: navigate WebView history when possible. At the root,
-        // deliberately do nothing so the Android Back button cannot close
-        // or background Hurry accidentally.
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
@@ -97,9 +98,23 @@ public class MainActivity extends BridgeActivity {
                             && bridge.getWebView().canGoBack()) {
                         bridge.getWebView().goBack();
                     }
-                    // No WebView history: stay inside the app.
                 }
             }
         );
+    }
+
+    private void showNativeSplash() {
+        ViewGroup root = findViewById(android.R.id.content);
+        View splash = LayoutInflater.from(this).inflate(R.layout.native_splash, root, false);
+        root.addView(splash, new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ));
+
+        new Handler(getMainLooper()).postDelayed(() -> {
+            if (splash.getParent() instanceof ViewGroup) {
+                ((ViewGroup) splash.getParent()).removeView(splash);
+            }
+        }, 1200);
     }
 }

@@ -470,6 +470,8 @@ const PhonePeSvg = ({ size = 'md' }: { size?: 'sm' | 'md' }) => {
   )
 }
 
+const TABS: TabType[] = ['wallet', 'diamonds', 'agent'];
+
 export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab)
   
@@ -485,6 +487,11 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
   const [showPaymentSheet, setShowPaymentSheet] = useState(false)
   const [showPayUsingSheet, setShowPayUsingSheet] = useState(false)
   const [selectedAmountToBuy, setSelectedAmountToBuy] = useState<{coins: number, price: number} | null>(null)
+
+  // Swipe support
+  const touchStartX = useRef<number | null>(null)
+  const touchStartY = useRef<number | null>(null)
+  const isSwiping = useRef(false)
 
   useEffect(() => {
     let isMounted = true
@@ -506,6 +513,65 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       clearInterval(intervalId)
     }
   }, [])
+
+  // Reset activeTab if initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
+
+  const goToTab = (tab: TabType) => {
+    setActiveTab(tab)
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // Ignore if touch starts inside an input, button, or scrollable input area
+    const target = e.target as HTMLElement
+    if (
+      target.closest('input') ||
+      target.closest('button') ||
+      target.closest('select') ||
+      target.closest('textarea')
+    ) {
+      touchStartX.current = null
+      touchStartY.current = null
+      return
+    }
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    isSwiping.current = false
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const deltaX = e.touches[0].clientX - touchStartX.current
+    const deltaY = e.touches[0].clientY - touchStartY.current
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      isSwiping.current = true
+    }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current
+    touchStartX.current = null
+    touchStartY.current = null
+    isSwiping.current = false
+
+    // Only trigger on mostly-horizontal swipes
+    if (Math.abs(deltaX) < 50 || Math.abs(deltaX) < Math.abs(deltaY)) return
+
+    const currentIndex = TABS.indexOf(activeTab)
+    if (deltaX < 0) {
+      // swipe left → next tab
+      const nextIndex = Math.min(currentIndex + 1, TABS.length - 1)
+      if (nextIndex !== currentIndex) goToTab(TABS[nextIndex])
+    } else {
+      // swipe right → previous tab
+      const prevIndex = Math.max(currentIndex - 1, 0)
+      if (prevIndex !== currentIndex) goToTab(TABS[prevIndex])
+    }
+  }
 
   const handleDiamondChange = (value: string) => {
     setDiamonds(value)
@@ -574,18 +640,20 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
     <div
       className="fixed inset-0 h-[100dvh] w-full overflow-hidden flex flex-col pt-[calc(env(safe-area-inset-top,0px)+24px)] pb-[env(safe-area-inset-bottom,12px)] transition-all duration-300 relative"
       style={{
-        touchAction: 'manipulation',
+        touchAction: 'pan-y',
         WebkitUserSelect: 'none',
         userSelect: 'none',
         WebkitTouchCallout: 'none',
         background: 'linear-gradient(180deg, #1A66FF 0%, #1A66FF 15vh, #F3F4F6 30vh, #F3F4F6 100%)',
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <style>{`
         * {
           -webkit-text-size-adjust: 100%;
           -ms-text-size-adjust: 100%;
-          touch-action: manipulation;
         }
       `}</style>
 
@@ -892,19 +960,21 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
                 ))}
               </div>
             </div>
-
-            {/* Exchange Button: moved slightly further down */}
-            <div className="pt-20 pb-4 flex justify-center mt-10">
-              <button
-                onClick={handleExchange}
-                className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
-              >
-                Exchange
-              </button>
-            </div>
           </div>
         )}
       </div>
+
+      {/* Exchange Button — fixed to bottom, only shown on diamonds tab */}
+      {activeTab === 'diamonds' && (
+        <div className="flex-shrink-0 w-full px-4 pb-2 pt-2 z-20 flex justify-center">
+          <button
+            onClick={handleExchange}
+            className="w-[75%] py-4 rounded-full font-bold text-white bg-[#0044FF] hover:bg-blue-700 text-[15px] shadow-md active:scale-95 transition-transform"
+          >
+            Exchange
+          </button>
+        </div>
+      )}
 
       {/* OVERLAY FOR SHEETS */}
       {(showPaymentSheet || showPayUsingSheet) && (
@@ -1084,4 +1154,4 @@ export default function Wallet({ onBack, initialTab = 'wallet' }: WalletProps) {
       
     </div>
   )
-          }
+}

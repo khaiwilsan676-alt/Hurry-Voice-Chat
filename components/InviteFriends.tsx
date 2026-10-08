@@ -6,7 +6,8 @@ import {
   Link2, 
   MoreHorizontal, 
   X,
-  ChevronRight
+  ChevronRight,
+  HelpCircle
 } from 'lucide-react'
 
 // WebShader / Chroma Key Component jo sirf GREEN background remove karta hai
@@ -145,6 +146,13 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
   const [copied, setCopied] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   
+  // Invite Friends → SIRF EK LINE wala rules
+  const [isRulesPopupOpen, setIsRulesPopupOpen] = useState(false) 
+  const [isGiftRulesPopupOpen, setIsGiftRulesPopupOpen] = useState(false)
+  const [isRechargeRulesPopupOpen, setIsRechargeRulesPopupOpen] = useState(false)
+  // ? icon → NAYE rules
+  const [isHelpRulesPopupOpen, setIsHelpRulesPopupOpen] = useState(false)
+  
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('userUID') || 'N/A') : 'N/A'
   const inviteCode = userId !== 'N/A' ? userId : 'WELCOME123'
   const inviteLink = `https://yourapp.com/invite/${inviteCode}`
@@ -187,7 +195,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           <ChromaKeyImage src="/1788074201753~2.jpg" alt="Middle Ornament" className="w-full object-contain pointer-events-none" />
           
           <div className="absolute inset-0 z-10 pointer-events-none">
-            {/* Friend's Invite Text */}
             <div 
               className="absolute text-yellow-400 font-bold text-sm drop-shadow-md"
               style={{ bottom: '15px', left: '30px' }}
@@ -195,7 +202,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               Friend's Invite
             </div>
             
-            {/* 0 Text */}
             <div 
               className="absolute text-yellow-400 font-bold text-sm drop-shadow-md"
               style={{ bottom: '15px', right: '30px' }}
@@ -215,7 +221,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <div className="absolute text-yellow-400 font-bold text-sm" style={{ top: '100px', left: '40px' }}>
               Invite Friends
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '100px', right: '35px' }}>
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '100px', right: '35px' }}
+              onClick={() => setIsRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
@@ -229,7 +239,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <span className="text-yellow-400 font-bold text-sm leading-tight">Friends Recharge</span>
               <span className="text-yellow-300 text-[10px] font-medium tracking-wider">&gt;500000 Coins</span>
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '175px', right: '35px' }}>
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '175px', right: '35px' }}
+              onClick={() => setIsRechargeRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold">250000</span>
@@ -243,7 +257,11 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
               <span className="text-yellow-400 font-bold text-sm leading-tight">Friends Send</span>
               <span className="text-yellow-400 font-bold text-sm leading-tight">Gift</span>
             </div>
-            <div className="absolute flex items-center gap-1 cursor-pointer" style={{ top: '255px', right: '35px' }}>
+            <div 
+              className="absolute flex items-center gap-1 cursor-pointer active:scale-95 transition-transform" 
+              style={{ top: '255px', right: '35px' }}
+              onClick={() => setIsGiftRulesPopupOpen(true)}
+            >
               <span className="text-yellow-400 text-xs font-semibold">Get</span>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '20px', height: '20px' }} />
               <span className="text-yellow-400 text-sm font-bold pr-1">6%</span>
@@ -265,18 +283,21 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
             <div className="absolute flex flex-col items-center w-full" style={{ bottom: '31vh' }}>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '50px', height: '50px' }} />
               <div className="text-yellow-400 font-bold text-3xl drop-shadow-md leading-none mt-1">0</div>
-              <button className="mt-3 bg-gradient-to-b from-yellow-300 to-yellow-500 text-[#451a03] font-extrabold text-sm rounded-full px-6 py-1.5 shadow-[0_4px_0_#92400e] active:shadow-[0_0px_0_#92400e] active:translate-y-1 transition-all cursor-pointer">
-                Claim
-              </button>
+              
+              <div className="relative mt-3 flex items-center justify-center">
+                <button className="relative z-10 bg-gradient-to-b from-[#e62e2e] via-[#b80d0d] to-[#7a0000] text-yellow-300 font-extrabold text-sm rounded-full px-10 py-1.5 shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_4px_0_#4a0000] border-[1.5px] border-yellow-400 active:shadow-[inset_0_2px_4px_rgba(255,255,255,0.3),inset_0_-2px_4px_rgba(0,0,0,0.6),0_0px_0_#4a0000] active:translate-y-1 transition-all cursor-pointer drop-shadow-md">
+                  Claim
+                </button>
+              </div>
             </div>
 
-            {/* Bottom Left Items (0, Number Invitation) */}
+            {/* Bottom Left Items */}
             <div className="absolute flex flex-col items-center" style={{ bottom: '9vh', left: '85px' }}>
               <div className="text-yellow-400 font-bold text-2xl drop-shadow-md">0</div>
               <div className="text-yellow-400 text-[10px] font-semibold text-center leading-tight mt-1">Number<br/>Invitation</div>
             </div>
 
-            {/* Bottom Right Items (Coin, 0, Total Coins Rewards) */}
+            {/* Bottom Right Items */}
             <div className="absolute flex flex-col items-center" style={{ bottom: '10vh', right: '80px' }}>
               <WhiteKeyImage src="/file_00000000e56882119c217d508b6733dc.png" alt="coin" className="object-contain" style={{ width: '40px', height: '40px' }} />
               <div className="text-yellow-400 font-bold text-2xl drop-shadow-md leading-none mt-1">0</div>
@@ -286,7 +307,6 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
           </div>
         </div>
 
-        {/* 10VH Spacer for bottom scroll area */}
         <div className="w-full h-[8vh] shrink-0 pointer-events-none"></div>
       </div>
 
@@ -298,7 +318,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         <ChromaKeyImage src="/1788074191602~2.jpg" alt="Bottom Decor" className="w-[88%] max-w-[360px] md:max-w-md object-contain object-bottom pointer-events-auto" />
       </div>
 
-      {/* Back Icon - Fixed at Top Left Corner */}
+      {/* Back Icon */}
       <div className="fixed top-0 left-0 z-[60] flex items-center pl-0 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pointer-events-auto">
         <button
           onClick={handleBack}
@@ -309,12 +329,128 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
         </button>
       </div>
 
-      {/* Backdrop */}
-      {isSheetOpen && (
-        <div onClick={() => setIsSheetOpen(false)} className="fixed inset-0 bg-black/50 z-40 transition-opacity backdrop-blur-[2px]" />
+      {/* Question Mark Icon */}
+      <div className="fixed top-0 right-0 z-[60] flex items-center pl-4 pr-4 py-4 pt-[calc(env(safe-area-inset-top,0px)+24px)] pointer-events-auto">
+        <button
+          onClick={() => setIsHelpRulesPopupOpen(true)}
+          className="p-1 text-white hover:text-white/80 transition-colors cursor-pointer active:scale-95"
+          aria-label="Details"
+        >
+          <HelpCircle size={28} />
+        </button>
+      </div>
+
+      {/* --- INVITE FRIENDS RULES POPUP (SIRF EK LINE) --- */}
+      {isRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsRulesPopupOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+              <div className="text-white text-left text-[12px] leading-relaxed font-medium">
+                If invite friend download &amp; enter the Invite code in the input Given. Then a Inverter will Receive a 250,000Coins rewards hand to hand in there coins wallet
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* Bottom Sheet */}
+      {/* --- FRIENDS SEND GIFT RULES POPUP --- */}
+      {isGiftRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsGiftRulesPopupOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If Invited friend Will send Gift to any one So a Inviter user will receive 6% of the Sended gift Value.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- FRIENDS RECHARGE RULES POPUP --- */}
+      {isRechargeRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsRechargeRulesPopupOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+              <div className="text-white text-center text-[12px] leading-relaxed font-medium">
+                If the Invited friend Recharge more then &gt;500000 so a inviter User will receive 250000 coins In there Coins wallet
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- ? ICON KA NAYA RULES POPUP --- */}
+      {isHelpRulesPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setIsHelpRulesPopupOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-[300px]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative bg-[#750a75] rounded-2xl border-[3px] border-[#facc15] p-4 pt-5 pb-6 shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+              <div className="text-center mb-3">
+                <span className="text-yellow-400 font-bold text-lg drop-shadow-md tracking-wider">
+                  Rules
+                </span>
+              </div>
+              <div className="text-white text-left text-[11px] leading-relaxed font-medium space-y-2">
+                <p>
+                  1. Invite a friend to register and receive instant coins. You will get 100,000 coins when they log in. If your friend logs into the Hurry app the next day or within 3 days, they will receive an additional 150,000 coins.
+                </p>
+                <p>
+                  2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.
+                </p>
+                <p>
+                  3. The Hurry app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.
+                </p>
+                <p>
+                  4. Invite your friends; you will earn free coins when they recharge or send gifts.
+                </p>
+                <p className="pt-1 text-right text-[10px] italic text-yellow-200">
+                  Best regards, The Hurry Team
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Sheet (WhatsApp / Facebook / Copy / More) - No blur, no dark overlay */}
       <div className={`fixed bottom-0 left-0 right-0 h-[20vh] bg-white rounded-t-3xl z-50 transition-transform duration-300 ease-out shadow-2xl flex flex-col px-4 py-2 border-0 outline-none ${ isSheetOpen ? 'translate-y-0' : 'translate-y-full' }`} style={{ border: 'none' }}>
         <div className="flex justify-end pt-1 pr-1">
           <button onClick={() => setIsSheetOpen(false)} className="text-gray-400 hover:text-gray-700 p-1 cursor-pointer transition-colors">
@@ -344,4 +480,4 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
       </div>
     </div>
   )
-            }
+      }

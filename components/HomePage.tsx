@@ -2706,18 +2706,10 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   />
 
                   <div className="absolute left-0 right-0 bottom-4 w-full z-40 pointer-events-none block translate-y-2">
-                    <style dangerouslySetInnerHTML={{ __html: `
-                      @keyframes shrinkAndFade {
-                        0%, 80% { transform: scale(1); opacity: 1; }
-                        95% { transform: scale(0.5); opacity: 0; }
-                        100% { transform: scale(0); opacity: 0; }
-                      }
-                    `}} />
-
                     <div
                       className="relative w-[85%] mx-auto flex items-center justify-center z-10"
                       style={{
-                        animation: 'shrinkAndFade 5s ease-in-out infinite',
+                        animation: 'none',
                         marginBottom: '0px',
                         transformOrigin: 'center'
                       }}
@@ -2754,7 +2746,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
 
         {allRooms.length > 0 ? (
           <div className="px-3" style={{ marginTop: '0.0vh' }}>
-            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1">
+            <div className="grid grid-cols-2 gap-x-1.5 gap-y-1 items-start">
               {allRooms.map((room, index) => (
                 <div
                   key={room.accountId}
@@ -2770,9 +2762,11 @@ export default function HomePage({ onLogout }: HomePageProps) {
                   }
                 >
                   <div
-                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95 aspect-square"
+                    className="relative cursor-pointer group hover:shadow-lg transition-all hover:scale-[1.02] active:scale-95"
+                    style={{ width: '100%', aspectRatio: '1 / 1', minWidth: 0, minHeight: 0 }}
                   >
-                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative">
+                    <div className="w-full h-full bg-gray-200 rounded-md overflow-hidden relative"
+                      style={{ width: '100%', height: '100%', aspectRatio: '1 / 1' }}>
                       <img
                         src={
                           room.image && room.image !== "undefined" && room.image !== "null"
@@ -3045,14 +3039,15 @@ export default function HomePage({ onLogout }: HomePageProps) {
           >
             <div
               ref={bannerContainerRef}
-              className="w-full px-3 safe-top pt-2"
+              className="w-full px-3 pt-2"
               style={{
                 height: 'auto',
                 minHeight: 'auto',
                 background: activeTab === 'mine'
                   ? 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 60%, #ffffff 100%)'
                   : 'linear-gradient(to bottom, #3b82f6 0%, #eff6ff 70%, #ffffff 100%)',
-                paddingBottom: '0.7vh'
+                paddingBottom: '0.7vh',
+                paddingTop: '35px'
               }}
             >
               <div className="w-full flex justify-between items-center py-1 box-border mb-1 px-1">
@@ -3166,21 +3161,22 @@ export default function HomePage({ onLogout }: HomePageProps) {
                           draggable="false"
                         />
                       </div>
-                    </div>
-
-                    <div
-                      ref={bannerDotsRef}
-                      className="absolute left-0 right-0 flex justify-center gap-1.5 z-20 pointer-events-none"
-                      style={{ bottom: '6px', minHeight: '6px' }}
-                    >
-                      {BANNERS.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`w-1.5 h-1.5 rounded-full transition-all ${
-                            index === currentBanner ? 'bg-white w-3' : 'bg-white/50'
-                          }`}
-                        />
-                      ))}
+                      <div
+                        ref={bannerDotsRef}
+                        className="absolute left-0 right-0 bottom-2 flex justify-center items-center gap-1.5 z-[60] pointer-events-none"
+                        style={{ minHeight: '7px' }}
+                      >
+                        {BANNERS.map((_, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-full transition-all duration-200 ${
+                              index === currentBanner
+                                ? 'w-3 h-1.5 bg-white'
+                                : 'w-1.5 h-1.5 bg-white/70'
+                            }`}
+                          />
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </>

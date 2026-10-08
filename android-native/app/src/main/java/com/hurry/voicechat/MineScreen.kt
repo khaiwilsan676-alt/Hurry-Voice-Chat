@@ -1,0 +1,82 @@
+package com.hurry.voicechat
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+
+@Composable
+fun MineNativePage(onBack: () -> Unit) {
+    var recent by remember { mutableStateOf(false) }
+    val card = Modifier.fillMaxWidth().height(112.dp)
+    LazyColumn(
+        Modifier.fillMaxSize().background(Color(0xFFF3F6FA)),
+        contentPadding = PaddingValues(bottom = 80.dp)
+    ) {
+        item {
+            Column(
+                Modifier.fillMaxWidth().background(
+                    Brush.verticalGradient(
+                        0.0f to Color(0xFF3B82F6),
+                        0.60f to Color(0xFFEFF6FF),
+                        1.0f to Color(0xFFF3F6FA)
+                    )
+                ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+            ) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(Modifier.wrapContentSize().clickable { onBack() }) {
+                            Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
+                        }
+                        Box(Modifier.wrapContentSize().clickable { }) {
+                            Text("Mine", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    HurrySearchIcon()
+                    Spacer(Modifier.width(10.dp))
+                    HurryHouseIcon()
+                }
+            }
+        }
+        item {
+            Spacer(Modifier.height(5.dp))
+            Box(card.padding(horizontal = 12.dp).clip(RoundedCornerShape(6.dp)).background(
+                Brush.linearGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2)))
+            )) {
+                Row(Modifier.fillMaxSize().padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(56.dp).background(Color.White.copy(alpha=.2f), RoundedCornerShape(50)), contentAlignment=Alignment.Center) {
+                        Text("+", color=Color.White, fontSize=32.sp)
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text("Embark Your Hurry Journey!", color=Color.White, fontSize=20.sp, maxLines=1, softWrap=false)
+                        Text("Tap to create your room", color=Color.White.copy(alpha=.8f), fontSize=14.sp)
+                    }
+                }
+            }
+            Row(Modifier.padding(horizontal = 12.dp).padding(top=12.dp), horizontalArrangement=Arrangement.spacedBy(16.dp)) {
+                Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
+                Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF),
+                    modifier=Modifier.clickable { recent=true })
+            }
+        }
+        item {
+            Column(Modifier.fillMaxWidth().padding(top=24.dp), horizontalAlignment=Alignment.CenterHorizontally) {
+                AsyncImage("https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000047308211a02722299d1fda2e.png", null, Modifier.size(160.dp))
+                Text("No data", color=Color(0xFF9CA3AF), fontSize=14.sp)
+            }
+        }
+    }
+}

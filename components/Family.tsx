@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Plus, ChevronRight } from 'lucide-react'
 
 // ==========================================
@@ -177,6 +177,55 @@ const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, ima
   </div>
 );
 
+// QUESTION MARK ICON (Custom SVG - "?" symbol)
+const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, className?: string }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2" fill="none" />
+    <path 
+      d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 13.38 12 12 12V13.5" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <circle cx="12" cy="16.5" r="1.2" fill="currentColor" />
+  </svg>
+);
+
+// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT
+const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
+  <div 
+    className="fixed inset-0 bg-black/50 z-[100] flex items-end"
+    onClick={onClose}
+  >
+    <div 
+      className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
+      <div className="text-black/80 text-sm space-y-3 pb-6">
+        <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
+        <p>2. There is no need to wait for official approval.</p>
+        <p>3. A family can have a maximum of 100 members.</p>
+        <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
+        <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
+        <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
+        <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
+        <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
+        <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -195,6 +244,16 @@ export default function Family({ onBack }: FamilyProps) {
   // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
 
+  // NEW STATES FOR CREATE PAGE
+  const [familyName, setFamilyName] = useState('')
+  const [familyAnnouncement, setFamilyAnnouncement] = useState('')
+  const [familyImage, setFamilyImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [userCoins, setUserCoins] = useState(0)
+
+  // ⭐ FAMILY RULES SHEET STATE
+  const [showRulesSheet, setShowRulesSheet] = useState(false)
+
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
     if (savedMembers) {
@@ -205,6 +264,16 @@ export default function Family({ onBack }: FamilyProps) {
     if (savedCode) {
       setFamilyCode(savedCode)
     }
+
+    const savedFamilyName = localStorage.getItem('familyName')
+    const savedFamilyAnnouncement = localStorage.getItem('familyAnnouncement')
+    const savedFamilyImage = localStorage.getItem('familyImage')
+    const savedApplyMode = localStorage.getItem('applyMode')
+    
+    if (savedFamilyName) setFamilyName(savedFamilyName)
+    if (savedFamilyAnnouncement) setFamilyAnnouncement(savedFamilyAnnouncement)
+    if (savedFamilyImage) setFamilyImage(savedFamilyImage)
+    if (savedApplyMode) setApplyModeState(savedApplyMode as 'free' | 'admin')
 
     const timer = setInterval(() => {
       const now = new Date()
@@ -228,6 +297,39 @@ export default function Family({ onBack }: FamilyProps) {
 
     return () => clearInterval(timer)
   }, [])
+
+  // ---- CREATE LOGIC ----
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFamilyImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleCreate = () => {
+    if (!familyName.trim()) {
+      alert("Please enter a Family Name.")
+      return
+    }
+    if (userCoins < 10000000) {
+      alert("You need 10,000,000 coins to create a family.")
+      return
+    }
+    
+    localStorage.setItem('familyName', familyName)
+    localStorage.setItem('familyAnnouncement', familyAnnouncement)
+    if (familyImage) localStorage.setItem('familyImage', familyImage)
+    localStorage.setItem('applyMode', applyModeState)
+    
+    const newBalance = userCoins - 10000000
+    setUserCoins(newBalance)
+    alert("Family created successfully!")
+    setCurrentView('topRankings')
+  }
 
   // ==========================================
   // VIEW 4: TOP RANKINGS PAGE
@@ -273,7 +375,7 @@ export default function Family({ onBack }: FamilyProps) {
         />
 
         <div
-          className="flex flex-row items-center w-full px-2 relative z-30"
+          className="flex flex-row items-center justify-between w-full px-2 relative z-30"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
         >
           <button
@@ -282,6 +384,15 @@ export default function Family({ onBack }: FamilyProps) {
             className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
           >
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
+          </button>
+          
+          {/* ⭐ FAMILY RULES SHEET BUTTON */}
+          <button
+            type="button"
+            onClick={() => setShowRulesSheet(true)}
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
+          >
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
 
@@ -446,7 +557,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop 
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[85vh] object-cover" 
@@ -463,7 +574,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop 
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-full h-auto max-h-[70vh] object-cover" 
@@ -483,7 +594,7 @@ export default function Family({ onBack }: FamilyProps) {
                   autoPlay 
                   loop
                   playsInline
-        muted
+                  muted
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
@@ -504,6 +615,9 @@ export default function Family({ onBack }: FamilyProps) {
             )}
           </div>
         )}
+
+        {/* ⭐ FAMILY RULES SHEET (TOP RANKINGS PAGE) */}
+        {showRulesSheet && <FamilyRulesSheet onClose={() => setShowRulesSheet(false)} />}
       </div>
     )
   }
@@ -537,38 +651,82 @@ export default function Family({ onBack }: FamilyProps) {
           <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
             <ArrowLeft size={28} className="text-black" />
           </button>
-          <h1 className="text-xl font-bold text-black tracking-wide">Create</h1>
-          <button className="text-black font-bold text-sm cursor-pointer pr-2">Save</button>
+          {/* ⭐ Title aur right side ka sab kuch remove kar diya */}
         </div>
 
         <div className="flex-1 w-full pb-36">
-          <div className="flex flex-col items-center mt-8">
-            <div className="w-24 h-24 border-2 border-[#FFD700] rounded-lg flex items-center justify-center cursor-pointer bg-gray-50/50">
-              <Plus size={36} className="text-gray-400" />
+          <div className="flex flex-col items-center mt-1">
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              onChange={handleImageUpload} 
+              className="hidden" 
+            />
+            <div 
+              onClick={() => fileInputRef.current?.click()} 
+              className="w-24 h-24 border-2 border-[#FFD700] rounded-lg flex items-center justify-center cursor-pointer bg-gray-50/50 overflow-hidden relative"
+            >
+              {familyImage ? (
+                <img src={familyImage} alt="Family" className="w-full h-full object-cover" />
+              ) : (
+                <Plus size={36} className="text-gray-400" />
+              )}
             </div>
             <p className="mt-2 text-sm font-bold text-gray-500">Upload Image</p>
           </div>
-          <div className="px-5 mt-8">
+          
+          <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family name</label>
-            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+            <input 
+              type="text" 
+              value={familyName}
+              onChange={(e) => setFamilyName(e.target.value)}
+              className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" 
+              placeholder="" 
+            />
           </div>
-          <div className="px-5 mt-5">
+          
+          <div className="px-5 mt-2">
             <label className="block text-sm font-bold text-black mb-2">Family Announcement</label>
-            <input type="text" className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" placeholder="" />
+            <input 
+              type="text" 
+              value={familyAnnouncement}
+              onChange={(e) => setFamilyAnnouncement(e.target.value)}
+              className="w-full bg-[#F3F4F6] border-none rounded-xl p-4 text-black outline-none font-medium placeholder-gray-400" 
+              placeholder="" 
+            />
           </div>
-          <div className="px-5 mt-8">
+          
+          <div className="px-5 mt-2">
             <h2 className="text-sm font-bold text-gray-500 mb-2">Setting</h2>
             <div onClick={() => setShowApplyMode(true)} className="flex items-center justify-between bg-[#F3F4F6] p-4 rounded-xl cursor-pointer">
               <span className="font-bold text-black">Apply Mode</span>
               <ChevronRight className="text-gray-400" size={20} />
             </div>
           </div>
+
+          <div className="px-6 mt-4">
+            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+              1. Creating a family requires ≥ LV.5
+            </p>
+            <p className="text-[13px] text-gray-400 leading-snug mb-1">
+              2. Family info can be modified once a week
+            </p>
+            <p className="text-[13px] text-gray-400 leading-snug">
+              3. If family with only 1 member for 7 days will be disbanded automatically
+            </p>
+          </div>
         </div>
 
-        {/* MODIFIED: Hata diya brown background bas transparent background par image button rakhi hai */}
-        <div className="fixed bottom-0 left-0 w-full h-[10vh] flex items-center justify-center z-50 bg-transparent pointer-events-none">
-          <button onClick={() => setCurrentView('main')} className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-full flex items-center w-[45%] justify-center">
-            <img src="/IMG_20260901_161001.png" alt="Add Button" className="w-full h-[80%] object-contain" style={{ filter: 'url(#remove-green)' }} />
+        <div className="fixed bottom-0 left-0 w-full flex flex-col items-center justify-end z-50 bg-transparent pointer-events-none pb-4">
+          <button 
+            onClick={handleCreate} 
+            className="pointer-events-auto hover:scale-105 active:scale-95 transition-transform cursor-pointer drop-shadow-2xl h-[52px] flex items-center justify-center bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] rounded-full px-8 min-w-[280px] w-auto"
+          >
+            <span className="text-white font-bold text-base tracking-wide whitespace-nowrap">
+              Created with 10,000,000 coins
+            </span>
           </button>
         </div>
 
@@ -628,9 +786,14 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="absolute top-0 left-0 w-full h-[50vh] z-0" style={{ backgroundImage: "url('/IMG_20260901_160704.png')", backgroundSize: 'cover', backgroundPosition: 'center', maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)', WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%)' }} />
 
       <div className="relative z-20 flex flex-col w-full">
-        <div className="flex flex-row items-center w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
+        <div className="flex flex-row items-center justify-between w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
+          </button>
+          
+          {/* ⭐ FAMILY RULES SHEET BUTTON */}
+          <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
 
@@ -701,16 +864,14 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* NEW: Edge to edge bottom bar with overlap create button */}
+      {/* Edge to edge bottom bar with overlap create button */}
       <div className="fixed -bottom-6 left-0 w-full z-40 pointer-events-none">
         <div className="relative w-full">
-          {/* Edge to edge background image */}
           <img 
             src="/file_000000009d1081f59878648feb821b5e.png" 
             alt="Bottom Background" 
             className="w-full h-auto block pointer-events-auto" 
           />
-          {/* Centered overlap image button */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <button 
               onClick={() => setCurrentView('create')}
@@ -726,6 +887,8 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
       </div>
 
+      {/* ⭐ FAMILY RULES SHEET (MAIN PAGE) */}
+      {showRulesSheet && <FamilyRulesSheet onClose={() => setShowRulesSheet(false)} />}
     </div>
   )
 }

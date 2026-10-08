@@ -10,7 +10,6 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // Keep large icon/component packages out of the initial bundle where possible.
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },

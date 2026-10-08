@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Plus, Star, HelpCircle } from 'lucide-react'
+import { ArrowLeft, Plus, Star, HelpCircle, X } from 'lucide-react'
 
 interface MedalProps {
   onBack?: () => void
@@ -63,6 +63,7 @@ function MedalVideo({
   style = {},
   autoPlay = true,
   isColorless = false,
+  disableAnimation = false,
 }: {
   src: string
   variant?: 'black' | 'green'
@@ -70,20 +71,24 @@ function MedalVideo({
   style?: React.CSSProperties
   autoPlay?: boolean
   isColorless?: boolean
+  disableAnimation?: boolean
 }) {
   const isGreen = variant === 'green'
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     if (videoRef.current) {
-      if (autoPlay) {
+      if (disableAnimation) {
+        videoRef.current.pause()
+        videoRef.current.currentTime = 0
+      } else if (autoPlay) {
         videoRef.current.play().catch(() => {})
       } else {
         videoRef.current.pause()
         videoRef.current.currentTime = 0
       }
     }
-  }, [autoPlay, src])
+  }, [autoPlay, src, disableAnimation])
 
   const baseFilter = isGreen ? 'url(#remove-green)' : 'url(#remove-black)'
   const finalFilter = isColorless ? `${baseFilter} grayscale(100%)` : baseFilter
@@ -91,25 +96,25 @@ function MedalVideo({
   return (
     <>
       <style>{`video::-webkit-media-controls, video::-webkit-media-controls-enclosure, video::-webkit-media-controls-panel, video::-webkit-media-controls-overlay-play-button, video::-webkit-media-controls-start-playback-button { display:none !important; opacity:0 !important; }`}</style>
-    <video
-      ref={videoRef}
-      src={src}
-      autoPlay={autoPlay}
-      loop
-      playsInline
-      muted
-      controls={false}
-      preload="auto"
-      disablePictureInPicture
-      disableRemotePlayback
-      className={className}
-      style={{
-        backgroundColor: 'transparent',
-        filter: finalFilter,
-        pointerEvents: 'none',
-        ...style,
-      }}
-    />
+      <video
+        ref={videoRef}
+        src={src}
+        autoPlay={!disableAnimation && autoPlay}
+        loop={!disableAnimation}
+        playsInline
+        muted
+        controls={false}
+        preload="auto"
+        disablePictureInPicture
+        disableRemotePlayback
+        className={className}
+        style={{
+          backgroundColor: 'transparent',
+          filter: finalFilter,
+          pointerEvents: 'none',
+          ...style,
+        }}
+      />
     </>
   )
 }
@@ -221,12 +226,303 @@ const TIER_TAB_IMAGES = [
   '/IMG_20260924_132051.png',
 ]
 
+// --- SCREEN 1: OBTAINED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
+const ObtainedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
+  const medalList = [
+    { id: 1, name: 'CP Level Badge', img: '/IMG_20260924_132022.png' },
+    { id: 2, name: 'Millionaire I', img: '/IMG_20260924_132038.png' },
+    { id: 3, name: 'Charm Star I', img: '/IMG_20260924_132051.png' },
+    { id: 4, name: 'Fruit King I', img: '/IMG_20260924_132022.png' },
+    { id: 5, name: 'Millionaire II', img: '/IMG_20260924_132038.png' },
+    { id: 6, name: 'Fruit King II', img: '/IMG_20260924_132051.png' },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
+      <div
+        className="absolute inset-0 bg-black/60 transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
+        <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
+          <h1 className="text-xl font-medium text-white tracking-wide">
+            Obtained Medals
+          </h1>
+        </div>
+
+        {/* Grid - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 pb-10">
+          <div className="grid grid-cols-3 gap-3">
+            {medalList.map((medal) => (
+              <div
+                key={medal.id}
+                className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+              >
+                <div className="w-full h-full flex items-center justify-center p-1">
+                  <img
+                    src={medal.img}
+                    alt={medal.name}
+                    className="w-full h-full object-contain drop-shadow-md"
+                  />
+                </div>
+                <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+                  {medal.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// --- SCREEN 2: UNEQUIPPED MEDALS SCREEN (HALF SCREEN BOTTOM SHEET) ---
+const UnequippedMedalsScreen = ({ onClose }: { onClose: () => void }) => {
+  const medalList = [
+    { id: 1, name: 'CP Spokesperson', img: '/IMG_20260924_132022.png' },
+    { id: 2, name: 'Level Medal', img: '/IMG_20260924_132038.png' },
+    { id: 3, name: 'Weird Star', img: '/IMG_20260924_132051.png' },
+    { id: 4, name: 'SVIP Badge', img: '/IMG_20260924_132022.png' },
+    { id: 5, name: 'Money Gun Talent', img: '/IMG_20260924_132038.png' },
+    { id: 6, name: 'First Recharge', img: '/IMG_20260924_132051.png' },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay (Peeche ka background) */}
+      <div
+        className="absolute inset-0 bg-black/60 transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Bottom Sheet */}
+      <div className="relative w-full h-[60vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header */}
+        <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0">
+          <h1 className="text-xl font-medium text-white tracking-wide">
+            Unequipped Medals
+          </h1>
+        </div>
+
+        {/* Grid - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 pb-10">
+          <div className="grid grid-cols-3 gap-3">
+            {medalList.map((medal) => (
+              <div
+                key={medal.id}
+                className="bg-[#1e1245] rounded-xl p-2 flex flex-col items-center justify-center aspect-square relative"
+              >
+                <div className="w-full h-full flex items-center justify-center p-1">
+                  <img
+                    src={medal.img}
+                    alt={medal.name}
+                    className="w-full h-full object-contain drop-shadow-md"
+                  />
+                </div>
+                <span className="text-[10px] text-white text-center mt-1 leading-tight font-medium">
+                  {medal.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// --- RULES SCREEN (HALF SCREEN BOTTOM SHEET) ---
+// NOTE: Isme koi X (close) icon NAHI hai.
+// Sheet band karne ke liye sirf bahar (overlay) pe touch/click karo.
+const RulesScreen = ({ onClose }: { onClose: () => void }) => {
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+      {/* Dark Overlay - ispe click karne se sheet band ho jayegi */}
+      <div
+        className="absolute inset-0 bg-black/60 transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Bottom Sheet - Medal background ke match karta hua color */}
+      <div className="relative w-full h-[75vh] bg-[#2a1b5e] rounded-t-3xl flex flex-col font-sans overflow-hidden animate-slide-up shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        {/* Header - NO X icon, only title */}
+        <div className="relative flex items-center justify-center pt-6 pb-4 flex-shrink-0 border-b border-white/10">
+          <h1 className="text-xl font-medium text-white tracking-wide">
+            Rules
+          </h1>
+        </div>
+
+        {/* Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-5 pb-10 pt-4 text-white text-[13px] leading-relaxed">
+          <h2 className="text-[16px] font-bold mb-3 text-[#facc15]">
+            *Rules*
+          </h2>
+
+          <div className="space-y-3">
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *1. Important Information:*
+              </p>
+              <p className="mb-1">
+                (a) Before participating, please carefully review the event
+                rules, especially those regarding completing tasks, receiving
+                rewards, and the occurrence of irregular or prohibited
+                activities.
+              </p>
+              <p>
+                (b) Your participation confirms that you have read, understood,
+                and willingly agreed to the event rules.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *2. What are Medals?*
+              </p>
+              <p className="mb-1">
+                (a) Medals are special rewards that are awarded early to users
+                who meet certain criteria. After successfully registering and
+                logging in, you can earn medals and levels by completing tasks
+                or events on the platform.
+              </p>
+              <p>
+                (b) Medals are divided by achievement and activity type, with
+                three levels for each. They increase over time based on your
+                overall activity, and you can advance once you reach a certain
+                level threshold.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *3. How to earn medals?*
+              </p>
+              <p>
+                =&gt;. Each medal type has its own unique earning criteria,
+                detailed on its page. Medals are automatically earned upon
+                completing the required objectives.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">*4. Medal Role:*</p>
+              <p>
+                =&gt;. Medals showcase your achievements in various areas.
+                Higher levels represent greater achievements. These can be
+                displayed next to your avatar, highlighting your status and
+                achievements. Some medals come with benefits that increase as
+                you level up.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *5. Medal Benefits Expiration:*
+              </p>
+              <p className="mb-1">
+                (a) Medals generally have no expiration date; however, medals
+                obtained through improper means will be considered invalid.
+              </p>
+              <p className="mb-1">
+                (b) Some medals are time-limited, and expired medals cannot be
+                displayed (worn).
+              </p>
+              <p className="mb-1">
+                (c) You can display a maximum of 10 medals at a time.
+              </p>
+              <p className="mb-1">
+                (d) These will appear in your info card and room chat area.
+              </p>
+              <p>
+                (e) To check your medal status, log in to the Hurry app and go
+                to &quot;Me&quot; &gt; &quot;Medals&quot; to view your achieved
+                medals.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *6. Improving Medal Levels*
+              </p>
+              <p>
+                (=&gt;) Your medal level is determined by your current task and
+                activity status. You can earn and upgrade your medals by
+                successfully completing tasks and activities in the Hurry app.
+              </p>
+            </div>
+
+            <div>
+              <p className="font-bold text-[14px] mb-1">
+                *7. Additional Notes:*
+              </p>
+              <p className="mb-1">
+                (a) We strictly prohibit any form of abuse, including the use of
+                cheats or math.
+              </p>
+              <p className="mb-1">
+                (b) We are constantly working to improve the user experience by
+                improving and updating medals and their descriptions.
+              </p>
+              <p>
+                (c) Medal rewards cannot be exchanged for cash or goods, nor can
+                they be used for profit-generating activities. Unauthorized
+                transactions and third-party misdirection are strictly
+                prohibited, and users are solely responsible for their actions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  )
+}
+
 export default function Medal({ onBack }: MedalProps) {
   const [activeTab, setActiveTab] = useState<
     'achievement' | 'activity' | 'gift'
   >('achievement')
   const [selectedMedal, setSelectedMedal] = useState<MedalItem | null>(null)
   const [activeTier, setActiveTier] = useState(0)
+
+  // STATES FOR OVERLAY SCREENS
+  const [showObtained, setShowObtained] = useState(false)
+  const [showUnequipped, setShowUnequipped] = useState(false)
+  const [showRules, setShowRules] = useState(false)
 
   const medals: MedalItem[] = [
     {
@@ -513,7 +809,10 @@ export default function Medal({ onBack }: MedalProps) {
           <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-bold text-white tracking-wide drop-shadow-md">
             Medal
           </h1>
-          <button className="p-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10">
+          <button
+            onClick={() => setShowRules(true)}
+            className="p-1 text-gray-200 hover:text-white transition-colors cursor-pointer z-10"
+          >
             <HelpCircle size={22} className="opacity-80" />
           </button>
         </div>
@@ -535,6 +834,7 @@ export default function Medal({ onBack }: MedalProps) {
             {Array.from({ length: 10 }).map((_, index) => (
               <div
                 key={index}
+                onClick={() => setShowUnequipped(true)}
                 className="aspect-square rounded-md border border-white bg-[#281b54]/60 flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-inner"
               >
                 <Plus size={22} className="text-[#e2d5ff]" strokeWidth={2.5} />
@@ -545,7 +845,10 @@ export default function Medal({ onBack }: MedalProps) {
           <div className="relative mt-6 flex flex-col items-center">
             <div className="flex items-center justify-center text-[15px] font-medium text-gray-200 mb-2 z-10">
               Obtained Medal(s): <span className="text-[#facc15] ml-1">3</span>
-              <button className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors">
+              <button
+                onClick={() => setShowObtained(true)}
+                className="text-[#facc15] cursor-pointer ml-1 hover:text-yellow-400 transition-colors"
+              >
                 Check&gt;
               </button>
             </div>
@@ -595,8 +898,9 @@ export default function Medal({ onBack }: MedalProps) {
                   <MedalVideo
                     src={medal.video}
                     variant={medal.variant ?? 'black'}
-                    autoPlay={true}
+                    autoPlay={false}
                     isColorless={true}
+                    disableAnimation={true}
                     className="max-w-none max-h-none object-contain"
                     style={{
                       width: medal.cardVideoSize,
@@ -625,12 +929,22 @@ export default function Medal({ onBack }: MedalProps) {
               className="absolute inset-0 w-full h-full object-contain object-top block pointer-events-none select-none"
             />
 
+            {/* Back button - top left */}
             <button
               onClick={closeSheet}
               className="absolute left-0 top-0 z-50 p-1 pl-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
               style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
             >
               <ArrowLeft size={28} />
+            </button>
+
+            {/* Question mark button - top right */}
+            <button
+              onClick={() => setShowRules(true)}
+              className="absolute right-0 top-0 z-50 p-1 pr-2 text-white hover:text-gray-300 transition-colors cursor-pointer active:scale-95"
+              style={{ top: 'max(env(safe-area-inset-top), 0px)' }}
+            >
+              <HelpCircle size={22} className="opacity-80" />
             </button>
 
             <div
@@ -698,7 +1012,6 @@ export default function Medal({ onBack }: MedalProps) {
 
             {showTabs && (
               <div className="flex flex-col items-center mt-4 relative z-10">
-                {/* 1 / 2 / 3 tabs — gap hataya (gap-0) */}
                 <div className="flex items-center justify-center gap-2">
                   {tierMedals.map((_, i) => (
                     <React.Fragment key={i}>
@@ -728,12 +1041,8 @@ export default function Medal({ onBack }: MedalProps) {
 
           <style jsx global>{`
             @keyframes fadeIn {
-              from {
-                opacity: 0;
-              }
-              to {
-                opacity: 1;
-              }
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
             .animate-fade-in {
               animation: fadeIn 0.3s ease-out forwards;
@@ -741,6 +1050,19 @@ export default function Medal({ onBack }: MedalProps) {
           `}</style>
         </div>
       )}
+
+      {/* OBTAINED MEDALS OVERLAY (HALF SCREEN) */}
+      {showObtained && (
+        <ObtainedMedalsScreen onClose={() => setShowObtained(false)} />
+      )}
+
+      {/* UNEQUIPPED MEDALS OVERLAY (HALF SCREEN) */}
+      {showUnequipped && (
+        <UnequippedMedalsScreen onClose={() => setShowUnequipped(false)} />
+      )}
+
+      {/* RULES OVERLAY (HALF SCREEN) */}
+      {showRules && <RulesScreen onClose={() => setShowRules(false)} />}
     </div>
   )
-              }
+}

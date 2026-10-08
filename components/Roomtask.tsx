@@ -6,7 +6,6 @@ interface RoomtaskProps {
   onBack?: () => void;
 }
 
-// Custom Hook jo WebGL Shader se image ka white background strictly remove karta hai (PURE ORIGINAL)
 function useProcessedShaderImage(src: string) {
   const [processedSrc, setProcessedSrc] = useState<string>(src);
 
@@ -108,7 +107,6 @@ function useProcessedShaderImage(src: string) {
   return processedSrc;
 }
 
-// Helper component for task items
 function TaskItem({ 
   title, 
   reward,
@@ -119,7 +117,6 @@ function TaskItem({
   iconSrc: string;
 }) {
   
-  // Title ke basis par Left Icon aur uska size decide karna
   const lowerTitle = title.toLowerCase();
   
   let leftIconSrc = iconSrc; 
@@ -142,19 +139,16 @@ function TaskItem({
   const rewardValue = reward.replace(/coins/gi, '').trim();
 
   return (
-    // Explicitly added rounded-none to ensure NO curves at all
     <div className="relative z-20 w-[100%] max-w-[410px] h-[175px] flex items-center rounded-none">
       <img 
         src="/file_000000004fd0821198ed4e26d5008b16.png"
         alt="Task Background"
-        // Force rounded-none on image so original square/rectangle shape remains
         className="absolute inset-0 w-full h-full object-fill cursor-pointer transition-transform hover:scale-105 active:scale-95 select-none z-0 rounded-none"
         draggable={false}
       />
 
       <div className="relative z-30 w-full pl-2 pr-4 flex items-center justify-between pointer-events-none rounded-none">
         
-        {/* Left Side: 0.5 gap */}
         <div className="flex items-center space-x-0.5 flex-1">
           <img 
             src={leftIconSrc} 
@@ -169,7 +163,6 @@ function TaskItem({
           </div>
         </div>
 
-        {/* Right Side */}
         <div className="flex-shrink-0 pointer-events-auto flex flex-col items-center justify-center space-y-1.5 pl-1">
           
           <div className="flex items-center space-x-1">
@@ -186,14 +179,15 @@ function TaskItem({
 
           <button 
             onClick={() => {}}
-            className="transition-transform hover:scale-105 active:scale-95 cursor-pointer outline-none rounded-none"
+            className="w-[85px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-wider
+                       bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                       text-[#4a1f00]
+                       border-2 border-[#f5e6a8]
+                       shadow-[0_0_6px_rgba(255,215,0,0.5),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                       active:translate-y-[2px] active:shadow-[0_0_5px_rgba(255,215,0,0.5),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                       transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
           >
-            <img 
-              src="/file_00000000196c8208b7ea093e8d7f56c8.png"
-              alt="Claim Action"
-              className="w-[85px] h-auto object-contain select-none rounded-none"
-              draggable={false}
-            />
+            Claim
           </button>
 
         </div>
@@ -204,7 +198,6 @@ function TaskItem({
 
 export default function Roomtask({ onBack }: RoomtaskProps) {
   
-  // Yaha original WebGL hook se clean image aayegi (base64 data URL)
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -309,48 +302,72 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full" style={{ height: 'calc(50vh - 45px)' }}></div>
 
           <div className="w-full flex justify-center px-4 flex-col items-center">
-            <div className="relative w-[100%] max-w-[450px] flex items-center justify-center mt-2">
-              <img 
-                src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
-                alt="Middle Decoration" 
-                className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
-                draggable={false}
-              />
+            <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              <div 
-                className="absolute top-1/2 -translate-y-1/2 flex items-center z-20 pointer-events-none"
-                style={{ left: '10%' }} 
-              >
+              {/* Plate Wrapper */}
+              <div className="relative w-full flex items-center justify-center">
                 <img 
-                  src={cleanedIconSrc}
-                  alt="Cleaned Coin Icon" 
-                  className="w-7 h-7 object-contain select-none rounded-none"
+                  src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
+                  alt="Middle Decoration" 
+                  className="w-full h-auto object-contain drop-shadow-2xl select-none rounded-none"
                   draggable={false}
                 />
+                
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 flex items-center z-20 pointer-events-none"
+                  style={{ left: '10%' }} 
+                >
+                  <img 
+                    src={cleanedIconSrc}
+                    alt="Cleaned Coin Icon" 
+                    className="w-7 h-7 object-contain select-none rounded-none"
+                    draggable={false}
+                  />
+                </div>
+
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pr-4">
+                  <span className="text-2xl font-extrabold text-[#ffd700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                    0
+                  </span>
+                </div>
+
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
+                  style={{ right: '9%' }} 
+                >
+                  <button 
+                    onClick={() => {}}
+                    className="w-[85px] h-[28px] rounded-full bg-transparent border-2 border-transparent cursor-pointer outline-none"
+                    aria-label="Top Action"
+                  ></button>
+                </div>
               </div>
 
-              <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pr-4">
-                <span className="text-2xl font-extrabold text-[#ffd700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                  0
-                </span>
-              </div>
-
-              <div 
-                className="absolute top-1/2 -translate-y-1/2 z-20 -mt-1"
-                style={{ right: '9%' }} 
-              >
+              {/* COLLECT BUTTON */}
+              <div className="relative w-full flex justify-center -mt-4 z-30">
                 <button 
                   onClick={() => {}}
-                  className="px-2 py-1 rounded-full font-black text-[9px] text-[#5a2c00] bg-gradient-to-b from-[#ffe853] via-[#ffc107] to-[#e09b00] shadow-[0_4px_0_#9c6500,0_6px_8px_rgba(0,0,0,0.4)] active:translate-y-[2px] active:shadow-[0_2px_0_#9c6500,0_4px_6px_rgba(0,0,0,0.4)] transition-all cursor-pointer uppercase tracking-wider"
+                  className="w-[90px] h-[28px] rounded-full font-black text-[11px] uppercase tracking-widest
+                             bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                             text-[#4a1f00]
+                             border-2 border-[#f5e6a8]
+                             shadow-[0_0_7px_rgba(255,215,0,0.55),0_3px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             active:translate-y-[2px] active:shadow-[0_0_6px_rgba(255,215,0,0.55),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                             transition-all duration-100 cursor-pointer outline-none flex items-center justify-center"
                 >
-                  Claim
+                  Collect
                 </button>
               </div>
 
             </div>
           </div>
 
-          <div className="relative w-full flex flex-col items-center mt-3">
+          {/* NOTE TEXT - ab plate wrapper ke BAHAR, thoda neeche */}
+          <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-4 px-3 relative z-40">
+            *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
+          </p>
+
+          <div className="relative w-full flex flex-col items-center mt-1">
             
             <div className="relative w-full flex-shrink-0 z-30 flex justify-center items-center overflow-hidden">
               <img 
@@ -441,4 +458,3 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
     </div>
   );
 }
-

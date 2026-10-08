@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ArrowLeft, Clock } from "lucide-react";
-import { deductCoinsFromDB } from "./Wallet";
+import { ArrowLeft, Clock, Search } from "lucide-react";
 
 interface StoreItem {
   id: string;
@@ -20,7 +19,7 @@ interface StoreItem {
 }
 
 // ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// SHARED WALLET DB
 // ==========================================
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
@@ -113,7 +112,6 @@ const getExpiredStoreItemIds = (items: StoreItem[]): string[] => {
   return expired;
 };
 
-// delta positive = add, negative = deduct
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -136,7 +134,6 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// Add item id to ownedItems array (persist)
 const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -159,7 +156,6 @@ const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   }
 };
 
-// Persist equipped items
 const saveEquippedItemsToDB = async (equipped: string[]): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -192,7 +188,6 @@ const tabData = [
 ];
 
 const allStoreItems: StoreItem[] = [
-  // Vehicle
   {
     id: "v1",
     name: "Leopard Roar",
@@ -204,34 +199,40 @@ const allStoreItems: StoreItem[] = [
     price: "1,000,000",
     duration: "5D",
   },
-
-  // Avatar Frame
   { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D" },
   { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
   { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
-
-  // Theme
   { id: "t1", name: "Seafood", image: "/IMG-20260904-WA0004.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t2", name: "Night Sky", image: "/IMG-20260904-WA0005.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t3", name: "Seafood", image: "/IMG-20260904-WA0006.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t4", name: "Night Sky", image: "/IMG-20260904-WA0007.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t5", name: "Seafood", image: "/IMG-20260904-WA0040.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t6", name: "Night Sky", image: "/IMG-20260904-WA0041.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
-
-  // Chat Bubble
   { id: "c1", name: "1", image: "/file_000000003d888211822aa6837fe5013c.png", tab: "Chat Bubble", stars: 4, price: "500,000", duration: "3D" },
   { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" },
   { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" },
   { id: "c4", name: "4", image: "/IMG_20260920_122831.png", tab: "Chat Bubble", stars: 4, price: "246,000", duration: "3D" },
   { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" },
   { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" },
-
-  // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
 ];
 
 // ==========================================
-// SHARED WebGL WHITE-REMOVAL (single context)
+// FRIENDS DATA
+// ==========================================
+interface Friend {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+const friendsList: Friend[] = [
+  { id: "f1", name: "add please", avatar: "/IMG_20260913_090019.png" },
+  { id: "f2", name: "99❤️OWNER KABIR☆khan", avatar: "/IMG_20260913_090057.png" },
+];
+
+// ==========================================
+// SHARED WebGL WHITE-REMOVAL
 // ==========================================
 const processedCache = new Map<string, Promise<string>>();
 
@@ -375,7 +376,7 @@ function WebGLCoinIcon({ src, className = 'w-full h-full object-contain' }: { sr
 }
 
 // ==========================================
-// WebGL Image Avatar (green removal - smooth transparency + despill)
+// WebGL Image Avatar (green removal)
 // ==========================================
 const avatarCache = new Map<string, Promise<string>>();
 
@@ -646,10 +647,10 @@ export default function StorePage({
 }) {
   const [currentView, setCurrentView] = useState<"store" | "bag">(initialView);
   const [activeTab, setActiveTab] = useState("Vehicle");
-  const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
+  const [sendItem, setSendItem] = useState<StoreItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Shared wallet
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
     new Set(allStoreItems.filter((i) => i.isOwned).map((i) => i.id))
@@ -657,7 +658,8 @@ export default function StorePage({
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
-  // Real-time sync
+  const tabsScrollRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     let alive = true;
     const sync = async () => {
@@ -733,7 +735,6 @@ export default function StorePage({
     }
   };
 
-  // Buy handler
   const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = parsePrice(item.price);
@@ -744,19 +745,16 @@ export default function StorePage({
     }
 
     setBuying(item.id);
-    // Optimistic UI
     setBalance((b) => b - cost);
     setOwnedIds((prev) => new Set(prev).add(item.id));
     saveItemExpiry(item);
 
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
-    recordTransaction(`Purchased ${item.name}`, -cost);
 
     setBuying(null);
   };
 
-  // Equip / Unequip toggle (one equipped item per tab)
   const handleEquipToggle = async (item: StoreItem) => {
     const next = new Set(equippedIds);
     const wasEquipped = next.has(item.id);
@@ -764,7 +762,6 @@ export default function StorePage({
     if (wasEquipped) {
       next.delete(item.id);
     } else {
-      // Remove any other equipped item from the same tab.
       allStoreItems.forEach((it) => {
         if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
       });
@@ -774,7 +771,6 @@ export default function StorePage({
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
 
-    // Chat Bubble is local to the user and expires with the purchased duration.
     if (item.tab === "Chat Bubble") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Chat Bubble");
@@ -789,15 +785,12 @@ export default function StorePage({
       window.dispatchEvent(new Event("hurry-chat-bubble-equipped"));
     }
 
-    // RoomPage uses this exact value for the next Room entry event.
-    // Store the actual playable asset, not only the item ID.
     if (item.tab === "Vehicle") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Vehicle");
         localStorage.removeItem("equipped_Vehicle_image");
       } else {
         const vehicleAsset = String(item.tryVideo || "").trim();
-        // Only an actual MP4 can be equipped as an entry vehicle.
         if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
           localStorage.setItem("equipped_Vehicle", vehicleAsset);
           localStorage.setItem("equipped_Vehicle_image", String(item.image || ""));
@@ -812,8 +805,12 @@ export default function StorePage({
     }
   };
 
-  // Keep the legacy RoomPage vehicle key synchronized with the persisted
-  // IndexedDB equipment, including equipment restored after app restart.
+  const handleSendToFriend = (friend: Friend) => {
+    alert(`Item "${sendItem?.name}" sent to ${friend.name}!`);
+    setSendItem(null);
+    setSearchQuery("");
+  };
+
   useEffect(() => {
     const equippedVehicleId = Array.from(equippedIds).find((id) => {
       const item = allStoreItems.find((it) => it.id === id);
@@ -840,9 +837,12 @@ export default function StorePage({
     if (currentView === "bag") {
       return isOwned && isActive && item.tab === activeTab;
     }
-    // Expired items are no longer owned, so they appear in Store again as Buy.
     return !item.dailyReward && item.tab === activeTab;
   });
+
+  const filteredFriends = friendsList.filter((friend) =>
+    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const renderStars = (count: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -851,6 +851,8 @@ export default function StorePage({
       </span>
     ));
   };
+
+  const isEquipped = (itemId: string) => equippedIds.has(itemId);
 
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
@@ -889,8 +891,11 @@ export default function StorePage({
             </button>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-1 mb-3 overflow-hidden shrink-0 w-full">
+          {/* Category Tabs - now horizontally scrollable */}
+          <div
+            ref={tabsScrollRef}
+            className="flex items-center gap-1 pl-3 pr-3 mt-1 mb-3 overflow-x-auto no-scrollbar shrink-0 w-full"
+          >
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
 
@@ -958,7 +963,8 @@ export default function StorePage({
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
-                const isEquipped = equippedIds.has(item.id);
+                const isEquippedItem = isEquipped(item.id);
+                const isActive = isItemActive(item);
 
                 return (
                   <div
@@ -984,11 +990,7 @@ export default function StorePage({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (isTheme) {
-                            setTryThemeItem(item);
-                          } else {
-                            setTryCenterItem(item);
-                          }
+                          setTryCenterItem(item);
                         }}
                         className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
                           isTheme
@@ -1044,6 +1046,7 @@ export default function StorePage({
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
                       <button
                         type="button"
+                        onClick={() => setSendItem(item)}
                         className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
                       >
                         Send
@@ -1051,7 +1054,7 @@ export default function StorePage({
                       <button
                         type="button"
                         onClick={() => {
-                          if (isOwned) {
+                          if (isOwned && isActive) {
                             handleEquipToggle(item);
                           } else {
                             handleBuy(item);
@@ -1060,11 +1063,7 @@ export default function StorePage({
                         disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {buying === item.id
-                          ? '...'
-                          : isOwned
-                          ? (isEquipped ? 'Equipped' : 'Equip')
-                          : 'Buy'}
+                        {buying === item.id ? '...' : isOwned && isActive ? (isEquippedItem ? 'Using' : 'Use') : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -1095,65 +1094,185 @@ export default function StorePage({
         </div>
       </div>
 
-      {/* Vehicle & Frame Try Modal */}
+      {/* ==========================================
+          TRY BOTTOM SHEET MODAL
+          ========================================== */}
       {tryCenterItem && (
         <div
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
+          className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/50 cursor-pointer"
           onClick={() => setTryCenterItem(null)}
         >
-          <div className={`relative flex items-center justify-center pointer-events-none ${tryCenterItem.tab === "Vehicle" ? "w-full h-[60vh]" : "w-[280px] h-[280px]"}`}>
-            {tryCenterItem.tryVideo ? (
-              <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.image.endsWith('.mp4') ? (
-              <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.removeGreen ? (
-              <WebGLImageAvatar src={tryCenterItem.image} />
-            ) : (
-              <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
-            )}
-          </div>
+          <div
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top content */}
+            <div className="w-full flex-1 flex flex-col items-center px-5 pt-5 pb-0">
+              <h2 className="text-[17px] font-bold text-gray-900 mt-1">Purchase</h2>
 
-          <div className="flex items-center justify-center gap-1 mt-4 pointer-events-none">
-            {renderStars(tryCenterItem.stars)}
-          </div>
+              <div className="relative w-[180px] h-[180px] my-2 flex items-center justify-center">
+                {tryCenterItem.tryVideo ? (
+                  <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+                ) : tryCenterItem.image.endsWith('.mp4') ? (
+                  <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
+                ) : tryCenterItem.removeGreen ? (
+                  <WebGLImageAvatar src={tryCenterItem.image} />
+                ) : (
+                  <Image
+                    src={tryCenterItem.image}
+                    alt={tryCenterItem.name}
+                    fill
+                    className="object-contain"
+                  />
+                )}
+              </div>
 
-          <div className="mt-2 text-[20px] font-bold text-gray-900 pointer-events-none">
-            {tryCenterItem.name}
+              <div className="flex items-center gap-1.5 mb-4">
+                <span className="text-[24px] font-bold text-gray-900">
+                  {tryCenterItem.price}
+                </span>
+                <div className="relative w-6 h-6 flex items-center justify-center shrink-0">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+              </div>
+
+              {/* Item name just above 3 days button */}
+              <h3 className="text-[17px] font-bold text-gray-900 mb-1 w-full text-left">{tryCenterItem.name}</h3>
+
+              {/* Current balance just above 7 days button */}
+              <div className="w-full flex justify-end mb-1">
+                <div className="flex items-center gap-1 text-[13px] font-semibold text-gray-600">
+                  <span>Balance:</span>
+                  <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                    <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                  </div>
+                  <span>{balance.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* 3 days & 7 days buttons just above Send/Buy */}
+              <div className="flex items-center gap-2 w-full mb-1">
+                <button
+                  type="button"
+                  className="flex-1 py-[6px] rounded-full border-2 border-orange-400 bg-orange-50 text-orange-500 font-semibold text-[13px] flex items-center justify-center gap-1.5"
+                >
+                  <span className="w-3.5 h-3.5 rounded-full bg-orange-400 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  3days
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 py-[6px] rounded-full border border-gray-200 bg-gray-50 text-gray-400 font-semibold text-[13px]"
+                >
+                  7days
+                </button>
+              </div>
+            </div>
+
+            {/* Send & Buy at the very bottom */}
+            <div className="w-full px-5 pt-3 pb-8 flex items-center gap-3 border-t border-gray-100 mt-auto">
+              <button
+                type="button"
+                className="flex-1 py-3.5 rounded-full bg-[#e0f2fe] text-[#1d4ed8] font-bold text-[15px] hover:bg-[#bae6fd] transition-colors"
+                onClick={() => {
+                  setSendItem(tryCenterItem);
+                  setTryCenterItem(null);
+                }}
+              >
+                Send
+              </button>
+              <button
+                type="button"
+                className="flex-1 py-3.5 rounded-full bg-[#00b4d8] text-white font-bold text-[15px] hover:bg-[#0096c7] transition-colors"
+                onClick={async () => {
+                  if (ownedIds.has(tryCenterItem.id) && isItemActive(tryCenterItem)) {
+                    await handleEquipToggle(tryCenterItem);
+                  } else {
+                    await handleBuy(tryCenterItem);
+                  }
+                  setTryCenterItem(null);
+                }}
+              >
+                {ownedIds.has(tryCenterItem.id) && isItemActive(tryCenterItem) ? (isEquipped(tryCenterItem.id) ? 'Using' : 'Use') : 'Buy'}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Theme Try Modal */}
-      {tryThemeItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            <button
-              type="button"
-              onClick={() => setTryThemeItem(null)}
-              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
-            >
-              ✕
-            </button>
+      {/* ==========================================
+          SEND TO FRIENDS SHEET MODAL
+          ========================================== */}
+      {sendItem && (
+        <div
+          className="fixed inset-0 z-[110] flex flex-col justify-end bg-black/50 cursor-pointer"
+          onClick={() => {
+            setSendItem(null);
+            setSearchQuery("");
+          }}
+        >
+          <div
+            className="w-full max-w-md mx-auto bg-white rounded-t-3xl flex flex-col items-center cursor-default animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+            style={{ minHeight: '45vh', maxHeight: '65vh' }}
+          >
+            {/* Header */}
+            <div className="w-full flex flex-col items-center px-5 pt-5 pb-2">
+              <h2 className="text-[20px] font-bold text-gray-900 mt-1 mb-3">Send to friends</h2>
+              <h3 className="text-[15px] font-semibold text-gray-800 w-full text-left mb-2">Contact</h3>
 
-            <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
-              <Image
-                src={tryThemeItem.image}
-                alt={tryThemeItem.name}
-                fill
-                className="object-cover"
-              />
+              {/* Search Bar */}
+              <div className="w-full flex items-center bg-[#f3f4f6] rounded-full px-4 py-2 mb-3">
+                <Search size={18} className="text-gray-400 mr-2 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search friends..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-[14px] text-gray-800 placeholder-gray-400"
+                />
+              </div>
             </div>
 
-            <div className="flex items-center justify-center gap-1 mt-4">
-              {renderStars(tryThemeItem.stars)}
-            </div>
-
-            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
-              {tryThemeItem.name}
+            {/* Friends List */}
+            <div className="w-full flex-1 overflow-y-auto no-scrollbar px-5">
+              {filteredFriends.length > 0 ? (
+                filteredFriends.map((friend) => (
+                  <div key={friend.id} className="flex items-center justify-between w-full mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border border-gray-200">
+                        <Image
+                          src={friend.avatar}
+                          alt={friend.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                      <span className="text-[15px] font-medium text-gray-900 truncate max-w-[160px]">
+                        {friend.name}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSendToFriend(friend)}
+                      className="px-5 py-1.5 rounded-full bg-[#4dd0e1] text-white font-semibold text-[14px] hover:bg-[#26c6da] transition-colors shrink-0"
+                    >
+                      Send
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 w-full">
+                  <span className="text-gray-400 text-sm font-medium">No friends found</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
     </div>
   );
-        }
+}
