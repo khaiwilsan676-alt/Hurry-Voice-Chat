@@ -72,6 +72,10 @@ fun RoomScreen(room: HurryRoom, onBack: () -> Unit) {
             }
         }
 
+        if (selectedSeat != null) {
+            RoomProfileCard(room, selectedSeat!!, onClose = { selectedSeat = null })
+        }
+
         if (showGift) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .35f)).clickable { showGift = false },
                 contentAlignment = Alignment.BottomCenter) {
@@ -142,5 +146,29 @@ private fun NativeSeat(number: Int, room: HurryRoom, onSeat: (Int) -> Unit) {
         Spacer(Modifier.height(2.dp))
         Text(if (occupied) room.name else number.toString(), color = Color.White.copy(alpha = .92f),
             fontSize = 10.sp, maxLines = 1)
+    }
+}
+
+
+@Composable
+private fun RoomProfileCard(room: HurryRoom, seat: Int, onClose: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .42f)).clickable { onClose() }, contentAlignment = Alignment.BottomCenter) {
+        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp,22.dp,0.dp,0.dp)).background(Color.White).padding(20.dp).navigationBarsPadding()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(model = if (room.image.startsWith("http")) room.image else RAW_ROOM + room.image.trimStart('/'), contentDescription = room.name, modifier = Modifier.size(72.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(room.name, color = Color(0xFF111827), fontSize = 20.sp)
+                    Text("Seat " + seat, color = Color(0xFF6B7280), fontSize = 12.sp)
+                    Text("ID: " + room.accountId, color = Color(0xFF6B7280), fontSize = 12.sp)
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(onClick = {}, Modifier.weight(1f)) { Text("Follow") }
+                OutlinedButton(onClick = onClose, Modifier.weight(1f)) { Text("Message") }
+            }
+            TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Close") }
+        }
     }
 }
