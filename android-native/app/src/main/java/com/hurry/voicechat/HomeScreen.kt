@@ -122,6 +122,24 @@ private val countryPills = listOf(
     CountryPill("🇹🇷", "Turkey",       "Turkey")
 )
 
+private fun countryFlag(country: String): String {
+    val value = country.trim()
+    return when {
+        value.contains("india", ignoreCase = true) || value.contains("🇮🇳") -> "🇮🇳"
+        value.contains("singapore", ignoreCase = true) || value.contains("🇸🇬") -> "🇸🇬"
+        value.contains("pakistan", ignoreCase = true) || value.contains("🇵🇰") -> "🇵🇰"
+        value.contains("usa", ignoreCase = true) || value.contains("united states", ignoreCase = true) || value.contains("🇺🇸") -> "🇺🇸"
+        value.contains("south africa", ignoreCase = true) || value.contains("🇿🇦") -> "🇿🇦"
+        value.contains("turkey", ignoreCase = true) || value.contains("türkiye", ignoreCase = true) || value.contains("🇹🇷") -> "🇹🇷"
+        else -> "🌎"
+    }
+}
+
+private fun countryMatches(roomCountry: String, selected: String): Boolean {
+    if (selected == "all") return true
+    return countryFlag(roomCountry) == countryFlag(selected)
+}
+
 // ═══════════════════════════════════════════════════════
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════
@@ -218,7 +236,7 @@ fun HomeScreen(
     val filteredRooms = remember(rooms, selectedCountry) {
         val list = rooms ?: emptyList()
         if (selectedCountry == "all") list
-        else list.filter { it.country.contains(selectedCountry, ignoreCase = true) }
+        else list.filter { countryMatches(it.country, selectedCountry) }
     }
 
     Column(
@@ -518,7 +536,7 @@ private fun RoomListCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            Text(room.country, fontSize = 14.sp, maxLines = 1)
+            Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
                 room.name,
                 fontSize = 14.sp,
