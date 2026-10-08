@@ -68,15 +68,15 @@ fun RoomPage(
                 IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,null,tint=Color.White)}
                 AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.size(44.dp).clip(CircleShape),contentScale=ContentScale.Crop)
                 Column(Modifier.weight(1f).padding(start=8.dp)){
-                    Text(roomName,Color.White,16.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
-                    Text("ID: "+roomId,Color.White.copy(.65f),11.sp,maxLines=1)
+                    Text(roomName,color=Color.White,fontSize=16.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
                 TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",Color.White)}
                 IconButton(onClick={onClose}){Icon(Icons.Default.Close,null,tint=Color.White)}
                 IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
             }
             if(announcement.isNotBlank()) Surface(Modifier.fillMaxWidth().padding(10.dp),color=Color.Black.copy(.4f),shape=RoundedCornerShape(18.dp)){
-                Text(announcement,Color.White,13.sp,modifier=Modifier.padding(10.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
+                Text(announcement,color=Color.White,fontSize=13.sp,modifier=Modifier.padding(10.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
             }
             Spacer(Modifier.weight(1f))
             Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
@@ -129,14 +129,14 @@ fun RoomPage(
             else Icon(Icons.Default.Person,null,tint=Color.White.copy(.8f),modifier=Modifier.size(28.dp))
             if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(17.dp))
         }
-        Text(if(seat.occupied)seat.userName else seat.number.toString(),Color.White.copy(.9f),10.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+        Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=10.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
     }
 }
 
 @Composable private fun NativeMessage(m:NativeRoomMessage){
     Row(Modifier.fillMaxWidth().padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
         AsyncImage(model=m.senderImage,contentDescription=null,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-        Column(Modifier.padding(start=6.dp)){Text(m.sender,Color.White.copy(.7f),11.sp);Text(m.text,Color.White,13.sp)}
+        Column(Modifier.padding(start=6.dp)){Text(m.sender,color=Color.White.copy(.7f),fontSize=11.sp);Text(m.text,color=Color.White,fontSize=13.sp)}
     }
 }
 
@@ -144,7 +144,7 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black.copy(.35f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
         Surface(Modifier.fillMaxWidth().padding(14.dp),color=Color(0xFF181818),shape=RoundedCornerShape(22.dp)){
             Column(Modifier.padding(18.dp),horizontalAlignment=Alignment.CenterHorizontally){
-                Text("Room",Color.White,17.sp)
+                Text("Room",color=Color.White,fontSize=17.sp)
                 if(owner)TextButton(onClick=onSettings){Text("Room settings",Color.White)}
                 TextButton(onClick=onLeave){Text("Leave room",Color.White)}
                 TextButton(onClick=onClose){Text("Cancel",Color.White.copy(.7f))}
@@ -156,13 +156,13 @@ fun RoomPage(
 @Composable private fun RoomInfo(name:String,image:String,id:String,onClose:()->Unit){
     SimpleSheet("Room info",onClose){
         AsyncImage(model=image,contentDescription=null,modifier=Modifier.size(82.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-        Text(name,Color.White,18.sp);Text("ID: "+id,Color.White.copy(.65f),12.sp)
+        Text(name,color=Color.White,fontSize=18.sp);Text("ID: "+id,color=Color.White.copy(.65f),fontSize=12.sp)
     }
 }
 
 @Composable private fun MemberSheet(seat:NativeRoomSeat,onClose:()->Unit)=SimpleSheet("Member",onClose){
     AsyncImage(model=seat.userImage,contentDescription=null,modifier=Modifier.size(76.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-    Text(seat.userName,Color.White,17.sp);Text("ID: "+seat.accountId,Color.White.copy(.65f),12.sp)
+    Text(seat.userName,color=Color.White,fontSize=17.sp);Text("ID: "+seat.accountId,color=Color.White.copy(.65f),fontSize=12.sp)
 }
 
 @Composable private fun RoomSettings(name:String,announcement:String,locked:Boolean,onName:(String)->Unit,onAnnouncement:(String)->Unit,onLocked:(Boolean)->Unit,onClose:()->Unit,onSave:()->Unit)=SimpleSheet("Room settings",onClose){
@@ -178,26 +178,26 @@ fun RoomPage(
 }
 
 @Composable private fun GamesSheet(onClose:()->Unit)=SimpleSheet("Games",onClose){
-    listOf("Wild Party","Fruit Party","Room task","Store").forEach{Text(it,Color.White,15.sp,modifier=Modifier.padding(10.dp))}
+    listOf("Wild Party","Fruit Party","Room task","Store").forEach{Text(it,color=Color.White,fontSize=15.sp,modifier=Modifier.padding(10.dp))}
 }
 
 @Composable private fun MusicSheet(onClose:()->Unit){
     var volume by remember{mutableFloatStateOf(1f)}
     SimpleSheet("Music",onClose){
-        Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.MusicNote,null,tint=Color.White);Slider(volume,{volume=it},Modifier.weight(1f));Text((volume*100).toInt().toString()+"%",Color.White,11.sp)}
+        Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.MusicNote,null,tint=Color.White);Slider(volume,{volume=it},Modifier.weight(1f));Text((volume*100).toInt().toString()+"%",color=Color.White,fontSize=11.sp)}
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){TextButton(onClick={}){Text("Previous",Color.White)};TextButton(onClick={}){Text("Play",Color.White)};TextButton(onClick={}){Text("Next",Color.White)}}
     }
 }
 
 @Composable private fun EmojiSheet(onClose:()->Unit,onEmoji:(String)->Unit)=SimpleSheet("Emoji",onClose){
-    Row(Modifier.horizontalScroll(rememberScrollState())){listOf("😀","😂","😍","😎","🥰","😭","🔥","❤️").forEach{Text(it,27.sp,modifier=Modifier.padding(7.dp).clickable{onEmoji(it)})}}
+    Row(Modifier.horizontalScroll(rememberScrollState())){listOf("😀","😂","😍","😎","🥰","😭","🔥","❤️").forEach{Text(it,fontSize=27.sp,modifier=Modifier.padding(7.dp).clickable{onEmoji(it)})}}
 }
 
-@Composable private fun SimpleSheet(title:String,onClose:()->Unit,content:@Composable()->Unit){
+@Composable private fun SimpleSheet(title:String,onClose:()->Unit,content: @Composable () -> Unit){
     Box(Modifier.fillMaxSize().background(Color.Black.copy(.42f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
         Surface(Modifier.fillMaxWidth().clickable(enabled=false){},color=Color(0xFF171717),shape=RoundedCornerShape(topStart=22.dp,topEnd=22.dp)){
             Column(Modifier.padding(18.dp).navigationBarsPadding()){
-                Row(verticalAlignment=Alignment.CenterVertically){Text(title,Color.White,18.sp,Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,null,tint=Color.White)}}
+                Row(verticalAlignment=Alignment.CenterVertically){Text(title,color=Color.White,fontSize=18.sp,Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,null,tint=Color.White)}}
                 content();Spacer(Modifier.height(18.dp))
             }
         }
