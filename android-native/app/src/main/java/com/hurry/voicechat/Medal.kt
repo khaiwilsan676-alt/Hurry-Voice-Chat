@@ -16,6 +16,6 @@ data class HurryMedal(val id:String,val name:String,val image:String)
 fun Medal(onBack:()->Unit={},medals:List<HurryMedal> =emptyList()){
  Column(Modifier.fillMaxSize().background(Color(0xFF050814))){
   Row(Modifier.padding(16.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalAlignment=Alignment.CenterVertically){Text("‹",color=Color.White,style=MaterialTheme.typography.headlineMedium);Text("Medal",color=Color.White,style=MaterialTheme.typography.titleLarge)}
-  LazyVerticalGrid(columns=GridCells.Fixed(3),contentPadding=PaddingValues(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){items(medals,key={it.id}){m->Column(Modifier.background(Color(0xFF1E1245),RoundedCornerShape(12.dp)).padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=m.image,contentDescription=m.name,modifier=Modifier.size(78.dp));Text(m.name,color=Color.White,maxLines=1)}}}}
+  LazyVerticalGrid(columns=GridCells.Fixed(3),contentPadding=PaddingValues(12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){items(medals,key={it.id}){m->Column(Modifier.background(Color(0xFF1E1245),RoundedCornerShape(12.dp)).padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=m.image,contentDescription=m.name,modifier=Modifier.size(78.dp));Text(m.name,color=Color.White,maxLines=1)}}}
  }
 }
