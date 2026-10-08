@@ -189,10 +189,23 @@ private fun HurryNativeRoot() {
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
                                 openedChat = Triple(uid, name, image)
                             }
-                            HurryTab.ME -> if (openedMePage == "Coins") CoinsNativePage(onBack = { openedMePage = null })
-                            else if (openedMePage == "Diamonds") DiamondsNativePage(onBack = { openedMePage = null })
-                            else if (openedMePage != null) MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null })
-                            else MeScreen(onOpen = { openedMePage = it })
+                            HurryTab.ME -> when (openedMePage) {
+                                null -> MeScreen(onOpen = { openedMePage = it })
+                                "Coins" -> CoinsNativePage(onBack = { openedMePage = null })
+                                "Diamonds" -> DiamondsNativePage(onBack = { openedMePage = null })
+                                "Invite Friends" -> InviteFriends(onBack = { openedMePage = null })
+                                "Family" -> Family(onBack = { openedMePage = null })
+                                "Level" -> Level(onBack = { openedMePage = null })
+                                "Medal" -> Medal(onBack = { openedMePage = null })
+                                "Store" -> StorePage(onBack = { openedMePage = null })
+                                "Bag" -> BagPage(onBack = { openedMePage = null })
+                                "Seller Center" -> SellerCenter(onBack = { openedMePage = null })
+                                "Language Setting" -> LanguagePage(onBack = { openedMePage = null })
+                                "Settings" -> SettingsPage(onBack = { openedMePage = null })
+                                "Customer Service" -> HurrySupport(onBack = { openedMePage = null })
+                                "Help & Feedback" -> HelpFeedbackPage(onBack = { openedMePage = null })
+                                else -> MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null })
+                            }
                         }
                     }
                     if (openedMePage == null) {
@@ -209,7 +222,8 @@ private fun MeNativeSubPage(title: String, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().background(Color.White).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("‹", fontSize = 36.sp, color = Color(0xFF222222), modifier = Modifier.clickable { onBack() })
-            Spacer(Modifier.width(12.dp)); Text(title, fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color(0xFF111827))
+            Spacer(Modifier.width(12.dp))
+            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Normal, color = Color(0xFF111827))
         }
     }
 }
