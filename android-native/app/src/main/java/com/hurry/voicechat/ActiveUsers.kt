@@ -27,18 +27,18 @@ fun ActiveUsers(isOpen:Boolean,onClose:()->Unit,roomUsers:List<ActiveUserNative>
  Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
   Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClose))
   Column(Modifier.fillMaxWidth().fillMaxHeight(.30f).clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp)).background(Color.White)){
-   Text("Active Users",Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=22.dp),18.sp,FontWeight.Bold,color=Color(0xFF333333))
+   Text("Active Users",modifier=Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=22.dp),fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF333333))
    HorizontalDivider(color=Color(0xFFE5E7EB))
-   if(roomUsers.isEmpty()) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("No active users",14.sp,color=Color(0xFF9CA3AF))}
+   if(roomUsers.isEmpty()) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("No active users",fontSize=14.sp,color=Color(0xFF9CA3AF))}
    else LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(12.dp,12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
     items(roomUsers,key={it.accountId}){user->
      Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0xFFF9FAFB)).padding(12.dp,10.dp),verticalAlignment=Alignment.CenterVertically){
       AsyncImage(model=if(user.image.isBlank())"/default-avatar.png" else user.image,contentDescription=user.name,modifier=Modifier.size(40.dp).clip(CircleShape).clickable{onOpenProfile(user)},contentScale=ContentScale.Crop)
       Column(Modifier.weight(1f).padding(start=12.dp)){
-       Text(user.name,14.sp,FontWeight.SemiBold,color=Color(0xFF333333),maxLines=1)
+       Text(user.name,fontSize=14.sp,fontWeight=FontWeight.SemiBold,color=Color(0xFF333333),maxLines=1)
        Row(verticalAlignment=Alignment.CenterVertically){
-        Text("ID: "+user.accountId,12.sp,color=Color(0xFF9CA3AF))
-        Text("  ⧉",Modifier.clickable{onCopyUserId(user.accountId)},14.sp,color=Color(0xFF9CA3AF))
+        Text("ID: "+user.accountId,fontSize=12.sp,color=Color(0xFF9CA3AF))
+        Text("  ⧉",modifier=Modifier.clickable{onCopyUserId(user.accountId)},fontSize=14.sp,color=Color(0xFF9CA3AF))
        }
       }
      }
