@@ -160,6 +160,8 @@ private fun HurryNativeRoot() {
     var openedRoom by remember { mutableStateOf<HurryRoom?>(null) }
     var openedChat by remember { mutableStateOf<Triple<String, String, String>?>(null) }
     var openedMePage by remember { mutableStateOf<String?>(null) }
+    var openedLeaderboard by remember { mutableStateOf<String?>(null) }
+    var openedInvite by remember { mutableStateOf(false) }
 
     BackHandler(enabled = openedRoom != null || openedChat != null || openedMePage != null) {
         when {
@@ -173,6 +175,10 @@ private fun HurryNativeRoot() {
         Box(Modifier.fillMaxSize()) {
             if (openedRoom != null) {
                 RoomScreen(openedRoom!!, onBack = { openedRoom = null })
+            } else if (openedLeaderboard != null) {
+                Leaderboard(onBack = { openedLeaderboard = null }, initialTab = openedLeaderboard!!)
+            } else if (openedInvite) {
+                InviteFriends(onBack = { openedInvite = false })
             } else if (openedChat != null) {
                 val chat = openedChat!!
                 NativeChatScreen(chat.second, chat.third, onBack = { openedChat = null })
@@ -184,6 +190,8 @@ private fun HurryNativeRoot() {
                                 onRoom = { openedRoom = it },
                                 onMine = { homeMine = true },
                                 onPopular = { homeMine = false },
+                                onLeaderboard = { openedLeaderboard = it },
+                                onInviteFriends = { openedInvite = true },
                                 mineSelected = homeMine
                             )
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
