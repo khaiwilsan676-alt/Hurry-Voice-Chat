@@ -3,6 +3,8 @@ name: Build Native Hurry APK
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - 'android-native/**'
       - '.github/workflows/build-native-android.yml'
