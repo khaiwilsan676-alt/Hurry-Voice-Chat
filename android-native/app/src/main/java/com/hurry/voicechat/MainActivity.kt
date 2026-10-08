@@ -174,7 +174,17 @@ private fun HurryNativeRoot() {
     HurryTheme {
         Box(Modifier.fillMaxSize()) {
             if (openedRoom != null) {
-                RoomScreen(openedRoom!!, onBack = { openedRoom = null })
+                RoomPage(
+                    roomOwner = RoomPageOwner(
+                        id = openedRoom!!.id,
+                        accountId = openedRoom!!.accountId ?: "",
+                        name = openedRoom!!.name,
+                        image = openedRoom!!.image
+                    ),
+                    currentUser = RoomPageCurrentUser(),
+                    onBack = { openedRoom = null },
+                    onClose = { openedRoom = null }
+                )
             } else if (openedLeaderboard != null) {
                 Leaderboard(onBack = { openedLeaderboard = null }, initialTab = openedLeaderboard!!)
             } else if (openedInvite) {
