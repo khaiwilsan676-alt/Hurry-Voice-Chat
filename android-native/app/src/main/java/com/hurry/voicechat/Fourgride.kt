@@ -17,7 +17,7 @@ data class NativeMusicTrack(val id:String,val name:String,val url:String)
  var musicSheet by remember{mutableStateOf(false)}
  var luckyBag by remember{mutableStateOf(false)}
  Column(Modifier.fillMaxWidth().background(Color.White).padding(bottom=18.dp)){
-  Row(Modifier.fillMaxWidth().padding(14.dp)){Text("Room settings",style=MaterialTheme.typography.titleLarge,Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,"Close")}}
+  Row(Modifier.fillMaxWidth().padding(14.dp)){Text("Room settings",modifier=Modifier.weight(1f),style=MaterialTheme.typography.titleLarge);IconButton(onClick=onClose){Icon(Icons.Default.Close,"Close")}}
   LazyColumn{
    item{SettingSwitch("Public messages",!publicMsgOff,onTogglePublicMsg)}
    item{SettingSwitch("Speaker",speaker,onToggleSpeaker)}
