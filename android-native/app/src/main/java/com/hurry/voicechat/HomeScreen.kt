@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -102,6 +103,25 @@ abstract class HurryDatabase : RoomDatabase() {
 }
 
 // ═══════════════════════════════════════════════════════
+// COUNTRY PILL DATA
+// ═══════════════════════════════════════════════════════
+private data class CountryPill(
+    val flag: String?,
+    val label: String,
+    val value: String
+)
+
+private val countryPills = listOf(
+    CountryPill(null, "All",          "all"),
+    CountryPill("🇮🇳", "India",        "India"),
+    CountryPill("🇸🇬", "Singapore",    "Singapore"),
+    CountryPill("🇵🇰", "Pakistan",     "Pakistan"),
+    CountryPill("🇺🇸", "USA",          "USA"),
+    CountryPill("🇿🇦", "South Africa", "South Africa"),
+    CountryPill("🇹🇷", "Turkey",       "Turkey")
+)
+
+// ═══════════════════════════════════════════════════════
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════
 @Composable
@@ -120,6 +140,7 @@ fun HomeScreen(
     }
 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
+    var selectedCountry by remember { mutableStateOf("all") }
 
     // Room cache is optional: a corrupt/old database must never close the app.
     LaunchedEffect(Unit) {
@@ -192,10 +213,17 @@ fun HomeScreen(
         }
     }
 
+    // Country filter
+    val filteredRooms = remember(rooms, selectedCountry) {
+        val list = rooms ?: emptyList()
+        if (selectedCountry == "all") list
+        else list.filter { it.country.contains(selectedCountry, ignoreCase = true) }
+    }
+
     Column(
         Modifier.fillMaxSize().background(Color(0xFFF9FAFB))
     ) {
-        // ───────── TOP HEADER (MePage gradient) ─────────
+        // ═══════════ FIXED TOP HEADER (does not scroll) ═══════════
         Column(
             Modifier
                 .fillMaxWidth()
@@ -239,15 +267,14 @@ fun HomeScreen(
                 Spacer(Modifier.width(2.dp))
             }
         }
+        // ═══════════ END FIXED TOP HEADER ═══════════
 
-        // ───────── SMALL GAP (header ↔ banner) ─────────
-        Spacer(Modifier.height(6.dp))
-
+        // ═══════════ SCROLLABLE AREA ═══════════
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 12.dp)
         ) {
-            // ───────── BANNER ─────────
+            // ───────── BANNER (SCROLLS) ─────────
             item {
                 Column(
                     Modifier
@@ -257,7 +284,7 @@ fun HomeScreen(
                                 listOf(Color(0xFFEFF6FF), Color(0xFFF9FAFB))
                             )
                         )
-                        .padding(top = 4.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                        .padding(top = 6.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                 ) {
                     Box(
                         Modifier
@@ -301,7 +328,7 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── CATEGORY CARDS (glitch-free shift) ─────────
+            // ───────── CATEGORY CARDS (SCROLL) ─────────
             item {
                 Row(
                     modifier = Modifier
@@ -316,7 +343,16 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── ROOMS GRID ─────────
+            // ───────── COUNTRY PILLS (HORIZONTAL + normal scroll) ─────────
+            item {
+                CountryPillRow(
+                    selected = selectedCountry,
+                    onSelect = { selectedCountry = it }
+                )
+                Spacer(Modifier.height(6.dp))
+            }
+
+            // ───────── ROOMS GRID (SCROLL) ─────────
             if (rooms == null) {
                 item {
                     Box(
@@ -326,17 +362,30 @@ fun HomeScreen(
                         CircularProgressIndicator(color = HurryBlue, strokeWidth = 2.dp)
                     }
                 }
-            } else if (rooms!!.isNotEmpty()) {
-                val roomRows = rooms!!.chunked(2)
+            } else if (filteredRooms.isEmpty()) {
+                item {
+                    Box(
+                        Modifier.fillMaxWidth().height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No rooms in this country",
+                            fontSize = 14.sp,
+                            color = Color(0xFF6B7280)
+                        )
+                    }
+                }
+            } else {
+                val roomRows = filteredRooms.chunked(2)
                 items(
                     items = roomRows,
-                    key = { row -> row.first().id }   // scroll glitch fix
+                    key = { row -> row.first().id }
                 ) { row ->
                     Row(
                         Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)  // gap kam
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         row.forEach { room ->
                             RoomListCard(room, onRoom, Modifier.weight(1f))
@@ -345,7 +394,86 @@ fun HomeScreen(
                     }
                 }
             }
-            // Empty pe kuch nahi — text hata diya
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// COUNTRY PILL ROW (Horizontal scroll — LazyRow)
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun CountryPillRow(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        userScrollEnabled = true
+    ) {
+        items(countryPills.size) { index ->
+            val pill = countryPills[index]
+            val active = selected == pill.value
+
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if (active) HurryBlue else Color.White)
+                    .clickable { onSelect(pill.value) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (pill.flag == null) {
+                    androidx.compose.foundation.Canvas(Modifier.size(16.dp)) {
+                        val stroke = 1.6.dp.toPx()
+                        val c = if (active) Color.White else Color(0xFF374151)
+
+                        drawCircle(
+                            color = c,
+                            radius = size.minDimension / 2f - stroke / 2,
+                            style = Stroke(width = stroke)
+                        )
+                        drawOval(
+                            color = c,
+                            topLeft = Offset(size.width * 0.30f, 0f),
+                            size = Size(size.width * 0.40f, size.height),
+                            style = Stroke(width = stroke * 0.85f)
+                        )
+                        drawOval(
+                            color = c,
+                            topLeft = Offset(size.width * 0.15f, 0f),
+                            size = Size(size.width * 0.70f, size.height),
+                            style = Stroke(width = stroke * 0.75f)
+                        )
+                        drawOval(
+                            color = c,
+                            topLeft = Offset(0f, size.height * 0.32f),
+                            size = Size(size.width, size.height * 0.36f),
+                            style = Stroke(width = stroke * 0.85f)
+                        )
+                        drawOval(
+                            color = c,
+                            topLeft = Offset(0f, size.height * 0.15f),
+                            size = Size(size.width, size.height * 0.70f),
+                            style = Stroke(width = stroke * 0.75f)
+                        )
+                    }
+                } else {
+                    Text(pill.flag, fontSize = 14.sp)
+                }
+
+                Text(
+                    text = pill.label,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (active) Color.White else Color(0xFF374151),
+                    maxLines = 1
+                )
+            }
         }
     }
 }
