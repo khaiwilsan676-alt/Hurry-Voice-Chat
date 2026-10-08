@@ -113,14 +113,20 @@ fun HomeScreen(
 ) {
     val mine = mineSelected
     val context = LocalContext.current
-    val dao = remember { HurryDatabase.get(context).roomDao() }
+    val dao = remember {
+        runCatching { HurryDatabase.get(context).roomDao() }.getOrNull()
+    }
 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
 
-    // ───────── CACHE-FIRST + SERVER SYNC ─────────
+    // Room cache is optional: a corrupt/old database must never close the app.
     LaunchedEffect(Unit) {
-        // 1️⃣ Pehle Room DB se instant load
-        val cached = withContext(Dispatchers.IO) { dao.getAll() }
+        val cached = if (dao != null) {
+            runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
+
         if (cached.isNotEmpty()) {
             rooms = cached.map {
                 HurryRoom(
@@ -133,28 +139,32 @@ fun HomeScreen(
             }
         }
 
-        // 2️⃣ Phir server se fresh data
-        val fresh = try { HurryApi.rooms() } catch (e: Exception) { emptyList() }
+        // Server data remains the source of truth.
+        val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
 
         if (fresh.isNotEmpty()) {
             rooms = fresh
-
-            // 3️⃣ Room DB me save (replace all)
-            withContext(Dispatchers.IO) {
-                dao.clearAll()
-                dao.insertAll(
-                    fresh.map {
-                        RoomEntity(
-                            id = it.id,
-                            name = it.name,
-                            country = it.country,
-                            image = it.image,
-                            accountId = it.accountId ?: "",
-                            createdAt = System.currentTimeMillis()
+            if (dao != null) {
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        dao.clearAll()
+                        dao.insertAll(
+                            fresh.map {
+                                RoomEntity(
+                                    id = it.id,
+                                    name = it.name,
+                                    country = it.country,
+                                    image = it.image,
+                                    accountId = it.accountId ?: "",
+                                    createdAt = System.currentTimeMillis()
+                                )
+                            }
                         )
                     }
-                )
+                }
             }
+        } else if (rooms == null) {
+            rooms = emptyList()
         }
     }
 
