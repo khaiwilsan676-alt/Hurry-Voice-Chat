@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,8 @@ fun RoomScreen(room: HurryRoom, onBack: () -> Unit) {
     var micOn by remember { mutableStateOf(true) }
     var showMessage by remember { mutableStateOf(false) }
     var showGift by remember { mutableStateOf(false) }
+    var showMore by remember { mutableStateOf(false) }
+    var selectedSeat by remember { mutableStateOf<Int?>(null) }
 
     Box(Modifier.fillMaxSize().background(RoomBg)) {
         AsyncImage(model = RAW_ROOM + "1784533036732~2.jpg", contentDescription = null,
@@ -47,9 +51,9 @@ fun RoomScreen(room: HurryRoom, onBack: () -> Unit) {
             Column(Modifier.fillMaxWidth().weight(1f).padding(horizontal = 7.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SeatRow(listOf(1,2,3,4,5), room)
-                SeatRow(listOf(6,7,8,9,10), room)
-                SeatRow(listOf(11,12,13,14,15), room)
+                SeatRow(listOf(1,2,3,4), room) { selectedSeat = it }
+                SeatRow(listOf(5,6,7,8), room) { selectedSeat = it }
+                SeatRow(listOf(5,6,7,8), room) { selectedSeat = it }
             }
 
             if (showMessage) {
@@ -61,10 +65,10 @@ fun RoomScreen(room: HurryRoom, onBack: () -> Unit) {
 
             Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                RoomAction("Message", "💬") { showMessage = !showMessage }
-                RoomAction("Gift", "🎁") { showGift = !showGift }
-                RoomAction(if (micOn) "Mic" else "Muted", if (micOn) "🎙" else "🔇") { micOn = !micOn }
-                RoomAction("More", "⋯") { }
+                RoomIconAction(Icons.Default.ChatBubbleOutline, "Message") { showMessage = !showMessage }
+                RoomIconAction(Icons.Default.CardGiftcard, "Gift") { showGift = !showGift }
+                RoomIconAction(if (micOn) Icons.Default.Mic else Icons.Default.MicOff, if (micOn) "Mic" else "Muted") { micOn = !micOn }
+                RoomIconAction(Icons.Default.MoreHoriz, "More") { showMore = true }
             }
         }
 
@@ -105,31 +109,30 @@ private fun RoomHeader(room: HurryRoom, onBack: () -> Unit) {
 }
 
 @Composable
-private fun RoomAction(label: String, icon: String, onClick: () -> Unit) {
+private fun RoomIconAction(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(62.dp).clickable(onClick = onClick)) {
-        Box(Modifier.size(46.dp).clip(CircleShape).background(Color.Black.copy(alpha = .48f)),
-            contentAlignment = Alignment.Center) { Text(icon, fontSize = 21.sp) }
+        modifier = Modifier.width(58.dp).clickable(onClick = onClick)) {
+        Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(27.dp))
         Spacer(Modifier.height(3.dp))
-        Text(label, color = Color.White, fontSize = 11.sp)
+        Text(label, color = Color.White, fontSize = 10.sp)
     }
 }
 
 @Composable
-private fun SeatRow(nums: List<Int>, room: HurryRoom) {
+private fun SeatRow(nums: List<Int>, room: HurryRoom, onSeat: (Int) -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Top) {
-        nums.forEach { n -> NativeSeat(n, room) }
+        nums.forEach { n -> NativeSeat(n, room, onSeat) }
     }
 }
 
 @Composable
-private fun NativeSeat(number: Int, room: HurryRoom) {
+private fun NativeSeat(number: Int, room: HurryRoom, onSeat: (Int) -> Unit) {
     val occupied = number == 1
     val avatar = if (occupied) {
         if (room.image.startsWith("http")) room.image else RAW_ROOM + room.image.trimStart('/')
     } else RAW_ROOM + "file_000000003e7482309b7f6e7f2a922160.png"
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(62.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(62.dp).clickable { onSeat(number) }) {
         Box(Modifier.size(62.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.size(62.dp).clip(CircleShape)
                 .background(if (occupied) Color(0xFF35B7F0) else Color(0xFF53606A)))
