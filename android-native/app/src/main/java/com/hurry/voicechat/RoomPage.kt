@@ -71,7 +71,7 @@ fun RoomPage(
                     Text(roomName,color=Color.White,fontSize=16.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                     Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
-                TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",Color.White)}
+                TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",color=Color.White)}
                 IconButton(onClick={onClose}){Icon(Icons.Default.Close,null,tint=Color.White)}
                 IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
             }
@@ -107,7 +107,7 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onLeave={showMenu=false;onClose()}
         )
-        if(showInfo) RoomInfo(roomName,roomImage,roomId){showInfo=false}
+        if(showInfo) SimpleRoomInfo(roomName,roomImage,roomId){showInfo=false}
         if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
         if(showGift) GiftSheet{showGift=false}
         if(showGames) GamesSheet{showGames=false}
@@ -145,9 +145,9 @@ fun RoomPage(
         Surface(Modifier.fillMaxWidth().padding(14.dp),color=Color(0xFF181818),shape=RoundedCornerShape(22.dp)){
             Column(Modifier.padding(18.dp),horizontalAlignment=Alignment.CenterHorizontally){
                 Text("Room",color=Color.White,fontSize=17.sp)
-                if(owner)TextButton(onClick=onSettings){Text("Room settings",Color.White)}
-                TextButton(onClick=onLeave){Text("Leave room",Color.White)}
-                TextButton(onClick=onClose){Text("Cancel",Color.White.copy(.7f))}
+                if(owner)TextButton(onClick=onSettings){Text("Room settings",color=Color.White)}
+                TextButton(onClick=onLeave){Text("Leave room",color=Color.White)}
+                TextButton(onClick=onClose){Text("Cancel",color=Color.White.copy(.7f))}
             }
         }
     }
@@ -168,13 +168,13 @@ fun RoomPage(
 @Composable private fun RoomSettings(name:String,announcement:String,locked:Boolean,onName:(String)->Unit,onAnnouncement:(String)->Unit,onLocked:(Boolean)->Unit,onClose:()->Unit,onSave:()->Unit)=SimpleSheet("Room settings",onClose){
     OutlinedTextField(name,onName,singleLine=true,label={Text("Room name")})
     Spacer(Modifier.height(8.dp));OutlinedTextField(announcement,onAnnouncement,singleLine=true,label={Text("Announcement")})
-    Row(verticalAlignment=Alignment.CenterVertically){Text("Lock room",Color.White,modifier=Modifier.weight(1f));TextButton(onClick={onLocked(!locked)}){Text(if(locked)"ON" else "OFF",Color.White)}}
-    TextButton(onClick=onSave){Text("Save",Color.White)}
+    Row(verticalAlignment=Alignment.CenterVertically){Text("Lock room",color=Color.White,modifier=Modifier.weight(1f));TextButton(onClick={onLocked(!locked)}){Text(if(locked)"ON" else "OFF",color=Color.White)}}
+    TextButton(onClick=onSave){Text("Save",color=Color.White)}
 }
 
 @Composable private fun GiftSheet(onClose:()->Unit)=SimpleSheet("Gift",onClose){
-    Row(Modifier.horizontalScroll(rememberScrollState())){listOf("Hot","Lucky","Luxury","Event").forEach{TextButton(onClick={}){Text(it,Color.White)}}}
-    Text("Select a gift",Color.White.copy(.7f),modifier=Modifier.padding(12.dp))
+    Row(Modifier.horizontalScroll(rememberScrollState())){listOf("Hot","Lucky","Luxury","Event").forEach{TextButton(onClick={}){Text(it,color=Color.White)}}}
+    Text("Select a gift",color=Color.White.copy(.7f),modifier=Modifier.padding(12.dp))
 }
 
 @Composable private fun GamesSheet(onClose:()->Unit)=SimpleSheet("Games",onClose){
@@ -197,7 +197,7 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black.copy(.42f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
         Surface(Modifier.fillMaxWidth().clickable(enabled=false){},color=Color(0xFF171717),shape=RoundedCornerShape(topStart=22.dp,topEnd=22.dp)){
             Column(Modifier.padding(18.dp).navigationBarsPadding()){
-                Row(verticalAlignment=Alignment.CenterVertically){Text(title,color=Color.White,fontSize=18.sp,Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,null,tint=Color.White)}}
+                Row(verticalAlignment=Alignment.CenterVertically){Text(title,color=Color.White,fontSize=18.sp,modifier=Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,null,tint=Color.White)}}
                 content();Spacer(Modifier.height(18.dp))
             }
         }
