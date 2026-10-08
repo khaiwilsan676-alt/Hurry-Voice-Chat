@@ -107,7 +107,7 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onLeave={showMenu=false;onClose()}
         )
-        if(showInfo) SimpleRoomInfo(roomName,roomImage,roomId){showInfo=false}
+        if(showInfo) RoomInfo(roomName,roomImage,roomId){showInfo=false}
         if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
         if(showGift) GiftSheet{showGift=false}
         if(showGames) GamesSheet{showGames=false}
@@ -185,7 +185,7 @@ fun RoomPage(
     var volume by remember{mutableFloatStateOf(1f)}
     SimpleSheet("Music",onClose){
         Row(verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.MusicNote,null,tint=Color.White);Slider(volume,{volume=it},Modifier.weight(1f));Text((volume*100).toInt().toString()+"%",color=Color.White,fontSize=11.sp)}
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){TextButton(onClick={}){Text("Previous",Color.White)};TextButton(onClick={}){Text("Play",Color.White)};TextButton(onClick={}){Text("Next",Color.White)}}
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){TextButton(onClick={}){Text("Previous",color=Color.White)};TextButton(onClick={}){Text("Play",color=Color.White)};TextButton(onClick={}){Text("Next",color=Color.White)}}
     }
 }
 
