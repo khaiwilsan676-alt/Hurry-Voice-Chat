@@ -52,7 +52,7 @@ private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 // MePage wala exact gradient
 private val MePageTopGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
     0.0f  to Color(0xFF3B82F6),
-    0.85f to Color(0xFFEFF6FF),
+    0.100f to Color(0xFFEFF6FF),
     1.0f  to Color(0xFFF9FAFB)
 )
 
