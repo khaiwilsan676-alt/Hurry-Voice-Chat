@@ -37,14 +37,14 @@ fun DailyCheckInModal(isOpen:Boolean,onClose:()->Unit,currentDay:Int,onSignIn:()
    Spacer(Modifier.height(8.dp));RewardCard(signInRewards[6],currentDay,Modifier.fillMaxWidth().height(100.dp),true);Spacer(Modifier.height(20.dp))
    Button(onClick=onSignIn,enabled=!claimedToday&&currentDay<=7,modifier=Modifier.fillMaxWidth().height(52.dp),shape=RoundedCornerShape(12.dp),colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF3B82F6),disabledContainerColor=Color(0xFF9CA3AF))){Text(if(claimedToday)"Claimed Today — Come Back Tomorrow" else if(currentDay>7)"All Rewards Claimed!" else "Sign In",fontSize=16.sp)}
   }
-  Box(Modifier.align(Alignment.BottomCenter).padding(bottom=8.dp).size(48.dp).background(Color.White.copy(alpha=.20f),RoundedCornerShape(50.dp)).clickable(onClick=onClose),contentAlignment=Alignment.Center){Text("×",Color.White,24.sp)}
+  Box(Modifier.align(Alignment.BottomCenter).padding(bottom=8.dp).size(48.dp).background(Color.White.copy(alpha=.20f),RoundedCornerShape(50.dp)).clickable(onClick=onClose),contentAlignment=Alignment.Center){Text("×",color=Color.White,fontSize=24.sp)}
  }
 }
 @Composable private fun RewardCard(item:SignInReward,currentDay:Int,modifier:Modifier=Modifier,big:Boolean=false){
  val borderColor=when{item.day<currentDay->Color(0xFF4ADE80);item.day==currentDay->Color(0xFF3B82F6);else->Color(0xFFE5E7EB)}
  Box(modifier.aspectRatio(if(big)3f else 1f).clip(RoundedCornerShape(8.dp)).border(2.dp,borderColor,RoundedCornerShape(8.dp)).background(Color.White),contentAlignment=Alignment.Center){
-  Text(item.day.toString(),Modifier.align(Alignment.TopStart).background(Color(0xFF3B82F6),RoundedCornerShape(topStart=8.dp,bottomEnd=8.dp)).padding(horizontal=7.dp,vertical=3.dp),Color.White,10.sp)
-  Column(horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=item.image,contentDescription="reward",modifier=Modifier.size(if(big)48.dp else 40.dp));Text(item.reward,10.sp,color=Color(0xFF374151))}
+  Text(item.day.toString(),modifier=Modifier.align(Alignment.TopStart).background(Color(0xFF3B82F6),RoundedCornerShape(topStart=8.dp,bottomEnd=8.dp)).padding(horizontal=7.dp,vertical=3.dp),color=Color.White,fontSize=10.sp)
+  Column(horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=item.image,contentDescription="reward",modifier=Modifier.size(if(big)48.dp else 40.dp));Text(item.reward,fontSize=10.sp,color=Color(0xFF374151))}
   if(item.day<currentDay)Text("✓",Modifier.align(Alignment.TopEnd).padding(3.dp),color=Color(0xFF22C55E),fontSize=14.sp)
  }
 }
