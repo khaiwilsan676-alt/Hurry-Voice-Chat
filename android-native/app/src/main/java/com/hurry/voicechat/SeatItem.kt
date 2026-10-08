@@ -30,7 +30,7 @@ fun SeatItem(seatNumber:Int,seatData:NativeSeat?,onClick:()->Unit,onAvatarClick:
      else->Text("♟",fontSize=28.sp,color=Color(0xFF94A7BE))
     }
    }
-   if(seatData?.isMuted==true)Box(Modifier.align(Alignment.BottomEnd).size(20.dp).background(Color.Red,CircleShape),contentAlignment=Alignment.Center){Text("×",Color.White,fontSize=12.sp)}
+   if(seatData?.isMuted==true)Box(Modifier.align(Alignment.BottomEnd).size(20.dp).background(Color.Red,CircleShape),contentAlignment=Alignment.Center){Text("×",color=Color.White,fontSize=12.sp)}
   }
   Row(verticalAlignment=Alignment.CenterVertically){
    if(owner)Text("⌂ ",fontSize=10.sp,color=Color(0xFF3B82F6))
