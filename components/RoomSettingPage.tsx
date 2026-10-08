@@ -1164,10 +1164,14 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
       {/* ---------- HELP SHEET (Cream/Yellow theme + Admin info text) ---------- */}
       {showHelpSheet && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4">
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowHelpSheet(false)}
+        >
           <div
-            className="relative rounded-2xl shadow-2xl w-full max-w-sm max-h-[70vh] flex flex-col overflow-hidden border border-yellow-200"
+            className="relative rounded-2xl shadow-2xl w-full max-w-xs max-h-[60vh] flex flex-col overflow-hidden border border-yellow-200"
             style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
@@ -1176,22 +1180,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto px-4 pb-4">
-              {/* Yellow striped table at top (screenshot jaisa) */}
-              <div className="w-full rounded-lg overflow-hidden border border-yellow-300 mb-4">
-                {[0, 1, 2, 3].map((row) => (
-                  <div key={row} className="flex h-7">
-                    <div
-                      className="flex-1 border-r border-yellow-300"
-                      style={{ backgroundColor: row % 2 === 0 ? '#f0c24b' : '#faeec2' }}
-                    />
-                    <div
-                      className="flex-1"
-                      style={{ backgroundColor: row % 2 === 0 ? '#f0c24b' : '#faeec2' }}
-                    />
-                  </div>
-                ))}
-              </div>
-
               {/* Admin info text */}
               <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                 <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
