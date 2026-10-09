@@ -1012,11 +1012,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Save button */}
+              {/* Save button — now blue */}
               <div className="px-3 pb-4 pt-5">
                 <button
                   onClick={() => { setRoomName(tempRoomName); setShowRoomNameSheet(false) }}
-                  className="w-full py-3.5 rounded-full bg-[#00d8a0] text-white text-base font-semibold hover:bg-[#00c492] transition-colors"
+                  className="w-full py-3.5 rounded-full bg-blue-500 text-white text-base font-semibold hover:bg-blue-600 transition-colors"
                 >
                   Save
                 </button>
@@ -1060,11 +1060,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Save button */}
+              {/* Save button — now blue */}
               <div className="px-3 pb-4 pt-3">
                 <button
                   onClick={() => { setAnnouncement(tempAnnouncement); setShowAnnouncementSheet(false) }}
-                  className="w-full py-3 rounded-full bg-[#00d8a0] text-white text-base font-semibold hover:bg-[#00c492] transition-colors"
+                  className="w-full py-3 rounded-full bg-blue-500 text-white text-base font-semibold hover:bg-blue-600 transition-colors"
                 >
                   Save
                 </button>
@@ -1209,14 +1209,14 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Confirm button fixed at bottom */}
+              {/* Confirm button fixed at bottom — now blue */}
               <div
                 className="flex-shrink-0 px-4 pt-3 bg-white border-t border-gray-100"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
               >
                 <button
                   onClick={() => { setSelectedMicMode(tempMicMode); setShowMicModeSheet(false) }}
-                  className="w-full py-3 rounded-xl bg-[#00d8a0] text-white font-semibold text-center hover:bg-[#00c492] transition-colors"
+                  className="w-full py-3 rounded-xl bg-blue-500 text-white font-semibold text-center hover:bg-blue-600 transition-colors"
                 >
                   Confirm
                 </button>
