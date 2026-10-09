@@ -1,5 +1,7 @@
 package com.hurry.voicechat
 
+private fun tsxAsset(path: String): String = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/" + path.removePrefix("/")
+
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -301,7 +303,7 @@ fun RoomPage(
                     }
                     
                     // Gift Center
-                    AsyncImage(model = "/file_0000000019c4821180028eebae10dbfc.png", contentDescription = "Gift", modifier = Modifier.size(footerButtonSize + 9.dp).clickable { showGiftPicker = true }, contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/file_0000000019c4821180028eebae10dbfc.png"), contentDescription = "Gift", modifier = Modifier.size(footerButtonSize + 9.dp).clickable { showGiftPicker = true }, contentScale = ContentScale.Fit)
 
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         FooterButton(TsxIcons.Mail, iconSize = footerIconSize + 2.dp) { showMessageSheet = true }
@@ -352,10 +354,10 @@ fun RoomPage(
         if (!showChatInput) {
             Column(Modifier.align(Alignment.BottomEnd).padding(bottom = 80.dp, end = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (showWildParty == "minimized") {
-                    AsyncImage(model = "/file_000000009d808211b8ffb7c2183b4ef5.png", contentDescription = "Wild", modifier = Modifier.size(60.dp).clickable { showWildParty = "true" })
+                    AsyncImage(model = tsxAsset("/file_000000009d808211b8ffb7c2183b4ef5.png"), contentDescription = "Wild", modifier = Modifier.size(60.dp).clickable { showWildParty = "true" })
                 }
                 if (showFruitParty == "minimized") {
-                    AsyncImage(model = "/fruit-party-logo.jpg", contentDescription = "Fruit", modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).clickable { showFruitParty = "true" })
+                    AsyncImage(model = tsxAsset("/fruit-party-logo.jpg"), contentDescription = "Fruit", modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)).clickable { showFruitParty = "true" })
                 }
             }
         }
@@ -377,11 +379,11 @@ fun RoomPage(
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Black, Color.Black.copy(alpha=0.5f), Color.Transparent))).clickable { showExitMenu = false }) {
                 Row(Modifier.align(Alignment.Center).padding(bottom = 100.dp), horizontalArrangement = Arrangement.spacedBy(64.dp)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onKeepRoom(JSONObject()); showExitMenu = false; onBack() }) {
-                        AsyncImage(model = "/IMG_20261002_113229.png", contentDescription = "Keep", modifier = Modifier.size(67.dp))
+                        AsyncImage(model = tsxAsset("/IMG_20261002_113229.png"), contentDescription = "Keep", modifier = Modifier.size(67.dp))
                         Text("Keep", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { showExitMenu = false; onBack() }) {
-                        AsyncImage(model = "/IMG_20261002_113213.png", contentDescription = "Exit", modifier = Modifier.size(67.dp))
+                        AsyncImage(model = tsxAsset("/IMG_20261002_113213.png"), contentDescription = "Exit", modifier = Modifier.size(67.dp))
                         Text("Exit", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
@@ -480,11 +482,11 @@ fun RoomPage(
                 }
                 Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { showGameSheet = false; showWildParty = "true" }) {
-                        AsyncImage("/file_000000009d808211b8ffb7c2183b4ef5.png", null, Modifier.size(56.dp))
+                        AsyncImage(tsxAsset("/file_000000009d808211b8ffb7c2183b4ef5.png"), null, Modifier.size(56.dp))
                         Text("Wild party", fontSize = 10.sp)
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { showGameSheet = false; showFruitParty = "true" }) {
-                        AsyncImage("/fruit-party-logo.jpg", null, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
+                        AsyncImage(tsxAsset("/fruit-party-logo.jpg"), null, Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)))
                         Text("Fruit party", fontSize = 10.sp)
                     }
                 }
@@ -733,47 +735,47 @@ fun Fourgride(
             }
             Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
-                    AsyncImage(model = "/IMG_20260814_110525.png", contentDescription = "Clear Chat", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110525.png"), contentDescription = "Clear Chat", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Clear-Chat", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
-                    AsyncImage(model = "/IMG_20260814_110608.png", contentDescription = "Public msg", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110608.png"), contentDescription = "Public msg", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Public msg", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = "/IMG_20260814_110709.png", contentDescription = "Entry Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110709.png"), contentDescription = "Entry Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Entry Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = "/IMG_20260814_110727.png", contentDescription = "Gift Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110727.png"), contentDescription = "Gift Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Gift Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
-                    AsyncImage(model = "/IMG_20260814_144255.png", contentDescription = "Music", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_144255.png"), contentDescription = "Music", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Music", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
-                    AsyncImage(model = "/IMG_20260814_110628.png", contentDescription = "Speaker", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110628.png"), contentDescription = "Speaker", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Speaker", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = "/IMG_20260814_110501.png", contentDescription = "Store", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110501.png"), contentDescription = "Store", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Store", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = "/IMG_20260814_110545.png", contentDescription = "My Item", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110545.png"), contentDescription = "My Item", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("My-Iteam", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
             }
             Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = "/1790602570756~2.jpg", contentDescription = "Lucky bag", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/1790602570756~2.jpg"), contentDescription = "Lucky bag", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Lucky bag", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = "/IMG_20260814_110802.png", contentDescription = "PK Battle", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    AsyncImage(model = tsxAsset("/IMG_20260814_110802.png"), contentDescription = "PK Battle", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
                     Text("Pk Battle", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
             }
@@ -784,7 +786,7 @@ fun Fourgride(
 fun Fruitparty(onClose: () -> Unit, onMinimize: () -> Unit) {
     Box(Modifier.fillMaxSize().background(Color(0xEE10131A)), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            AsyncImage(model = "/fruit-party-logo.jpg", contentDescription = "Fruit party", modifier = Modifier.size(100.dp))
+            AsyncImage(model = tsxAsset("/fruit-party-logo.jpg"), contentDescription = "Fruit party", modifier = Modifier.size(100.dp))
             Text("Fruit Party", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = onMinimize) { Text("Minimize") }
@@ -814,28 +816,28 @@ fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {
     var selectedMultiplier by remember { mutableIntStateOf(1) }
     data class NativeGift(val id: Int, val name: String, val coins: Int, val image: String)
     val hotGifts = listOf(
-        NativeGift(1, "Teddy", 70000, "/IMG_20260922_142150.jpg"),
-        NativeGift(2, "Autumn's Embrace", 54900, "/IMG_20260922_182259.png"),
-        NativeGift(3, "Arab King", 500000, "/image_d9df9625~2.jpg")
+        NativeGift(1, "Teddy", 70000, tsxAsset("/IMG_20260922_142150.jpg")),
+        NativeGift(2, "Autumn's Embrace", 54900, tsxAsset("/IMG_20260922_182259.png")),
+        NativeGift(3, "Arab King", 500000, tsxAsset("/image_d9df9625~2.jpg"))
     )
     val luckyGifts = listOf(
-        NativeGift(101, "Tiara", 3000, "/IMG_20260927_213855.png"),
-        NativeGift(102, "Lucky Clover", 1499, "/IMG_20260927_213917.png"),
-        NativeGift(103, "Hi", 999, "/IMG_20260927_213946.png"),
-        NativeGift(104, "Rose", 3999, "/IMG_20260927_214121.png"),
-        NativeGift(105, "Kiss", 1600, "/IMG_20260927_214139.png"),
-        NativeGift(106, "Balloon", 4000, "/IMG_20260927_214220.png"),
-        NativeGift(107, "Dragon", 7000, "/IMG_20260927_221521.png"),
-        NativeGift(108, "Nine Hands", 10999, "/IMG_20260927_221544.png"),
-        NativeGift(109, "Coffin", 8999, "/IMG_20260927_221559.png"),
-        NativeGift(110, "Sword", 9999, "/IMG_20260927_221615.png"),
-        NativeGift(111, "Love lock", 5000, "/IMG_20260927_221637.png"),
-        NativeGift(112, "Lantern", 6999, "/IMG_20260927_221654.png"),
-        NativeGift(113, "Ring", 5999, "/IMG_20260927_221707.png"),
-        NativeGift(114, "Dancing Girl", 12000, "/IMG_20260927_221722.png"),
-        NativeGift(115, "Whale", 7899, "/IMG_20260927_221742.png"),
-        NativeGift(116, "Star", 9800, "/file_0000000066f482118f772ed6fab4ad1f.png"),
-        NativeGift(117, "Fire Bird", 13000, "/file_00000000fe088211b7be0110e2d3f878.png")
+        NativeGift(101, "Tiara", 3000, tsxAsset("/IMG_20260927_213855.png")),
+        NativeGift(102, "Lucky Clover", 1499, tsxAsset("/IMG_20260927_213917.png")),
+        NativeGift(103, "Hi", 999, tsxAsset("/IMG_20260927_213946.png")),
+        NativeGift(104, "Rose", 3999, tsxAsset("/IMG_20260927_214121.png")),
+        NativeGift(105, "Kiss", 1600, tsxAsset("/IMG_20260927_214139.png")),
+        NativeGift(106, "Balloon", 4000, tsxAsset("/IMG_20260927_214220.png")),
+        NativeGift(107, "Dragon", 7000, tsxAsset("/IMG_20260927_221521.png")),
+        NativeGift(108, "Nine Hands", 10999, tsxAsset("/IMG_20260927_221544.png")),
+        NativeGift(109, "Coffin", 8999, tsxAsset("/IMG_20260927_221559.png")),
+        NativeGift(110, "Sword", 9999, tsxAsset("/IMG_20260927_221615.png")),
+        NativeGift(111, "Love lock", 5000, tsxAsset("/IMG_20260927_221637.png")),
+        NativeGift(112, "Lantern", 6999, tsxAsset("/IMG_20260927_221654.png")),
+        NativeGift(113, "Ring", 5999, tsxAsset("/IMG_20260927_221707.png")),
+        NativeGift(114, "Dancing Girl", 12000, tsxAsset("/IMG_20260927_221722.png")),
+        NativeGift(115, "Whale", 7899, tsxAsset("/IMG_20260927_221742.png")),
+        NativeGift(116, "Star", 9800, tsxAsset("/file_0000000066f482118f772ed6fab4ad1f.png")),
+        NativeGift(117, "Fire Bird", 13000, tsxAsset("/file_00000000fe088211b7be0110e2d3f878.png"))
     )
     val gifts = if (activeTab == "Lucky") luckyGifts else if (activeTab == "Hot") hotGifts else emptyList()
     val selectedGift = gifts.firstOrNull { it.id == selectedGiftId } ?: gifts.firstOrNull()
@@ -878,10 +880,10 @@ fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {
                                 .padding(4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            AsyncImage(model = gift.image, contentDescription = gift.name, modifier = Modifier.size(58.dp), contentScale = ContentScale.Fit)
+                            AsyncImage(model = tsxAsset(gift.image), contentDescription = gift.name, modifier = Modifier.size(58.dp), contentScale = ContentScale.Fit)
                             Text(gift.name, fontSize = 10.sp, color = Color(0xFF444444), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                                AsyncImage(model = "/file_00000000e56882119c217d508b6733dc.png", contentDescription = "Coins", modifier = Modifier.size(11.dp), contentScale = ContentScale.Fit)
+                                AsyncImage(model = tsxAsset("/file_00000000e56882119c217d508b6733dc.png"), contentDescription = "Coins", modifier = Modifier.size(11.dp), contentScale = ContentScale.Fit)
                                 Text(gift.coins.toString(), fontSize = 9.sp, color = Color(0xFF777777))
                             }
                         }
