@@ -283,7 +283,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="absolute top-[50vh] left-0 w-full h-[260vh] z-0 pointer-events-none bg-[#380308]"
         />
 
-        {/* Back Button - Gold Question Mark Style */}
+        {/* ===== BACK BUTTON - GOLD CIRCLE STYLE ===== */}
         <button 
           onClick={onBack} 
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
@@ -300,7 +300,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           </svg>
         </button>
 
-        {/* Question Mark Icon - Top Right */}
+        {/* ===== QUESTION MARK ICON - TOP RIGHT ===== */}
         <button
           onClick={() => setShowRules(true)}
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
@@ -323,7 +323,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="w-full flex justify-center px-4 flex-col items-center">
             <div className="relative w-[100%] max-w-[450px] flex flex-col items-center justify-center mt-2">
               
-              {/* Plate Wrapper */}
               <div className="relative w-full flex items-center justify-center">
                 <img 
                   src="/file_00000000f2908208a7b6a2b73c3bbf36.png" 
@@ -362,7 +361,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 </div>
               </div>
 
-              {/* COLLECT BUTTON */}
               <div className="relative w-full flex justify-center -mt-4 z-30">
                 <button 
                   onClick={() => {}}
@@ -381,7 +379,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
             </div>
           </div>
 
-          {/* NOTE TEXT - ab plate wrapper ke BAHAR, thoda neeche */}
           <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-4 px-3 relative z-40">
             *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
           </p>
@@ -475,16 +472,15 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
       </div>
 
-      {/* Rules Sheet Modal */}
+      {/* ===== RULES SHEET MODAL - NO BLUR ===== */}
       {showRules && (
         <div 
           className="fixed inset-0 z-[999] flex items-end justify-center"
           onClick={() => setShowRules(false)}
         >
-          {/* Backdrop - NO BLUR */}
+          {/* Backdrop - sirf dark, koi blur nahi */}
           <div className="absolute inset-0 bg-black/70" />
 
-          {/* Sheet */}
           <div 
             className="relative w-full max-w-[500px] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-[#380308] border-t-2 border-x-2 border-[#d85858] shadow-[0_-10px_40px_rgba(0,0,0,0.8)]"
             onClick={(e) => e.stopPropagation()}
@@ -492,18 +488,15 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               backgroundImage: 'linear-gradient(to bottom, #4a0a10 0%, #380308 100%)',
             }}
           >
-            {/* Drag Handle */}
             <div className="sticky top-0 z-10 flex justify-center pt-3 pb-2 bg-gradient-to-b from-[#4a0a10] to-transparent">
               <div className="w-10 h-1 rounded-full bg-[#d85858]/60" />
             </div>
 
             <div className="px-5 pb-8">
-              {/* Header */}
               <h2 className="text-center text-white text-lg font-black tracking-wider uppercase mb-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Room Task Rules
               </h2>
 
-              {/* Rules List */}
               <div className="space-y-4 text-[#f5d0d0] text-[13px] leading-relaxed">
                 
                 <div className="flex gap-3">
@@ -521,7 +514,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                   <p>For gift-giving tasks, only gifts sent within the room are counted; gifts sent via private message are not included.</p>
                 </div>
 
-                {/* Treasure Chest */}
                 <div className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">4</span>
                   <div>
@@ -541,7 +533,6 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
               </div>
 
-              {/* Close Button */}
               <button
                 onClick={() => setShowRules(false)}
                 className="mt-6 w-full h-[42px] rounded-full font-black text-[13px] uppercase tracking-widest
