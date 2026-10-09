@@ -808,22 +808,98 @@ fun EmojiPicker(onClose: () -> Unit, onSelect: (String) -> Unit) {
 }
 @Composable
 fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {
-    var selected by remember { mutableIntStateOf(1) }
-    TsxBottomSheet(onDismiss = onClose, fraction = 0.38f) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Gift Picker", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("×", fontSize = 24.sp, modifier = Modifier.clickable { onClose() })
+    var activeTab by remember { mutableStateOf("Hot") }
+    var selectedGiftId by remember { mutableIntStateOf(1) }
+    var selectedMultiplier by remember { mutableIntStateOf(1) }
+    data class NativeGift(val id: Int, val name: String, val coins: Int, val image: String)
+    val hotGifts = listOf(
+        NativeGift(1, "Teddy", 70000, "/IMG_20260922_142150.jpg"),
+        NativeGift(2, "Autumn's Embrace", 54900, "/IMG_20260922_182259.png"),
+        NativeGift(3, "Arab King", 500000, "/image_d9df9625~2.jpg")
+    )
+    val luckyGifts = listOf(
+        NativeGift(101, "Tiara", 3000, "/IMG_20260927_213855.png"),
+        NativeGift(102, "Lucky Clover", 1499, "/IMG_20260927_213917.png"),
+        NativeGift(103, "Hi", 999, "/IMG_20260927_213946.png"),
+        NativeGift(104, "Rose", 3999, "/IMG_20260927_214121.png"),
+        NativeGift(105, "Kiss", 1600, "/IMG_20260927_214139.png"),
+        NativeGift(106, "Balloon", 4000, "/IMG_20260927_214220.png"),
+        NativeGift(107, "Dragon", 7000, "/IMG_20260927_221521.png"),
+        NativeGift(108, "Nine Hands", 10999, "/IMG_20260927_221544.png"),
+        NativeGift(109, "Coffin", 8999, "/IMG_20260927_221559.png"),
+        NativeGift(110, "Sword", 9999, "/IMG_20260927_221615.png"),
+        NativeGift(111, "Love lock", 5000, "/IMG_20260927_221637.png"),
+        NativeGift(112, "Lantern", 6999, "/IMG_20260927_221654.png"),
+        NativeGift(113, "Ring", 5999, "/IMG_20260927_221707.png"),
+        NativeGift(114, "Dancing Girl", 12000, "/IMG_20260927_221722.png"),
+        NativeGift(115, "Whale", 7899, "/IMG_20260927_221742.png"),
+        NativeGift(116, "Star", 9800, "/file_0000000066f482118f772ed6fab4ad1f.png"),
+        NativeGift(117, "Fire Bird", 13000, "/file_00000000fe088211b7be0110e2d3f878.png")
+    )
+    val gifts = if (activeTab == "Lucky") luckyGifts else if (activeTab == "Hot") hotGifts else emptyList()
+    val selectedGift = gifts.firstOrNull { it.id == selectedGiftId } ?: gifts.firstOrNull()
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.70f) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Gifts", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF252525))
+                Text("×", fontSize = 25.sp, color = Color(0xFF555555), modifier = Modifier.clickable { onClose() }.padding(horizontal = 6.dp))
             }
-            Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                listOf(1, 10, 299, 599, 999).forEach { count ->
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { selected = count }) {
-                        Text("🎁", fontSize = 24.sp)
-                        Text("$count", color = if (selected == count) Color(0xFF1689FF) else Color.DarkGray, fontSize = 12.sp)
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 8.dp), horizontalArrangement = Arrangement.SpaceAround) {
+                listOf("Hot", "Lucky", "Luxury", "Event").forEach { tab ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
+                        activeTab = tab
+                        selectedGiftId = if (tab == "Lucky") 101 else 1
+                    }.padding(horizontal = 8.dp, vertical = 5.dp)) {
+                        Text(tab, color = if (activeTab == tab) Color(0xFF1689FF) else Color(0xFF555555), fontSize = 14.sp, fontWeight = if (activeTab == tab) FontWeight.Bold else FontWeight.Normal)
+                        if (activeTab == tab) Spacer(Modifier.padding(top = 4.dp).width(22.dp).height(2.dp).background(Color(0xFF1689FF), RoundedCornerShape(2.dp)))
                     }
                 }
             }
-            Button(onClick = { onSend(selected); onClose() }, modifier = Modifier.fillMaxWidth()) { Text("Send gift") }
+            if (gifts.isEmpty()) {
+                Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    Text("No gifts in this category yet", color = Color.Gray, fontSize = 13.sp)
+                }
+            } else {
+                androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                    columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(4),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    items(gifts.size) { index ->
+                        val gift = gifts[index]
+                        Column(
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                                .background(if (selectedGiftId == gift.id) Color(0x1A1689FF) else Color.Transparent)
+                                .border(if (selectedGiftId == gift.id) 1.dp else 0.dp, if (selectedGiftId == gift.id) Color(0xFF1689FF) else Color.Transparent, RoundedCornerShape(8.dp))
+                                .clickable { selectedGiftId = gift.id }
+                                .padding(4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(model = gift.image, contentDescription = gift.name, modifier = Modifier.size(58.dp), contentScale = ContentScale.Fit)
+                            Text(gift.name, fontSize = 10.sp, color = Color(0xFF444444), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                                AsyncImage(model = "/file_00000000e56882119c217d508b6733dc.png", contentDescription = "Coins", modifier = Modifier.size(11.dp), contentScale = ContentScale.Fit)
+                                Text(gift.coins.toString(), fontSize = 9.sp, color = Color(0xFF777777))
+                            }
+                        }
+                    }
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 5.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Multiplier", fontSize = 12.sp, color = Color(0xFF555555))
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    listOf(1, 10, 299, 599, 999).forEach { count ->
+                        Box(Modifier.clip(RoundedCornerShape(6.dp)).background(if (selectedMultiplier == count) Color(0xFF1689FF) else Color(0xFFF1F2F4)).clickable { selectedMultiplier = count }.padding(horizontal = 7.dp, vertical = 6.dp)) {
+                            Text("${count}×", fontSize = 10.sp, color = if (selectedMultiplier == count) Color.White else Color(0xFF555555))
+                        }
+                    }
+                }
+            }
+            Button(onClick = { if (selectedGift != null) { onSend(selectedGift.coins * selectedMultiplier); onClose() } }, enabled = selectedGift != null, modifier = Modifier.fillMaxWidth().padding(top = 4.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1689FF))) {
+                Text(if (selectedGift != null) "Send ${selectedGift.name} · ${selectedGift.coins * selectedMultiplier}" else "Select a gift", color = Color.White)
+            }
         }
     }
 }
