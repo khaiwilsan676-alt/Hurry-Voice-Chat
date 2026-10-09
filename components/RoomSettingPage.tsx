@@ -608,7 +608,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
-      {/* Backdrop — NO BLUR, only dim */}
+      {/* Backdrop — NO BLUR, only dim, no backdrop-filter */}
       <div
         className="absolute inset-0"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
