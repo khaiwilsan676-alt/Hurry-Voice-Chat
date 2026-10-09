@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -27,7 +28,7 @@ fun ActiveUsers(isOpen:Boolean,onClose:()->Unit,roomUsers:List<ActiveUserNative>
  Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
   Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClose))
   Column(Modifier.fillMaxWidth().fillMaxHeight(.30f).clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp)).background(Color.White)){
-   Text("Active Users",modifier=Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=22.dp),fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF333333))
+   Text("Active Users",modifier=Modifier.fillMaxWidth().padding(horizontal=24.dp,vertical=22.dp),textAlign=TextAlign.Center,fontSize=18.sp,fontWeight=FontWeight.Bold,color=Color(0xFF333333))
    HorizontalDivider(color=Color(0xFFE5E7EB))
    if(roomUsers.isEmpty()) Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("No active users",fontSize=14.sp,color=Color(0xFF9CA3AF))}
    else LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(12.dp,12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
