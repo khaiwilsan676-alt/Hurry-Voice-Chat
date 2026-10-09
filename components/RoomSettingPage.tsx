@@ -598,6 +598,17 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomPassword, setRoomPassword] = useState(roomData?.roomPassword || '')
   const [selectedTheme, setSelectedTheme] = useState(roomData?.theme || 'forest-night')
 
+  // Announcement sheet state
+  const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
+  const [tempAnnouncement, setTempAnnouncement] = useState('')
+
+  // Room name sheet state
+  const [showRoomNameSheet, setShowRoomNameSheet] = useState(false)
+  const [tempRoomName, setTempRoomName] = useState('')
+
+  // Mic mode temp state (for confirm behavior)
+  const [tempMicMode, setTempMicMode] = useState<number>(roomData?.micMode || 10)
+
   // Custom theme state
   const [customThemeImage, setCustomThemeImage] = useState<string | null>(null)
   const themeFileInputRef = useRef<HTMLInputElement>(null)
@@ -875,29 +886,37 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
           </div>
 
           <div className="mb-5">
-            <div className="flex items-center justify-between px-1">
+            <button
+              onClick={() => { setTempRoomName(roomName); setShowRoomNameSheet(true) }}
+              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg"
+            >
               <label className="text-sm font-medium text-gray-600">Room Name</label>
-              <input
-                type="text"
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
-                placeholder="Enter room name"
-                className="text-right text-gray-800 bg-transparent border-none focus:outline-none placeholder-gray-400 text-sm w-1/2"
-              />
-            </div>
+              <div className="flex items-center gap-2 min-w-0">
+                {roomName && (
+                  <span className="text-xs text-gray-400 truncate max-w-[140px]">{roomName}</span>
+                )}
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-gray-400 stroke-[2] flex-shrink-0">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </button>
           </div>
 
           <div className="mb-5">
-            <div className="flex items-start justify-between px-1">
-              <label className="text-sm font-medium text-gray-600 pt-1">Room Announcement</label>
-              <textarea
-                value={announcement}
-                onChange={(e) => setAnnouncement(e.target.value)}
-                placeholder="Enter announcement..."
-                rows={2}
-                className="text-right text-gray-800 bg-transparent border-none focus:outline-none placeholder-gray-400 text-sm w-1/2 resize-none"
-              />
-            </div>
+            <button
+              onClick={() => { setTempAnnouncement(announcement); setShowAnnouncementSheet(true) }}
+              className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg"
+            >
+              <label className="text-sm font-medium text-gray-600">Room Announcement</label>
+              <div className="flex items-center gap-2 min-w-0">
+                {announcement && (
+                  <span className="text-xs text-gray-400 truncate max-w-[140px]">{announcement}</span>
+                )}
+                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-gray-400 stroke-[2] flex-shrink-0">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </div>
+            </button>
           </div>
 
           <div className="mb-5">
@@ -946,7 +965,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             <div className="flex items-center justify-between px-1">
               <label className="text-sm font-medium text-gray-600">Mic Mode</label>
               <button
-                onClick={() => setShowMicModeSheet(true)}
+                onClick={() => { setTempMicMode(selectedMicMode); setShowMicModeSheet(true) }}
                 className="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-lg"
               >
                 <span className="text-sm font-semibold text-gray-800">Mic {selectedMicMode}</span>
@@ -957,6 +976,102 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </div>
           </div>
         </div>
+
+        {/* ---------- ROOM NAME SHEET ---------- */}
+        {showRoomNameSheet && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-3">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowRoomNameSheet(false)} />
+            <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center px-3 pt-4 pb-2">
+                <button
+                  onClick={() => setShowRoomNameSheet(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Back"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-gray-800 stroke-[2.5]">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
+                  </svg>
+                </button>
+                <h3 className="flex-1 text-center text-base font-bold text-gray-800 pr-7">Room name</h3>
+              </div>
+
+              {/* Input */}
+              <div className="px-3 pt-3">
+                <div className="relative bg-gray-100 rounded-full">
+                  <input
+                    type="text"
+                    value={tempRoomName}
+                    onChange={(e) => setTempRoomName(e.target.value.slice(0, 30))}
+                    maxLength={30}
+                    className="w-full bg-transparent text-gray-800 text-base px-5 py-4 pr-16 rounded-full focus:outline-none"
+                  />
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                    {tempRoomName.length}/30
+                  </div>
+                </div>
+              </div>
+
+              {/* Save button */}
+              <div className="px-3 pb-4 pt-5">
+                <button
+                  onClick={() => { setRoomName(tempRoomName); setShowRoomNameSheet(false) }}
+                  className="w-full py-3.5 rounded-full bg-[#00d8a0] text-white text-base font-semibold hover:bg-[#00c492] transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ---------- ANNOUNCEMENT SHEET ---------- */}
+        {showAnnouncementSheet && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center px-3">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowAnnouncementSheet(false)} />
+            <div className="relative bg-white w-full max-w-md rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center px-3 pt-4 pb-2">
+                <button
+                  onClick={() => setShowAnnouncementSheet(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Back"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-gray-800 stroke-[2.5]">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
+                  </svg>
+                </button>
+                <h3 className="flex-1 text-center text-base font-bold text-gray-800 pr-7">Room announcement</h3>
+              </div>
+
+              {/* Textarea */}
+              <div className="px-3 pt-2">
+                <div className="relative bg-gray-100 rounded-xl">
+                  <textarea
+                    value={tempAnnouncement}
+                    onChange={(e) => setTempAnnouncement(e.target.value.slice(0, 200))}
+                    maxLength={200}
+                    rows={9}
+                    className="w-full bg-transparent text-gray-800 text-sm p-3 pb-8 rounded-xl resize-none focus:outline-none"
+                  />
+                  <div className="absolute bottom-2 right-3 text-xs text-gray-500">
+                    {tempAnnouncement.length}/200
+                  </div>
+                </div>
+              </div>
+
+              {/* Save button */}
+              <div className="px-3 pb-4 pt-3">
+                <button
+                  onClick={() => { setAnnouncement(tempAnnouncement); setShowAnnouncementSheet(false) }}
+                  className="w-full py-3 rounded-full bg-[#00d8a0] text-white text-base font-semibold hover:bg-[#00c492] transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showThemePage && (
           <div className="fixed inset-0 z-50 bg-white flex flex-col">
@@ -1060,20 +1175,25 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 {micModes.map((mode) => (
                   <button
                     key={mode}
-                    onClick={() => { setSelectedMicMode(mode); setShowMicModeSheet(false) }}
-                    className="flex flex-col items-center rounded-xl overflow-hidden transition-all hover:opacity-90"
+                    onClick={() => setTempMicMode(mode)}
+                    className={`flex flex-col items-center rounded-xl overflow-hidden transition-all ${
+                      tempMicMode === mode ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:opacity-90'
+                    }`}
                   >
                     <MicModeImageCard count={mode} />
                     <span className={`text-sm mt-2 mb-1 ${
-                      selectedMicMode === mode ? 'text-blue-500 font-bold' : 'text-gray-700 font-medium'
+                      tempMicMode === mode ? 'text-blue-500 font-bold' : 'text-gray-700 font-medium'
                     }`}>
                       Mic {mode}
                     </span>
                   </button>
                 ))}
               </div>
-              <button onClick={() => setShowMicModeSheet(false)} className="w-full mt-4 py-3 text-gray-500 font-medium text-center hover:bg-gray-100 rounded-xl">
-                Cancel
+              <button
+                onClick={() => { setSelectedMicMode(tempMicMode); setShowMicModeSheet(false) }}
+                className="w-full mt-4 py-3 rounded-xl bg-[#00d8a0] text-white font-semibold text-center hover:bg-[#00c492] transition-colors"
+              >
+                Confirm
               </button>
             </div>
           </div>
