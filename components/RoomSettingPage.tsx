@@ -80,10 +80,10 @@ interface RoomSettingPageProps {
 function MicModeImageCard({ count }: { count: number }) {
   const getModeImage = (count: number) => {
     switch(count) {
-      case 5: return '/IMG_20260914_110225.png'
-      case 10: return '/IMG_20260914_110239.png'
-      case 15: return '/IMG_20260914_110253.png'
-      default: return '/IMG_20260914_110239.png'
+      case 5: return '/IMG_20261009_172932~2.jpg'
+      case 10: return '/IMG_20261009_173133~2.jpg'
+      case 15: return '/IMG_20261009_172551.jpg'
+      default: return '/IMG_20261009_172551.jpg'
     }
   }
   return (
