@@ -283,7 +283,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="absolute top-[50vh] left-0 w-full h-[260vh] z-0 pointer-events-none bg-[#380308]"
         />
 
-        {/* ===== BACK BUTTON - GOLD CIRCLE STYLE ===== */}
+        {/* ===== BACK BUTTON - MATCHING QUESTION MARK ICON STYLE ===== */}
         <button 
           onClick={onBack} 
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
