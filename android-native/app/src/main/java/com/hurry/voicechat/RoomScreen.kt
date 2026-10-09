@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.addPath
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -495,33 +494,33 @@ private fun roomCopyIcon() = roomStrokeVector("RoomCopy", listOf("M9 9h11v11H9z"
 private fun roomHouseIcon() = roomVector("RoomHouse", listOf("M3 10.5L12 3l9 7.5v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"))
 
 
-private data class NativeGift(val id: Int, val name: String, val coins: Int, val image: String, val tab: String, val noMask: Boolean = true)
+private data class RoomNativeGift(val id: Int, val name: String, val coins: Int, val image: String, val tab: String, val noMask: Boolean = true)
 
 private val nativeGiftTabs = listOf("Hot", "Lucky", "Luxury", "Event")
 private val nativeGiftMultipliers = listOf(1, 10, 299, 599, 999)
 private val nativeHotGifts = listOf(
-    NativeGift(1, "Teddy", 70000, "IMG_20260922_142150.jpg", "Hot", false),
-    NativeGift(2, "Autumn's Embrace", 54900, "IMG_20260922_182259.png", "Hot", false),
-    NativeGift(3, "Arab King", 500000, "image_d9df9625~2.jpg", "Hot", false)
+    RoomNativeGift(1, "Teddy", 70000, "IMG_20260922_142150.jpg", "Hot", false),
+    RoomNativeGift(2, "Autumn's Embrace", 54900, "IMG_20260922_182259.png", "Hot", false),
+    RoomNativeGift(3, "Arab King", 500000, "image_d9df9625~2.jpg", "Hot", false)
 )
 private val nativeLuckyGifts = listOf(
-    NativeGift(101, "Tiara", 3000, "IMG_20260927_213855.png", "Lucky"),
-    NativeGift(102, "Lucky Clover", 1499, "IMG_20260927_213917.png", "Lucky"),
-    NativeGift(103, "Hi", 999, "IMG_20260927_213946.png", "Lucky"),
-    NativeGift(104, "Rose", 3999, "IMG_20260927_214121.png", "Lucky"),
-    NativeGift(105, "Kiss", 1600, "IMG_20260927_214139.png", "Lucky"),
-    NativeGift(106, "Balloon", 4000, "IMG_20260927_214220.png", "Lucky"),
-    NativeGift(107, "Dragon", 7000, "IMG_20260927_221521.png", "Lucky"),
-    NativeGift(108, "Nine Hands", 10999, "IMG_20260927_221544.png", "Lucky"),
-    NativeGift(109, "Coffin", 8999, "IMG_20260927_221559.png", "Lucky"),
-    NativeGift(110, "Sword", 9999, "IMG_20260927_221615.png", "Lucky"),
-    NativeGift(111, "Love lock", 5000, "IMG_20260927_221637.png", "Lucky"),
-    NativeGift(112, "Lantern", 6999, "IMG_20260927_221654.png", "Lucky"),
-    NativeGift(113, "Ring", 5999, "IMG_20260927_221707.png", "Lucky"),
-    NativeGift(114, "Dancing Girl", 12000, "IMG_20260927_221722.png", "Lucky"),
-    NativeGift(115, "Whale", 7899, "IMG_20260927_221742.png", "Lucky"),
-    NativeGift(116, "Star", 9800, "file_0000000066f482118f772ed6fab4ad1f.png", "Lucky"),
-    NativeGift(117, "Fire Bird", 13000, "file_00000000fe088211b7be0110e2d3f878.png", "Lucky")
+    RoomNativeGift(101, "Tiara", 3000, "IMG_20260927_213855.png", "Lucky"),
+    RoomNativeGift(102, "Lucky Clover", 1499, "IMG_20260927_213917.png", "Lucky"),
+    RoomNativeGift(103, "Hi", 999, "IMG_20260927_213946.png", "Lucky"),
+    RoomNativeGift(104, "Rose", 3999, "IMG_20260927_214121.png", "Lucky"),
+    RoomNativeGift(105, "Kiss", 1600, "IMG_20260927_214139.png", "Lucky"),
+    RoomNativeGift(106, "Balloon", 4000, "IMG_20260927_214220.png", "Lucky"),
+    RoomNativeGift(107, "Dragon", 7000, "IMG_20260927_221521.png", "Lucky"),
+    RoomNativeGift(108, "Nine Hands", 10999, "IMG_20260927_221544.png", "Lucky"),
+    RoomNativeGift(109, "Coffin", 8999, "IMG_20260927_221559.png", "Lucky"),
+    RoomNativeGift(110, "Sword", 9999, "IMG_20260927_221615.png", "Lucky"),
+    RoomNativeGift(111, "Love lock", 5000, "IMG_20260927_221637.png", "Lucky"),
+    RoomNativeGift(112, "Lantern", 6999, "IMG_20260927_221654.png", "Lucky"),
+    RoomNativeGift(113, "Ring", 5999, "IMG_20260927_221707.png", "Lucky"),
+    RoomNativeGift(114, "Dancing Girl", 12000, "IMG_20260927_221722.png", "Lucky"),
+    RoomNativeGift(115, "Whale", 7899, "IMG_20260927_221742.png", "Lucky"),
+    RoomNativeGift(116, "Star", 9800, "file_0000000066f482118f772ed6fab4ad1f.png", "Lucky"),
+    RoomNativeGift(117, "Fire Bird", 13000, "file_00000000fe088211b7be0110e2d3f878.png", "Lucky")
 )
 
 @Composable
@@ -530,7 +529,7 @@ private fun NativeGiftPicker(
     users: List<RoomPresenceUser>,
     currentUid: String,
     onClose: () -> Unit,
-    onSend: (NativeGift, Int, List<RoomPresenceUser>) -> Unit
+    onSend: (RoomNativeGift, Int, List<RoomPresenceUser>) -> Unit
 ) {
     var activeTab by remember { mutableStateOf("Hot") }
     var selectedGiftId by remember { mutableIntStateOf(0) }
