@@ -506,7 +506,13 @@ fun RoomPage(
         if (showRoomTask) Roomtask(onBack = { showRoomTask = false })
         if (showCupIcon) CupIcon(onBack = { showCupIcon = false }, count = cupCount)
         if (showMessageSheet) MessagePage(roomId, roomName, roomDp) { showMessageSheet = false }
-        if (showFourGride) Fourgride(onClose = { showFourGride = false })
+        if (showFourGride) Fourgride(
+            onClose = { showFourGride = false },
+            onStore = { showFourGride = false; storeInitialView = "store"; showStore = true },
+            onTasks = { showFourGride = false; showRoomTask = true },
+            onGames = { showFourGride = false; showGameSheet = true },
+            onMessages = { showFourGride = false; showMessageSheet = true }
+        )
         if (showEmojiPicker) EmojiPicker(onClose = { showEmojiPicker = false }, onSelect = { emojiSrc ->
             currentUserSeat?.let { seat ->
                 val timestamp = System.currentTimeMillis()
@@ -711,16 +717,37 @@ fun RoomProfile(user: RoomUser, onClose: () -> Unit) {
     }
 }
 @Composable
-fun Fourgride(onClose: () -> Unit) {
-    TsxBottomSheet(onDismiss = onClose, fraction = 0.32f) {
+fun Fourgride(
+    onClose: () -> Unit,
+    onStore: () -> Unit,
+    onTasks: () -> Unit,
+    onGames: () -> Unit,
+    onMessages: () -> Unit
+) {
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.34f) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Room tools", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text("×", fontSize = 24.sp, modifier = Modifier.clickable { onClose() })
             }
-            Text("Store", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
-            Text("Room tasks", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
-            Text("Music", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
+            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
+                    Text("◇", fontSize = 28.sp, color = Color(0xFF1689FF))
+                    Text("Store", fontSize = 12.sp)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
+                    Text("★", fontSize = 28.sp, color = Color(0xFFFFB52E))
+                    Text("Tasks", fontSize = 12.sp)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
+                    Text("♧", fontSize = 28.sp, color = Color(0xFF39B982))
+                    Text("Games", fontSize = 12.sp)
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
+                    Text("✉", fontSize = 28.sp, color = Color(0xFF1689FF))
+                    Text("Messages", fontSize = 12.sp)
+                }
+            }
         }
     }
 }
