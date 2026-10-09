@@ -334,7 +334,7 @@ fun RoomPage(
                     }
                     messageText = ""
                     showChatInput = false
-                }
+                })
             }
         }
 
