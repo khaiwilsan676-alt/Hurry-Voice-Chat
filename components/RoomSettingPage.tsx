@@ -608,8 +608,12 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
-      {/* Backdrop — NO BLUR, only dim */}
-      <div className="absolute inset-0 bg-black/50" onClick={onBack} />
+      {/* Backdrop — NO BLUR, only dim, no backdrop-filter */}
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+        onClick={onBack}
+      />
 
       {/* Half Sheet — black background */}
       <div
@@ -701,7 +705,8 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         {/* ---------- HELP SHEET ---------- */}
         {showHelp && (
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
             onClick={() => setShowHelp(false)}
           >
             <div
@@ -1496,7 +1501,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       {/* ---------- ADMIN SHEET HELP ---------- */}
       {showHelpSheet && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
           onClick={() => setShowHelpSheet(false)}
         >
           <div
