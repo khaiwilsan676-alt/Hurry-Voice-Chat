@@ -472,7 +472,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
       </div>
 
-      {/* ===== RULES SHEET MODAL - SMALLER SIZE ===== */}
+      {/* ===== RULES SHEET MODAL - NO BLUR ===== */}
       {showRules && (
         <div 
           className="fixed inset-0 z-[999] flex items-end justify-center"
@@ -482,7 +482,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <div className="absolute inset-0 bg-black/70" />
 
           <div 
-            className="relative w-full max-w-[400px] max-h-[60vh] overflow-y-auto rounded-t-2xl bg-[#380308] border-t-2 border-x-2 border-[#d85858] shadow-[0_-10px_40px_rgba(0,0,0,0.8)]"
+            className="relative w-full max-w-[500px] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-[#380308] border-t-2 border-x-2 border-[#d85858] shadow-[0_-10px_40px_rgba(0,0,0,0.8)]"
             onClick={(e) => e.stopPropagation()}
             style={{
               backgroundImage: 'linear-gradient(to bottom, #4a0a10 0%, #380308 100%)',
@@ -492,42 +492,42 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               <div className="w-10 h-1 rounded-full bg-[#d85858]/60" />
             </div>
 
-            <div className="px-4 pb-6">
-              <h2 className="text-center text-white text-base font-black tracking-wider uppercase mb-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <div className="px-5 pb-8">
+              <h2 className="text-center text-white text-lg font-black tracking-wider uppercase mb-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Room Task Rules
               </h2>
 
-              <div className="space-y-3 text-[#f5d0d0] text-[11px] leading-relaxed">
+              <div className="space-y-4 text-[#f5d0d0] text-[13px] leading-relaxed">
                 
-                <div className="flex gap-2.5">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[10px] font-black flex items-center justify-center border border-[#f5e6a8]">1</span>
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">1</span>
                   <p>Each user can complete a 'Room Owner' task only once per day.</p>
                 </div>
 
-                <div className="flex gap-2.5">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[10px] font-black flex items-center justify-center border border-[#f5e6a8]">2</span>
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">2</span>
                   <p>Each user can complete a daily task once per day. Tasks reset at midnight (12:00 AM).</p>
                 </div>
 
-                <div className="flex gap-2.5">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[10px] font-black flex items-center justify-center border border-[#f5e6a8]">3</span>
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">3</span>
                   <p>For gift-giving tasks, only gifts sent within the room are counted; gifts sent via private message are not included.</p>
                 </div>
 
-                <div className="flex gap-2.5">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[10px] font-black flex items-center justify-center border border-[#f5e6a8]">4</span>
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">4</span>
                   <div>
                     <p className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[#ffd700] text-sm">🎁</span>
+                      <span className="text-[#ffd700] text-base">🎁</span>
                       <span className="font-bold text-white">Treasure Chest</span>
                     </p>
                     <p>When a gift is received in a personal room, the room owner can earn a 5% coin reward of the gift's value. There is no limit on the coin bonus; the more gifts received in the room, the more coin rewards you earn.</p>
-                    <p className="mt-1 text-[#ffb8b8] italic">(If it's a rebate gift, the reward will be 0.5% of the gift's value in coins).</p>
+                    <p className="mt-1.5 text-[#ffb8b8] italic">(If it's a rebate gift, the reward will be 0.5% of the gift's value in coins).</p>
                   </div>
                 </div>
 
-                <div className="flex gap-2.5">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[10px] font-black flex items-center justify-center border border-[#f5e6a8]">5</span>
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">5</span>
                   <p>If you create multiple accounts using the same device or SIM card, you can only claim rewards once for each task.</p>
                 </div>
 
@@ -535,7 +535,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
               <button
                 onClick={() => setShowRules(false)}
-                className="mt-5 w-full h-[36px] rounded-full font-black text-[11px] uppercase tracking-widest
+                className="mt-6 w-full h-[42px] rounded-full font-black text-[13px] uppercase tracking-widest
                            bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
                            text-[#4a1f00]
                            border-2 border-[#f5e6a8]
