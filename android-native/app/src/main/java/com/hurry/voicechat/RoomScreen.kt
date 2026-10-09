@@ -567,11 +567,11 @@ fun SeatRow(nums: List<Int>, seats: List<Seat>, currentUid: String, onClick: (In
                     
                     Box(Modifier.size(60.dp).clip(CircleShape).background(Color(0xFF090B12)), contentAlignment = Alignment.Center) {
                         if (seat.isLocked) {
-                            AsyncImage("/file_0000000015a48211b000ee447a786f7c.png", null, Modifier.size(40.dp))
+                            AsyncImage(tsxAsset("/file_0000000015a48211b000ee447a786f7c.png"), null, Modifier.size(40.dp), contentScale = ContentScale.Fit)
                         } else if (seat.isOccupied && seat.user != null) {
                             AsyncImage(seat.user!!.image, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         } else {
-                            AsyncImage("/file_000000003e7482309b7f6e7f2a922160.png", null, Modifier.size(45.dp))
+                            AsyncImage(tsxAsset("/file_000000003e7482309b7f6e7f2a922160.png"), null, Modifier.size(45.dp), contentScale = ContentScale.Fit)
                         }
                     }
 
