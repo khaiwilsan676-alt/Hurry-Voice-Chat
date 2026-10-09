@@ -847,8 +847,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </svg>
           </button>
           <h1 className="flex-1 text-center text-lg font-bold text-gray-800">Room Setting</h1>
-          <button
-            onClick={handleSave}
+          <button            onClick={handleSave}
             disabled={isSaving}
             className={`px-4 py-1.5 text-sm font-semibold transition-colors ${
               isSaving ? 'text-gray-400' : 'text-blue-500 hover:text-blue-600'
@@ -1012,7 +1011,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Save button — now blue */}
+              {/* Save button — BLUE */}
               <div className="px-3 pb-4 pt-5">
                 <button
                   onClick={() => { setRoomName(tempRoomName); setShowRoomNameSheet(false) }}
@@ -1060,7 +1059,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Save button — now blue */}
+              {/* Save button — BLUE */}
               <div className="px-3 pb-4 pt-3">
                 <button
                   onClick={() => { setAnnouncement(tempAnnouncement); setShowAnnouncementSheet(false) }}
@@ -1085,10 +1084,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               <div className="w-10"></div>
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-4">
-              {/* Chhota size: grid-cols-3 aur gap-2 */}
               <div className="grid grid-cols-3 gap-2">
                 
-                {/* ---------- PLUS BUTTON CARD (Chhota) ---------- */}
                 {!customThemeImage && (
                   <button
                     onClick={() => themeFileInputRef.current?.click()}
@@ -1113,7 +1110,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   className="hidden"
                 />
 
-                {/* ---------- THEME CARDS (Chhota Size 3:4) ---------- */}
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
@@ -1173,7 +1169,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               className="relative bg-white w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col"
               style={{ maxHeight: '85vh' }}
             >
-              {/* Header with back button */}
               <div className="flex items-center px-3 pt-4 pb-2 flex-shrink-0">
                 <button
                   onClick={() => setShowMicModeSheet(false)}
@@ -1187,7 +1182,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 <h3 className="flex-1 text-center text-base font-bold text-gray-800 pr-7">Select Mic Mode</h3>
               </div>
 
-              {/* Scrollable mic modes grid */}
               <div className="flex-1 overflow-y-auto px-4 pt-3 pb-4">
                 <div className="grid grid-cols-3 gap-3 pt-2">
                   {micModes.map((mode) => (
@@ -1209,7 +1203,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 </div>
               </div>
 
-              {/* Confirm button fixed at bottom — now blue */}
+              {/* Confirm button — BLUE */}
               <div
                 className="flex-shrink-0 px-4 pt-3 bg-white border-t border-gray-100"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
@@ -1319,14 +1313,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
               <h3 className="text-[#8a6a1f] font-bold text-base">Room Admin</h3>
             </div>
 
-            {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto px-4 pb-4">
-              {/* Admin info text */}
               <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                 <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
                 <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
@@ -1338,7 +1329,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                 <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
               </div>
 
-              {/* Level list */}
               <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
                 {[
                   ['Level 25', '+5 admins'],
@@ -1361,7 +1351,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               </div>
             </div>
 
-            {/* Close button */}
             <div className="px-4 py-3 flex-shrink-0">
               <button
                 onClick={() => setShowHelpSheet(false)}
