@@ -567,7 +567,10 @@ private fun RoomListCard(
     }
 }
 
-// ═════════════════════════════════════════@Composable
+// ═══════════════════════════════════════════════════════
+// HOUSE ICON (uses the provided real app asset)
+// ═══════════════════════════════════════════════════════
+@Composable
 fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
         model = RAW + "IMG_20261009_170410.png",
@@ -575,11 +578,6 @@ fun HurryHouseIcon(selected: Boolean = false) {
         modifier = Modifier.size(32.dp),
         contentScale = ContentScale.Fit
     )
-}
- Size(x(3.5f), y(6.5f)),
-            cornerRadius = CornerRadius(1.5f * sx, 1.5f * sy)
-        )
-    }
 }
 
 // ═══════════════════════════════════════════════════════
