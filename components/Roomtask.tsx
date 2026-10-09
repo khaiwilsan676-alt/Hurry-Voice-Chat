@@ -300,17 +300,17 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           </svg>
         </button>
 
-        {/* ===== QUESTION MARK ICON - TOP RIGHT ===== */}
+        {/* ===== QUESTION MARK ICON - TOP RIGHT - SMALLER ===== */}
         <button
           onClick={() => setShowRules(true)}
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
           style={{
-            top: 'calc(env(safe-area-inset-top, 0px) + 2px)',
-            right: '8px'
+            top: 'calc(env(safe-area-inset-top, 0px) + 4px)',
+            right: '10px'
           }}
           aria-label="Rules"
         >
-          <svg viewBox="0 0 24 24" className="w-8 h-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <svg viewBox="0 0 24 24" className="w-6 h-6 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)" stroke="#ffd700" strokeWidth="1.5" />
             <text x="12" y="17" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#ffd700">?</text>
           </svg>
