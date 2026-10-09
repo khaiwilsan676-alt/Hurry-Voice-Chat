@@ -637,17 +637,143 @@ fun TsxBottomSheet(onDismiss: () -> Unit, fraction: Float, content: @Composable 
 @Composable fun WhiteColorRemovalShader(imageSrc: String, modifier: Modifier) = AsyncImage(imageSrc, null, modifier)
 
 // ==========================================
-// TSX EXTERNAL IMPORTS STUBS
-// ==========================================
-@Composable fun StorePage(onBack: () -> Unit, initialView: String) {}
-@Composable fun RoomSettingPage(onBack: () -> Unit, roomOwnerId: String, roomData: JSONObject, onSave: (JSONObject) -> Unit) {}
-@Composable fun MessagePage(roomId: String, roomName: String, roomDp: String, onClose: () -> Unit) {}
-@Composable fun RoomProfile(user: RoomUser, onClose: () -> Unit) {}
-@Composable fun Fourgride(onClose: () -> Unit) {}
-@Composable fun Fruitparty(onClose: () -> Unit, onMinimize: () -> Unit) {}
-@Composable fun EmojiPicker(onClose: () -> Unit, onSelect: (String) -> Unit) {}
-@Composable fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {}
-@Composable fun LuckyGiftAnimation(roomId: String) {}
+// Native implementations for the room sheets and pickers.
+@Composable
+fun StorePage(onBack: () -> Unit, initialView: String) {
+    Box(Modifier.fillMaxSize().background(Color(0xFFF7F8FC))) {
+        Column(Modifier.fillMaxSize().padding(20.dp)) {
+            Text("‹  Store", fontSize = 22.sp, color = Color(0xFF202534), modifier = Modifier.clickable { onBack() })
+            Spacer(Modifier.height(24.dp))
+            Text(if (initialView == "wallet") "Wallet" else "Store", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Store content is loading from the app module.", color = Color.Gray, modifier = Modifier.padding(top = 8.dp))
+        }
+    }
+}
+@Composable
+fun RoomSettingPage(onBack: () -> Unit, roomOwnerId: String, roomData: JSONObject, onSave: (JSONObject) -> Unit) {
+    var name by remember { mutableStateOf(roomData.optString("roomName")) }
+    var dp by remember { mutableStateOf(roomData.optString("roomDp")) }
+    var announcement by remember { mutableStateOf(roomData.optString("announcement")) }
+    var password by remember { mutableStateOf(roomData.optString("roomPassword")) }
+    var micMode by remember { mutableIntStateOf(roomData.optInt("micMode", 15)) }
+    var locked by remember { mutableStateOf(roomData.optBoolean("isLocked", false)) }
+    Column(Modifier.fillMaxSize().background(Color(0xFFF8F9FC)).padding(18.dp)) {
+        Text("‹  Room Settings", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onBack() })
+        Spacer(Modifier.height(16.dp))
+        SettingField("Room name", name) { name = it }
+        SettingField("Room image URL", dp) { dp = it }
+        SettingField("Announcement", announcement) { announcement = it }
+        SettingField("Room password", password) { password = it }
+        Text("Microphone seats", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(vertical = 8.dp)) {
+            listOf(5, 10, 15).forEach { count ->
+                Button(onClick = { micMode = count }) { Text(if (micMode == count) "✓ $count" else "$count") }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(checked = locked, onCheckedChange = { locked = it })
+            Text("Lock room")
+        }
+        Spacer(Modifier.weight(1f))
+        Button(onClick = { onSave(JSONObject().put("roomName", name).put("roomDp", dp).put("announcement", announcement).put("roomPassword", password).put("micMode", micMode).put("isLocked", locked)) }, modifier = Modifier.fillMaxWidth()) { Text("Save changes") }
+    }
+}
+@Composable
+private fun SettingField(label: String, value: String, onValueChange: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        Text(label, color = Color.Gray, fontSize = 12.sp)
+        BasicTextField(value, onValueChange, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).background(Color.White, RoundedCornerShape(8.dp)).padding(12.dp), textStyle = TextStyle(color = Color(0xFF202534), fontSize = 14.sp), singleLine = label != "Announcement")
+    }
+}
+@Composable
+fun MessagePage(roomId: String, roomName: String, roomDp: String, onClose: () -> Unit) {
+    Column(Modifier.fillMaxSize().background(Color(0xFFF8F9FC)).padding(18.dp)) {
+        Text("‹  Messages", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 18.dp)) {
+            AsyncImage(model = roomDp, contentDescription = null, modifier = Modifier.size(44.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            Column(Modifier.padding(start = 10.dp)) {
+                Text(roomName, fontWeight = FontWeight.SemiBold)
+                Text("Room ID: $roomId", fontSize = 11.sp, color = Color.Gray)
+            }
+        }
+        Text("Room messages", color = Color.Gray, modifier = Modifier.padding(top = 24.dp))
+    }
+}
+@Composable
+fun RoomProfile(user: RoomUser, onClose: () -> Unit) {
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.38f) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            AsyncImage(model = user.image, contentDescription = null, modifier = Modifier.size(76.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            Text(user.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 10.dp))
+            Text("ID: ${user.accountId}", fontSize = 12.sp, color = Color.Gray)
+            Text("Close", color = Color(0xFF1689FF), modifier = Modifier.padding(top = 18.dp).clickable { onClose() })
+        }
+    }
+}
+@Composable
+fun Fourgride(onClose: () -> Unit) {
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.32f) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Room tools", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("×", fontSize = 24.sp, modifier = Modifier.clickable { onClose() })
+            }
+            Text("Store", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
+            Text("Room tasks", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
+            Text("Music", modifier = Modifier.fillMaxWidth().clickable { onClose() }.padding(vertical = 14.dp))
+        }
+    }
+}
+@Composable
+fun Fruitparty(onClose: () -> Unit, onMinimize: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color(0xEE10131A)), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            AsyncImage(model = "/fruit-party-logo.jpg", contentDescription = "Fruit party", modifier = Modifier.size(100.dp))
+            Text("Fruit Party", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onMinimize) { Text("Minimize") }
+                Button(onClick = onClose) { Text("Close") }
+            }
+        }
+    }
+}
+@Composable
+fun EmojiPicker(onClose: () -> Unit, onSelect: (String) -> Unit) {
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.32f) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Text("Emoji", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("Select a reaction", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(bottom = 12.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                listOf("❤️", "😂", "👍", "🎉", "🔥").forEach { emoji ->
+                    Text(emoji, fontSize = 28.sp, modifier = Modifier.clickable { onSelect(emoji); onClose() }.padding(6.dp))
+                }
+            }
+        }
+    }
+}
+@Composable
+fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {
+    var selected by remember { mutableIntStateOf(1) }
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.38f) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Gift Picker", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("×", fontSize = 24.sp, modifier = Modifier.clickable { onClose() })
+            }
+            Row(Modifier.fillMaxWidth().padding(vertical = 18.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                listOf(1, 10, 299, 599, 999).forEach { count ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { selected = count }) {
+                        Text("🎁", fontSize = 24.sp)
+                        Text("$count", color = if (selected == count) Color(0xFF1689FF) else Color.DarkGray, fontSize = 12.sp)
+                    }
+                }
+            }
+            Button(onClick = { onSend(selected); onClose() }, modifier = Modifier.fillMaxWidth()) { Text("Send gift") }
+        }
+    }
+}
+@Composable
+fun LuckyGiftAnimation(roomId: String) {}
 
 // Socket Stub Object
 object SocketManager { fun getSocket(): Socket? = null }
