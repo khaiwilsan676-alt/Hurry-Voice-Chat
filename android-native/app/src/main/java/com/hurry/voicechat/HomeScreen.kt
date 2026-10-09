@@ -549,7 +549,7 @@ private fun RoomListCard(
         ) {
             Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
-                room.name,
+                room.name.ifBlank { "Hurry User" },
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF202124),
