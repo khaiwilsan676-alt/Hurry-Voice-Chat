@@ -283,7 +283,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="absolute top-[50vh] left-0 w-full h-[260vh] z-0 pointer-events-none bg-[#380308]"
         />
 
-        {/* Back Button - matching question mark icon style */}
+        {/* Back Button - Gold Question Mark Style */}
         <button 
           onClick={onBack} 
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
@@ -481,7 +481,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="fixed inset-0 z-[999] flex items-end justify-center"
           onClick={() => setShowRules(false)}
         >
-          {/* Backdrop - no blur */}
+          {/* Backdrop - NO BLUR */}
           <div className="absolute inset-0 bg-black/70" />
 
           {/* Sheet */}
