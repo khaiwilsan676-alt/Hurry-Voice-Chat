@@ -688,7 +688,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         )}
       </div>
 
-      {/* ---------- HELP SHEET (naya text golden/dark color me) ---------- */}
+      {/* ---------- HELP SHEET (naya text BLACK color me) ---------- */}
       {showHelp && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
@@ -707,8 +707,8 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
               <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                 <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
 
-                {/* 🔽 NAYA TEXT — color golden/dark kar diya */}
-                <p className="text-[#8a6a1f] font-semibold">
+                {/* 🔽 NAYA TEXT — color BLACK kar diya */}
+                <p className="text-black font-semibold">
                   You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
                 </p>
 
