@@ -200,14 +200,14 @@ fun RoomPage(
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         // Background Image
-        AsyncImage(model = backgroundImage, contentDescription = "Bg", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop, alpha = 0.60f)
+        AsyncImage(model = tsxAsset(backgroundImage), contentDescription = "Bg", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop, alpha = 0.60f)
 
         Column(Modifier.fillMaxSize().padding(top = 30.dp, bottom = 8.dp)) {
             
             // --- TOP HEADER ---
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.clip(RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp, topStart = 8.dp, bottomStart = 8.dp)).background(Color.Black.copy(alpha = 0.3f)).padding(end = 12.dp, top = 2.dp, bottom = 2.dp, start = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(model = roomDp, contentDescription = "Room Dp", modifier = Modifier.size(headerAvatarSize).clip(RoundedCornerShape(8.dp)).clickable { roomInfoTab = "profile"; showRoomInfo = true }, contentScale = ContentScale.Crop)
+                    AsyncImage(model = tsxAsset(roomDp), contentDescription = "Room Dp", modifier = Modifier.size(headerAvatarSize).clip(RoundedCornerShape(8.dp)).clickable { roomInfoTab = "profile"; showRoomInfo = true }, contentScale = ContentScale.Crop)
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -929,7 +929,7 @@ fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {
                                 .padding(4.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            AsyncImage(model = tsxAsset(gift.image), contentDescription = gift.name, modifier = Modifier.size(58.dp), contentScale = ContentScale.Fit)
+                            AsyncImage(model = gift.image, contentDescription = gift.name, modifier = Modifier.size(58.dp), contentScale = ContentScale.Fit)
                             Text(gift.name, fontSize = 10.sp, color = Color(0xFF444444), maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                                 AsyncImage(model = tsxAsset("/file_00000000e56882119c217d508b6733dc.png"), contentDescription = "Coins", modifier = Modifier.size(11.dp), contentScale = ContentScale.Fit)
@@ -966,7 +966,7 @@ object TsxIcons {
     private fun build(path: String) = ImageVector.Builder("Icon", 24.dp, 24.dp, 24f, 24f).apply { addPath(PathParser().parsePathString(path).toNodes(), fill = SolidColor(Color.White)) }.build()
     private fun buildStroke(path: String) = ImageVector.Builder("Icon", 24.dp, 24.dp, 24f, 24f).apply { addPath(PathParser().parsePathString(path).toNodes(), fill = null, stroke = SolidColor(Color.White), strokeLineWidth = 2.5f) }.build()
     val People = build("M9 11.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4z M2 20.5C2 15.5 5.2 13 9 13s7 2.5 7 7.5z M17.5 7.5h4.5v1.8h-4.5z M17.5 11.1h4.5v1.8h-4.5z M17.5 14.7H21v1.8h-3.5z")
-    val Settings = buildStroke("M12 2.5 L20.2 7.25 L20.2 16.75 L12 21.5 L3.8 16.75 L3.8 7.25 M12 9A3 3 0 1 0 12 15A3 3 0 1 0 12 9Z")
+    val Settings = buildStroke("M12 2.5 L20.2 7.25 L20.2 16.75 L12 21.5 L3.8 16.75 L3.8 7.25 Z M12 9.2 A2.8 2.8 0 1 0 12 14.8 A2.8 2.8 0 1 0 12 9.2 Z")
     val Power = buildStroke("M12 4v8 M18.36 6.64a9 9 0 1 1-12.72 0")
     val Follow = build("M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z")
     val Chat = build("M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z")
