@@ -533,7 +533,8 @@ private fun RoomListCard(
                 .background(Color(0xFFE5E7EB))   // placeholder
         ) {
             AsyncImage(
-                model = if (room.image.startsWith("http")) room.image
+                model = if (room.image.isBlank()) RAW + "file_000000009aac81faa8564416680aba4e.png"
+                        else if (room.image.startsWith("http")) room.image
                         else RAW + room.image.trimStart('/'),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
@@ -560,56 +561,16 @@ private fun RoomListCard(
     }
 }
 
-// ═══════════════════════════════════════════════════════
-// HOUSE ICON (real app jaisa)
-// ═══════════════════════════════════════════════════════
-@Composable
+// ═════════════════════════════════════════@Composable
 fun HurryHouseIcon(selected: Boolean = false) {
-    androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
-        val lineColor = if (selected) Color(0xFF3B82F6) else Color(0xFF2D2D2D)
-        val barColor  = if (selected) Color.White      else Color(0xFF2D2D2D)
-        val sw        = 2.4.dp.toPx()
-        val w = size.width
-        val h = size.height
-        val sx = w / 32f
-        val sy = h / 32f
-        fun x(v: Float) = v * sx
-        fun y(v: Float) = v * sy
-
-        val house = Path().apply {
-            moveTo(x(16f), y(3.5f))
-            cubicTo(x(14.5f), y(3.5f), x(3f),   y(8f),    x(3f),   y(13.5f))
-            lineTo(x(3f), y(21.5f))
-            cubicTo(x(3f),    y(25.5f), x(6f),   y(28.5f), x(10.5f), y(28.5f))
-            lineTo(x(21.5f), y(28.5f))
-            cubicTo(x(26f),   y(28.5f), x(29f),  y(25.5f), x(29f),   y(21.5f))
-            lineTo(x(29f), y(13.5f))
-            cubicTo(x(29f),   y(8f),    x(17.5f), y(3.5f), x(16f),   y(3.5f))
-            close()
-        }
-        drawPath(
-            path = house,
-            color = lineColor,
-            style = Stroke(width = sw, cap = StrokeCap.Round, join = StrokeJoin.Round)
-        )
-
-        // 3 equalizer bars
-        drawRoundRect(
-            color = barColor,
-            topLeft = Offset(x(9f), y(14.5f)),
-            size = Size(x(3.5f), y(6f)),
-            cornerRadius = CornerRadius(1.5f * sx, 1.5f * sy)
-        )
-        drawRoundRect(
-            color = barColor,
-            topLeft = Offset(x(14.2f), y(11.5f)),
-            size = Size(x(3.5f), y(9f)),
-            cornerRadius = CornerRadius(1.5f * sx, 1.5f * sy)
-        )
-        drawRoundRect(
-            color = barColor,
-            topLeft = Offset(x(19.5f), y(14f)),
-            size = Size(x(3.5f), y(6.5f)),
+    AsyncImage(
+        model = RAW + "IMG_20261009_170410.png",
+        contentDescription = null,
+        modifier = Modifier.size(32.dp),
+        contentScale = ContentScale.Fit
+    )
+}
+ Size(x(3.5f), y(6.5f)),
             cornerRadius = CornerRadius(1.5f * sx, 1.5f * sy)
         )
     }
