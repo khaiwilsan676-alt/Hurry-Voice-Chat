@@ -1,6 +1,5 @@
 package com.hurry.voicechat
 
-private fun tsxAsset(path: String): String = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/" + path.removePrefix("/")
 
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -48,6 +47,8 @@ import kotlinx.coroutines.delay
 import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.math.roundToInt
+
+private fun tsxAsset(path: String): String = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/" + path.removePrefix("/")
 
 // --- TSX Interfaces & Data Models ---
 data class RoomOwner(val id: String = "", val uid: String = "", val accountId: String = "", val name: String, val image: String)
@@ -511,10 +512,29 @@ fun RoomPage(
         if (showMessageSheet) MessagePage(roomId, roomName, roomDp) { showMessageSheet = false }
         if (showFourGride) Fourgride(
             onClose = { showFourGride = false },
-            onStore = { showFourGride = false; storeInitialView = "store"; showStore = true },
-            onTasks = { showFourGride = false; showRoomTask = true },
-            onGames = { showFourGride = false; showGameSheet = true },
-            onMessages = { showFourGride = false; showMessageSheet = true }
+            onClearChat = {
+                messages = emptyList()
+                socket?.emit("room_chat_clear", JSONObject().put("roomId", roomId).put("userId", userAccountId).put("timestamp", System.currentTimeMillis()))
+            },
+            publicMsgOff = publicMsgOff,
+            onTogglePublicMsg = {
+                publicMsgOff = !publicMsgOff
+                socket?.emit("room_public_message_toggle", JSONObject().put("roomId", roomId).put("off", publicMsgOff))
+            },
+            speaker = isSpeakerOn,
+            onToggleSpeaker = { isSpeakerOn = !isSpeakerOn },
+            onMusic = {
+                if (currentTrack != null) musicControllerState = "full"
+            },
+            onOpenStore = { view ->
+                storeInitialView = view
+                showStore = true
+                showFourGride = false
+            },
+            onLuckyBag = {
+                showFourGride = false
+                showGameSheet = true
+            }
         )
         if (showEmojiPicker) EmojiPicker(onClose = { showEmojiPicker = false }, onSelect = { emojiSrc ->
             currentUserSeat?.let { seat ->
@@ -722,62 +742,91 @@ fun RoomProfile(user: RoomUser, onClose: () -> Unit) {
 @Composable
 fun Fourgride(
     onClose: () -> Unit,
-    onStore: () -> Unit,
-    onTasks: () -> Unit,
-    onGames: () -> Unit,
-    onMessages: () -> Unit
+    onClearChat: () -> Unit,
+    publicMsgOff: Boolean,
+    onTogglePublicMsg: () -> Unit,
+    speaker: Boolean,
+    onToggleSpeaker: () -> Unit,
+    onMusic: () -> Unit,
+    onOpenStore: (String) -> Unit,
+    onLuckyBag: () -> Unit
 ) {
-    TsxBottomSheet(onDismiss = onClose, fraction = 0.42f) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("hurry_room_effects", Context.MODE_PRIVATE) }
+    var entryEffect by remember { mutableStateOf(prefs.getBoolean("entryEffect", false)) }
+    var giftEffect by remember { mutableStateOf(prefs.getBoolean("giftEffect", false)) }
+
+    @Composable
+    fun ToggleTrack(enabled: Boolean, onClick: () -> Unit) {
+        Box(
+            Modifier.size(width = 24.dp, height = 16.dp).clip(CircleShape)
+                .background(if (enabled) Color(0xFF1689FF) else Color(0xFFD1D5DB))
+                .clickable(onClick = onClick).padding(2.dp),
+            contentAlignment = if (enabled) Alignment.CenterEnd else Alignment.CenterStart
+        ) {
+            Box(Modifier.size(12.dp).clip(CircleShape).background(Color.White))
+        }
+    }
+    @Composable
+    fun ToolItem(asset: String, label: String, onClick: () -> Unit) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(48.dp).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+                AsyncImage(model = tsxAsset(asset), contentDescription = label, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+            }
+            Text(label, fontSize = 10.sp, color = Color(0xFF374151), modifier = Modifier.padding(top = 4.dp), maxLines = 1)
+        }
+    }
+    @Composable
+    fun ToggleTool(asset: String, label: String, enabled: Boolean, onClick: () -> Unit, toggleBelow: Boolean = false) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                AsyncImage(model = tsxAsset(asset), contentDescription = label, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                if (!toggleBelow) {
+                    Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 1.dp)) { ToggleTrack(enabled, onClick) }
+                }
+            }
+            if (toggleBelow) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.padding(top = 4.dp).clickable(onClick = onClick)) {
+                    Text(label, fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1)
+                    Spacer(Modifier.width(4.dp))
+                    ToggleTrack(enabled, onClick)
+                }
+            } else {
+                Text(label, fontSize = 10.sp, color = Color(0xFF374151), modifier = Modifier.padding(top = 4.dp), maxLines = 1)
+            }
+        }
+    }
+
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.70f) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Tools", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF252525))
-                Text("×", fontSize = 24.sp, color = Color(0xFF555555), modifier = Modifier.clickable { onClose() })
+                Text("Tools", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text("×", fontSize = 24.sp, color = Color(0xFF374151), modifier = Modifier.clickable { onClose() }.padding(horizontal = 4.dp))
             }
-            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110525.png"), contentDescription = "Clear Chat", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Clear-Chat", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110608.png"), contentDescription = "Public msg", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Public msg", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110709.png"), contentDescription = "Entry Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Entry Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110727.png"), contentDescription = "Gift Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Gift Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.weight(1f)) { ToolItem("/IMG_20260814_110525.png", "Clear-Chat", onClearChat) }
+                Box(Modifier.weight(1f)) { ToggleTool("/IMG_20260814_110608.png", "Public msg", publicMsgOff, onTogglePublicMsg) }
+                Box(Modifier.weight(1f)) { ToggleTool("/IMG_20260814_110709.png", "Entry Effect", entryEffect, {
+                    entryEffect = !entryEffect
+                    prefs.edit().putBoolean("entryEffect", entryEffect).apply()
+                }) }
+                Box(Modifier.weight(1f)) { ToggleTool("/IMG_20260814_110727.png", "Gift Effect", giftEffect, {
+                    giftEffect = !giftEffect
+                    prefs.edit().putBoolean("giftEffect", giftEffect).apply()
+                }) }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_144255.png"), contentDescription = "Music", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Music", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110628.png"), contentDescription = "Speaker", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Speaker", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110501.png"), contentDescription = "Store", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Store", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110545.png"), contentDescription = "My Item", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("My-Iteam", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
+            Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.weight(1f)) { ToolItem("/IMG_20260814_144255.png", "Music", onMusic) }
+                Box(Modifier.weight(1f)) { ToggleTool("/IMG_20260814_110628.png", "Speaker", speaker, onToggleSpeaker, toggleBelow = true) }
+                Box(Modifier.weight(1f)) { ToolItem("/IMG_20260814_110501.png", "Store") { onOpenStore("store") } }
+                Box(Modifier.weight(1f)) { ToolItem("/IMG_20260814_110545.png", "My-Iteam") { onOpenStore("bag") } }
             }
-            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = tsxAsset("/1790602570756~2.jpg"), contentDescription = "Lucky bag", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Lucky bag", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    AsyncImage(model = tsxAsset("/IMG_20260814_110802.png"), contentDescription = "PK Battle", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
-                    Text("Pk Battle", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
-                }
+            Text("Play Tools", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937), modifier = Modifier.padding(bottom = 8.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.weight(1f)) { ToolItem("/1790602570756~2.jpg", "Lucky bag", onLuckyBag) }
+                Box(Modifier.weight(1f)) { ToolItem("/IMG_20260814_110802.png", "Pk Battle") {} }
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
             }
         }
     }
