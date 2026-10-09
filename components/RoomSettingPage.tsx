@@ -1173,17 +1173,29 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               className="relative bg-white w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col"
               style={{ maxHeight: '85vh' }}
             >
-              <h3 className="text-lg font-bold text-gray-800 text-center pt-6 pb-4 flex-shrink-0">Select Mic Mode</h3>
+              {/* Header with back button */}
+              <div className="flex items-center px-3 pt-4 pb-2 flex-shrink-0">
+                <button
+                  onClick={() => setShowMicModeSheet(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Back"
+                >
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-gray-800 stroke-[2.5]">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
+                  </svg>
+                </button>
+                <h3 className="flex-1 text-center text-base font-bold text-gray-800 pr-7">Select Mic Mode</h3>
+              </div>
 
               {/* Scrollable mic modes grid */}
-              <div className="flex-1 overflow-y-auto px-4 pb-4">
-                <div className="grid grid-cols-3 gap-3">
+              <div className="flex-1 overflow-y-auto px-4 pt-3 pb-4">
+                <div className="grid grid-cols-3 gap-3 pt-2">
                   {micModes.map((mode) => (
                     <button
                       key={mode}
                       onClick={() => setTempMicMode(mode)}
-                      className={`flex flex-col items-center rounded-xl transition-all ${
-                        tempMicMode === mode ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:opacity-90'
+                      className={`flex flex-col items-center rounded-xl p-1.5 transition-all ${
+                        tempMicMode === mode ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:opacity-90'
                       }`}
                     >
                       <MicModeImageCard count={mode} />
