@@ -201,6 +201,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
   const cleanedIconSrc = useProcessedShaderImage('/file_00000000e56882119c217d508b6733dc.png');
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [showRules, setShowRules] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -294,6 +295,22 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           <svg viewBox="0 0 24 24" className="w-8 h-8 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+
+        {/* Question Mark Icon - Top Right */}
+        <button
+          onClick={() => setShowRules(true)}
+          className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
+          style={{
+            top: 'calc(env(safe-area-inset-top, 0px) + 2px)',
+            right: '8px'
+          }}
+          aria-label="Rules"
+        >
+          <svg viewBox="0 0 24 24" className="w-8 h-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)" stroke="#ffd700" strokeWidth="1.5" />
+            <text x="12" y="17" textAnchor="middle" fontSize="14" fontWeight="bold" fill="#ffd700">?</text>
           </svg>
         </button>
 
@@ -455,6 +472,90 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
         </div>
 
       </div>
+
+      {/* Rules Sheet Modal */}
+      {showRules && (
+        <div 
+          className="fixed inset-0 z-[999] flex items-end justify-center"
+          onClick={() => setShowRules(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+          {/* Sheet */}
+          <div 
+            className="relative w-full max-w-[500px] max-h-[85vh] overflow-y-auto rounded-t-2xl bg-[#380308] border-t-2 border-x-2 border-[#d85858] shadow-[0_-10px_40px_rgba(0,0,0,0.8)]"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundImage: 'linear-gradient(to bottom, #4a0a10 0%, #380308 100%)',
+            }}
+          >
+            {/* Drag Handle */}
+            <div className="sticky top-0 z-10 flex justify-center pt-3 pb-2 bg-gradient-to-b from-[#4a0a10] to-transparent">
+              <div className="w-10 h-1 rounded-full bg-[#d85858]/60" />
+            </div>
+
+            <div className="px-5 pb-8">
+              {/* Header */}
+              <h2 className="text-center text-white text-lg font-black tracking-wider uppercase mb-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                Room Task Rules
+              </h2>
+
+              {/* Rules List */}
+              <div className="space-y-4 text-[#f5d0d0] text-[13px] leading-relaxed">
+                
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">1</span>
+                  <p>Each user can complete a 'Room Owner' task only once per day.</p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">2</span>
+                  <p>Each user can complete a daily task once per day. Tasks reset at midnight (12:00 AM).</p>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">3</span>
+                  <p>For gift-giving tasks, only gifts sent within the room are counted; gifts sent via private message are not included.</p>
+                </div>
+
+                {/* Treasure Chest */}
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">4</span>
+                  <div>
+                    <p className="flex items-center gap-1.5 mb-1">
+                      <span className="text-[#ffd700] text-base">🎁</span>
+                      <span className="font-bold text-white">Treasure Chest</span>
+                    </p>
+                    <p>When a gift is received in a personal room, the room owner can earn a 5% coin reward of the gift's value. There is no limit on the coin bonus; the more gifts received in the room, the more coin rewards you earn.</p>
+                    <p className="mt-1.5 text-[#ffb8b8] italic">(If it's a rebate gift, the reward will be 0.5% of the gift's value in coins).</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">5</span>
+                  <p>If you create multiple accounts using the same device or SIM card, you can only claim rewards once for each task.</p>
+                </div>
+
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowRules(false)}
+                className="mt-6 w-full h-[42px] rounded-full font-black text-[13px] uppercase tracking-widest
+                           bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
+                           text-[#4a1f00]
+                           border-2 border-[#f5e6a8]
+                           shadow-[0_0_10px_rgba(255,215,0,0.5),0_4px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                           active:translate-y-[3px] active:shadow-[0_0_8px_rgba(255,215,0,0.5),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
+                           transition-all duration-100 cursor-pointer outline-none"
+              >
+                Got It
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
