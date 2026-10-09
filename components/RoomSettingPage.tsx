@@ -608,7 +608,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center">
-      {/* Backdrop */}
+      {/* Backdrop — NO BLUR, only dim */}
       <div className="absolute inset-0 bg-black/50" onClick={onBack} />
 
       {/* Half Sheet — black background */}
@@ -698,7 +698,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
-        {/* ---------- HELP SHEET (naya text BLACK color me) ---------- */}
+        {/* ---------- HELP SHEET ---------- */}
         {showHelp && (
           <div
             className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4"
@@ -717,8 +717,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
                 <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                   <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
 
-                  {/* 🔽 NAYA TEXT — BLACK color */}
-                  <p className="text-black font-semibold">
+                  <p className="text-black font-semibold" style={{ fontWeight: 600 }}>
                     You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
                   </p>
 
@@ -1020,7 +1019,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     user.accountId.toLowerCase().includes(adminSearchQuery.toLowerCase())
   )
 
-  // 🔥 ROOM WHERE I'M AN ADMIN — ab yeh bhi AdminRoomsPage wala sheet use karega
   if (showAdminRoomsPage) {
     return <AdminRoomsPage onBack={() => setShowAdminRoomsPage(false)} />
   }
@@ -1495,7 +1493,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         </div>
       )}
 
-      {/* ---------- ADMIN SHEET HELP (PURANA TEXT — koi change nahi) ---------- */}
+      {/* ---------- ADMIN SHEET HELP ---------- */}
       {showHelpSheet && (
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
