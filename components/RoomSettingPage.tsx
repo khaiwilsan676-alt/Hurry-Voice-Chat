@@ -1020,6 +1020,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     user.accountId.toLowerCase().includes(adminSearchQuery.toLowerCase())
   )
 
+  // 🔥 ROOM WHERE I'M AN ADMIN — ab yeh bhi AdminRoomsPage wala sheet use karega
   if (showAdminRoomsPage) {
     return <AdminRoomsPage onBack={() => setShowAdminRoomsPage(false)} />
   }
