@@ -971,7 +971,11 @@ object TsxIcons {
     val Follow = build("M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z")
     val Chat = build("M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z")
     val Mic = build("M7.5 1h9v14a4.5 4.5 0 0 1-9 0z M4 11a8 8 0 0 0 16 0h-3a5 5 0 0 1-10 0z M10.5 18h3v5h-3z")
-    val MicMute = build("M7.5 1h9v14a4.5 4.5 0 0 1-9 0z M4 11a8 8 0 0 0 16 0h-3a5 5 0 0 1-10 0z M10.5 18h3v5h-3z M1 1L23 23")
+    val MicMute = ImageVector.Builder("MicMute", 28.dp, 28.dp, 28f, 28f).apply {
+        addPath(PathParser().parsePathString("M7.5 1h9v14a4.5 4.5 0 0 1-9 0z M4 11a8 8 0 0 0 16 0h-3a5 5 0 0 1-10 0z M10.5 18h3v5h-3z").toNodes(), fill = SolidColor(Color.White))
+        addPath(PathParser().parsePathString("M1 1L23 23").toNodes(), fill = null, stroke = SolidColor(Color.Black), strokeLineWidth = 3.5f, strokeLineCap = StrokeCap.Round)
+        addPath(PathParser().parsePathString("M1 1L23 23").toNodes(), fill = null, stroke = SolidColor(Color.White), strokeLineWidth = 2.2f, strokeLineCap = StrokeCap.Round)
+    }.build()
     val Emoji = build("M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z")
     val Mail = buildStroke("M5.5 4.5h13A3.5 3.5 0 0 1 22 8v8a3.5 3.5 0 0 1-3.5 3.5h-13A3.5 3.5 0 0 1 2 16V8a3.5 3.5 0 0 1 3.5-3.5z M3.5 7.5L12 13.5L20.5 7.5")
     val Apps = build("M3 3h8v8H3z M13 3h8v8h-8z M3 13h8v8H3z M13.5 13.5h7v1.6h-7z M13.5 16.2h7v1.6h-7z M13.5 18.9h7v1.6h-7z")
