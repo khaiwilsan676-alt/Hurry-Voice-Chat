@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,7 +53,7 @@ private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 // MePage wala exact gradient
 private val MePageTopGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
     0.0f  to Color(0xFF3B82F6),
-    0.85f to Color(0xFFEFF6FF),
+    0.94f to Color(0xFFEFF6FF),
     1.0f  to Color(0xFFF9FAFB)
 )
 
@@ -83,7 +85,7 @@ interface RoomDao {
     fun clearAll(): Int
 }
 
-@Database(entities = [RoomEntity::class], version = 1, exportSchema = false)
+@Database(entities = [RoomEntity::class], version = 2, exportSchema = false)
 abstract class HurryDatabase : RoomDatabase() {
     abstract fun roomDao(): RoomDao
 
@@ -102,6 +104,43 @@ abstract class HurryDatabase : RoomDatabase() {
 }
 
 // ═══════════════════════════════════════════════════════
+// COUNTRY PILL DATA
+// ═══════════════════════════════════════════════════════
+private data class CountryPill(
+    val flag: String?,
+    val label: String,
+    val value: String
+)
+
+private val countryPills = listOf(
+    CountryPill(null, "All",          "all"),
+    CountryPill("🇮🇳", "India",        "India"),
+    CountryPill("🇸🇬", "Singapore",    "Singapore"),
+    CountryPill("🇵🇰", "Pakistan",     "Pakistan"),
+    CountryPill("🇺🇸", "USA",          "USA"),
+    CountryPill("🇿🇦", "South Africa", "South Africa"),
+    CountryPill("🇹🇷", "Turkey",       "Turkey")
+)
+
+private fun countryFlag(country: String): String {
+    val value = country.trim()
+    return when {
+        value.contains("india", ignoreCase = true) || value.contains("🇮🇳") -> "🇮🇳"
+        value.contains("singapore", ignoreCase = true) || value.contains("🇸🇬") -> "🇸🇬"
+        value.contains("pakistan", ignoreCase = true) || value.contains("🇵🇰") -> "🇵🇰"
+        value.contains("usa", ignoreCase = true) || value.contains("united states", ignoreCase = true) || value.contains("🇺🇸") -> "🇺🇸"
+        value.contains("south africa", ignoreCase = true) || value.contains("🇿🇦") -> "🇿🇦"
+        value.contains("turkey", ignoreCase = true) || value.contains("türkiye", ignoreCase = true) || value.contains("🇹🇷") -> "🇹🇷"
+        else -> "🌎"
+    }
+}
+
+private fun countryMatches(roomCountry: String, selected: String): Boolean {
+    if (selected == "all") return true
+    return countryFlag(roomCountry) == countryFlag(selected)
+}
+
+// ═══════════════════════════════════════════════════════
 // HOME SCREEN
 // ═══════════════════════════════════════════════════════
 @Composable
@@ -109,18 +148,27 @@ fun HomeScreen(
     onRoom: (HurryRoom) -> Unit,
     onMine: () -> Unit = {},
     onPopular: () -> Unit = {},
+    onLeaderboard: (String) -> Unit = {},
+    onInviteFriends: () -> Unit = {},
     mineSelected: Boolean = false
 ) {
     val mine = mineSelected
     val context = LocalContext.current
-    val dao = remember { HurryDatabase.get(context).roomDao() }
+    val dao = remember {
+        runCatching { HurryDatabase.get(context).roomDao() }.getOrNull()
+    }
 
     var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
+    var selectedCountry by remember { mutableStateOf("all") }
 
-    // ───────── CACHE-FIRST + SERVER SYNC ─────────
+    // Room cache is optional: a corrupt/old database must never close the app.
     LaunchedEffect(Unit) {
-        // 1️⃣ Pehle Room DB se instant load
-        val cached = withContext(Dispatchers.IO) { dao.getAll() }
+        val cached = if (dao != null) {
+            runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
+        } else {
+            emptyList()
+        }
+
         if (cached.isNotEmpty()) {
             rooms = cached.map {
                 HurryRoom(
@@ -133,28 +181,32 @@ fun HomeScreen(
             }
         }
 
-        // 2️⃣ Phir server se fresh data
-        val fresh = try { HurryApi.rooms() } catch (e: Exception) { emptyList() }
+        // Server data remains the source of truth.
+        val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
 
         if (fresh.isNotEmpty()) {
             rooms = fresh
-
-            // 3️⃣ Room DB me save (replace all)
-            withContext(Dispatchers.IO) {
-                dao.clearAll()
-                dao.insertAll(
-                    fresh.map {
-                        RoomEntity(
-                            id = it.id,
-                            name = it.name,
-                            country = it.country,
-                            image = it.image,
-                            accountId = it.accountId ?: "",
-                            createdAt = System.currentTimeMillis()
+            if (dao != null) {
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        dao.clearAll()
+                        dao.insertAll(
+                            fresh.map {
+                                RoomEntity(
+                                    id = it.id,
+                                    name = it.name,
+                                    country = it.country,
+                                    image = it.image,
+                                    accountId = it.accountId ?: "",
+                                    createdAt = System.currentTimeMillis()
+                                )
+                            }
                         )
                     }
-                )
+                }
             }
+        } else if (rooms == null) {
+            rooms = emptyList()
         }
     }
 
@@ -169,6 +221,8 @@ fun HomeScreen(
         RAW + "IMG-20260818-WA0001.jpg"
     )
     val pager = rememberPagerState(pageCount = { banners.size })
+    val listState = rememberLazyListState()
+    val countrySticky by remember { derivedStateOf { listState.firstVisibleItemIndex >= 3 } }
 
     // Auto-scroll — user drag ke time ruk jaata hai
     LaunchedEffect(Unit) {
@@ -180,17 +234,23 @@ fun HomeScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.fillMaxSize().background(Color(0xFFF9FAFB))
-        ) {
-        // ───────── TOP HEADER (MePage gradient) ─────────
+    // Country filter
+    val filteredRooms = remember(rooms, selectedCountry) {
+        val list = rooms ?: emptyList()
+        if (selectedCountry == "all") list
+        else list.filter { countryMatches(it.country, selectedCountry) }
+    }
+
+    Column(
+        Modifier.fillMaxSize().background(Color(0xFFF9FAFB))
+    ) {
+        // ═══════════ FIXED TOP HEADER (does not scroll) ═══════════
         Column(
             Modifier
                 .fillMaxWidth()
                 .background(MePageTopGradient)
                 .statusBarsPadding()
-                .padding(top = 7.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                .padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -228,15 +288,16 @@ fun HomeScreen(
                 Spacer(Modifier.width(2.dp))
             }
         }
+        // ═══════════ END FIXED TOP HEADER ═══════════
 
-        // ───────── SMALL GAP (header ↔ banner) ─────────
-        Spacer(Modifier.height(6.dp))
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 12.dp)
-        ) {
-            // ───────── BANNER ─────────
+        // ═══════════ SCROLLABLE AREA ═══════════
+        Box(Modifier.fillMaxSize()) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 12.dp)
+            ) {
+            // ───────── BANNER (SCROLLS) ─────────
             item {
                 Column(
                     Modifier
@@ -246,7 +307,7 @@ fun HomeScreen(
                                 listOf(Color(0xFFEFF6FF), Color(0xFFF9FAFB))
                             )
                         )
-                        .padding(top = 4.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                        .padding(top = 6.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                 ) {
                     Box(
                         Modifier
@@ -263,7 +324,7 @@ fun HomeScreen(
                             AsyncImage(
                                 model = banners[page],
                                 contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().clickable { onInviteFriends() },
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -290,7 +351,7 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── CATEGORY CARDS (glitch-free shift) ─────────
+            // ───────── CATEGORY CARDS (SCROLL) ─────────
             item {
                 Row(
                     modifier = Modifier
@@ -299,13 +360,27 @@ fun HomeScreen(
                         .graphicsLayer { translationY = -4.dp.toPx() },
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f))
-                    HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f))
-                    HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f))
+                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f)) { onLeaderboard("honour") }
+                    HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f)) { onLeaderboard("charm") }
+                    HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f)) { onLeaderboard("room") }
                 }
             }
 
-            // ───────── ROOMS GRID ─────────
+            // ───────── COUNTRY PILLS (STICKY HEADER) ─────────
+            item {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF9FAFB))
+                ) {
+                    CountryPillRow(
+                        selected = selectedCountry,
+                        onSelect = { selectedCountry = it }
+                    )
+                }
+            }
+
+            // ───────── ROOMS GRID (SCROLL) ─────────
             if (rooms == null) {
                 item {
                     Box(
@@ -315,17 +390,30 @@ fun HomeScreen(
                         CircularProgressIndicator(color = HurryBlue, strokeWidth = 2.dp)
                     }
                 }
-            } else if (rooms!!.isNotEmpty()) {
-                val roomRows = rooms!!.chunked(2)
+            } else if (filteredRooms.isEmpty()) {
+                item {
+                    Box(
+                        Modifier.fillMaxWidth().height(120.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No rooms in this country",
+                            fontSize = 14.sp,
+                            color = Color(0xFF6B7280)
+                        )
+                    }
+                }
+            } else {
+                val roomRows = filteredRooms.chunked(2)
                 items(
                     items = roomRows,
-                    key = { row -> row.first().id }   // scroll glitch fix
+                    key = { row -> row.first().id }
                 ) { row ->
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)  // slightly wider Room card column gap
+                            .padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         row.forEach { room ->
                             RoomListCard(room, onRoom, Modifier.weight(1f))
@@ -334,18 +422,96 @@ fun HomeScreen(
                     }
                 }
             }
-            // Empty pe kuch nahi — text hata diya
+            }
+            if (countrySticky) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .background(Color(0xFFF9FAFB))
+                ) {
+                    CountryPillRow(
+                        selected = selectedCountry,
+                        onSelect = { selectedCountry = it }
+                    )
+                }
+            }
         }
-        // Real app's bottom-right daily sign-in decoration (70dp), floating above bottom navigation.
-        AsyncImage(
-            model = RAW + "IMG_20260916_002115.png",
-            contentDescription = "Daily sign-in decoration",
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 91.dp)
-                .size(70.dp),
-            contentScale = ContentScale.Fit
-        )
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// COUNTRY PILL ROW (Horizontal scroll — LazyRow)
+// ═══════════════════════════════════════════════════════
+@Composable
+private fun CountryPillRow(
+    selected: String,
+    onSelect: (String) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .graphicsLayer { translationY = -3.dp.toPx() }
+            .height(40.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        userScrollEnabled = true
+    ) {
+        items(countryPills.size) { index ->
+            val pill = countryPills[index]
+            val active = selected == pill.value
+
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if (active) HurryBlue else Color.White)
+                    .clickable { onSelect(pill.value) }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (pill.flag == null) {
+                    androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+                        val stroke = Stroke(
+                            width = 2.dp.toPx(),
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
+                        )
+                        val c = if (active) Color.White else Color(0xFF1E1E1E)
+                        drawCircle(
+                            color = c,
+                            radius = size.minDimension * 0.42f,
+                            center = Offset(size.width / 2f, size.height / 2f),
+                            style = stroke
+                        )
+                        drawLine(
+                            color = c,
+                            start = Offset(size.width * 0.08f, size.height / 2f),
+                            end = Offset(size.width * 0.92f, size.height / 2f),
+                            strokeWidth = stroke.width,
+                            cap = StrokeCap.Round
+                        )
+                        drawOval(
+                            color = c,
+                            topLeft = Offset(size.width * 0.33f, size.height * 0.08f),
+                            size = Size(size.width * 0.34f, size.height * 0.84f),
+                            style = stroke
+                        )
+                    }
+                } else {
+                    Text(pill.flag, fontSize = 14.sp)
+                }
+
+                Text(
+                    text = pill.label,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (active) Color.White else Color(0xFF374151),
+                    maxLines = 1
+                )
+            }
+        }
     }
 }
 
@@ -381,7 +547,7 @@ private fun RoomListCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            Text(room.country, fontSize = 14.sp, maxLines = 1)
+            Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
                 room.name,
                 fontSize = 14.sp,
@@ -456,9 +622,10 @@ fun HurryHouseIcon(selected: Boolean = false) {
 private fun HurryCategoryCard(
     label: String,
     bg: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
-    Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp))) {
+    Box(modifier.height(92.dp).clip(RoundedCornerShape(16.dp)).clickable { onClick() }) {
         AsyncImage(
             model = bg,
             contentDescription = label,
