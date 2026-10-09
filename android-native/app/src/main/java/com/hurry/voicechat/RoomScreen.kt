@@ -724,28 +724,56 @@ fun Fourgride(
     onGames: () -> Unit,
     onMessages: () -> Unit
 ) {
-    TsxBottomSheet(onDismiss = onClose, fraction = 0.34f) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Room tools", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("×", fontSize = 24.sp, modifier = Modifier.clickable { onClose() })
+    TsxBottomSheet(onDismiss = onClose, fraction = 0.42f) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Tools", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF252525))
+                Text("×", fontSize = 24.sp, color = Color(0xFF555555), modifier = Modifier.clickable { onClose() })
             }
-            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
-                    Text("◇", fontSize = 28.sp, color = Color(0xFF1689FF))
-                    Text("Store", fontSize = 12.sp)
-                }
+            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
-                    Text("★", fontSize = 28.sp, color = Color(0xFFFFB52E))
-                    Text("Tasks", fontSize = 12.sp)
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
-                    Text("♧", fontSize = 28.sp, color = Color(0xFF39B982))
-                    Text("Games", fontSize = 12.sp)
+                    AsyncImage(model = "/IMG_20260814_110525.png", contentDescription = "Clear Chat", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Clear-Chat", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
-                    Text("✉", fontSize = 28.sp, color = Color(0xFF1689FF))
-                    Text("Messages", fontSize = 12.sp)
+                    AsyncImage(model = "/IMG_20260814_110608.png", contentDescription = "Public msg", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Public msg", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
+                    AsyncImage(model = "/IMG_20260814_110709.png", contentDescription = "Entry Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Entry Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
+                    AsyncImage(model = "/IMG_20260814_110727.png", contentDescription = "Gift Effect", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Gift Effect", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onMessages() }) {
+                    AsyncImage(model = "/IMG_20260814_144255.png", contentDescription = "Music", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Music", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onTasks() }) {
+                    AsyncImage(model = "/IMG_20260814_110628.png", contentDescription = "Speaker", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Speaker", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
+                    AsyncImage(model = "/IMG_20260814_110501.png", contentDescription = "Store", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Store", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onStore() }) {
+                    AsyncImage(model = "/IMG_20260814_110545.png", contentDescription = "My Item", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("My-Iteam", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
+                    AsyncImage(model = "/1790602570756~2.jpg", contentDescription = "Lucky bag", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Lucky bag", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onGames() }) {
+                    AsyncImage(model = "/IMG_20260814_110802.png", contentDescription = "PK Battle", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Text("Pk Battle", fontSize = 10.sp, color = Color(0xFF555555), modifier = Modifier.padding(top = 4.dp))
                 }
             }
         }
