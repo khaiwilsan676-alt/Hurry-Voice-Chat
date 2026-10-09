@@ -94,6 +94,35 @@ fun RoomPage(
                 mainHandler.post { backendRoomUsers.clear(); backendRoomUsers.addAll(parsed) }
             }
         }
+        val seatListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject
+            if (payload != null && payload.optString("roomId") == roomId) {
+                val seatsJson = payload.optJSONArray("seats") ?: JSONArray()
+                val parsed = ArrayList<NativeRoomSeat>()
+                for (index in 0 until seatsJson.length()) {
+                    val seat = seatsJson.optJSONObject(index) ?: continue
+                    val user = seat.optJSONObject("user")
+                    parsed.add(NativeRoomSeat(
+                        number=seat.optInt("number",index+1),
+                        occupied=seat.optBoolean("isOccupied",user != null),
+                        locked=seat.optBoolean("isLocked",false),
+                        muted=seat.optBoolean("isMuted",false),
+                        speaking=seat.optBoolean("isSpeaking",false),
+                        userName=user?.optString("name","User") ?: "",
+                        userImage=user?.optString("image",user?.optString("dp","")) ?: "",
+                        accountId=user?.optString("accountId",user?.optString("userId","")) ?: ""
+                    ))
+                }
+                mainHandler.post {
+                    val byNumber = parsed.associateBy { it.number }
+                    for (index in seats.indices) {
+                        val number = seats[index].number
+                        seats[index] = byNumber[number] ?: NativeRoomSeat(number=number)
+                    }
+                    parsed.filter { it.number !in seats.map(NativeRoomSeat::number) }.forEach { seats.add(it) }
+                }
+            }
+        }
         val connectListener = Emitter.Listener {
             val joinPayload = JSONObject()
                 .put("roomId",roomId)
@@ -107,11 +136,13 @@ fun RoomPage(
             roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
         }
         roomSocket.on("room_presence",presenceListener)
+        roomSocket.on("room_seats",seatListener)
         roomSocket.on(Socket.EVENT_CONNECT,connectListener)
         roomSocket.connect()
         onDispose {
             roomSocket.emit("room_leave",JSONObject().put("roomId",roomId).put("userId",accountId).put("accountId",accountId))
             roomSocket.off("room_presence",presenceListener)
+            roomSocket.off("room_seats",seatListener)
             roomSocket.off(Socket.EVENT_CONNECT,connectListener)
             roomSocket.disconnect()
             roomSocket.close()
