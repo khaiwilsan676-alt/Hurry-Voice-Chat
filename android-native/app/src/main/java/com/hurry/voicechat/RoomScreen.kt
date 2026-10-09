@@ -556,10 +556,7 @@ fun TsxBottomSheet(onDismiss: () -> Unit, fraction: Float, content: @Composable 
 @Composable fun MessagePage(roomId: String, roomName: String, roomDp: String, onClose: () -> Unit) {}
 @Composable fun RoomProfile(user: RoomUser, onClose: () -> Unit) {}
 @Composable fun Fourgride(onClose: () -> Unit) {}
-@Composable fun Wildparty(onClose: () -> Unit, onMinimize: () -> Unit) {}
 @Composable fun Fruitparty(onClose: () -> Unit, onMinimize: () -> Unit) {}
-@Composable fun Roomtask(onBack: () -> Unit) {}
-@Composable fun CupIcon(onBack: () -> Unit, count: Int) {}
 @Composable fun EmojiPicker(onClose: () -> Unit, onSelect: (String) -> Unit) {}
 @Composable fun GiftPicker(onClose: () -> Unit, onSend: (Int) -> Unit) {}
 @Composable fun LuckyGiftAnimation(roomId: String) {}
