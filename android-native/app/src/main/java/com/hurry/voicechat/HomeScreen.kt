@@ -533,9 +533,15 @@ private fun RoomListCard(
                 .background(Color(0xFFE5E7EB))   // placeholder
         ) {
             AsyncImage(
-                model = if (room.image.isBlank()) RAW + "file_000000009aac81faa8564416680aba4e.png"
-                        else if (room.image.startsWith("http")) room.image
-                        else RAW + room.image.trimStart('/'),
+                model = if (
+                    room.image.isBlank() ||
+                    room.image.equals("undefined", ignoreCase = true) ||
+                    room.image.equals("null", ignoreCase = true) ||
+                    room.image.endsWith("/default-avatar.png") ||
+                    room.image.equals("default-avatar.png", ignoreCase = true)
+                ) RAW + "file_000000009aac81faa8564416680aba4e.png"
+                else if (room.image.startsWith("http")) room.image
+                else RAW + room.image.trimStart('/'),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
