@@ -283,6 +283,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="absolute top-[50vh] left-0 w-full h-[260vh] z-0 pointer-events-none bg-[#380308]"
         />
 
+        {/* Back Button - matching question mark icon style */}
         <button 
           onClick={onBack} 
           className="fixed z-50 p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
@@ -292,9 +293,10 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           }}
           aria-label="Back"
         >
-          <svg viewBox="0 0 24 24" className="w-8 h-8 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
+          <svg viewBox="0 0 24 24" className="w-8 h-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)" stroke="#ffd700" strokeWidth="1.5" />
+            <line x1="15" y1="12" x2="8" y2="12" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
+            <polyline points="11.5 8.5 8 12 11.5 15.5" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
 
@@ -379,7 +381,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
             </div>
           </div>
 
-          {/* NOTE TEXT */}
+          {/* NOTE TEXT - ab plate wrapper ke BAHAR, thoda neeche */}
           <p className="w-full text-center text-white text-[11px] sm:text-[12px] font-medium leading-snug mt-4 px-3 relative z-40">
             *If anyone sends gifts in the room, the room owner can get <span className="text-[#ffd700] font-bold">5%coins</span> worth the gift value.
           </p>
@@ -479,8 +481,8 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
           className="fixed inset-0 z-[999] flex items-end justify-center"
           onClick={() => setShowRules(false)}
         >
-          {/* Backdrop - no blur now */}
-          <div className="absolute inset-0 bg-black/60" />
+          {/* Backdrop - no blur */}
+          <div className="absolute inset-0 bg-black/70" />
 
           {/* Sheet */}
           <div 
@@ -490,30 +492,9 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               backgroundImage: 'linear-gradient(to bottom, #4a0a10 0%, #380308 100%)',
             }}
           >
-            {/* Drag Handle + Back Button Row */}
-            <div className="sticky top-0 z-10 bg-gradient-to-b from-[#4a0a10] to-transparent">
-              <div className="flex items-center justify-between px-2 pt-3 pb-2">
-                {/* Back Button - Golden like the ? icon */}
-                <button
-                  onClick={() => setShowRules(false)}
-                  className="p-1 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 active:scale-90"
-                  aria-label="Close"
-                >
-                  <svg viewBox="0 0 24 24" className="w-8 h-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                    <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.5)" stroke="#ffd700" strokeWidth="1.5" />
-                    <line x1="15" y1="12" x2="9" y2="12" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" />
-                    <polyline points="12 9 9 12 12 15" fill="none" stroke="#ffd700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </button>
-
-                {/* Drag Handle centered */}
-                <div className="absolute left-1/2 -translate-x-1/2">
-                  <div className="w-10 h-1 rounded-full bg-[#d85858]/60" />
-                </div>
-
-                {/* Empty spacer to balance flex */}
-                <div className="w-8 h-8" />
-              </div>
+            {/* Drag Handle */}
+            <div className="sticky top-0 z-10 flex justify-center pt-3 pb-2 bg-gradient-to-b from-[#4a0a10] to-transparent">
+              <div className="w-10 h-1 rounded-full bg-[#d85858]/60" />
             </div>
 
             <div className="px-5 pb-8">
