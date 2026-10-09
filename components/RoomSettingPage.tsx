@@ -1102,7 +1102,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-              <h3 className="flex-1 text-center text-base font-bold text-white">Admin</h3>
+              <h3 className="flex-1 text-center text-base font-bold text-white">Admin Center</h3>
               <button
                 onClick={() => setShowHelpSheet(true)}
                 className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
@@ -1110,8 +1110,8 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
               >
                 <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
                   <circle cx="12" cy="12" r="10" />
-                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
@@ -1187,44 +1187,25 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
                 <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
 
-                <p>1. Send gifts in your room. Each gift worth 50M coins adds 1 admin slot. You can increase the number of admins up to 20.</p>
+                <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
+
+                <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
               </div>
 
-              {/* Table: Coins vs Admins */}
+              {/* Level list */}
               <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
-                <div className="flex bg-[#f0c24b] text-[#7a5f1c] text-[11px] font-semibold">
-                  <div className="flex-1 px-2 py-2 border-r border-yellow-300">Coins Accumulated in Room</div>
-                  <div className="flex-1 px-2 py-2 text-center">Number of Room Admins</div>
-                </div>
                 {[
-                  ['50M', '+1'],
-                  ['100M', '+2'],
-                  ['150M', '+3'],
-                  ['200M', '+4'],
-                  ['250M', '+5'],
-                  ['300M', '+6'],
-                  ['350M', '+7'],
-                  ['400M', '+8'],
-                  ['450M', '+9'],
-                  ['500M', '+10'],
-                  ['550M', '+11'],
-                  ['600M', '+12'],
-                  ['650M', '+13'],
-                  ['700M', '+14'],
-                  ['750M', '+15'],
-                  ['800M', '+16'],
-                  ['850M', '+17'],
-                  ['900M', '+18'],
-                  ['950M', '+19'],
-                  ['1B', '+20'],
-                ].map(([coins, adminsCount], idx) => (
+                  ['Level 25', '+5 admins'],
+                  ['Level 30', '+5 admins'],
+                  ['Level 35', '+5 admins'],
+                ].map(([level, adminsCount], idx) => (
                   <div
-                    key={coins}
+                    key={level}
                     className="flex text-[11px]"
                     style={{ backgroundColor: idx % 2 === 0 ? '#faeec2' : '#fdf3d0' }}
                   >
                     <div className="flex-1 px-2 py-1.5 border-r border-yellow-300 text-[#7a5f1c]">
-                      {coins}
+                      {level}
                     </div>
                     <div className="flex-1 px-2 py-1.5 text-center text-[#7a5f1c]">
                       {adminsCount}
