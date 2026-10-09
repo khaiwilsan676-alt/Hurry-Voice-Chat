@@ -562,7 +562,6 @@ const CropScreen = ({
       const imgAspect = naturalWidth / naturalHeight;
       const containerAspect = containerW / containerH;
 
-      // ✅ FULL IMAGE FIT — poori image dikhegi (contain)
       let displayW, displayH;
       if (imgAspect > containerAspect) {
         displayW = containerW;
@@ -574,7 +573,6 @@ const CropScreen = ({
       
       setDisplaySize({ width: displayW, height: displayH });
       
-      // ✅ Crop box default = 70% of image (SAME as pehle)
       const initialSize = Math.min(displayW, displayH) * 0.7;
       setCropBox({
         x: (displayW - initialSize) / 2,
@@ -789,7 +787,6 @@ const CropScreen = ({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        {/* ✅ Image: full fit — poori image dikhti hai */}
         <div 
           className="relative flex items-center justify-center"
           style={{
@@ -808,7 +805,6 @@ const CropScreen = ({
           />
         </div>
 
-        {/* Dark Overlay with Mask — same as before */}
         <div className="absolute inset-0 pointer-events-none" style={{
           background: 'rgba(0,0,0,0.6)',
           clipPath: `polygon(
@@ -825,7 +821,6 @@ const CropScreen = ({
           )`
         }} />
 
-        {/* Crop Box UI — SAME lines (border + grid + corner handles) */}
         <div 
           className="absolute border-2 border-white pointer-events-none"
           style={{
@@ -835,7 +830,6 @@ const CropScreen = ({
             height: cropBox.height,
           }}
         >
-          {/* Grid Lines */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/3 left-0 right-0 h-[1px] bg-white/40"></div>
             <div className="absolute top-2/3 left-0 right-0 h-[1px] bg-white/40"></div>
@@ -843,7 +837,6 @@ const CropScreen = ({
             <div className="absolute left-2/3 top-0 bottom-0 w-[1px] bg-white/40"></div>
           </div>
 
-          {/* Corner Handles */}
           <div className="absolute -top-2.5 -left-2.5 w-5 h-5 border-t-2 border-l-2 border-white pointer-events-none"></div>
           <div className="absolute -top-2.5 -right-2.5 w-5 h-5 border-t-2 border-r-2 border-white pointer-events-none"></div>
           <div className="absolute -bottom-2.5 -left-2.5 w-5 h-5 border-b-2 border-l-2 border-white pointer-events-none"></div>
@@ -2165,21 +2158,42 @@ export default function PublicProfile({
               <input type="file" ref={albumInputRef} accept="image/*" onChange={handleAlbumUpload} className="hidden" />
               <input type="file" ref={coverInputRef} accept="image/*" onChange={handleCoverUpload} className="hidden" />
 
-              {/* 1. Avatar */}
+              {/* 1. Avatar — Camera Icon (DP nahi hai to white bg, DP hai to sirf icon) */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avatar</span>
                 <div className="flex items-center gap-2">
-                   <div
-                    onClick={() => avatarInputRef.current?.click()}
-                    className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer shrink-0"
-                  >
-                    {user.photo ? (
-                      <img src={user.photo} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
-                        {avatarLetter}
-                      </div>
-                    )}
+                  <div className="relative w-14 h-14 shrink-0">
+                    {/* DP circle */}
+                    <div
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 cursor-pointer"
+                    >
+                      {user.photo ? (
+                        <img src={user.photo} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-gray-600 flex items-center justify-center text-xl text-white font-bold">
+                          {avatarLetter}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Camera Icon — DP hai to bina white bg, DP nahi hai to white bg ke saath */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        avatarInputRef.current?.click();
+                      }}
+                      className={`absolute -bottom-0.5 -right-0.5 rounded-full p-1 shadow-md ${
+                        user.photo
+                          ? 'bg-transparent border-0'
+                          : 'bg-white border border-gray-200'
+                      }`}
+                    >
+                      <Camera
+                        size={14}
+                        className={user.photo ? 'text-white drop-shadow-md' : 'text-gray-700'}
+                      />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2210,7 +2224,6 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
-                  {/* ✅ + icon PEHLE */}
                   {coverPhotos.length < 4 && (
                     <button
                       onClick={() => coverInputRef.current?.click()}
@@ -2225,7 +2238,6 @@ export default function PublicProfile({
                       className="relative w-16 h-16 rounded-md overflow-hidden border border-gray-200 group shrink-0"
                     >
                       <img src={photo} alt="" className="w-full h-full object-cover" />
-                      {/* ✅ Trash icon (image jaisa) */}
                       <button
                         onClick={() => handleRemoveCoverPhoto(idx)}
                         className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow z-10"
@@ -2260,7 +2272,6 @@ export default function PublicProfile({
                   </span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 shrink-0">
-                  {/* ✅ + icon PEHLE, uske baad images */}
                   {albumImages.length < 4 && (
                     <button
                       onClick={() => albumInputRef.current?.click()}
@@ -2281,7 +2292,6 @@ export default function PublicProfile({
                     >
                       <img src={img} alt="" className="w-full h-full object-cover pointer-events-none" />
 
-                      {/* Pin button — sirf pinned image par (index 0) */}
                       {idx === 0 && (
                         <button
                           onClick={(e) => {
@@ -2294,7 +2304,6 @@ export default function PublicProfile({
                         </button>
                       )}
 
-                      {/* ✅ Trash icon (image jaisa) */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
