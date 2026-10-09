@@ -67,6 +67,8 @@ fun RoomPage(
     onFollowToggle: (String, Boolean) -> Unit = { _, _ -> }
 ) {
     val compactHeader = LocalConfiguration.current.screenWidthDp <= 400
+    val footerButtonSize = if (compactHeader) 42.dp else 47.dp
+    val footerIconSize = if (compactHeader) 26.dp else 30.dp
     val headerAvatarSize = if (compactHeader) 38.dp else 44.dp
     val headerButtonSize = if (compactHeader) 38.dp else 42.dp
     val headerIconSize = if (compactHeader) 22.dp else 26.dp
@@ -256,24 +258,24 @@ fun RoomPage(
 
             // --- FOOTER CONTROLS ---
             if (!showChatInput) {
-                Row(Modifier.fillMaxWidth().height(47.dp).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().height(footerButtonSize).padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         FooterButton(TsxIcons.Chat) { if (publicMsgOff && !isRoomOwner) showPublicMsgModal = true else showChatInput = true }
                         if (hasSeat) {
-                            FooterButton(if (currentUserSeat?.isMuted == true) TsxIcons.MicMute else TsxIcons.Mic) { 
+                            FooterButton(if (currentUserSeat?.isMuted == true) TsxIcons.MicMute else TsxIcons.Mic, iconSize = 32.dp) { 
                                 val nm = !(currentUserSeat?.isMuted ?: false)
                                 // socket emit logic here
                             }
-                            FooterButton(TsxIcons.Emoji) { showEmojiPicker = true }
+                            FooterButton(TsxIcons.Emoji, iconSize = footerIconSize) { showEmojiPicker = true }
                         }
                     }
                     
                     // Gift Center
-                    AsyncImage(model = "/file_0000000019c4821180028eebae10dbfc.png", contentDescription = "Gift", modifier = Modifier.size(56.dp).clickable { showGiftPicker = true }, contentScale = ContentScale.Fit)
+                    AsyncImage(model = "/file_0000000019c4821180028eebae10dbfc.png", contentDescription = "Gift", modifier = Modifier.size(footerButtonSize + 9.dp).clickable { showGiftPicker = true }, contentScale = ContentScale.Fit)
 
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        FooterButton(TsxIcons.Mail) { showMessageSheet = true }
-                        FooterButton(TsxIcons.Apps) { showFourGride = true }
+                        FooterButton(TsxIcons.Mail, iconSize = footerIconSize + 2.dp) { showMessageSheet = true }
+                        FooterButton(TsxIcons.Apps, iconSize = footerIconSize) { showFourGride = true }
                     }
                 }
             }
