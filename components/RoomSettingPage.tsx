@@ -584,7 +584,7 @@ function CropModal({
 }
 
 // ------------------------------------------------------------
-// ---------- ADMIN ROOMS PAGE (NEW) ----------
+// ---------- ADMIN ROOMS PAGE ----------
 // ------------------------------------------------------------
 interface AdminRoom {
   roomId: string
@@ -593,7 +593,6 @@ interface AdminRoom {
 }
 
 function AdminRoomsPage({ onBack }: { onBack: () => void }) {
-  // Demo data — aap chaho to API se fetch kar sakte ho
   const [rooms, setRooms] = useState<AdminRoom[]>([
     {
       roomId: '385201',
@@ -655,7 +654,6 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
               key={room.roomId}
               className="bg-white rounded-2xl px-3 py-3 flex items-center gap-3 shadow-sm"
             >
-              {/* Room image */}
               <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-gray-200">
                 <img
                   src={room.roomDp}
@@ -664,7 +662,6 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
                 />
               </div>
 
-              {/* Name + ID */}
               <div className="flex-1 min-w-0">
                 <h3 className="text-[15px] font-bold text-gray-900 truncate">
                   {room.roomName}
@@ -674,7 +671,6 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
                 </p>
               </div>
 
-              {/* Remove button */}
               <button
                 onClick={() => handleRemove(room.roomId)}
                 className="flex-shrink-0 px-5 py-1.5 rounded-full border border-pink-400 text-pink-500 text-[13px] font-medium hover:bg-pink-50 transition-colors"
@@ -685,7 +681,6 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
           ))}
         </div>
 
-        {/* No more data */}
         {rooms.length > 0 && (
           <p className="text-center text-[12px] text-gray-400 mt-6">
             No more data
@@ -699,7 +694,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         )}
       </div>
 
-      {/* ---------- HELP SHEET ---------- */}
+      {/* ---------- HELP SHEET (AdminRoomsPage — naya text yahan hai) ---------- */}
       {showHelp && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
@@ -717,9 +712,18 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
             <div className="flex-1 overflow-y-auto px-4 pb-4">
               <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                 <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
+
+                {/* NAYA TEXT — sirf isi sheet me */}
+                <p>
+                  You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
+                </p>
+
                 <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
+
                 <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
+
                 <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
+
                 <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
               </div>
 
@@ -775,28 +779,23 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomPassword, setRoomPassword] = useState(roomData?.roomPassword || '')
   const [selectedTheme, setSelectedTheme] = useState(roomData?.theme || 'forest-night')
 
-  // Announcement sheet state
   const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
   const [tempAnnouncement, setTempAnnouncement] = useState('')
 
-  // Room name sheet state
   const [showRoomNameSheet, setShowRoomNameSheet] = useState(false)
   const [tempRoomName, setTempRoomName] = useState('')
 
-  // Mic mode temp state (for confirm behavior)
   const [tempMicMode, setTempMicMode] = useState<number>(roomData?.micMode || 10)
 
-  // Custom theme state
   const [customThemeImage, setCustomThemeImage] = useState<string | null>(null)
   const themeFileInputRef = useRef<HTMLInputElement>(null)
 
   const [showAdminSheet, setShowAdminSheet] = useState(false)
-  const [showHelpSheet, setShowHelpSheet] = useState(false) // help sheet state
+  const [showHelpSheet, setShowHelpSheet] = useState(false)
   const [adminSearchQuery, setAdminSearchQuery] = useState('')
   const [roomMembers, setRoomMembers] = useState<RoomUser[]>([])
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
 
-  // NEW: Admin Rooms Page state
   const [showAdminRoomsPage, setShowAdminRoomsPage] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
@@ -874,7 +873,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     setCropImageSrc(null)
   }
 
-  // Theme custom image upload (direct, no crop)
   const handleThemeImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -1017,7 +1015,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     user.accountId.toLowerCase().includes(adminSearchQuery.toLowerCase())
   )
 
-  // If Admin Rooms page is open, render only that
   if (showAdminRoomsPage) {
     return <AdminRoomsPage onBack={() => setShowAdminRoomsPage(false)} />
   }
@@ -1131,7 +1128,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             </button>
           </div>
 
-          {/* NEW: Room where I'm an admin — click opens Admin Rooms page */}
           <div className="mb-5">
             <button
               onClick={() => setShowAdminRoomsPage(true)}
@@ -1493,7 +1489,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         </div>
       )}
 
-      {/* ---------- HELP SHEET (Cream/Yellow theme + Admin info text) ---------- */}
+      {/* ---------- ADMIN SHEET HELP (PURANA TEXT — koi change nahi) ---------- */}
       {showHelpSheet && (
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4"
