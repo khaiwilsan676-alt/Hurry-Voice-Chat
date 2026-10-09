@@ -108,9 +108,9 @@ fun RoomPage(
                         locked=seat.optBoolean("isLocked",false),
                         muted=seat.optBoolean("isMuted",false),
                         speaking=seat.optBoolean("isSpeaking",false),
-                        userName=user?.optString("name","User") ?: "",
-                        userImage=user?.optString("image",user?.optString("dp","")) ?: "",
-                        accountId=user?.optString("accountId",user?.optString("userId","")) ?: ""
+                        userName=if (user == null) "" else user.optString("name","User"),
+                        userImage=if (user == null) "" else user.optString("image",user.optString("dp","")),
+                        accountId=if (user == null) "" else user.optString("accountId",user.optString("userId",""))
                     ))
                 }
                 mainHandler.post {
