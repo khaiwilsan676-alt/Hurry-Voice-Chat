@@ -1169,32 +1169,46 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         {showMicModeSheet && (
           <div className="fixed inset-0 z-50 flex items-end justify-center">
             <div className="absolute inset-0 bg-black/30" onClick={() => setShowMicModeSheet(false)} />
-            <div className="relative bg-white w-full max-w-md rounded-t-2xl shadow-2xl px-4 py-6">
-              <h3 className="text-lg font-bold text-gray-800 text-center mb-4">Select Mic Mode</h3>
-              <div className="grid grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-                {micModes.map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setTempMicMode(mode)}
-                    className={`flex flex-col items-center rounded-xl overflow-hidden transition-all ${
-                      tempMicMode === mode ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:opacity-90'
-                    }`}
-                  >
-                    <MicModeImageCard count={mode} />
-                    <span className={`text-sm mt-2 mb-1 ${
-                      tempMicMode === mode ? 'text-blue-500 font-bold' : 'text-gray-700 font-medium'
-                    }`}>
-                      Mic {mode}
-                    </span>
-                  </button>
-                ))}
+            <div
+              className="relative bg-white w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col"
+              style={{ maxHeight: '85vh' }}
+            >
+              <h3 className="text-lg font-bold text-gray-800 text-center pt-6 pb-4 flex-shrink-0">Select Mic Mode</h3>
+
+              {/* Scrollable mic modes grid */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4">
+                <div className="grid grid-cols-3 gap-3">
+                  {micModes.map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setTempMicMode(mode)}
+                      className={`flex flex-col items-center rounded-xl transition-all ${
+                        tempMicMode === mode ? 'ring-2 ring-blue-500 ring-offset-2' : 'hover:opacity-90'
+                      }`}
+                    >
+                      <MicModeImageCard count={mode} />
+                      <span className={`text-sm mt-2 mb-1 ${
+                        tempMicMode === mode ? 'text-blue-500 font-bold' : 'text-gray-700 font-medium'
+                      }`}>
+                        Mic {mode}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <button
-                onClick={() => { setSelectedMicMode(tempMicMode); setShowMicModeSheet(false) }}
-                className="w-full mt-4 py-3 rounded-xl bg-[#00d8a0] text-white font-semibold text-center hover:bg-[#00c492] transition-colors"
+
+              {/* Confirm button fixed at bottom */}
+              <div
+                className="flex-shrink-0 px-4 pt-3 bg-white border-t border-gray-100"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
               >
-                Confirm
-              </button>
+                <button
+                  onClick={() => { setSelectedMicMode(tempMicMode); setShowMicModeSheet(false) }}
+                  className="w-full py-3 rounded-xl bg-[#00d8a0] text-white font-semibold text-center hover:bg-[#00c492] transition-colors"
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
           </div>
         )}
