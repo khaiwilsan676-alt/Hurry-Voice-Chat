@@ -144,6 +144,18 @@ fun RoomPage(
     val currentUserSeat = seats.find { it.isOccupied && it.user?.accountId == userAccountId }
     val liveUserCount = roomUsers.size
 
+    fun emitSeatAction(action: String, seatNumber: Int, extra: JSONObject = JSONObject()) {
+        val payload = JSONObject()
+            .put("roomId", roomId).put("userId", userAccountId)
+            .put("action", action).put("seatNumber", seatNumber)
+            .put("user", JSONObject().put("name", currentUser.name.ifBlank { "User" })
+                .put("image", currentUser.image.ifBlank { "/default-avatar.png" })
+                .put("accountId", userAccountId))
+        val keys = extra.keys()
+        while (keys.hasNext()) { val key = keys.next(); payload.put(key, extra.opt(key)) }
+        socket?.emit("room_seat_action", payload)
+    }
+
     val formatCupCount = { n: Int ->
         when {
             n >= 1000000 -> String.format("%.1fM", n / 1000000.0).replace(".0", "")
@@ -163,7 +175,21 @@ fun RoomPage(
             onBack = { showSettingPage = false },
             roomOwnerId = roomOwnerId,
             roomData = JSONObject().put("roomName", roomName).put("roomDp", roomDp).put("micMode", micMode).put("announcement", roomAnnouncement).put("isLocked", isLocked),
-            onSave = { /* Update Settings Logic mapped from TSX */ }
+            onSave = { data ->
+                roomName = data.optString("roomName", roomName)
+                roomDp = data.optString("roomDp", roomDp)
+                roomAnnouncement = data.optString("announcement", roomAnnouncement)
+                micMode = data.optInt("micMode", micMode)
+                isLocked = data.optBoolean("isLocked", isLocked)
+                roomPassword = data.optString("roomPassword", roomPassword)
+                socket?.emit("room_settings_update", JSONObject()
+                    .put("roomId", roomId).put("userId", userAccountId)
+                    .put("roomOwnerId", roomOwnerId).put("roomName", roomName)
+                    .put("roomDp", roomDp).put("announcement", roomAnnouncement)
+                    .put("micMode", micMode).put("isLocked", isLocked)
+                    .put("roomPassword", roomPassword).put("updatedAt", System.currentTimeMillis()))
+                showSettingPage = false
+            }
         )
         return
     }
@@ -264,7 +290,10 @@ fun RoomPage(
                         if (hasSeat) {
                             FooterButton(if (currentUserSeat?.isMuted == true) TsxIcons.MicMute else TsxIcons.Mic, iconSize = 32.dp) { 
                                 val nm = !(currentUserSeat?.isMuted ?: false)
-                                // socket emit logic here
+                                currentUserSeat?.let { seat ->
+                                    seats = seats.map { item -> if (item.number == seat.number) item.copy(isMuted = nm) else item }
+                                    emitSeatAction("mute", seat.number, JSONObject().put("isMuted", nm))
+                                }
                             }
                             FooterButton(TsxIcons.Emoji, iconSize = footerIconSize) { showEmojiPicker = true }
                         }
@@ -292,7 +321,20 @@ fun RoomPage(
                     textStyle = TextStyle(color = Color(0xFF222222), fontSize = 14.sp),
                     decorationBox = { inner -> if (messageText.isEmpty()) Text("Type a message...", color = Color.Gray); inner() }
                 )
-                Icon(imageVector = TsxIcons.Send, contentDescription = "Send", tint = Color(0xFF008CFF), modifier = Modifier.size(30.dp).clickable { /* Send Logic */ messageText = ""; showChatInput = false })
+                Icon(imageVector = TsxIcons.Send, contentDescription = "Send", tint = Color(0xFF008CFF), modifier = Modifier.size(30.dp).clickable {
+                    val outgoing = messageText.trim()
+                    if (outgoing.isNotEmpty()) {
+                        val timestamp = System.currentTimeMillis()
+                        val msg = Message("$userAccountId-$timestamp", outgoing, currentUser.name, currentUser.image, userAccountId, timestamp)
+                        messages = messages + msg
+                        socket?.emit("room_message", JSONObject().put("id", msg.id).put("roomId", roomId)
+                            .put("senderId", userAccountId).put("senderAccountId", userAccountId)
+                            .put("senderName", currentUser.name).put("senderAvatar", currentUser.image)
+                            .put("text", outgoing).put("type", "message").put("createdAt", timestamp))
+                    }
+                    messageText = ""
+                    showChatInput = false
+                }
             }
         }
 
@@ -389,12 +431,42 @@ fun RoomPage(
             TsxBottomSheet(onDismiss = { showSeatSheet = false; selectedSeat = null }, fraction = 0.3f) {
                 Column(Modifier.padding(16.dp)) {
                     if (!sData.isOccupied) {
-                        Text("Take Mic", modifier = Modifier.fillMaxWidth().clickable { /* take seat */ showSeatSheet = false }.padding(12.dp), textAlign = TextAlign.Center)
+                        Text("Take Mic", modifier = Modifier.fillMaxWidth().clickable {
+                            if (!sData.isLocked && (!sData.isOccupied || sData.user?.accountId == userAccountId)) {
+                                seats = seats.map { item ->
+                                    when {
+                                        item.number == selectedSeat && !item.isOccupied -> item.copy(isOccupied = true, user = RoomUser(userAccountId, currentUser.name, currentUser.image), isMuted = false, isSpeaking = false)
+                                        item.isOccupied && item.user?.accountId == userAccountId && item.number != selectedSeat -> item.copy(isOccupied = false, user = null, isMuted = false, isSpeaking = false, gif = null)
+                                        else -> item
+                                    }
+                                }
+                                emitSeatAction("take", selectedSeat!!)
+                            }
+                            showSeatSheet = false; selectedSeat = null
+                        }.padding(12.dp), textAlign = TextAlign.Center)
                     } else if (sData.user?.accountId == userAccountId) {
-                        Text("Leave Seat", modifier = Modifier.fillMaxWidth().clickable { /* leave seat */ showSeatSheet = false }.padding(12.dp), textAlign = TextAlign.Center)
+                        Text("Leave Seat", modifier = Modifier.fillMaxWidth().clickable {
+                            seats = seats.map { item -> if (item.number == selectedSeat && item.user?.accountId == userAccountId) item.copy(isOccupied = false, user = null, isMuted = false, isSpeaking = false, gif = null) else item }
+                            emitSeatAction("leave", selectedSeat!!)
+                            showSeatSheet = false; selectedSeat = null
+                        }.padding(12.dp), textAlign = TextAlign.Center)
                     }
-                    Text(if (sData.isMuted) "Unmute Seat" else "Mute Seat", modifier = Modifier.fillMaxWidth().clickable { /* mute */ showSeatSheet = false }.padding(12.dp), textAlign = TextAlign.Center)
-                    Text(if (sData.isLocked) "Unlock Mic" else "Lock Mic", modifier = Modifier.fillMaxWidth().clickable { /* lock */ showSeatSheet = false }.padding(12.dp), textAlign = TextAlign.Center)
+                    if (isRoomOwner || isRoomAdmin || sData.user?.accountId == userAccountId) {
+                        Text(if (sData.isMuted) "Unmute Seat" else "Mute Seat", modifier = Modifier.fillMaxWidth().clickable {
+                            val muted = !sData.isMuted
+                            seats = seats.map { item -> if (item.number == selectedSeat) item.copy(isMuted = muted) else item }
+                            emitSeatAction("mute", selectedSeat!!, JSONObject().put("isMuted", muted))
+                            showSeatSheet = false; selectedSeat = null
+                        }.padding(12.dp), textAlign = TextAlign.Center)
+                    }
+                    if (isRoomOwner || isRoomAdmin) {
+                        Text(if (sData.isLocked) "Unlock Mic" else "Lock Mic", modifier = Modifier.fillMaxWidth().clickable {
+                            val locked = !sData.isLocked
+                            seats = seats.map { item -> if (item.number == selectedSeat) item.copy(isLocked = locked) else item }
+                            emitSeatAction("lock", selectedSeat!!, JSONObject().put("isLocked", locked))
+                            showSeatSheet = false; selectedSeat = null
+                        }.padding(12.dp), textAlign = TextAlign.Center)
+                    }
                 }
             }
         }
@@ -435,7 +507,14 @@ fun RoomPage(
         if (showCupIcon) CupIcon(onBack = { showCupIcon = false }, count = cupCount)
         if (showMessageSheet) MessagePage(roomId, roomName, roomDp) { showMessageSheet = false }
         if (showFourGride) Fourgride(onClose = { showFourGride = false })
-        if (showEmojiPicker) EmojiPicker(onClose = { showEmojiPicker = false }, onSelect = { /* emit seat emoji */ })
+        if (showEmojiPicker) EmojiPicker(onClose = { showEmojiPicker = false }, onSelect = { emojiSrc ->
+            currentUserSeat?.let { seat ->
+                val timestamp = System.currentTimeMillis()
+                seats = seats.map { item -> if (item.number == seat.number) item.copy(gif = SeatGif(emojiSrc, timestamp)) else item }
+                emitSeatAction("emoji", seat.number, JSONObject().put("src", emojiSrc).put("timestamp", timestamp))
+            }
+            showEmojiPicker = false
+        })
         if (showGiftPicker) GiftPicker(onClose = { showGiftPicker = false }, onSend = { count -> cupCount += count })
         if (showUserProfile && profileUser != null) RoomProfile(profileUser!!) { showUserProfile = false }
 
