@@ -22,6 +22,15 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import android.os.Handler
+import android.os.Looper
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -42,6 +51,8 @@ fun RoomPage(
 ) {
     val roomId=roomOwner.id.ifBlank{roomOwner.accountId.ifBlank{roomOwner.uid.ifBlank{"default-room"}}}
     val accountId=currentUser.accountId.ifBlank{currentUser.uid.ifBlank{currentUser.id.ifBlank{"guest"}}}
+    val clipboard = LocalClipboardManager.current
+    var copiedId by remember { mutableStateOf("") }
     var roomName by remember{mutableStateOf(roomOwner.name.ifBlank{"Room"})}
     var roomImage by remember{mutableStateOf(roomOwner.image)}
     var followed by remember{mutableStateOf(false)}
@@ -50,6 +61,7 @@ fun RoomPage(
     var showChat by remember{mutableStateOf(false)}
     var showMenu by remember{mutableStateOf(false)}
     var showInfo by remember{mutableStateOf(false)}
+    var showActiveUsers by remember{mutableStateOf(false)}
     var showSettings by remember{mutableStateOf(false)}
     var showGift by remember{mutableStateOf(false)}
     var showEmoji by remember{mutableStateOf(false)}
@@ -60,6 +72,83 @@ fun RoomPage(
     var selectedSeat by remember{mutableIntStateOf(0)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..8)add(NativeRoomSeat(i))}}
+    val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
+
+    DisposableEffect(roomId,accountId,currentUser.name,currentUser.image,roomOwner.id,roomOwner.accountId) {
+        val roomSocket = IO.socket("https://hurry-voice-chat-lz75.onrender.com")
+        val mainHandler = Handler(Looper.getMainLooper())
+        val presenceListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject
+            if (payload != null && payload.optString("roomId") == roomId) {
+                val usersJson = payload.optJSONArray("users") ?: JSONArray()
+                val parsed = ArrayList<ActiveUserNative>()
+                for (index in 0 until usersJson.length()) {
+                    val user = usersJson.optJSONObject(index) ?: continue
+                    val userId = user.optString("accountId", user.optString("userId"))
+                    if (userId.isNotBlank()) parsed.add(ActiveUserNative(
+                        accountId=userId,
+                        name=user.optString("name","User").ifBlank{"User"},
+                        image=user.optString("image","")
+                    ))
+                }
+                mainHandler.post { backendRoomUsers.clear(); backendRoomUsers.addAll(parsed) }
+            }
+        }
+        val seatListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject
+            if (payload != null && payload.optString("roomId") == roomId) {
+                val seatsJson = payload.optJSONArray("seats") ?: JSONArray()
+                val parsed = ArrayList<NativeRoomSeat>()
+                for (index in 0 until seatsJson.length()) {
+                    val seat = seatsJson.optJSONObject(index) ?: continue
+                    val user = seat.optJSONObject("user")
+                    parsed.add(NativeRoomSeat(
+                        number=seat.optInt("number",index+1),
+                        occupied=seat.optBoolean("isOccupied",user != null),
+                        locked=seat.optBoolean("isLocked",false),
+                        muted=seat.optBoolean("isMuted",false),
+                        speaking=seat.optBoolean("isSpeaking",false),
+                        userName=if (user == null) "" else user.optString("name","User"),
+                        userImage=if (user == null) "" else user.optString("image",user.optString("dp","")),
+                        accountId=if (user == null) "" else user.optString("accountId",user.optString("userId",""))
+                    ))
+                }
+                mainHandler.post {
+                    val byNumber = parsed.associateBy { it.number }
+                    for (index in seats.indices) {
+                        val number = seats[index].number
+                        seats[index] = byNumber[number] ?: NativeRoomSeat(number=number)
+                    }
+                    parsed.filter { it.number !in seats.map(NativeRoomSeat::number) }.forEach { seats.add(it) }
+                }
+            }
+        }
+        val connectListener = Emitter.Listener {
+            val joinPayload = JSONObject()
+                .put("roomId",roomId)
+                .put("userId",currentUser.uid.ifBlank{currentUser.id.ifBlank{accountId}})
+                .put("accountId",accountId)
+                .put("roomOwnerId",roomOwner.uid.ifBlank{roomOwner.id.ifBlank{roomOwner.accountId.ifBlank{roomId}}})
+                .put("name",currentUser.name)
+                .put("dp",currentUser.image)
+            roomSocket.emit("room_join",joinPayload)
+            roomSocket.emit("room_presence_request",JSONObject().put("roomId",roomId))
+            roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
+        }
+        roomSocket.on("room_presence",presenceListener)
+        roomSocket.on("room_seats",seatListener)
+        roomSocket.on(Socket.EVENT_CONNECT,connectListener)
+        roomSocket.connect()
+        onDispose {
+            roomSocket.emit("room_leave",JSONObject().put("roomId",roomId).put("userId",accountId).put("accountId",accountId))
+            roomSocket.off("room_presence",presenceListener)
+            roomSocket.off("room_seats",seatListener)
+            roomSocket.off(Socket.EVENT_CONNECT,connectListener)
+            roomSocket.disconnect()
+            roomSocket.close()
+            mainHandler.post { backendRoomUsers.clear() }
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
@@ -72,6 +161,8 @@ fun RoomPage(
                     Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
                 TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",color=Color.White)}
+                IconButton(onClick={showInfo=true}){Icon(Icons.Default.Info,null,tint=Color.White)}
+                IconButton(onClick={showActiveUsers=true}){Icon(Icons.Default.PeopleAlt,null,tint=Color.White)}
                 IconButton(onClick={onClose}){Icon(Icons.Default.Close,null,tint=Color.White)}
                 IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
             }
@@ -107,7 +198,27 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onLeave={showMenu=false;onClose()}
         )
-        if(showInfo) RoomInfo(roomName,roomImage,roomId){showInfo=false}
+        val activeRoomUsers = backendRoomUsers.toList()
+        val roomFollowers = seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != roomOwner.accountId && it.accountId != roomOwner.id }
+            .map { RoomInfoFollower(it.accountId,it.userName,it.userImage) }
+        if(showInfo) RoomInfo(
+            isOpen=true,
+            onClose={showInfo=false},
+            isRoomOwner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
+            roomOwner=RoomInfoOwner(id=roomOwner.id,uid=roomOwner.uid,accountId=roomOwner.accountId.ifBlank{roomOwner.id},name=roomOwner.name,image=roomOwner.image),
+            roomData=RoomInfoData(roomName,roomImage,announcement,roomId),
+            roomFollowers=roomFollowers,
+            onOpenProfile={ follower -> seats.firstOrNull{it.accountId==follower.accountId}?.let{selectedSeat=it.number};showInfo=false },
+            onCopyId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id },
+            copied=copiedId==roomId
+        )
+        if(showActiveUsers) ActiveUsers(
+            isOpen=true,
+            onClose={showActiveUsers=false},
+            roomUsers=activeRoomUsers,
+            onOpenProfile={ user -> seats.firstOrNull{it.accountId==user.accountId}?.let{selectedSeat=it.number};showActiveUsers=false },
+            onCopyUserId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id }
+        )
         if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
         if(showGift) GiftSheet{showGift=false}
         if(showGames) GamesSheet{showGames=false}
@@ -150,13 +261,6 @@ fun RoomPage(
                 TextButton(onClick=onClose){Text("Cancel",color=Color.White.copy(.7f))}
             }
         }
-    }
-}
-
-@Composable private fun RoomInfo(name:String,image:String,id:String,onClose:()->Unit){
-    SimpleSheet("Room info",onClose){
-        AsyncImage(model=image,contentDescription=null,modifier=Modifier.size(82.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-        Text(name,color=Color.White,fontSize=18.sp);Text("ID: "+id,color=Color.White.copy(.65f),fontSize=12.sp)
     }
 }
 
