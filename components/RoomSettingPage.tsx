@@ -152,7 +152,7 @@ function PasswordInput({ value, onChange }: { value: string; onChange: (value: s
 }
 
 // ------------------------------------------------------------
-// ---------- CROP MODAL (BOX SLIDE + IMAGE FIXED + PINCH ZOOM) ----------
+// ---------- CROP MODAL ----------
 // ------------------------------------------------------------
 type HandleType = 'tl' | 'tr' | 'bl' | 'br'
 
@@ -338,7 +338,6 @@ function CropModal({
     }
   }, [activeHandle, dragStart, box])
 
-  // Pinch zoom
   const onTouchStartPinch = (e: React.TouchEvent) => {
     if (e.touches.length === 2) {
       const [a, b] = [e.touches[0], e.touches[1]]
@@ -610,7 +609,6 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="fixed inset-0 z-[100] bg-[#f2f2f7] flex flex-col">
 
-      {/* ---------- HEADER ---------- */}
       <div className="flex items-center px-4 pt-[calc(env(safe-area-inset-top,0px)+16px)] pb-3 flex-shrink-0 bg-[#f2f2f7]">
         <button
           onClick={onBack}
@@ -639,15 +637,11 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         </button>
       </div>
 
-      {/* ---------- BODY ---------- */}
       <div className="flex-1 overflow-y-auto px-4 pt-2">
-
-        {/* Title */}
         <h2 className="text-[17px] font-bold text-gray-900 mb-3">
           Rooms where I'm an admin({rooms.length}/15)
         </h2>
 
-        {/* Room cards */}
         <div className="space-y-3">
           {rooms.map((room) => (
             <div
@@ -694,7 +688,7 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         )}
       </div>
 
-      {/* ---------- HELP SHEET (AdminRoomsPage — naya text yahan hai) ---------- */}
+      {/* ---------- HELP SHEET (naya text golden/dark color me) ---------- */}
       {showHelp && (
         <div
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4"
@@ -713,8 +707,8 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
               <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
                 <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
 
-                {/* NAYA TEXT — sirf isi sheet me */}
-                <p>
+                {/* 🔽 NAYA TEXT — color golden/dark kar diya */}
+                <p className="text-[#8a6a1f] font-semibold">
                   You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
                 </p>
 
