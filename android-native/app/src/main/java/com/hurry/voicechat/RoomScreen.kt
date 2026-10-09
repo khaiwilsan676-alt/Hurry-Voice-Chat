@@ -413,7 +413,7 @@ fun RoomPage(
                 if (roomInfoTab == "profile") {
                     Column(Modifier.padding(16.dp)) {
                         Row {
-                            AsyncImage(model = roomDp, contentDescription = null, modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+                            AsyncImage(model = tsxAsset(roomDp), contentDescription = null, modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
                             Column(Modifier.padding(start = 8.dp)) {
                                 Text(roomName, fontWeight = FontWeight.Bold)
                                 Text("ID: $roomOwnerId", color = Color.Gray, fontSize = 12.sp)
@@ -719,7 +719,7 @@ fun MessagePage(roomId: String, roomName: String, roomDp: String, onClose: () ->
     Column(Modifier.fillMaxSize().background(Color(0xFFF8F9FC)).padding(18.dp)) {
         Text("‹  Messages", fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onClose() })
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 18.dp)) {
-            AsyncImage(model = roomDp, contentDescription = null, modifier = Modifier.size(44.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            AsyncImage(model = tsxAsset(roomDp), contentDescription = null, modifier = Modifier.size(44.dp).clip(CircleShape), contentScale = ContentScale.Crop)
             Column(Modifier.padding(start = 10.dp)) {
                 Text(roomName, fontWeight = FontWeight.SemiBold)
                 Text("Room ID: $roomId", fontSize = 11.sp, color = Color.Gray)
