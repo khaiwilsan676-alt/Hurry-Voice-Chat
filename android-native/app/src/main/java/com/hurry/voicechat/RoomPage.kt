@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -42,6 +44,8 @@ fun RoomPage(
 ) {
     val roomId=roomOwner.id.ifBlank{roomOwner.accountId.ifBlank{roomOwner.uid.ifBlank{"default-room"}}}
     val accountId=currentUser.accountId.ifBlank{currentUser.uid.ifBlank{currentUser.id.ifBlank{"guest"}}}
+    val clipboard = LocalClipboardManager.current
+    var copiedId by remember { mutableStateOf("") }
     var roomName by remember{mutableStateOf(roomOwner.name.ifBlank{"Room"})}
     var roomImage by remember{mutableStateOf(roomOwner.image)}
     var followed by remember{mutableStateOf(false)}
@@ -50,6 +54,7 @@ fun RoomPage(
     var showChat by remember{mutableStateOf(false)}
     var showMenu by remember{mutableStateOf(false)}
     var showInfo by remember{mutableStateOf(false)}
+    var showActiveUsers by remember{mutableStateOf(false)}
     var showSettings by remember{mutableStateOf(false)}
     var showGift by remember{mutableStateOf(false)}
     var showEmoji by remember{mutableStateOf(false)}
@@ -72,6 +77,8 @@ fun RoomPage(
                     Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
                 TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",color=Color.White)}
+                IconButton(onClick={showInfo=true}){Icon(Icons.Default.Info,null,tint=Color.White)}
+                IconButton(onClick={showActiveUsers=true}){Icon(Icons.Default.PeopleAlt,null,tint=Color.White)}
                 IconButton(onClick={onClose}){Icon(Icons.Default.Close,null,tint=Color.White)}
                 IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
             }
@@ -107,7 +114,31 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onLeave={showMenu=false;onClose()}
         )
-        if(showInfo) RoomInfo(roomName,roomImage,roomId){showInfo=false}
+        val activeRoomUsers = buildList {
+            if (accountId.isNotBlank() && accountId != "guest") add(ActiveUserNative(accountId,currentUser.name,currentUser.image))
+            seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != accountId }
+                .forEach { add(ActiveUserNative(it.accountId,it.userName,it.userImage)) }
+        }
+        val roomFollowers = seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != roomOwner.accountId && it.accountId != roomOwner.id }
+            .map { RoomInfoFollower(it.accountId,it.userName,it.userImage) }
+        if(showInfo) RoomInfo(
+            isOpen=true,
+            onClose={showInfo=false},
+            isRoomOwner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
+            roomOwner=RoomInfoOwner(id=roomOwner.id,uid=roomOwner.uid,accountId=roomOwner.accountId.ifBlank{roomOwner.id},name=roomOwner.name,image=roomOwner.image),
+            roomData=RoomInfoData(roomName,roomImage,announcement,roomId),
+            roomFollowers=roomFollowers,
+            onOpenProfile={ follower -> seats.firstOrNull{it.accountId==follower.accountId}?.let{selectedSeat=it.number};showInfo=false },
+            onCopyId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id },
+            copied=copiedId==roomId
+        )
+        if(showActiveUsers) ActiveUsers(
+            isOpen=true,
+            onClose={showActiveUsers=false},
+            roomUsers=activeRoomUsers,
+            onOpenProfile={ user -> seats.firstOrNull{it.accountId==user.accountId}?.let{selectedSeat=it.number};showActiveUsers=false },
+            onCopyUserId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id }
+        )
         if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
         if(showGift) GiftSheet{showGift=false}
         if(showGames) GamesSheet{showGames=false}
@@ -150,13 +181,6 @@ fun RoomPage(
                 TextButton(onClick=onClose){Text("Cancel",color=Color.White.copy(.7f))}
             }
         }
-    }
-}
-
-@Composable private fun RoomInfo(name:String,image:String,id:String,onClose:()->Unit){
-    SimpleSheet("Room info",onClose){
-        AsyncImage(model=image,contentDescription=null,modifier=Modifier.size(82.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-        Text(name,color=Color.White,fontSize=18.sp);Text("ID: "+id,color=Color.White.copy(.65f),fontSize=12.sp)
     }
 }
 
