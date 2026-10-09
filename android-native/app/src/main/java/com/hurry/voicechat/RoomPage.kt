@@ -24,6 +24,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import android.os.Handler
+import android.os.Looper
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import org.json.JSONArray
+import org.json.JSONObject
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -65,6 +72,52 @@ fun RoomPage(
     var selectedSeat by remember{mutableIntStateOf(0)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..8)add(NativeRoomSeat(i))}}
+    val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
+
+    DisposableEffect(roomId,accountId,currentUser.name,currentUser.image,roomOwner.id,roomOwner.accountId) {
+        val roomSocket = IO.socket("https://hurry-voice-chat-lz75.onrender.com")
+        val mainHandler = Handler(Looper.getMainLooper())
+        val presenceListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject
+            if (payload != null && payload.optString("roomId") == roomId) {
+                val usersJson = payload.optJSONArray("users") ?: JSONArray()
+                val parsed = ArrayList<ActiveUserNative>()
+                for (index in 0 until usersJson.length()) {
+                    val user = usersJson.optJSONObject(index) ?: continue
+                    val userId = user.optString("accountId", user.optString("userId"))
+                    if (userId.isNotBlank()) parsed.add(ActiveUserNative(
+                        accountId=userId,
+                        name=user.optString("name","User").ifBlank{"User"},
+                        image=user.optString("image","")
+                    ))
+                }
+                mainHandler.post { backendRoomUsers.clear(); backendRoomUsers.addAll(parsed) }
+            }
+        }
+        val connectListener = Emitter.Listener {
+            val joinPayload = JSONObject()
+                .put("roomId",roomId)
+                .put("userId",currentUser.uid.ifBlank{currentUser.id.ifBlank{accountId}})
+                .put("accountId",accountId)
+                .put("roomOwnerId",roomOwner.uid.ifBlank{roomOwner.id.ifBlank{roomOwner.accountId.ifBlank{roomId}}})
+                .put("name",currentUser.name)
+                .put("dp",currentUser.image)
+            roomSocket.emit("room_join",joinPayload)
+            roomSocket.emit("room_presence_request",JSONObject().put("roomId",roomId))
+            roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
+        }
+        roomSocket.on("room_presence",presenceListener)
+        roomSocket.on(Socket.EVENT_CONNECT,connectListener)
+        roomSocket.connect()
+        onDispose {
+            roomSocket.emit("room_leave",JSONObject().put("roomId",roomId).put("userId",accountId).put("accountId",accountId))
+            roomSocket.off("room_presence",presenceListener)
+            roomSocket.off(Socket.EVENT_CONNECT,connectListener)
+            roomSocket.disconnect()
+            roomSocket.close()
+            mainHandler.post { backendRoomUsers.clear() }
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
@@ -114,11 +167,7 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onLeave={showMenu=false;onClose()}
         )
-        val activeRoomUsers = buildList {
-            if (accountId.isNotBlank() && accountId != "guest") add(ActiveUserNative(accountId,currentUser.name,currentUser.image))
-            seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != accountId }
-                .forEach { add(ActiveUserNative(it.accountId,it.userName,it.userImage)) }
-        }
+        val activeRoomUsers = backendRoomUsers.toList()
         val roomFollowers = seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != roomOwner.accountId && it.accountId != roomOwner.id }
             .map { RoomInfoFollower(it.accountId,it.userName,it.userImage) }
         if(showInfo) RoomInfo(
