@@ -510,9 +510,11 @@ fun MessageBubble(msg: Message, onProfileClick: (RoomUser) -> Unit) {
 }
 
 @Composable
-fun FooterButton(icon: ImageVector, onClick: () -> Unit) {
-    Box(Modifier.size(47.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
-        Icon(icon, null, tint = Color.White, modifier = Modifier.size(30.dp))
+fun FooterButton(icon: ImageVector, iconSize: androidx.compose.ui.unit.Dp = 30.dp, onClick: () -> Unit) {
+    val compact = LocalConfiguration.current.screenWidthDp <= 400
+    val buttonSize = if (compact) 42.dp else 47.dp
+    Box(Modifier.size(buttonSize).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable(onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, null, tint = Color.White, modifier = Modifier.size(iconSize))
     }
 }
 
