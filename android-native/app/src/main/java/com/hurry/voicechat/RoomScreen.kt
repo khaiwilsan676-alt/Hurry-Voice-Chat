@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -65,6 +66,10 @@ fun RoomPage(
     onKeepRoom: (JSONObject) -> Unit = {},
     onFollowToggle: (String, Boolean) -> Unit = { _, _ -> }
 ) {
+    val compactHeader = LocalConfiguration.current.screenWidthDp <= 400
+    val headerAvatarSize = if (compactHeader) 38.dp else 44.dp
+    val headerButtonSize = if (compactHeader) 38.dp else 42.dp
+    val headerIconSize = if (compactHeader) 22.dp else 26.dp
     val roomId = roomOwner.id.ifBlank { roomOwner.accountId }.ifBlank { "default-room" }
     val userAccountId = currentUser.accountId.ifBlank { currentUser.uid }.ifBlank { currentUser.id }.ifBlank { "guest" }
 
@@ -170,15 +175,15 @@ fun RoomPage(
             // --- TOP HEADER ---
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.clip(RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp, topStart = 8.dp, bottomStart = 8.dp)).background(Color.Black.copy(alpha = 0.3f)).padding(end = 12.dp, top = 2.dp, bottom = 2.dp, start = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(model = roomDp, contentDescription = "Room Dp", modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)).clickable { roomInfoTab = "profile"; showRoomInfo = true }, contentScale = ContentScale.Crop)
+                    AsyncImage(model = roomDp, contentDescription = "Room Dp", modifier = Modifier.size(headerAvatarSize).clip(RoundedCornerShape(8.dp)).clickable { roomInfoTab = "profile"; showRoomInfo = true }, contentScale = ContentScale.Crop)
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(if (roomName.length > 6) roomName.take(6) + "..." else roomName, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.width(4.dp))
                             if (!isRoomOwner) {
-                                Box(Modifier.size(22.dp).clip(CircleShape).background(Color(0xFF008CFF)).clickable { isFollowed = !isFollowed; onFollowToggle(roomId, isFollowed) }, contentAlignment = Alignment.Center) {
-                                    Icon(imageVector = TsxIcons.Follow, contentDescription = "Follow", tint = Color.White, modifier = Modifier.size(14.dp))
+                                Box(Modifier.size(if (compactHeader) 20.dp else 22.dp).clip(CircleShape).background(Color(0xFF008CFF)).clickable { isFollowed = !isFollowed; onFollowToggle(roomId, isFollowed) }, contentAlignment = Alignment.Center) {
+                                    Icon(imageVector = TsxIcons.Follow, contentDescription = "Follow", tint = Color.White, modifier = Modifier.size(if (compactHeader) 13.dp else 14.dp))
                                 }
                             }
                         }
@@ -186,20 +191,20 @@ fun RoomPage(
                     }
                 }
                 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     // Active Users Count Button
-                    Row(Modifier.height(42.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showActiveUsers = true }.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(imageVector = TsxIcons.People, contentDescription = "Users", tint = Color.White, modifier = Modifier.size(26.dp))
+                    Row(Modifier.height(headerButtonSize).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showActiveUsers = true }.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(imageVector = TsxIcons.People, contentDescription = "Users", tint = Color.White, modifier = Modifier.size(headerIconSize))
                         Spacer(Modifier.width(4.dp))
                         Text(liveUserCount.toString(), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     if (isRoomOwner) {
-                        Box(Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showSettingPage = true }, contentAlignment = Alignment.Center) {
-                            Icon(imageVector = TsxIcons.Settings, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(26.dp))
+                        Box(Modifier.size(headerButtonSize).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showSettingPage = true }, contentAlignment = Alignment.Center) {
+                            Icon(imageVector = TsxIcons.Settings, contentDescription = "Settings", tint = Color.White, modifier = Modifier.size(headerIconSize))
                         }
                     }
-                    Box(Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showExitMenu = true }, contentAlignment = Alignment.Center) {
-                        Icon(imageVector = TsxIcons.Power, contentDescription = "Power", tint = Color.White, modifier = Modifier.size(26.dp))
+                    Box(Modifier.size(headerButtonSize).clip(CircleShape).background(Color.Black.copy(alpha = 0.3f)).clickable { showExitMenu = true }, contentAlignment = Alignment.Center) {
+                        Icon(imageVector = TsxIcons.Power, contentDescription = "Power", tint = Color.White, modifier = Modifier.size(headerIconSize))
                     }
                 }
             }
