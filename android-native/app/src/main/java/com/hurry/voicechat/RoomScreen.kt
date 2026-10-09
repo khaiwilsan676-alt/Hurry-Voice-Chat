@@ -646,7 +646,7 @@ fun RoomSideBanner() {
     var index by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) { while(true) { delay(3000); index = (index + 1) % images.size } }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        AsyncImage(images[index], null, Modifier.size(60.dp, 84.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
+        AsyncImage(tsxAsset(images[index]), null, Modifier.size(60.dp, 84.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
         Row(Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
             images.indices.forEach { i -> Box(Modifier.size(if(i==index) 6.dp else 4.dp).clip(CircleShape).background(if(i==index) Color.White else Color.White.copy(0.4f))) }
         }
@@ -662,8 +662,8 @@ fun TsxBottomSheet(onDismiss: () -> Unit, fraction: Float, content: @Composable 
 }
 
 // Shader Placeholders since pure WebGL GLSL cannot map natively without heavy OpenGL boilerplate
-@Composable fun GreenColorRemovalShader(imageSrc: String, modifier: Modifier) = AsyncImage(imageSrc, null, modifier)
-@Composable fun WhiteColorRemovalShader(imageSrc: String, modifier: Modifier) = AsyncImage(imageSrc, null, modifier)
+@Composable fun GreenColorRemovalShader(imageSrc: String, modifier: Modifier) = AsyncImage(tsxAsset(imageSrc), null, modifier)
+@Composable fun WhiteColorRemovalShader(imageSrc: String, modifier: Modifier) = AsyncImage(tsxAsset(imageSrc), null, modifier)
 
 // ==========================================
 // Native implementations for the room sheets and pickers.
