@@ -244,7 +244,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 20px 10px' }}>
               <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: '#1A0204', margin: 0 }}>
-                Rules
+                Ranking Rules
               </h2>
             </div>
 
