@@ -196,14 +196,17 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
         {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
         <div className="relative w-full flex justify-center mt-1">
-          <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 shrink-0">
+          <div className="relative w-[200px] h-[40px] z-10 flex items-center justify-start gap-1 shrink-0">
             {subTabs.map((st, index) => (
               <button
                 key={st.id}
                 onClick={() => setActiveSubTab(st.id)}
-                className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors"
+                className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors duration-200"
                 style={{
-                  color: activeSubTab === st.id ? '#FFFFFF' : 'rgba(255, 255, 255, 0.5)',
+                  color: activeSubTab === st.id ? '#FFFFFF' : '#C9B896',
+                  textShadow: activeSubTab === st.id 
+                    ? '0 0 8px rgba(255,215,0,0.9), 0 0 12px rgba(255,180,0,0.6)' 
+                    : '0 1px 3px rgba(0,0,0,0.9)',
                 }}
               >
                 {st.label}
@@ -212,13 +215,13 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
             {/* EK HI Moveable Golden Highlight Shape */}
             <span
-              className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/40 via-[#D4AF37]/15 to-transparent rounded-md transition-transform duration-300 ease-out"
+              className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/60 via-[#D4AF37]/25 to-transparent rounded-md transition-transform duration-300 ease-out"
               style={{
                 transform: `translateX(calc(${activeSubTabIndex * 100}%))`,
-                boxShadow: '0 -2px 5px rgba(212, 175, 55, 0.4)',
+                boxShadow: '0 -2px 8px rgba(212, 175, 55, 0.6)',
               }}
             >
-              <span className="absolute left-[30%] right-[30%] top-[-1px] h-[3px] bg-[#FFF] rounded-full scale-y-[1.2] blur-[0.5px]" />
+              <span className="absolute left-[25%] right-[25%] top-[-1px] h-[3px] bg-[#FFE9A8] rounded-full scale-y-[1.2] blur-[0.5px] shadow-[0_0_8px_rgba(255,215,0,1)]" />
             </span>
           </div>
         </div>
@@ -279,21 +282,12 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           role="presentation"
         >
           <section
-            className="w-full max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-[#D4AF37]/70 bg-[#1A0204] px-5 pt-3 pb-8 text-white shadow-2xl relative"
+            className="w-full max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-[#D4AF37]/70 bg-[#1A0204] px-5 pt-5 pb-8 text-white shadow-2xl relative"
             role="dialog"
             aria-modal="true"
             aria-labelledby="ranking-rules-title"
             onClick={(event) => event.stopPropagation()}
           >
-            {/* Cross Icon - Top Right */}
-            <button
-              onClick={() => setShowRankingRules(false)}
-              className="absolute top-3 right-4 text-white/70 hover:text-white text-2xl leading-none font-light z-10"
-              aria-label="Close"
-            >
-              ✕
-            </button>
-
             <div className="mb-5 text-center">
               <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">Rules</h2>
             </div>
