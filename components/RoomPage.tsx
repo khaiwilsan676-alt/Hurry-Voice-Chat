@@ -1702,8 +1702,8 @@ if (showSettingPage) return (
         )}
       </div>
 
-      {showRoomTask && <div className="absolute inset-0 z-[11000] pointer-events-none"><Roomtask onBack={() => setShowRoomTask(false)} /></div>}
-      {showCupIcon && <div className="absolute inset-0 z-[11000] pointer-events-none"><CupIcon onBack={() => setShowCupIcon(false)} count={cupCount} /></div>}
+      {showRoomTask && <div className="absolute inset-0 z-[11000] pointer-events-auto"><Roomtask onBack={() => setShowRoomTask(false)} /></div>}
+      {showCupIcon && <div className="absolute inset-0 z-[11000] pointer-events-auto"><CupIcon onBack={() => setShowCupIcon(false)} count={cupCount} /></div>}
 
       {musicControllerState === 'full' && currentTrack && !showFourGride && (
         <div className="fixed left-1/2 transform -translate-x-1/2 z-[45] w-full max-w-sm px-3" style={{ bottom: 'var(--music-controller-bottom)' }} onClick={(e) => e.stopPropagation()}>
