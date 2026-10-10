@@ -439,6 +439,7 @@ type LeaderboardSubTab = 'daily' | 'weekly' | 'monthly'
 export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
+  const [showRankingRules, setShowRankingRules] = useState(false)
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -519,8 +520,10 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
           </div>
 
           <button
-            className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
-            aria-label="Info"
+            type="button"
+            onClick={() => setShowRankingRules(true)}
+            className="absolute right-2 z-[60] flex items-center justify-center active:opacity-70 transition-opacity p-1"
+            aria-label="Ranking Rules"
           >
             <img
               src="/file_0000000073ec820b832b6dafb168dabe.png"
@@ -597,6 +600,50 @@ export function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps)
           </div>
         ))}
       </div>
+
+      {showRankingRules && (
+        <div
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60"
+          onClick={() => setShowRankingRules(false)}
+          role="presentation"
+        >
+          <section
+            className="relative z-[101] w-full max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-[#D4AF37]/70 bg-[#1A0204] px-5 pt-3 pb-8 text-white shadow-2xl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="home-ranking-rules-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/35" />
+            <div className="mb-5 flex items-center justify-between">
+              <h2 id="home-ranking-rules-title" className="text-xl font-bold text-[#E7B865]">
+                {activeTab === 'honour' ? 'Honour Ranking Rules' : activeTab === 'charm' ? 'Charm Ranking Rules' : 'Room Ranking Rules'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowRankingRules(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-2xl text-white/80 active:opacity-70"
+                aria-label="Close ranking rules"
+              >×</button>
+            </div>
+            <h3 className="mb-2 font-semibold text-[#E7B865]">Leaderboard Rules</h3>
+            <div className="space-y-4 text-sm leading-6 text-white/90">
+              <p><strong>Contribution Leaderboard:</strong> Your ranking is based on the total Coins you spend in rooms. The more Coins spent, the higher your rank.</p>
+              <p><strong>Charm Leaderboard:</strong> Your ranking is based on the total Coins you receive. The more Coins received, the higher your rank.</p>
+              <p><strong>Room Leaderboard:</strong> Ranking is based on the total Coins spent in the room. The more Coins spent, the higher the room's rank.</p>
+            </div>
+            <div className="my-5 h-px bg-[#D4AF37]/30" />
+            <h3 className="mb-2 font-semibold text-[#E7B865]">Data Periods</h3>
+            <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-white/90">
+              <li>Daily data is finalized every day at 5:30 GMT+0.</li>
+              <li>Weekly data is finalized every Monday at 5:30 GMT+0.</li>
+              <li>Monthly data is finalized on the first day of every month at 5:30 GMT+0.</li>
+            </ol>
+            <p className="mt-5 text-sm leading-6 text-white/90"><strong>Note:</strong> Users who violate platform rules are ineligible to participate in rankings. The platform reserves the right to make the final decision.</p>
+            <p className="mt-5 text-right text-sm font-semibold text-[#E7B865]">Regards, Zyora Team</p>
+          </section>
+        </div>
+      )}
 
       <div className="fixed bottom-0 left-0 w-full h-[90px] px-0 py-0 z-50 pointer-events-auto shadow-[0_-5px_20px_rgba(0,0,0,0.8)] border-t-[1.5px] border-[#694B2E] bg-gradient-to-b from-[#3E2114] via-[#2A1309] to-[#120703]">
         <div className="relative w-full h-full flex items-center justify-start px-6 gap-5">
