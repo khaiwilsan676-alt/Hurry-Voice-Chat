@@ -212,7 +212,7 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
     >
       <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
       <div className="text-black/80 text-sm space-y-3 pb-6">
-        <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 12:00 AM.</p>
+        <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 5:30 AM (GMT+5:30).</p>
         <p>2. There is no need to wait for official approval.</p>
         <p>3. A family can have a maximum of 100 members.</p>
         <p>4. Individuals can apply to join a family. Once the family leader approves the request, the applicant can join the family immediately.</p>
@@ -221,6 +221,13 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
         <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
         <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
         <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
+      </div>
+
+      {/* ⭐ Regards, Hurry Team */}
+      <div className="flex justify-end pt-2 pb-1">
+        <span className="text-black/60 text-xs font-semibold italic tracking-wide">
+          Regards, Hurry Team
+        </span>
       </div>
     </div>
   </div>
