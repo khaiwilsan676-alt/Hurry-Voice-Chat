@@ -145,7 +145,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
-        <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
+        <div className="relative flex items-center justify-center w-full h-[42px] mb-1.5">
           
           {/* Back Button as Image - Ekdam Left Corner */}
           <button
@@ -161,13 +161,13 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             />
           </button>
 
-          {/* Main Tabs Container - Center */}
-          <div className="flex items-center justify-between h-[42px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
+          {/* Main Tabs Container - Center (THINNER) */}
+          <div className="flex items-center justify-between h-[34px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex-1 text-[15px] font-semibold h-[38px] rounded-full transition-all flex items-center justify-center ${
+                className={`relative flex-1 text-[13px] font-semibold h-[30px] rounded-full transition-all flex items-center justify-center ${
                   activeTab === tab.id ? 'text-white' : 'text-[#8A857D]'
                 }`}
               >
