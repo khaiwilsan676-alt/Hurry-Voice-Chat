@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 type LeaderboardTab = 'honour' | 'charm' | 'room'
 
@@ -72,6 +73,11 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
   const [showRulesSheet, setShowRulesSheet] = useState<boolean>(false)
+  const [mounted, setMounted] = useState<boolean>(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -93,6 +99,104 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
   const activeSubTabIndex = subTabs.findIndex(st => st.id === activeSubTab)
   const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
+
+  const sheetContent = showRulesSheet ? (
+    <div
+      onClick={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setShowRulesSheet(false)
+      }}
+      onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 2147483647,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        background: 'rgba(0,0,0,0.45)',
+      }}
+    >
+      <div
+        onClick={(e) => {
+          e.stopPropagation()
+          e.preventDefault()
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        style={{
+          background: '#FFFFFF',
+          width: '100%',
+          maxWidth: 520,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+          boxShadow: '0 -6px 30px rgba(0,0,0,0.35)',
+          animation: 'zSlideUp 0.28s ease-out',
+          maxHeight: '85vh',
+          overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 20px 10px' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: '#1A0204', margin: 0 }}>
+            Ranking Rules
+          </h2>
+        </div>
+
+        <div style={{ padding: '4px 20px 0', fontSize: 12.5, lineHeight: 1.55, color: '#2B2B2B' }}>
+          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Contribution Leaderboard:</h3>
+          <p style={{ margin: '0 0 10px', color: '#444' }}>
+            Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+          </p>
+
+          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Charm Leaderboard:</h3>
+          <p style={{ margin: '0 0 10px', color: '#444' }}>
+            Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
+          </p>
+
+          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Room Leaderboard:</h3>
+          <p style={{ margin: '0 0 10px', color: '#444' }}>
+            Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+          </p>
+
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1A0204', margin: '12px 0 8px' }}>Data Periods</h3>
+
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>1</span>
+              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Daily leaderboard data is finalized every day at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>2</span>
+              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Weekly leaderboard data is finalized every Monday at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>3</span>
+              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Monthly leaderboard data is finalized on the first day of every month at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
+            </div>
+          </div>
+
+          <div style={{ borderRadius: 8, background: '#F5F5F5', border: '1px solid #E0E0E0', padding: '8px 12px', marginBottom: 12 }}>
+            <p style={{ margin: 0, color: '#333', fontStyle: 'italic' }}>
+              <span style={{ fontWeight: 700, fontStyle: 'normal', color: '#1A0204' }}>Note:</span> Users who violate platform rules are ineligible to participate in the rankings.
+            </p>
+            <p style={{ margin: '4px 0 0', color: '#333', fontStyle: 'italic' }}>
+              The platform reserves the right to make the final decision.
+            </p>
+          </div>
+
+          <p style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#1A0204', margin: 0 }}>
+            Regard Zyora team
+          </p>
+        </div>
+      </div>
+    </div>
+  ) : null
 
   return (
     <>
@@ -205,95 +309,8 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       </div>
 
-      {/* ============ RULES SHEET ============ */}
-      {showRulesSheet && (
-        <div
-          onClick={() => setShowRulesSheet(false)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 2147483647,
-            display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.4)',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: '#FFFFFF',
-              width: '100%',
-              maxWidth: 520,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-              boxShadow: '0 -6px 30px rgba(0,0,0,0.35)',
-              animation: 'zSlideUp 0.28s ease-out',
-              maxHeight: '85vh',
-              overflowY: 'auto',
-            }}
-          >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 20px 10px' }}>
-              <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: '#1A0204', margin: 0 }}>
-                Ranking Rules
-              </h2>
-            </div>
-
-            {/* Content */}
-            <div style={{ padding: '4px 20px 0', fontSize: 12.5, lineHeight: 1.55, color: '#2B2B2B' }}>
-              <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Contribution Leaderboard:</h3>
-              <p style={{ margin: '0 0 10px', color: '#444' }}>
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
-              </p>
-
-              <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Charm Leaderboard:</h3>
-              <p style={{ margin: '0 0 10px', color: '#444' }}>
-                Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
-              </p>
-
-              <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Room Leaderboard:</h3>
-              <p style={{ margin: '0 0 10px', color: '#444' }}>
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
-              </p>
-
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1A0204', margin: '12px 0 8px' }}>Data Periods</h3>
-
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-                  <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>1</span>
-                  <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Daily leaderboard data is finalized every day at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-                  <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>2</span>
-                  <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Weekly leaderboard data is finalized every Monday at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>3</span>
-                  <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Monthly leaderboard data is finalized on the first day of every month at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-                </div>
-              </div>
-
-              <div style={{ borderRadius: 8, background: '#F5F5F5', border: '1px solid #E0E0E0', padding: '8px 12px', marginBottom: 12 }}>
-                <p style={{ margin: 0, color: '#333', fontStyle: 'italic' }}>
-                  <span style={{ fontWeight: 700, fontStyle: 'normal', color: '#1A0204' }}>Note:</span> Users who violate platform rules are ineligible to participate in the rankings.
-                </p>
-                <p style={{ margin: '4px 0 0', color: '#333', fontStyle: 'italic' }}>
-                  The platform reserves the right to make the final decision.
-                </p>
-              </div>
-
-              <p style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#1A0204', margin: 0 }}>
-                Regard Zyora team
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* SHEET PORTAL - body pe render hoga, koi parent block nahi kar sakta */}
+      {mounted && sheetContent ? createPortal(sheetContent, document.body) : null}
     </>
   )
 }
