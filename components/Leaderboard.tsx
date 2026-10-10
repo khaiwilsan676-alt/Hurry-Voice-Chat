@@ -145,7 +145,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
-        <div className="relative flex items-center justify-center w-full h-[38px] mb-1">
+        <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
           
           {/* Back Button as Image - Ekdam Left Corner */}
           <button
@@ -156,35 +156,27 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             <img 
               src="/file_0000000051d881f5af4f9cf84a56dcd3.png" 
               alt="Back" 
-              className="w-8 h-8 object-contain"
+              className="w-10 h-10 object-contain"
               draggable="false"
             />
           </button>
 
-          {/* Main Tabs Container - Center - EXACT IMAGE PROPORTIONS (Patla & Sharp) */}
-          <div className="flex items-center justify-between h-[28px] border border-[#C9942A] rounded-full bg-[#0A0605]/95 w-[240px] overflow-hidden shadow-[0_2px_6px_rgba(0,0,0,0.8)] px-[2px]">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`relative flex-1 text-[12px] font-bold h-[24px] rounded-full transition-all flex items-center justify-center tracking-wider ${
-                    isActive ? 'text-[#FFE9A8]' : 'text-[#8A857D]'
-                  }`}
-                  style={{
-                    textShadow: isActive 
-                      ? '0 1px 2px rgba(0,0,0,0.9), 0 0 6px rgba(255,180,0,0.7)' 
-                      : '0 1px 2px rgba(0,0,0,0.9)',
-                  }}
-                >
-                  {isActive && (
-                    <span className="absolute inset-0 bg-gradient-to-b from-[#EAB058] via-[#C57C24] to-[#8A4211] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.5),0_1px_2px_rgba(0,0,0,0.6)]" />
-                  )}
-                  <span className="relative z-10">{tab.label}</span>
-                </button>
-              )
-            })}
+          {/* Main Tabs Container - Center */}
+          <div className="flex items-center justify-between h-[42px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`relative flex-1 text-[15px] font-semibold h-[38px] rounded-full transition-all flex items-center justify-center ${
+                  activeTab === tab.id ? 'text-white' : 'text-[#8A857D]'
+                }`}
+              >
+                {activeTab === tab.id && (
+                  <span className="absolute inset-0 bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]" />
+                )}
+                <span className="relative z-10 drop-shadow-md">{tab.label}</span>
+              </button>
+            ))}
           </div>
 
           {/* Info Button - Image, Ekdam Right Corner */}
@@ -196,44 +188,41 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             <img 
               src="/file_0000000073ec820b832b6dafb168dabe.png" 
               alt="Info" 
-              className="w-8 h-8 object-contain"
+              className="w-10 h-10 object-contain"
               draggable="false"
             />
           </button>
         </div>
 
-        {/* 1. SUB-TABS SECTION - EXACT IMAGE STYLE (Patla aur White Color) */}
+        {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
         <div className="relative w-full flex justify-center mt-1">
-          <div className="relative w-[240px] h-[30px] z-10 flex items-center justify-start gap-0 shrink-0">
-            {subTabs.map((st) => {
-              const isActive = activeSubTab === st.id
-              return (
-                <button
-                  key={st.id}
-                  onClick={() => setActiveSubTab(st.id)}
-                  className="relative z-10 flex-1 flex items-center justify-center text-[12px] font-bold transition-colors duration-200"
-                  style={{
-                    color: isActive ? '#FFFFFF' : '#D1C4B4',
-                    textShadow: isActive 
-                      ? '0 0 6px rgba(255,215,0,1), 0 0 10px rgba(255,180,0,0.9)' 
-                      : '0 1px 2px rgba(0,0,0,0.9)',
-                  }}
-                >
-                  {st.label}
-                </button>
-              )
-            })}
+          <div className="relative w-[220px] h-[40px] z-10 flex items-center justify-start gap-1 shrink-0">
+            {subTabs.map((st) => (
+              <button
+                key={st.id}
+                onClick={() => setActiveSubTab(st.id)}
+                className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors duration-200"
+                style={{
+                  // ✅ FIXED: Ab hamesha visible color rahega (chahe active ho ya inactive)
+                  color: activeSubTab === st.id ? '#FFFFFF' : '#E8D9B5',
+                  textShadow: activeSubTab === st.id 
+                    ? '0 0 8px rgba(255,215,0,0.9), 0 0 12px rgba(255,180,0,0.6)' 
+                    : '0 1px 2px rgba(0,0,0,0.6)',
+                }}
+              >
+                {st.label}
+              </button>
+            ))}
 
-            {/* Moveable Golden Highlight Shape - EXACT IMAGE */}
+            {/* EK HI Moveable Golden Highlight Shape (Line) - sirf active button ke neeche dikhega */}
             <span
-              className="absolute z-0 bottom-0 top-[1px] h-[26px] w-[33.33%] bg-gradient-to-b from-[#D4AF37]/80 via-[#D4AF37]/30 to-transparent rounded-sm transition-transform duration-300 ease-out"
+              className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/60 via-[#D4AF37]/25 to-transparent rounded-md transition-transform duration-300 ease-out"
               style={{
                 transform: `translateX(calc(${activeSubTabIndex * 100}%))`,
-                boxShadow: '0 -1px 6px rgba(212, 175, 55, 0.9), inset 0 1px 2px rgba(255,255,255,0.7)',
+                boxShadow: '0 -2px 8px rgba(212, 175, 55, 0.6)',
               }}
             >
-              {/* Top Golden Line Highlight - EXACT IMAGE */}
-              <span className="absolute left-[15%] right-[15%] top-[-1px] h-[2px] bg-[#FFE9A8] rounded-full blur-[0.5px] shadow-[0_0_8px_rgba(255,215,0,1)]" />
+              <span className="absolute left-[25%] right-[25%] top-[-1px] h-[3px] bg-[#FFE9A8] rounded-full scale-y-[1.2] blur-[0.5px] shadow-[0_0_8px_rgba(255,215,0,1)]" />
             </span>
           </div>
         </div>
