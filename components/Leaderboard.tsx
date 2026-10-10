@@ -145,7 +145,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
-        <div className="relative flex items-center justify-center w-full h-[42px] mb-1.5">
+        <div className="relative flex items-center justify-center w-full h-[40px] mb-1.5">
           
           {/* Back Button as Image - Ekdam Left Corner */}
           <button
@@ -161,18 +161,18 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             />
           </button>
 
-          {/* Main Tabs Container - Center (THINNER) */}
-          <div className="flex items-center justify-between h-[34px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
+          {/* Main Tabs Container - Center (THIN & WIDE like image) */}
+          <div className="flex items-center justify-between h-[30px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/85 w-[68%] max-w-[420px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] p-[2px]">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex-1 text-[13px] font-semibold h-[30px] rounded-full transition-all flex items-center justify-center ${
+                className={`relative flex-1 text-[15px] font-semibold h-[26px] rounded-full transition-all flex items-center justify-center tracking-wide ${
                   activeTab === tab.id ? 'text-white' : 'text-[#8A857D]'
                 }`}
               >
                 {activeTab === tab.id && (
-                  <span className="absolute inset-0 bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]" />
+                  <span className="absolute inset-0 bg-gradient-to-b from-[#F0BC60] via-[#C67F2A] to-[#7A3A0E] rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.45),0_0_8px_rgba(230,180,90,0.5)]" />
                 )}
                 <span className="relative z-10 drop-shadow-md">{tab.label}</span>
               </button>
@@ -196,7 +196,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
         {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
         <div className="relative w-full flex justify-center mt-1">
-          <div className="relative w-[220px] h-[40px] z-10 flex items-center justify-start gap-1 shrink-0">
+          <div className="relative w-[280px] h-[38px] z-10 flex items-center justify-start gap-1 shrink-0">
             {subTabs.map((st) => (
               <button
                 key={st.id}
