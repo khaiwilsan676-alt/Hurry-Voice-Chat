@@ -27,8 +27,8 @@ export function ChromaImage({
   const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
 
   useEffect(() => {
-    let isMounted = true;
-    
+    let isMounted = true
+
     if (processedImageCache[src]) {
       setDataUrl(processedImageCache[src])
       return
@@ -52,7 +52,9 @@ export function ChromaImage({
             const data = imgData.data
 
             for (let i = 0; i < data.length; i += 4) {
-              const r = data[i], g = data[i + 1], b = data[i + 2]
+              const r = data[i],
+                g = data[i + 1],
+                b = data[i + 2]
               if (g > 50 && g > r * 1.15 && g > b * 1.15) {
                 data[i + 3] = 0
               }
@@ -70,7 +72,9 @@ export function ChromaImage({
       if (isMounted) setDataUrl(url)
     })
 
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [src])
 
   if (!dataUrl) {
@@ -90,7 +94,7 @@ export function ChromaImage({
 export default function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
-  const [showRules, setShowRules] = useState(false)
+  const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false)
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -111,7 +115,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
   }
 
   // Find index of active sub-tab for the moveable highlight
-  const activeSubTabIndex = subTabs.findIndex(st => st.id === activeSubTab)
+  const activeSubTabIndex = subTabs.findIndex((st) => st.id === activeSubTab)
 
   // Rank 4 to 50
   const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
@@ -146,16 +150,15 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
-          
           {/* Back Button as Image - Ekdam Left Corner */}
           <button
             onClick={onBack}
             className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Back"
           >
-            <img 
-              src="/file_0000000051d881f5af4f9cf84a56dcd3.png" 
-              alt="Back" 
+            <img
+              src="/file_0000000051d881f5af4f9cf84a56dcd3.png"
+              alt="Back"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
@@ -179,15 +182,15 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             ))}
           </div>
 
-          {/* Info Button - Image, Ekdam Right Corner */}
+          {/* Info Button - 1-Click Sheet Open */}
           <button
-            onClick={() => setShowRules(true)}
+            onClick={() => setIsRulesOpen(true)}
             className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Info"
           >
-            <img 
-              src="/file_0000000073ec820b832b6dafb168dabe.png" 
-              alt="Info" 
+            <img
+              src="/file_0000000073ec820b832b6dafb168dabe.png"
+              alt="Info"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
@@ -196,7 +199,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
         {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) */}
         <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 ml-4 shrink-0 self-start">
-          {subTabs.map((st, index) => (
+          {subTabs.map((st) => (
             <button
               key={st.id}
               onClick={() => setActiveSubTab(st.id)}
@@ -273,123 +276,87 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
       {/* 5. FIXED BOTTOM USER CARD */}
       <div className="fixed bottom-0 left-0 w-full h-[90px] px-0 py-0 z-50 pointer-events-auto shadow-[0_-5px_20px_rgba(0,0,0,0.8)] border-t-[1.5px] border-[#694B2E] bg-gradient-to-b from-[#3E2114] via-[#2A1309] to-[#120703]">
         <div className="relative w-full h-full flex items-center justify-start px-6 gap-5">
-          {/* Yahan se 100+ aur circle hata diya gaya hai bss khali space hai ab */}
+          {/* Empty Space preserved */}
         </div>
       </div>
 
-      {/* 6. RANKING RULES BOTTOM SHEET */}
-      {showRules && (
+      {/* 6. RANKING RULES BOTTOM SHEET (Dark Red + Gold Match Theme) */}
+      {isRulesOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center"
-          onClick={() => setShowRules(false)}
+          className="fixed inset-0 z-[100] flex flex-col justify-end bg-black/75 backdrop-blur-sm transition-opacity duration-300 animate-fadeIn"
+          onClick={() => setIsRulesOpen(false)}
         >
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-
-          {/* Sheet */}
           <div
-            className="relative w-full max-w-full rounded-t-3xl bg-gradient-to-b from-[#2A1309] via-[#1A0204] to-[#0A0102] border-t-[2px] border-[#D4AF37] shadow-[0_-10px_40px_rgba(212,175,55,0.25)] max-h-[85vh] flex flex-col animate-[slideUp_0.3s_ease-out]"
+            className="relative w-full max-h-[82vh] overflow-y-auto rounded-t-[28px] border-t-[1.5px] border-x-[1px] border-[#D4AF37]/50 bg-gradient-to-b from-[#2D0609] via-[#1A0204] to-[#0E0102] text-[#F3E5D8] px-6 pt-3 pb-8 shadow-[0_-10px_35px_rgba(0,0,0,0.95)]"
             onClick={(e) => e.stopPropagation()}
-            style={{ animation: 'slideUp 0.3s ease-out' }}
           >
-            {/* Handle bar */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-12 h-[4px] rounded-full bg-[#D4AF37]/50" />
+            {/* Top Sheet Drag/Touch Bar */}
+            <div className="flex justify-center w-full mb-3">
+              <span className="w-12 h-1.5 rounded-full bg-[#D4AF37]/40" />
             </div>
 
-            {/* Header */}
-            <div className="px-5 pb-3 shrink-0 border-b border-[#D4AF37]/20">
-              <h2 className="text-center text-[#D4AF37] text-xl font-bold tracking-wide">
+            {/* Header + Close Icon */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#D4AF37]/25 mb-4">
+              <h2 className="text-[19px] font-extrabold text-[#E7B865] tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 Ranking Rules
               </h2>
+              <button
+                onClick={() => setIsRulesOpen(false)}
+                className="w-8 h-8 rounded-full bg-[#3E2114]/80 border border-[#D4AF37]/40 flex items-center justify-center text-[#D4AF37] font-bold text-base active:scale-95 transition-transform"
+                aria-label="Close"
+              >
+                ✕
+              </button>
             </div>
 
-            {/* Scrollable Content */}
-            <div
-              className="px-5 py-4 overflow-y-auto text-white/90 text-[13.5px] leading-relaxed"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              {/* Contribution Leaderboard */}
-              <p className="mb-4">
-                <span className="font-bold text-[#E7B865]">Contribution Leaderboard:</span>{' '}
-                Your ranking on this leaderboard is determined by the total number of Coins
-                you have spent in the room. The higher the amount spent, the higher your
-                position on the leaderboard.
-              </p>
+            {/* Content Body */}
+            <div className="space-y-4 text-[13.5px] leading-relaxed text-[#D8C7B5]">
+              {/* Leaderboard Rules */}
+              <div className="space-y-3">
+                <p>
+                  <span className="font-bold text-[#E7B865]">Contribution Leaderboard:</span>{' '}
+                  Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+                </p>
 
-              {/* Charm Leaderboard */}
-              <p className="mb-4">
-                <span className="font-bold text-[#E7B865]">Charm Leaderboard:</span>{' '}
-                Your ranking on this leaderboard is determined by the total number of Coins
-                you Receive. The higher the amount spent, the higher your position on the
-                leaderboard.
-              </p>
+                <p>
+                  <span className="font-bold text-[#E7B865]">Charm Leaderboard:</span>{' '}
+                  Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
+                </p>
 
-              {/* Room Leaderboard */}
-              <p className="mb-4">
-                <span className="font-bold text-[#E7B865]">Room Leaderboard:</span>{' '}
-                Your ranking on this leaderboard is determined by the total number of Coins
-                you have spent in the room. The higher the amount spent, the higher your
-                position on the leaderboard.
-              </p>
+                <p>
+                  <span className="font-bold text-[#E7B865]">Room Leaderboard:</span>{' '}
+                  Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+                </p>
+              </div>
 
               {/* Data Periods */}
-              <p className="font-bold text-[#E7B865] mb-2">Data Periods</p>
-              <p className="mb-2">
-                1. Daily leaderboard data is finalized every day at (5:30+GMT).
-              </p>
-              <p className="mb-2">
-                2. Weekly leaderboard data is finalized every Monday at (5:30+GMT).
-              </p>
-              <p className="mb-4">
-                3. Monthly leaderboard data is finalized on the first day of every month at
-                (5:30+GMT).
-              </p>
+              <div className="pt-2">
+                <h3 className="text-[15px] font-bold text-[#E7B865] mb-2 tracking-wide">
+                  Data Periods
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 pl-1 text-[#E1D1C1]">
+                  <li>Daily leaderboard data is finalized every day at (5:30+GMT).</li>
+                  <li>Weekly leaderboard data is finalized every Monday at (5:30+GMT).</li>
+                  <li>Monthly leaderboard data is finalized on the first day of every month at (5:30+GMT).</li>
+                </ol>
+              </div>
 
-              {/* Note */}
-              <p className="mb-4">
-                <span className="font-bold text-[#E7B865]">Note:</span> Users who violate
-                platform rules are ineligible to participate in the rankings.
-              </p>
+              {/* Notes */}
+              <div className="pt-2 text-[12.5px] space-y-2 border-t border-[#D4AF37]/15 text-[#BFA894]">
+                <p>
+                  <span className="font-semibold text-[#E7B865]">Note:</span> Users who violate platform rules are ineligible to participate in the rankings.
+                </p>
+                <p>The platform reserves the right to make the final decision.</p>
+              </div>
 
-              <p className="mb-4">
-                The platform reserves the right to make the final decision.
-              </p>
-
-              <p className="mb-6 text-right text-[#E7B865] font-bold">
+              {/* Regards */}
+              <div className="text-center pt-4 font-semibold text-[#E7B865] tracking-wider text-[14px]">
                 Regard Zyora team
-              </p>
-
-              {/* Extra spacing so bottom bar doesn't cover content */}
-              <div className="h-6" />
-            </div>
-
-            {/* Close Button */}
-            <div className="shrink-0 px-5 pb-5 pt-2 border-t border-[#D4AF37]/20">
-              <button
-                onClick={() => setShowRules(false)}
-                className="w-full h-[46px] rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] text-white font-bold text-[15px] active:opacity-80 transition-opacity shadow-[inset_0_2px_4px_rgba(255,255,255,0.35)]"
-              >
-                Close
-              </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* Slide Up Animation Keyframes */}
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-            opacity: 0.5;
-          }
-          to {
-            transform: translateY(0%);
-            opacity: 1;
-          }
-        }
-      `}</style>
     </div>
   )
 }
