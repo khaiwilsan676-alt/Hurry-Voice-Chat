@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useState, useEffect, useRef } from 'react'
 
 type LeaderboardTab = 'honour' | 'charm' | 'room'
 
@@ -72,12 +71,109 @@ export function ChromaImage({
 export default function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
-  const [showRulesSheet, setShowRulesSheet] = useState<boolean>(false)
-  const [mounted, setMounted] = useState<boolean>(false)
+  const sheetRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const openRulesSheet = () => {
+    // agar pehle se khuli hai toh kuch mat karo
+    if (sheetRef.current) return
+
+    // backdrop
+    const backdrop = document.createElement('div')
+    backdrop.style.position = 'fixed'
+    backdrop.style.top = '0'
+    backdrop.style.left = '0'
+    backdrop.style.right = '0'
+    backdrop.style.bottom = '0'
+    backdrop.style.zIndex = '2147483647'
+    backdrop.style.display = 'flex'
+    backdrop.style.alignItems = 'flex-end'
+    backdrop.style.justifyContent = 'center'
+    backdrop.style.background = 'rgba(0,0,0,0.45)'
+    backdrop.style.pointerEvents = 'auto'
+
+    // sheet
+    const sheet = document.createElement('div')
+    sheet.style.background = '#FFFFFF'
+    sheet.style.width = '100%'
+    sheet.style.maxWidth = '520px'
+    sheet.style.borderTopLeftRadius = '24px'
+    sheet.style.borderTopRightRadius = '24px'
+    sheet.style.paddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 16px)'
+    sheet.style.boxShadow = '0 -6px 30px rgba(0,0,0,0.35)'
+    sheet.style.maxHeight = '85vh'
+    sheet.style.overflowY = 'auto'
+    sheet.style.animation = 'zSlideUp 0.28s ease-out'
+
+    sheet.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;padding:18px 20px 10px;">
+        <h2 style="font-size:22px;font-weight:800;letter-spacing:0.5px;color:#1A0204;margin:0;">Ranking Rules</h2>
+      </div>
+      <div style="padding:4px 20px 0;font-size:12.5px;line-height:1.55;color:#2B2B2B;">
+        <h3 style="font-size:13.5px;font-weight:700;color:#1A0204;margin:0 0 4px;">Contribution Leaderboard:</h3>
+        <p style="margin:0 0 10px;color:#444;">Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.</p>
+
+        <h3 style="font-size:13.5px;font-weight:700;color:#1A0204;margin:0 0 4px;">Charm Leaderboard:</h3>
+        <p style="margin:0 0 10px;color:#444;">Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.</p>
+
+        <h3 style="font-size:13.5px;font-weight:700;color:#1A0204;margin:0 0 4px;">Room Leaderboard:</h3>
+        <p style="margin:0 0 10px;color:#444;">Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.</p>
+
+        <h3 style="font-size:14px;font-weight:700;color:#1A0204;margin:12px 0 8px;">Data Periods</h3>
+
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#1A0204;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px;">1</span>
+            <p style="margin:0;color:#444;padding-top:1px;">Daily leaderboard data is finalized every day at <span style="font-weight:600;color:#1A0204;">(5:30+GMT)</span>.</p>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#1A0204;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px;">2</span>
+            <p style="margin:0;color:#444;padding-top:1px;">Weekly leaderboard data is finalized every Monday at <span style="font-weight:600;color:#1A0204;">(5:30+GMT)</span>.</p>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#1A0204;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px;">3</span>
+            <p style="margin:0;color:#444;padding-top:1px;">Monthly leaderboard data is finalized on the first day of every month at <span style="font-weight:600;color:#1A0204;">(5:30+GMT)</span>.</p>
+          </div>
+        </div>
+
+        <div style="border-radius:8px;background:#F5F5F5;border:1px solid #E0E0E0;padding:8px 12px;margin-bottom:12px;">
+          <p style="margin:0;color:#333;font-style:italic;"><span style="font-weight:700;font-style:normal;color:#1A0204;">Note:</span> Users who violate platform rules are ineligible to participate in the rankings.</p>
+          <p style="margin:4px 0 0;color:#333;font-style:italic;">The platform reserves the right to make the final decision.</p>
+        </div>
+
+        <p style="text-align:right;font-size:13px;font-weight:700;color:#1A0204;margin:0;">Regard Zyora team</p>
+      </div>
+    `
+
+    // close handler — backdrop pe click
+    const closeSheet = (e: Event) => {
+      e.stopPropagation()
+      e.preventDefault()
+      if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop)
+      sheetRef.current = null
+      document.removeEventListener('keydown', onEsc)
+    }
+
+    // sheet ke andar click se band na ho
+    const stopAll = (e: Event) => {
+      e.stopPropagation()
+    }
+
+    backdrop.addEventListener('click', closeSheet)
+    backdrop.addEventListener('pointerdown', stopAll)
+    backdrop.addEventListener('touchstart', stopAll)
+    sheet.addEventListener('click', stopAll)
+    sheet.addEventListener('pointerdown', stopAll)
+    sheet.addEventListener('touchstart', stopAll)
+
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeSheet(e as any)
+    }
+    document.addEventListener('keydown', onEsc)
+
+    backdrop.appendChild(sheet)
+    document.body.appendChild(backdrop)
+    sheetRef.current = backdrop
+  }
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -99,104 +195,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
   const activeSubTabIndex = subTabs.findIndex(st => st.id === activeSubTab)
   const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
-
-  const sheetContent = showRulesSheet ? (
-    <div
-      onClick={(e) => {
-        e.stopPropagation()
-        e.preventDefault()
-        setShowRulesSheet(false)
-      }}
-      onPointerDown={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 2147483647,
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.45)',
-      }}
-    >
-      <div
-        onClick={(e) => {
-          e.stopPropagation()
-          e.preventDefault()
-        }}
-        onPointerDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-        style={{
-          background: '#FFFFFF',
-          width: '100%',
-          maxWidth: 520,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-          boxShadow: '0 -6px 30px rgba(0,0,0,0.35)',
-          animation: 'zSlideUp 0.28s ease-out',
-          maxHeight: '85vh',
-          overflowY: 'auto',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '18px 20px 10px' }}>
-          <h2 style={{ fontSize: 22, fontWeight: 800, letterSpacing: 0.5, color: '#1A0204', margin: 0 }}>
-            Ranking Rules
-          </h2>
-        </div>
-
-        <div style={{ padding: '4px 20px 0', fontSize: 12.5, lineHeight: 1.55, color: '#2B2B2B' }}>
-          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Contribution Leaderboard:</h3>
-          <p style={{ margin: '0 0 10px', color: '#444' }}>
-            Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
-          </p>
-
-          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Charm Leaderboard:</h3>
-          <p style={{ margin: '0 0 10px', color: '#444' }}>
-            Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
-          </p>
-
-          <h3 style={{ fontSize: 13.5, fontWeight: 700, color: '#1A0204', margin: '0 0 4px' }}>Room Leaderboard:</h3>
-          <p style={{ margin: '0 0 10px', color: '#444' }}>
-            Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
-          </p>
-
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#1A0204', margin: '12px 0 8px' }}>Data Periods</h3>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>1</span>
-              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Daily leaderboard data is finalized every day at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
-              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>2</span>
-              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Weekly leaderboard data is finalized every Monday at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: '#1A0204', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginTop: 1 }}>3</span>
-              <p style={{ margin: 0, color: '#444', paddingTop: 1 }}>Monthly leaderboard data is finalized on the first day of every month at <span style={{ fontWeight: 600, color: '#1A0204' }}>(5:30+GMT)</span>.</p>
-            </div>
-          </div>
-
-          <div style={{ borderRadius: 8, background: '#F5F5F5', border: '1px solid #E0E0E0', padding: '8px 12px', marginBottom: 12 }}>
-            <p style={{ margin: 0, color: '#333', fontStyle: 'italic' }}>
-              <span style={{ fontWeight: 700, fontStyle: 'normal', color: '#1A0204' }}>Note:</span> Users who violate platform rules are ineligible to participate in the rankings.
-            </p>
-            <p style={{ margin: '4px 0 0', color: '#333', fontStyle: 'italic' }}>
-              The platform reserves the right to make the final decision.
-            </p>
-          </div>
-
-          <p style={{ textAlign: 'right', fontSize: 13, fontWeight: 700, color: '#1A0204', margin: 0 }}>
-            Regard Zyora team
-          </p>
-        </div>
-      </div>
-    </div>
-  ) : null
 
   return (
     <>
@@ -249,7 +247,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
             <button
               type="button"
-              onClick={() => setShowRulesSheet(true)}
+              onClick={openRulesSheet}
               className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1 cursor-pointer z-[60]"
               aria-label="Info"
             >
@@ -308,9 +306,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           <div className="relative w-full h-full flex items-center justify-start px-6 gap-5" />
         </div>
       </div>
-
-      {/* SHEET PORTAL - body pe render hoga, koi parent block nahi kar sakta */}
-      {mounted && sheetContent ? createPortal(sheetContent, document.body) : null}
     </>
   )
 }
