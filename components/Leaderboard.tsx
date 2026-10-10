@@ -285,7 +285,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/35" />
             <div className="mb-5 flex items-center justify-between">
-              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">{activeTab === 'honour' ? 'Honour Ranking Rules' : activeTab === 'charm' ? 'Charm Ranking Rules' : 'Room Ranking Rules'}</h2>
+              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">Ranking Rules</h2>
               <button
                 onClick={() => setShowRankingRules(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-2xl text-white/80 active:opacity-70"
@@ -293,24 +293,24 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               >×</button>
             </div>
 
-            <h3 className="mb-2 font-semibold text-[#E7B865]">Leaderboard Rules</h3>
+            <h3 className="mb-2 font-semibold text-[#E7B865]">Ranking Rules</h3>
             <div className="space-y-4 text-sm leading-6 text-white/90">
               <p><strong>Contribution Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.</p>
-              <p><strong>Charm Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you receive. The higher the amount received, the higher your position on the leaderboard.</p>
+              <p><strong>Charm Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.</p>
               <p><strong>Room Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.</p>
             </div>
 
             <div className="my-5 h-px bg-[#D4AF37]/30" />
             <h3 className="mb-2 font-semibold text-[#E7B865]">Data Periods</h3>
             <ol className="list-decimal space-y-2 pl-5 text-sm leading-6 text-white/90">
-              <li>Daily leaderboard data is finalized every day at 5:30 GMT+0.</li>
-              <li>Weekly leaderboard data is finalized every Monday at 5:30 GMT+0.</li>
-              <li>Monthly leaderboard data is finalized on the first day of every month at 5:30 GMT+0.</li>
+              <li>Daily leaderboard data is finalized every day at (5:30+GMT).</li>
+              <li>Weekly leaderboard data is finalized every Monday at (5:30+GMT).</li>
+              <li>Monthly leaderboard data is finalized on the first day of every month at (5:30+GMT).</li>
             </ol>
 
             <p className="mt-5 text-sm leading-6 text-white/90"><strong>Note:</strong> Users who violate platform rules are ineligible to participate in the rankings.</p>
             <p className="mt-3 text-sm leading-6 text-white/90">The platform reserves the right to make the final decision.</p>
-            <p className="mt-5 text-right text-sm font-semibold text-[#E7B865]">Regards, Zyora Team</p>
+            <p className="mt-5 text-right text-sm font-semibold text-[#E7B865]">Regard Zyora team</p>
           </section>
         </div>
       )}
@@ -324,4 +324,3 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
     </div>
   )
 }
-
