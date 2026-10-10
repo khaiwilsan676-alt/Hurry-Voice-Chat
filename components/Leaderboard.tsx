@@ -27,7 +27,7 @@ export function ChromaImage({
   const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
 
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
     
     if (processedImageCache[src]) {
       setDataUrl(processedImageCache[src])
@@ -195,24 +195,34 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
 
         {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
-        <div className="relative w-full flex justify-center mt-2">
-          <div className="relative flex items-center justify-center gap-2">
-            {subTabs.map((st) => {
-              const isActive = activeSubTab === st.id
-              return (
-                <button
-                  key={st.id}
-                  onClick={() => setActiveSubTab(st.id)}
-                  className={`relative px-4 py-1.5 rounded-full text-[14px] font-extrabold tracking-wide transition-all duration-300 ${
-                    isActive
-                      ? 'bg-gradient-to-b from-[#FFE9A8] via-[#E7B865] to-[#BA7627] text-[#3E1A02] shadow-[0_0_12px_rgba(255,200,80,0.9)] scale-105 border border-[#FFF3C4]'
-                      : 'bg-[#2A1309]/80 text-[#E8D9B5] border border-[#D4AF37]/50 shadow-[0_0_6px_rgba(0,0,0,0.6)]'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              )
-            })}
+        <div className="relative w-full flex justify-center mt-1">
+          <div className="relative w-[220px] h-[40px] z-10 flex items-center justify-start gap-1 shrink-0">
+            {subTabs.map((st) => (
+              <button
+                key={st.id}
+                onClick={() => setActiveSubTab(st.id)}
+                className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors duration-200"
+                style={{
+                  color: activeSubTab === st.id ? '#FFFFFF' : '#3A2B1A',
+                  textShadow: activeSubTab === st.id 
+                    ? '0 0 8px rgba(255,215,0,0.9), 0 0 12px rgba(255,180,0,0.6)' 
+                    : '0 1px 2px rgba(255,255,255,0.35)',
+                }}
+              >
+                {st.label}
+              </button>
+            ))}
+
+            {/* EK HI Moveable Golden Highlight Shape */}
+            <span
+              className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/60 via-[#D4AF37]/25 to-transparent rounded-md transition-transform duration-300 ease-out"
+              style={{
+                transform: `translateX(calc(${activeSubTabIndex * 100}%))`,
+                boxShadow: '0 -2px 8px rgba(212, 175, 55, 0.6)',
+              }}
+            >
+              <span className="absolute left-[25%] right-[25%] top-[-1px] h-[3px] bg-[#FFE9A8] rounded-full scale-y-[1.2] blur-[0.5px] shadow-[0_0_8px_rgba(255,215,0,1)]" />
+            </span>
           </div>
         </div>
 
