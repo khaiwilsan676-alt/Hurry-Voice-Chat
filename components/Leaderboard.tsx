@@ -203,18 +203,15 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                 onClick={() => setActiveSubTab(st.id)}
                 className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors duration-200"
                 style={{
-                  // ✅ FIXED: Ab hamesha visible color rahega (chahe active ho ya inactive)
-                  color: activeSubTab === st.id ? '#FFFFFF' : '#E8D9B5',
-                  textShadow: activeSubTab === st.id 
-                    ? '0 0 8px rgba(255,215,0,0.9), 0 0 12px rgba(255,180,0,0.6)' 
-                    : '0 1px 2px rgba(0,0,0,0.6)',
+                  color: '#FFFFFF',
+                  textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                 }}
               >
                 {st.label}
               </button>
             ))}
 
-            {/* EK HI Moveable Golden Highlight Shape (Line) - sirf active button ke neeche dikhega */}
+            {/* EK HI Moveable Golden Highlight Shape */}
             <span
               className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/60 via-[#D4AF37]/25 to-transparent rounded-md transition-transform duration-300 ease-out"
               style={{
