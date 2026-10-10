@@ -90,7 +90,7 @@ export function ChromaImage({
 export default function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
-  const [showInfoSheet, setShowInfoSheet] = useState(false)
+  const [showRules, setShowRules] = useState(false)
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -181,7 +181,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
           {/* Info Button - Image, Ekdam Right Corner */}
           <button
-            onClick={() => setShowInfoSheet(true)}
+            onClick={() => setShowRules(true)}
             className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Info"
           >
@@ -194,8 +194,8 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </button>
         </div>
 
-        {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
-        <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 mx-auto shrink-0">
+        {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) */}
+        <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 ml-4 shrink-0 self-start">
           {subTabs.map((st, index) => (
             <button
               key={st.id}
@@ -277,97 +277,119 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       </div>
 
-      {/* ===== INFO SHEET MODAL (CHANGE 1, 2, 3) ===== */}
-      {showInfoSheet && (
+      {/* 6. RANKING RULES BOTTOM SHEET */}
+      {showRules && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-          onClick={() => setShowInfoSheet(false)}
+          onClick={() => setShowRules(false)}
         >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+          {/* Sheet */}
           <div
-            className="w-full max-h-[80vh] overflow-y-auto rounded-t-3xl p-6 pb-10"
-            style={{
-              background: 'linear-gradient(to bottom, #2A1309, #120703)',
-              borderTop: '1.5px solid #694B2E',
-              boxShadow: '0 -10px 40px rgba(0,0,0,0.9)',
-            }}
+            className="relative w-full max-w-full rounded-t-3xl bg-gradient-to-b from-[#2A1309] via-[#1A0204] to-[#0A0102] border-t-[2px] border-[#D4AF37] shadow-[0_-10px_40px_rgba(212,175,55,0.25)] max-h-[85vh] flex flex-col animate-[slideUp_0.3s_ease-out]"
             onClick={(e) => e.stopPropagation()}
+            style={{ animation: 'slideUp 0.3s ease-out' }}
           >
-            {/* Drag Handle */}
-            <div className="w-12 h-1 bg-[#694B2E] rounded-full mx-auto mb-5" />
-
-            {/* Title */}
-            <h2 className="text-center text-[#E7B865] font-bold text-xl mb-6 tracking-wide">
-              Ranking Rules
-            </h2>
-
-            {/* Contribution Leaderboard */}
-            <div className="mb-5">
-              <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
-                Contribution Leaderboard
-              </h3>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed">
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
-              </p>
+            {/* Handle bar */}
+            <div className="flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-12 h-[4px] rounded-full bg-[#D4AF37]/50" />
             </div>
 
-            {/* Charm Leaderboard */}
-            <div className="mb-5">
-              <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
-                Charm Leaderboard
-              </h3>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed">
-                Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
-              </p>
+            {/* Header */}
+            <div className="px-5 pb-3 shrink-0 border-b border-[#D4AF37]/20">
+              <h2 className="text-center text-[#D4AF37] text-xl font-bold tracking-wide">
+                Ranking Rules
+              </h2>
             </div>
 
-            {/* Room Leaderboard */}
-            <div className="mb-5">
-              <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
-                Room Leaderboard
-              </h3>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed">
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+            {/* Scrollable Content */}
+            <div
+              className="px-5 py-4 overflow-y-auto text-white/90 text-[13.5px] leading-relaxed"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              {/* Contribution Leaderboard */}
+              <p className="mb-4">
+                <span className="font-bold text-[#E7B865]">Contribution Leaderboard:</span>{' '}
+                Your ranking on this leaderboard is determined by the total number of Coins
+                you have spent in the room. The higher the amount spent, the higher your
+                position on the leaderboard.
               </p>
-            </div>
 
-            {/* Data Periods */}
-            <div className="mb-5">
-              <h3 className="text-[#D4AF37] font-bold text-[15px] mb-2">
-                Data Periods
-              </h3>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed mb-2">
+              {/* Charm Leaderboard */}
+              <p className="mb-4">
+                <span className="font-bold text-[#E7B865]">Charm Leaderboard:</span>{' '}
+                Your ranking on this leaderboard is determined by the total number of Coins
+                you Receive. The higher the amount spent, the higher your position on the
+                leaderboard.
+              </p>
+
+              {/* Room Leaderboard */}
+              <p className="mb-4">
+                <span className="font-bold text-[#E7B865]">Room Leaderboard:</span>{' '}
+                Your ranking on this leaderboard is determined by the total number of Coins
+                you have spent in the room. The higher the amount spent, the higher your
+                position on the leaderboard.
+              </p>
+
+              {/* Data Periods */}
+              <p className="font-bold text-[#E7B865] mb-2">Data Periods</p>
+              <p className="mb-2">
                 1. Daily leaderboard data is finalized every day at (5:30+GMT).
               </p>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed mb-2">
+              <p className="mb-2">
                 2. Weekly leaderboard data is finalized every Monday at (5:30+GMT).
               </p>
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed mb-2">
-                3. Monthly leaderboard data is finalized on the first day of every month at (5:30+GMT).
+              <p className="mb-4">
+                3. Monthly leaderboard data is finalized on the first day of every month at
+                (5:30+GMT).
               </p>
-            </div>
 
-            {/* Note */}
-            <div className="mb-6">
-              <p className="text-[#C9C3BA] text-[13px] leading-relaxed">
-                Note: Users who violate platform rules are ineligible to participate in the rankings.
+              {/* Note */}
+              <p className="mb-4">
+                <span className="font-bold text-[#E7B865]">Note:</span> Users who violate
+                platform rules are ineligible to participate in the rankings.
               </p>
-            </div>
 
-            {/* Final note */}
-            <div className="mb-2">
-              <p className="text-[#8A857D] text-[12px] leading-relaxed">
+              <p className="mb-4">
                 The platform reserves the right to make the final decision.
               </p>
+
+              <p className="mb-6 text-right text-[#E7B865] font-bold">
+                Regard Zyora team
+              </p>
+
+              {/* Extra spacing so bottom bar doesn't cover content */}
+              <div className="h-6" />
             </div>
 
-            {/* Signature */}
-            <p className="text-right text-[#E7B865] font-semibold text-[13px] mt-4">
-              Regard Zyora team
-            </p>
+            {/* Close Button */}
+            <div className="shrink-0 px-5 pb-5 pt-2 border-t border-[#D4AF37]/20">
+              <button
+                onClick={() => setShowRules(false)}
+                className="w-full h-[46px] rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] text-white font-bold text-[15px] active:opacity-80 transition-opacity shadow-[inset_0_2px_4px_rgba(255,255,255,0.35)]"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Slide Up Animation Keyframes */}
+      <style jsx>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+            opacity: 0.5;
+          }
+          to {
+            transform: translateY(0%);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   )
 }
