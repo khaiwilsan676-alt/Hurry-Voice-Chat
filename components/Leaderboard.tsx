@@ -279,18 +279,25 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           role="presentation"
         >
           <section
-            className="w-full max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-[#D4AF37]/70 bg-[#1A0204] px-5 pt-3 pb-8 text-white shadow-2xl"
+            className="w-full max-h-[82vh] overflow-y-auto rounded-t-2xl border-t border-[#D4AF37]/70 bg-[#1A0204] px-5 pt-3 pb-8 text-white shadow-2xl relative"
             role="dialog"
             aria-modal="true"
             aria-labelledby="ranking-rules-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/35" />
-            <div className="mb-5">
-              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">Ranking Rules</h2>
+            {/* Cross Icon - Top Right */}
+            <button
+              onClick={() => setShowRankingRules(false)}
+              className="absolute top-3 right-4 text-white/70 hover:text-white text-2xl leading-none font-light z-10"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <div className="mb-5 text-center">
+              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">Rules</h2>
             </div>
 
-            <h3 className="mb-2 font-semibold text-[#E7B865]">Ranking Rules</h3>
             <div className="space-y-4 text-sm leading-6 text-white/90">
               <p><strong>Contribution Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.</p>
               <p><strong>Charm Leaderboard:</strong> Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.</p>
