@@ -285,7 +285,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           >
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/35" />
             <div className="mb-5 flex items-center justify-between">
-              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">Ranking Rules</h2>
+              <h2 id="ranking-rules-title" className="text-xl font-bold text-[#E7B865]">{activeTab === 'honour' ? 'Honour Ranking Rules' : activeTab === 'charm' ? 'Charm Ranking Rules' : 'Room Ranking Rules'}</h2>
               <button
                 onClick={() => setShowRankingRules(false)}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-2xl text-white/80 active:opacity-70"
