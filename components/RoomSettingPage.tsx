@@ -583,7 +583,7 @@ function CropModal({
 }
 
 // ------------------------------------------------------------
-// ---------- ADMIN ROOMS PAGE (HALF SHEET + BLACK BG) ----------
+// ---------- ADMIN ROOMS PAGE (HALF SHEET, same as Admin sheet) ----------
 // ------------------------------------------------------------
 interface AdminRoom {
   roomId: string
@@ -607,22 +607,22 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center">
-      {/* Backdrop — NO BLUR, only dim, no backdrop-filter */}
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+      {/* Backdrop — NO BLUR, sirf dark */}
       <div
         className="absolute inset-0"
         style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
         onClick={onBack}
       />
 
-      {/* Half Sheet — black background */}
+      {/* Half Sheet — exactly like Admin sheet */}
       <div
         className="relative bg-black w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
-        style={{ height: '60vh', maxHeight: '60vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{ height: '40vh', maxHeight: '40vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center px-4 pt-4 pb-3 flex-shrink-0">
+        <div className="flex items-center px-4 py-3 flex-shrink-0">
           <button
             onClick={onBack}
             className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
@@ -633,16 +633,16 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
             </svg>
           </button>
 
-          <h1 className="flex-1 text-center text-base font-bold text-white">
+          <h3 className="flex-1 text-center text-base font-bold text-white">
             Admin Center
-          </h1>
+          </h3>
 
           <button
             onClick={() => setShowHelp(true)}
             className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
             aria-label="Help"
           >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.2]">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
               <circle cx="12" cy="12" r="10" />
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
               <line x1="12" y1="17" x2="12.01" y2="17" strokeLinecap="round" />
@@ -651,8 +651,8 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 pt-1">
-          <h2 className="text-[16px] font-bold text-white mb-3">
+        <div className="flex-1 overflow-y-auto px-4 pt-1 pb-4">
+          <h2 className="text-[15px] font-bold text-white mb-3">
             Rooms where I'm an admin({rooms.length}/15)
           </h2>
 
@@ -701,74 +701,74 @@ function AdminRoomsPage({ onBack }: { onBack: () => void }) {
             </p>
           )}
         </div>
+      </div>
 
-        {/* ---------- HELP SHEET ---------- */}
-        {showHelp && (
+      {/* ---------- HELP SHEET (no blur) ---------- */}
+      {showHelp && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+          onClick={() => setShowHelp(false)}
+        >
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
-            onClick={() => setShowHelp(false)}
+            className="relative rounded-2xl shadow-2xl w-full max-w-xs max-h-[60vh] flex flex-col overflow-hidden border border-yellow-200"
+            style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative rounded-2xl shadow-2xl w-full max-w-xs max-h-[60vh] flex flex-col overflow-hidden border border-yellow-200"
-              style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
-                <h3 className="text-[#8a6a1f] font-bold text-base">Room Admin</h3>
+            <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
+              <h3 className="text-[#8a6a1f] font-bold text-base">Room Admin</h3>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
+              <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
+                <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
+
+                <p className="text-black font-semibold" style={{ fontWeight: 600 }}>
+                  You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
+                </p>
+
+                <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
+
+                <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
+
+                <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
+
+                <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 pb-4">
-                <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
-                  <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
-
-                  <p className="text-black font-semibold" style={{ fontWeight: 600 }}>
-                    You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
-                  </p>
-
-                  <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
-
-                  <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
-
-                  <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
-
-                  <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
-                </div>
-
-                <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
-                  {[
-                    ['Level 25', '+5 admins'],
-                    ['Level 30', '+5 admins'],
-                    ['Level 35', '+5 admins'],
-                  ].map(([level, adminsCount], idx) => (
-                    <div
-                      key={level}
-                      className="flex text-[11px]"
-                      style={{ backgroundColor: idx % 2 === 0 ? '#faeec2' : '#fdf3d0' }}
-                    >
-                      <div className="flex-1 px-2 py-1.5 border-r border-yellow-300 text-[#7a5f1c]">
-                        {level}
-                      </div>
-                      <div className="flex-1 px-2 py-1.5 text-center text-[#7a5f1c]">
-                        {adminsCount}
-                      </div>
+              <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
+                {[
+                  ['Level 25', '+5 admins'],
+                  ['Level 30', '+5 admins'],
+                  ['Level 35', '+5 admins'],
+                ].map(([level, adminsCount], idx) => (
+                  <div
+                    key={level}
+                    className="flex text-[11px]"
+                    style={{ backgroundColor: idx % 2 === 0 ? '#faeec2' : '#fdf3d0' }}
+                  >
+                    <div className="flex-1 px-2 py-1.5 border-r border-yellow-300 text-[#7a5f1c]">
+                      {level}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="px-4 py-3 flex-shrink-0">
-                <button
-                  onClick={() => setShowHelp(false)}
-                  className="w-full py-2.5 rounded-lg bg-[#f0c24b] text-[#7a5f1c] text-sm font-semibold hover:bg-[#e5b53e] transition-colors"
-                >
-                  Close
-                </button>
+                    <div className="flex-1 px-2 py-1.5 text-center text-[#7a5f1c]">
+                      {adminsCount}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+
+            <div className="px-4 py-3 flex-shrink-0">
+              <button
+                onClick={() => setShowHelp(false)}
+                className="w-full py-2.5 rounded-lg bg-[#f0c24b] text-[#7a5f1c] text-sm font-semibold hover:bg-[#e5b53e] transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
