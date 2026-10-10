@@ -506,7 +506,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
                 <div className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">2</span>
-                  <p>Each user can complete a daily task once per day. Tasks reset at midnight (12:00 AM).</p>
+                  <p>Each user can complete a daily task once per day. Tasks reset at 5:30+GMT.</p>
                 </div>
 
                 <div className="flex gap-3">
@@ -517,12 +517,8 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
                 <div className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a] text-[#4a1f00] text-[12px] font-black flex items-center justify-center border border-[#f5e6a8]">4</span>
                   <div>
-                    <p className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[#ffd700] text-base">🎁</span>
-                      <span className="font-bold text-white">Treasure Chest</span>
-                    </p>
+                    <p className="font-bold text-white mb-1">Treasure Chest</p>
                     <p>When a gift is received in a personal room, the room owner can earn a 5% coin reward of the gift's value. There is no limit on the coin bonus; the more gifts received in the room, the more coin rewards you earn.</p>
-                    <p className="mt-1.5 text-[#ffb8b8] italic">(If it's a rebate gift, the reward will be 0.5% of the gift's value in coins).</p>
                   </div>
                 </div>
 
@@ -533,18 +529,9 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
 
               </div>
 
-              <button
-                onClick={() => setShowRules(false)}
-                className="mt-6 w-full h-[42px] rounded-full font-black text-[13px] uppercase tracking-widest
-                           bg-gradient-to-b from-[#f7dfa0] to-[#e0a92a]
-                           text-[#4a1f00]
-                           border-2 border-[#f5e6a8]
-                           shadow-[0_0_10px_rgba(255,215,0,0.5),0_4px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                           active:translate-y-[3px] active:shadow-[0_0_8px_rgba(255,215,0,0.5),0_1px_0_#9a5f00,inset_0_2px_4px_rgba(255,255,255,0.7)]
-                           transition-all duration-100 cursor-pointer outline-none"
-              >
-                Got It
-              </button>
+              <p className="mt-6 text-right text-[#ffd700] text-[13px] font-bold tracking-wide">
+                Regard Hurry Team
+              </p>
             </div>
           </div>
         </div>
