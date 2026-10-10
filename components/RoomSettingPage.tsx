@@ -583,197 +583,6 @@ function CropModal({
 }
 
 // ------------------------------------------------------------
-// ---------- ADMIN ROOMS PAGE (HALF SHEET, same as Admin sheet) ----------
-// ------------------------------------------------------------
-interface AdminRoom {
-  roomId: string
-  roomName: string
-  roomDp: string
-}
-
-function AdminRoomsPage({ onBack }: { onBack: () => void }) {
-  const [rooms, setRooms] = useState<AdminRoom[]>([
-    {
-      roomId: '385201',
-      roomName: '👍Mastigroup🦗',
-      roomDp: '/default-avatar.png',
-    },
-  ])
-
-  const [showHelp, setShowHelp] = useState(false)
-
-  const handleRemove = (roomId: string) => {
-    setRooms(prev => prev.filter(r => r.roomId !== roomId))
-  }
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-end justify-center">
-      {/* Backdrop — NO BLUR, sirf dark */}
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
-        onClick={onBack}
-      />
-
-      {/* Half Sheet — exactly like Admin sheet */}
-      <div
-        className="relative bg-black w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
-        style={{ height: '40vh', maxHeight: '40vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center px-4 py-3 flex-shrink-0">
-          <button
-            onClick={onBack}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
-            aria-label="Back"
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5m0 0l7-7m-7 7l7 7" />
-            </svg>
-          </button>
-
-          <h3 className="flex-1 text-center text-base font-bold text-white">
-            Admin Center
-          </h3>
-
-          <button
-            onClick={() => setShowHelp(true)}
-            className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
-            aria-label="Help"
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
-              <line x1="12" y1="17" x2="12.01" y2="17" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-4 pt-1 pb-4">
-          <h2 className="text-[15px] font-bold text-white mb-3">
-            Rooms where I'm an admin({rooms.length}/15)
-          </h2>
-
-          <div className="space-y-3">
-            {rooms.map((room) => (
-              <div
-                key={room.roomId}
-                className="bg-white/5 rounded-2xl px-3 py-3 flex items-center gap-3"
-              >
-                <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
-                  <img
-                    src={room.roomDp}
-                    alt={room.roomName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-bold text-white truncate">
-                    {room.roomName}
-                  </h3>
-                  <p className="text-[13px] text-gray-400 mt-0.5">
-                    ID: {room.roomId}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleRemove(room.roomId)}
-                  className="flex-shrink-0 px-5 py-1.5 rounded-full border border-pink-400 text-pink-400 text-[13px] font-medium hover:bg-pink-500/10 transition-colors"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {rooms.length > 0 && (
-            <p className="text-center text-[12px] text-gray-500 mt-6">
-              No more data
-            </p>
-          )}
-
-          {rooms.length === 0 && (
-            <p className="text-center text-[13px] text-gray-500 mt-10">
-              No rooms found
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* ---------- HELP SHEET (no blur) ---------- */}
-      {showHelp && (
-        <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
-          onClick={() => setShowHelp(false)}
-        >
-          <div
-            className="relative rounded-2xl shadow-2xl w-full max-w-xs max-h-[60vh] flex flex-col overflow-hidden border border-yellow-200"
-            style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
-              <h3 className="text-[#8a6a1f] font-bold text-base">Room Admin</h3>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-4 pb-4">
-              <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
-                <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
-
-                <p className="text-black font-semibold" style={{ fontWeight: 600 }}>
-                  You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
-                </p>
-
-                <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
-
-                <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
-
-                <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
-
-                <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
-              </div>
-
-              <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
-                {[
-                  ['Level 25', '+5 admins'],
-                  ['Level 30', '+5 admins'],
-                  ['Level 35', '+5 admins'],
-                ].map(([level, adminsCount], idx) => (
-                  <div
-                    key={level}
-                    className="flex text-[11px]"
-                    style={{ backgroundColor: idx % 2 === 0 ? '#faeec2' : '#fdf3d0' }}
-                  >
-                    <div className="flex-1 px-2 py-1.5 border-r border-yellow-300 text-[#7a5f1c]">
-                      {level}
-                    </div>
-                    <div className="flex-1 px-2 py-1.5 text-center text-[#7a5f1c]">
-                      {adminsCount}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="px-4 py-3 flex-shrink-0">
-              <button
-                onClick={() => setShowHelp(false)}
-                className="w-full py-2.5 rounded-lg bg-[#f0c24b] text-[#7a5f1c] text-sm font-semibold hover:bg-[#e5b53e] transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ------------------------------------------------------------
 
 export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave }: RoomSettingPageProps) {
   const [roomDp, setRoomDp] = useState<string>(roomData?.roomDp || '/default-avatar.png')
@@ -805,7 +614,11 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
   const [roomMembers, setRoomMembers] = useState<RoomUser[]>([])
   const [admins, setAdmins] = useState<string[]>(roomData?.admin || [])
 
-  const [showAdminRoomsPage, setShowAdminRoomsPage] = useState(false)
+  const [showAdminRoomsSheet, setShowAdminRoomsSheet] = useState(false)
+  const [adminRooms, setAdminRooms] = useState<{ roomId: string; roomName: string; roomDp: string }[]>([
+    { roomId: '385201', roomName: '👍Mastigroup🦗', roomDp: '/default-avatar.png' },
+  ])
+  const [showAdminRoomsHelp, setShowAdminRoomsHelp] = useState(false)
 
   const [isSaving, setIsSaving] = useState(false)
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
@@ -921,6 +734,10 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     )
   }
 
+  const handleAdminRoomRemove = (roomId: string) => {
+    setAdminRooms(prev => prev.filter(r => r.roomId !== roomId))
+  }
+
   const handleSave = async () => {
     if (isSaving) return
     setIsSaving(true)
@@ -1023,10 +840,6 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
     user.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
     user.accountId.toLowerCase().includes(adminSearchQuery.toLowerCase())
   )
-
-  if (showAdminRoomsPage) {
-    return <AdminRoomsPage onBack={() => setShowAdminRoomsPage(false)} />
-  }
 
   return (
     <>
@@ -1139,7 +952,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
 
           <div className="mb-5">
             <button
-              onClick={() => setShowAdminRoomsPage(true)}
+              onClick={() => setShowAdminRoomsSheet(true)}
               className="flex items-center justify-between px-1 w-full hover:bg-gray-50 active:bg-gray-100 py-2 rounded-lg cursor-pointer"
             >
               <label className="text-sm font-medium text-gray-600">Room where I'm an admin</label>
@@ -1424,6 +1237,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
         />
       )}
 
+      {/* ---------- ADMIN SHEET ---------- */}
       {showAdminSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowAdminSheet(false)} />
@@ -1502,7 +1316,7 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
       {showHelpSheet && (
         <div
           className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
           onClick={() => setShowHelpSheet(false)}
         >
           <div
@@ -1548,6 +1362,140 @@ export default function RoomSettingPage({ onBack, roomOwnerId, roomData, onSave 
             <div className="px-4 py-3 flex-shrink-0">
               <button
                 onClick={() => setShowHelpSheet(false)}
+                className="w-full py-2.5 rounded-lg bg-[#f0c24b] text-[#7a5f1c] text-sm font-semibold hover:bg-[#e5b53e] transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- ROOM WHERE I'M ADMIN SHEET (exactly like Admin sheet, NO BLUR) ---------- */}
+      {showAdminRoomsSheet && (
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+          {/* Backdrop — sirf dark, koi blur nahi */}
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowAdminRoomsSheet(false)} />
+
+          <div
+            className="relative bg-black w-full max-w-md rounded-t-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ height: '40vh', maxHeight: '40vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center px-4 py-3 flex-shrink-0">
+              <button
+                onClick={() => setShowAdminRoomsSheet(false)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <h3 className="flex-1 text-center text-base font-bold text-white">Admin Center</h3>
+              <button
+                onClick={() => setShowAdminRoomsHelp(true)}
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
+                aria-label="Help"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-none stroke-white stroke-[2.5]">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" strokeLinecap="round" strokeLinejoin="round" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 pt-1 pb-4">
+              <h2 className="text-[15px] font-bold text-white mb-3">
+                Rooms where I'm an admin({adminRooms.length}/15)
+              </h2>
+
+              <div className="space-y-3">
+                {adminRooms.map((room) => (
+                  <div
+                    key={room.roomId}
+                    className="bg-white/5 rounded-2xl px-3 py-3 flex items-center gap-3"
+                  >
+                    <div className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 border border-white/10">
+                      <img src={room.roomDp} alt={room.roomName} className="w-full h-full object-cover" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[15px] font-bold text-white truncate">{room.roomName}</h3>
+                      <p className="text-[13px] text-gray-400 mt-0.5">ID: {room.roomId}</p>
+                    </div>
+
+                    <button
+                      onClick={() => handleAdminRoomRemove(room.roomId)}
+                      className="flex-shrink-0 px-5 py-1.5 rounded-full border border-pink-400 text-pink-400 text-[13px] font-medium hover:bg-pink-500/10 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {adminRooms.length > 0 && (
+                <p className="text-center text-[12px] text-gray-500 mt-6">No more data</p>
+              )}
+
+              {adminRooms.length === 0 && (
+                <p className="text-center text-[13px] text-gray-500 mt-10">No rooms found</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------- ROOM WHERE I'M ADMIN HELP (NO BLUR) ---------- */}
+      {showAdminRoomsHelp && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }}
+          onClick={() => setShowAdminRoomsHelp(false)}
+        >
+          <div
+            className="relative rounded-2xl shadow-2xl w-full max-w-xs max-h-[60vh] flex flex-col overflow-hidden border border-yellow-200"
+            style={{ background: 'linear-gradient(180deg, #fdf3d0 0%, #fbeec4 100%)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center px-4 py-3 flex-shrink-0">
+              <h3 className="text-[#8a6a1f] font-bold text-base">Room Admin</h3>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
+              <div className="text-[#7a5f1c] text-[12px] leading-relaxed space-y-3">
+                <p className="font-semibold text-[#8a6a1f] text-sm">Admin permissions include:</p>
+                <p className="text-black font-semibold" style={{ fontWeight: 600 }}>
+                  You can become an admin in only 20 rooms; if you wish to remove your admin status from a room, you can do so by clicking the 'remove' button.
+                </p>
+                <p>locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.</p>
+                <p>Each room has 5 admins. You can increase the admin limit in the following ways:</p>
+                <p>1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.</p>
+                <p>2. If you wish to appoint more admins, follow the rules below to add admins for free.</p>
+              </div>
+
+              <div className="mt-4 rounded-lg overflow-hidden border border-yellow-300">
+                {[
+                  ['Level 25', '+5 admins'],
+                  ['Level 30', '+5 admins'],
+                  ['Level 35', '+5 admins'],
+                ].map(([level, adminsCount], idx) => (
+                  <div
+                    key={level}
+                    className="flex text-[11px]"
+                    style={{ backgroundColor: idx % 2 === 0 ? '#faeec2' : '#fdf3d0' }}
+                  >
+                    <div className="flex-1 px-2 py-1.5 border-r border-yellow-300 text-[#7a5f1c]">{level}</div>
+                    <div className="flex-1 px-2 py-1.5 text-center text-[#7a5f1c]">{adminsCount}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-4 py-3 flex-shrink-0">
+              <button
+                onClick={() => setShowAdminRoomsHelp(false)}
                 className="w-full py-2.5 rounded-lg bg-[#f0c24b] text-[#7a5f1c] text-sm font-semibold hover:bg-[#e5b53e] transition-colors"
               >
                 Close
