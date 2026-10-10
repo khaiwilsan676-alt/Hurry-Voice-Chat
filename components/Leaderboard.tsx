@@ -3,18 +3,16 @@
 import React, { useState, useEffect } from 'react'
 
 type LeaderboardTab = 'honour' | 'charm' | 'room'
+type LeaderboardSubTab = 'daily' | 'weekly' | 'monthly'
 
 interface LeaderboardProps {
   onBack: () => void
   initialTab?: LeaderboardTab
 }
-type LeaderboardSubTab = 'daily' | 'weekly' | 'monthly'
 
-// Global in-memory cache to prevent re-processing same image multiple times (Anti-Freeze Cache added)
 const processedImageCache: Record<string, string> = {}
 const processingPromises: Record<string, Promise<string>> = {}
 
-// Ultra-fast Chroma Key green screen remover without WebGL crashes
 export function ChromaImage({
   src,
   alt,
@@ -27,8 +25,8 @@ export function ChromaImage({
   const [dataUrl, setDataUrl] = useState<string>(processedImageCache[src] || '')
 
   useEffect(() => {
-    let isMounted = true;
-    
+    let isMounted = true
+
     if (processedImageCache[src]) {
       setDataUrl(processedImageCache[src])
       return
@@ -52,7 +50,9 @@ export function ChromaImage({
             const data = imgData.data
 
             for (let i = 0; i < data.length; i += 4) {
-              const r = data[i], g = data[i + 1], b = data[i + 2]
+              const r = data[i]
+              const g = data[i + 1]
+              const b = data[i + 2]
               if (g > 50 && g > r * 1.15 && g > b * 1.15) {
                 data[i + 3] = 0
               }
@@ -70,27 +70,22 @@ export function ChromaImage({
       if (isMounted) setDataUrl(url)
     })
 
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [src])
 
   if (!dataUrl) {
     return <div className={`opacity-0 ${className}`} style={{ minHeight: '60px' }} />
   }
 
-  return (
-    <img
-      src={dataUrl}
-      alt={alt}
-      className={className}
-      draggable="false"
-    />
-  )
+  return <img src={dataUrl} alt={alt} className={className} draggable="false" />
 }
 
 export default function Leaderboard({ onBack, initialTab = 'honour' }: LeaderboardProps) {
   const [activeTab, setActiveTab] = useState<LeaderboardTab>(initialTab)
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
-  const [showRulesSheet, setShowRulesSheet] = useState<boolean>(false)
+  const [showRulesSheet, setShowRulesSheet] = useState(false)
 
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
@@ -110,10 +105,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
     room: { top: '/file_00000000619c822f8a1577f69e039527.png' },
   }
 
-  // Find index of active sub-tab for the moveable highlight
-  const activeSubTabIndex = subTabs.findIndex(st => st.id === activeSubTab)
-
-  // Rank 4 to 50
+  const activeSubTabIndex = subTabs.findIndex((st) => st.id === activeSubTab)
   const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
 
   return (
@@ -121,7 +113,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
       className="min-h-screen bg-[#1A0204] text-white overflow-y-auto overflow-x-hidden flex flex-col select-none relative"
       style={{ touchAction: 'manipulation', WebkitUserSelect: 'none' }}
     >
-      {/* BACKGROUND TOP IMAGE: 60vh blended into Ultra-Dark Red */}
+      {/* BACKGROUND TOP IMAGE */}
       <div
         className="absolute top-0 left-0 w-full pointer-events-none z-0 overflow-hidden"
         style={{
@@ -139,29 +131,27 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         />
       </div>
 
-      {/* FIXED TOP HEADER */}
+      {/* HEADER */}
       <header
         className="relative z-50 flex flex-col w-full"
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
-        {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
-          
-          {/* Back Button as Image - Ekdam Left Corner */}
+          {/* Back */}
           <button
             onClick={onBack}
             className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Back"
           >
-            <img 
-              src="/file_0000000051d881f5af4f9cf84a56dcd3.png" 
-              alt="Back" 
+            <img
+              src="/file_0000000051d881f5af4f9cf84a56dcd3.png"
+              alt="Back"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
           </button>
 
-          {/* Main Tabs Container - Center */}
+          {/* Main Tabs */}
           <div className="flex items-center justify-between h-[42px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
             {tabs.map((tab) => (
               <button
@@ -179,24 +169,25 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             ))}
           </div>
 
-          {/* Info Button - Image, Ekdam Right Corner */}
+          {/* Info Button - Click here to open rules sheet */}
           <button
+            type="button"
             onClick={() => setShowRulesSheet(true)}
             className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
             aria-label="Info"
           >
-            <img 
-              src="/file_0000000073ec820b832b6dafb168dabe.png" 
-              alt="Info" 
+            <img
+              src="/file_0000000073ec820b832b6dafb168dabe.png"
+              alt="Info"
               className="w-10 h-10 object-contain"
               draggable="false"
             />
           </button>
         </div>
 
-        {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) */}
+        {/* Sub Tabs */}
         <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 ml-4 shrink-0 self-start">
-          {subTabs.map((st, index) => (
+          {subTabs.map((st) => (
             <button
               key={st.id}
               onClick={() => setActiveSubTab(st.id)}
@@ -209,7 +200,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             </button>
           ))}
 
-          {/* EK HI Moveable Golden Highlight Shape */}
           <span
             className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/40 via-[#D4AF37]/15 to-transparent rounded-md transition-transform duration-300 ease-out"
             style={{
@@ -221,10 +211,9 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </span>
         </div>
 
-        {/* 2. TOP IMAGES PODIUM (Top 1, 2, 3) */}
+        {/* Podium */}
         <div className="relative z-10 w-full shrink-0 flex flex-col items-center">
           <div className="w-full flex flex-col items-center gap-0.5 mt-5">
-            {/* Row 1: Top 1 (Center) */}
             <div className="flex justify-center w-full">
               <ChromaImage
                 src="/1787994771034~2.jpg"
@@ -233,7 +222,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               />
             </div>
 
-            {/* Row 2: Top 2 & Top 3 */}
             <div className="flex justify-between items-center w-full px-0 mt-4">
               <ChromaImage
                 src="/1787994751636~2.jpg"
@@ -249,11 +237,10 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </div>
         </div>
 
-        {/* 3. SPACE (5vh) */}
         <div style={{ height: '5vh' }} className="w-full shrink-0 relative z-10" />
       </header>
 
-      {/* 4. RANK CARDS 4 TO 50 */}
+      {/* RANK CARDS 4 to 50 */}
       <div className="relative z-10 flex-1">
         {rankCards.map((rank) => (
           <div
@@ -270,36 +257,39 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         ))}
       </div>
 
-      {/* 5. FIXED BOTTOM USER CARD */}
+      {/* BOTTOM USER CARD */}
       <div className="fixed bottom-0 left-0 w-full h-[90px] px-0 py-0 z-50 pointer-events-auto shadow-[0_-5px_20px_rgba(0,0,0,0.8)] border-t-[1.5px] border-[#694B2E] bg-gradient-to-b from-[#3E2114] via-[#2A1309] to-[#120703]">
-        <div className="relative w-full h-full flex items-center justify-start px-6 gap-5">
-          {/* Yahan se 100+ aur circle hata diya gaya hai bss khali space hai ab */}
-        </div>
+        <div className="relative w-full h-full flex items-center justify-start px-6 gap-5"></div>
       </div>
 
-      {/* ================= RANKING RULES BOTTOM SHEET ================= */}
+      {/* ================= RANKING RULES SHEET ================= */}
       {showRulesSheet && (
-        <div className="fixed inset-0 z-[999] flex items-end justify-center">
+        <div
+          className="fixed inset-0 z-[99999] flex items-end justify-center"
+          style={{ pointerEvents: 'auto' }}
+        >
           {/* Backdrop */}
           <div
             onClick={() => setShowRulesSheet(false)}
-            className="absolute inset-0 bg-black/70 backdrop-blur-[2px] transition-opacity"
+            className="absolute inset-0 bg-black/70"
+            style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
           />
 
           {/* Sheet */}
           <div
-            className="relative w-full max-w-[520px] max-h-[85vh] rounded-t-[28px] overflow-hidden flex flex-col animate-[slideUp_0.3s_ease-out]"
+            className="relative w-full max-w-[520px] rounded-t-[28px] overflow-hidden flex flex-col"
             style={{
+              maxHeight: '85vh',
               background: 'linear-gradient(180deg, #3E2114 0%, #2A1309 35%, #1A0204 100%)',
               border: '1.5px solid #694B2E',
               borderBottom: 'none',
               boxShadow: '0 -10px 40px rgba(0,0,0,0.9), 0 0 25px rgba(212,175,55,0.15)',
             }}
           >
-            {/* Gold top accent line */}
+            {/* Gold top line */}
             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
 
-            {/* Handle bar */}
+            {/* Handle */}
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="w-12 h-[4px] rounded-full bg-[#D4AF37]/60" />
             </div>
@@ -313,14 +303,14 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.4)',
                 }}
               >
                 Ranking Rules
               </h2>
               <button
+                type="button"
                 onClick={() => setShowRulesSheet(false)}
-                className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#110A07]/80 border border-[#D4AF37]/50 text-[#E7B865] text-[18px] font-bold active:opacity-70"
+                className="absolute right-4 w-8 h-8 flex items-center justify-center rounded-full bg-[#110A07]/80 border border-[#D4AF37]/50 text-[#E7B865] text-[16px] font-bold active:opacity-70"
                 aria-label="Close"
               >
                 ✕
@@ -328,97 +318,92 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               <div className="absolute bottom-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent" />
             </div>
 
-            {/* Scrollable content */}
+            {/* Content */}
             <div
               className="flex-1 overflow-y-auto px-5 py-4 text-[13.5px] leading-[1.7] text-[#F5E6D3]"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
-              {/* Section: Ranking Rules */}
               <h3 className="text-[15px] font-bold text-[#E7B865] mb-2 tracking-wide">
                 Contribution Leaderboard:
               </h3>
               <p className="mb-4 text-[#EADBC8]">
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+                Your ranking on this leaderboard is determined by the total number of Coins you
+                have spent in the room. The higher the amount spent, the higher your position on
+                the leaderboard.
               </p>
 
               <h3 className="text-[15px] font-bold text-[#E7B865] mb-2 tracking-wide">
                 Charm Leaderboard:
               </h3>
               <p className="mb-4 text-[#EADBC8]">
-                Your ranking on this leaderboard is determined by the total number of Coins you Receive. The higher the amount spent, the higher your position on the leaderboard.
+                Your ranking on this leaderboard is determined by the total number of Coins you
+                Receive. The higher the amount spent, the higher your position on the leaderboard.
               </p>
 
               <h3 className="text-[15px] font-bold text-[#E7B865] mb-2 tracking-wide">
                 Room Leaderboard:
               </h3>
               <p className="mb-5 text-[#EADBC8]">
-                Your ranking on this leaderboard is determined by the total number of Coins you have spent in the room. The higher the amount spent, the higher your position on the leaderboard.
+                Your ranking on this leaderboard is determined by the total number of Coins you
+                have spent in the room. The higher the amount spent, the higher your position on
+                the leaderboard.
               </p>
 
-              {/* Divider */}
               <div className="my-4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
 
-              {/* Section: Data Periods */}
               <h3 className="text-[16px] font-bold text-[#E7B865] mb-3 tracking-wide">
                 Data Periods
               </h3>
 
               <div className="space-y-3 mb-5">
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)]">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white">
                     1
                   </span>
                   <p className="text-[#EADBC8] pt-[2px]">
-                    Daily leaderboard data is finalized every day at <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
+                    Daily leaderboard data is finalized every day at{' '}
+                    <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
                   </p>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)]">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white">
                     2
                   </span>
                   <p className="text-[#EADBC8] pt-[2px]">
-                    Weekly leaderboard data is finalized every Monday at <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
+                    Weekly leaderboard data is finalized every Monday at{' '}
+                    <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
                   </p>
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)]">
+                  <span className="shrink-0 w-6 h-6 rounded-full bg-gradient-to-b from-[#E7B865] via-[#BA7627] to-[#743410] flex items-center justify-center text-[12px] font-bold text-white">
                     3
                   </span>
                   <p className="text-[#EADBC8] pt-[2px]">
-                    Monthly leaderboard data is finalized on the first day of every month at <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
+                    Monthly leaderboard data is finalized on the first day of every month at{' '}
+                    <span className="text-[#E7B865] font-semibold">(5:30+GMT)</span>.
                   </p>
                 </div>
               </div>
 
-              {/* Note */}
               <div className="rounded-xl border border-[#D4AF37]/30 bg-[#110A07]/60 px-4 py-3 mb-5">
                 <p className="text-[#F5E6D3] italic">
-                  <span className="text-[#E7B865] font-semibold not-italic">Note:</span> Users who violate platform rules are ineligible to participate in the rankings.
+                  <span className="text-[#E7B865] font-semibold not-italic">Note:</span> Users who
+                  violate platform rules are ineligible to participate in the rankings.
                 </p>
                 <p className="text-[#F5E6D3] italic mt-2">
                   The platform reserves the right to make the final decision.
                 </p>
               </div>
 
-              {/* Regards */}
               <p className="text-right text-[14px] font-semibold text-[#E7B865] pb-6">
                 Regard Zyora team
               </p>
             </div>
 
-            {/* Bottom safe area */}
             <div style={{ height: 'env(safe-area-inset-bottom, 0px)' }} className="shrink-0" />
           </div>
-
-          {/* Slide up animation */}
-          <style>{`
-            @keyframes slideUp {
-              from { transform: translateY(100%); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
-            }
-          `}</style>
         </div>
       )}
     </div>
