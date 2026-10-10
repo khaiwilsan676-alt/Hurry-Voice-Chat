@@ -277,7 +277,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       </div>
 
-      {/* INFO SHEET MODAL */}
+      {/* ===== INFO SHEET MODAL (CHANGE 1, 2, 3) ===== */}
       {showInfoSheet && (
         <div
           className="fixed inset-0 z-[100] flex items-end justify-center"
@@ -301,7 +301,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               Ranking Rules
             </h2>
 
-            {/* Section: Contribution Leaderboard */}
+            {/* Contribution Leaderboard */}
             <div className="mb-5">
               <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
                 Contribution Leaderboard
@@ -311,7 +311,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               </p>
             </div>
 
-            {/* Section: Charm Leaderboard */}
+            {/* Charm Leaderboard */}
             <div className="mb-5">
               <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
                 Charm Leaderboard
@@ -321,7 +321,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               </p>
             </div>
 
-            {/* Section: Room Leaderboard */}
+            {/* Room Leaderboard */}
             <div className="mb-5">
               <h3 className="text-[#D4AF37] font-bold text-[15px] mb-1.5">
                 Room Leaderboard
@@ -331,7 +331,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               </p>
             </div>
 
-            {/* Section: Data Periods */}
+            {/* Data Periods */}
             <div className="mb-5">
               <h3 className="text-[#D4AF37] font-bold text-[15px] mb-2">
                 Data Periods
