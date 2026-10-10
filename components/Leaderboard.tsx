@@ -203,7 +203,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                 onClick={() => setActiveSubTab(st.id)}
                 className="relative z-10 flex-1 flex items-center justify-center text-[15px] font-bold transition-colors duration-200"
                 style={{
-                  color: activeSubTab === st.id ? '#FFFFFF' : '#3A2B1A',
+                  color: activeSubTab === st.id ? '#FF1A1A' : '#FF1A1A',
                   textShadow: activeSubTab === st.id 
                     ? '0 0 8px rgba(255,215,0,0.9), 0 0 12px rgba(255,180,0,0.6)' 
                     : '0 1px 2px rgba(255,255,255,0.35)',
