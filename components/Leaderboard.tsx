@@ -105,10 +105,8 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
     room: { top: '/file_00000000619c822f8a1577f69e039527.png' },
   }
 
-  // Find index of active sub-tab for the moveable highlight
   const activeSubTabIndex = subTabs.findIndex((st) => st.id === activeSubTab)
 
-  // Rank 4 to 50
   const rankCards = Array.from({ length: 47 }, (_, i) => i + 4)
 
   return (
@@ -116,7 +114,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
       className="min-h-screen bg-[#1A0204] text-white overflow-y-auto overflow-x-hidden flex flex-col select-none relative"
       style={{ touchAction: 'manipulation', WebkitUserSelect: 'none' }}
     >
-      {/* BACKGROUND TOP IMAGE: 60vh blended into Ultra-Dark Red */}
+      {/* BACKGROUND TOP IMAGE */}
       <div
         className="absolute top-0 left-0 w-full pointer-events-none z-0 overflow-hidden"
         style={{
@@ -139,9 +137,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         className="relative z-50 flex flex-col w-full"
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
-        {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
         <div className="relative flex items-center justify-center w-full h-[45px] mb-1.5">
-          {/* Back Button as Image - Ekdam Left Corner */}
           <button
             onClick={onBack}
             className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
@@ -155,7 +151,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             />
           </button>
 
-          {/* Main Tabs Container - Center */}
           <div className="flex items-center justify-between h-[42px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/80 w-[55%] max-w-[260px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] px-[2px]">
             {tabs.map((tab) => (
               <button
@@ -173,7 +168,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             ))}
           </div>
 
-          {/* Info Button - Image, Ekdam Right Corner */}
+          {/* Info Button - Sheet open karega */}
           <button
             onClick={() => setIsRulesOpen(true)}
             className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
@@ -188,9 +183,9 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </button>
         </div>
 
-        {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) */}
+        {/* SUB-TABS */}
         <div className="relative w-[180px] h-[40px] z-10 flex items-center justify-start gap-0.5 ml-4 shrink-0 self-start">
-          {subTabs.map((st, index) => (
+          {subTabs.map((st) => (
             <button
               key={st.id}
               onClick={() => setActiveSubTab(st.id)}
@@ -203,7 +198,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             </button>
           ))}
 
-          {/* EK HI Moveable Golden Highlight Shape */}
           <span
             className="absolute z-0 bottom-0 top-[2px] h-full w-[33.33%] bg-gradient-to-b from-[#D4AF37]/40 via-[#D4AF37]/15 to-transparent rounded-md transition-transform duration-300 ease-out"
             style={{
@@ -215,10 +209,9 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </span>
         </div>
 
-        {/* 2. TOP IMAGES PODIUM (Top 1, 2, 3) */}
+        {/* PODIUM */}
         <div className="relative z-10 w-full shrink-0 flex flex-col items-center">
           <div className="w-full flex flex-col items-center gap-0.5 mt-5">
-            {/* Row 1: Top 1 (Center) */}
             <div className="flex justify-center w-full">
               <ChromaImage
                 src="/1787994771034~2.jpg"
@@ -227,7 +220,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               />
             </div>
 
-            {/* Row 2: Top 2 & Top 3 */}
             <div className="flex justify-between items-center w-full px-0 mt-4">
               <ChromaImage
                 src="/1787994751636~2.jpg"
@@ -243,11 +235,10 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
           </div>
         </div>
 
-        {/* 3. SPACE (5vh) */}
         <div style={{ height: '5vh' }} className="w-full shrink-0 relative z-10" />
       </header>
 
-      {/* 4. RANK CARDS 4 TO 50 */}
+      {/* RANK CARDS */}
       <div className="relative z-10 flex-1">
         {rankCards.map((rank) => (
           <div
@@ -264,17 +255,15 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         ))}
       </div>
 
-      {/* 5. FIXED BOTTOM USER CARD */}
+      {/* FIXED BOTTOM USER CARD */}
       <div className="fixed bottom-0 left-0 w-full h-[90px] px-0 py-0 z-50 pointer-events-auto shadow-[0_-5px_20px_rgba(0,0,0,0.8)] border-t-[1.5px] border-[#694B2E] bg-gradient-to-b from-[#3E2114] via-[#2A1309] to-[#120703]">
-        <div className="relative w-full h-full flex items-center justify-start px-6 gap-5">
-          {/* Yahan se 100+ aur circle hata diya gaya hai bss khali space hai ab */}
-        </div>
+        <div className="relative w-full h-full flex items-center justify-start px-6 gap-5"></div>
       </div>
 
-      {/* 6. RANKING RULES BOTTOM SHEET */}
+      {/* ============ RANKING RULES BOTTOM SHEET ============ */}
       {isRulesOpen && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center">
-          {/* Backdrop */}
+          {/* Backdrop - click karne pe band */}
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             onClick={() => setIsRulesOpen(false)}
@@ -282,11 +271,12 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
           {/* Sheet Panel */}
           <div
-            className="relative w-full max-h-[82vh] rounded-t-[24px] overflow-hidden flex flex-col animate-[slideUp_0.3s_ease-out]"
+            className="relative w-full max-h-[82vh] rounded-t-[24px] overflow-hidden flex flex-col"
             style={{
               background: 'linear-gradient(to bottom, #3E2114 0%, #2A1309 30%, #120703 100%)',
               borderTop: '1.5px solid #D4AF37',
               boxShadow: '0 -8px 30px rgba(212, 175, 55, 0.25), 0 -5px 20px rgba(0,0,0,0.9)',
+              animation: 'slideUp 0.3s ease-out',
             }}
           >
             {/* Golden Top Glow Line */}
@@ -338,10 +328,11 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                 leaderboard.
               </p>
 
-              {/* Data Periods */}
               <h3 className="text-[15px] font-bold text-[#F5D06F] mb-2 mt-3">Data Periods</h3>
 
-              <p className="mb-2">1. Daily leaderboard data is finalized every day at (5:30+GMT).</p>
+              <p className="mb-2">
+                1. Daily leaderboard data is finalized every day at (5:30+GMT).
+              </p>
               <p className="mb-2">
                 2. Weekly leaderboard data is finalized every Monday at (5:30+GMT).
               </p>
@@ -350,7 +341,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                 (5:30+GMT).
               </p>
 
-              {/* Note */}
               <div className="mt-3 p-3 rounded-lg bg-[#1A0204]/60 border border-[#694B2E]">
                 <p className="text-[12.5px] italic text-[#C9B99A]">
                   <span className="font-bold not-italic text-[#F5D06F]">Note:</span> Users who
@@ -361,7 +351,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
                 </p>
               </div>
 
-              {/* Regards */}
               <p className="mt-5 text-right text-[13px] font-semibold text-[#D4AF37]">
                 Regards Zyora team
               </p>
@@ -370,8 +359,8 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       )}
 
-      {/* Slide-up keyframe */}
-      <style jsx>{`
+      {/* Slide-up Animation Keyframe */}
+      <style jsx global>{`
         @keyframes slideUp {
           from {
             transform: translateY(100%);
