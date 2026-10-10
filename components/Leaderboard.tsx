@@ -145,29 +145,29 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)' }}
       >
         {/* Row 1: Back Icon (Corner) - Tabs Card (Center) - Info Icon (Corner) */}
-        <div className="relative flex items-center justify-center w-full h-[40px] mb-1.5">
+        <div className="relative flex items-center justify-center w-full h-[36px] mb-1.5">
           
-          {/* Back Button as Image - Ekdam Left Corner */}
+          {/* Back Button as Image - Ekdam Left Corner (CHOTA) */}
           <button
             onClick={onBack}
-            className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
+            className="absolute left-2 flex items-center justify-center active:opacity-70 transition-opacity p-0.5"
             aria-label="Back"
           >
             <img 
               src="/file_0000000051d881f5af4f9cf84a56dcd3.png" 
               alt="Back" 
-              className="w-10 h-10 object-contain"
+              className="w-8 h-8 object-contain"
               draggable="false"
             />
           </button>
 
-          {/* Main Tabs Container - Center (THIN & WIDE like image) */}
-          <div className="flex items-center justify-between h-[30px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/85 w-[68%] max-w-[420px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] p-[2px]">
+          {/* Main Tabs Container - Center (SLEEK THIN & WIDE like image) */}
+          <div className="flex items-center justify-between h-[26px] border-[1px] border-[#D4AF37] rounded-full bg-[#110A07]/85 w-[72%] max-w-[480px] overflow-hidden shadow-[0_0_15px_rgba(0,0,0,0.6)] p-[2px]">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex-1 text-[15px] font-semibold h-[26px] rounded-full transition-all flex items-center justify-center tracking-wide ${
+                className={`relative flex-1 text-[14px] font-semibold h-[22px] rounded-full transition-all flex items-center justify-center tracking-wide ${
                   activeTab === tab.id ? 'text-white' : 'text-[#8A857D]'
                 }`}
               >
@@ -179,16 +179,16 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             ))}
           </div>
 
-          {/* Info Button - Image, Ekdam Right Corner */}
+          {/* Info Button - Image, Ekdam Right Corner (CHOTA) */}
           <button
             onClick={() => setShowRankingRules(true)}
-            className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1"
+            className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-0.5"
             aria-label="Ranking Rules"
           >
             <img 
               src="/file_0000000073ec820b832b6dafb168dabe.png" 
               alt="Info" 
-              className="w-10 h-10 object-contain"
+              className="w-8 h-8 object-contain"
               draggable="false"
             />
           </button>
@@ -196,7 +196,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
         {/* 1. SUB-TABS SECTION (Daily, Weekly, Monthly) - CENTERED */}
         <div className="relative w-full flex justify-center mt-1">
-          <div className="relative w-[280px] h-[38px] z-10 flex items-center justify-start gap-1 shrink-0">
+          <div className="relative w-[220px] h-[40px] z-10 flex items-center justify-start gap-1 shrink-0">
             {subTabs.map((st) => (
               <button
                 key={st.id}
