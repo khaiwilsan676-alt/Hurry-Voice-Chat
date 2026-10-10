@@ -73,11 +73,6 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
   const [activeSubTab, setActiveSubTab] = useState<LeaderboardSubTab>('daily')
   const [showRulesSheet, setShowRulesSheet] = useState<boolean>(false)
 
-  const openSheet = () => {
-    console.log('INFO CLICKED - OPENING SHEET')
-    setShowRulesSheet(true)
-  }
-
   const tabs: { id: LeaderboardTab; label: string }[] = [
     { id: 'honour', label: 'Honour' },
     { id: 'charm', label: 'Charm' },
@@ -150,8 +145,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
 
             <button
               type="button"
-              onClick={openSheet}
-              onPointerDown={openSheet}
+              onClick={() => setShowRulesSheet(true)}
               className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1 cursor-pointer z-[60]"
               aria-label="Info"
             >
@@ -211,7 +205,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       </div>
 
-      {/* ============ RULES SHEET (rendered as sibling, always on top) ============ */}
+      {/* ============ RULES SHEET ============ */}
       {showRulesSheet && (
         <div
           onClick={() => setShowRulesSheet(false)}
@@ -225,7 +219,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
-            background: 'transparent',
+            background: 'rgba(0,0,0,0.4)',
           }}
         >
           <div
@@ -239,6 +233,8 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
               boxShadow: '0 -6px 30px rgba(0,0,0,0.35)',
               animation: 'zSlideUp 0.28s ease-out',
+              maxHeight: '85vh',
+              overflowY: 'auto',
             }}
           >
             {/* Header */}
