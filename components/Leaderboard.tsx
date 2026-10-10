@@ -143,13 +143,27 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               ))}
             </div>
 
+            {/* INFO BUTTON - Question mark icon REMOVED */}
             <button
               type="button"
               onClick={() => setShowSheet(true)}
-              className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity p-1 cursor-pointer z-[60]"
+              className="absolute right-2 flex items-center justify-center active:opacity-70 transition-opacity cursor-pointer z-[60] rounded-full"
               aria-label="Info"
+              style={{
+                width: 34,
+                height: 34,
+                border: '1.5px solid #D4AF37',
+                background: 'rgba(212, 175, 55, 0.12)',
+                color: '#D4AF37',
+                fontSize: 18,
+                fontWeight: 700,
+                fontStyle: 'italic',
+                fontFamily: 'Georgia, serif',
+                lineHeight: 1,
+                paddingBottom: 2,
+              }}
             >
-              <img src="/file_0000000073ec820b832b6dafb168dabe.png" alt="Info" className="w-10 h-10 object-contain pointer-events-none" draggable="false" />
+              i
             </button>
           </div>
 
@@ -205,7 +219,7 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
         </div>
       </div>
 
-      {/* ============ RULES SHEET (Image jaisa green card) ============ */}
+      {/* ============ RULES SHEET ============ */}
       {showSheet && (
         <div
           style={{
