@@ -32,6 +32,9 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
         else -> "file_00000000b83c81fa93d3e53e046c1b81.png"
     }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val podiumTopWidth = (screenWidthDp * 0.44f).coerceAtMost(180f).dp
+    val podiumSideWidth = (screenWidthDp * 0.40f).coerceAtMost(160f).dp
     Box(Modifier.fillMaxSize().background(Color(0xFF1A0204))) {
         Box(Modifier.fillMaxWidth().height(screenHeight * 0.60f).align(Alignment.TopCenter)) {
             AsyncImage(
@@ -120,9 +123,9 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
             LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=90.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
                 item {
                     Column(Modifier.fillMaxWidth().padding(top=18.dp,bottom=24.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-                        AsyncImage(model=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(180.dp).height(150.dp),contentScale=ContentScale.Fit)
+                        AsyncImage(model=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(podiumTopWidth).height(150.dp),contentScale=ContentScale.Fit)
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                            AsyncImage(model=raw+"1787994751636~2.jpg",contentDescription="Rank 2 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
+                            AsyncImage(model=raw+"1787994751636~2.jpg",contentDescription="Rank 2 frame",modifier=Modifier.width(podiumSideWidth).height(130.dp),contentScale=ContentScale.Fit)
                             AsyncImage(model=raw+"1787994761762~2.jpg",contentDescription="Rank 3 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
                         }
                     }
