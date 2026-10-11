@@ -28,7 +28,7 @@ import coil.compose.AsyncImage
 private val StoreBlue = Color(0xFF1D4ED8)
 private val StoreBg = Color(0xFFF5F6F8)
 private val StoreCyan = Color(0xFF00B4D8)
-private const val StoreAssetBase = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/"
+private const val StoreAssetBase = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 
 private data class NativeStoreTab(val id: String, val label: String, val icon: String)
 private data class NativeStoreItem(
