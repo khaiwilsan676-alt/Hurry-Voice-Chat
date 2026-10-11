@@ -315,7 +315,7 @@ export default function Fourgride({
 
           {/* Bottom sheet - 4px corner curve */}
           <div
-            className="relative bg-white w-full max-w-md rounded-t-[4px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
+            className="relative bg-white w-full max-w-md rounded-t-[8px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
