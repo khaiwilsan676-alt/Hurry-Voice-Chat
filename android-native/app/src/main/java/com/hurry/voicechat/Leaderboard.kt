@@ -49,16 +49,16 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
             )
         }
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
-            Row(Modifier.fillMaxWidth().height(45.dp).padding(horizontal = 8.dp),verticalAlignment=Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().height(36.dp).padding(horizontal = 8.dp),verticalAlignment=Alignment.CenterVertically) {
                 AsyncImage(
                     model = raw + "file_0000000051d881f5af4f9cf84a56dcd3.png",
                     contentDescription = "Back",
-                    modifier = Modifier.size(40.dp).clickable(onClick=onBack),
+                    modifier = Modifier.size(32.dp).clickable(onClick=onBack),
                     contentScale = ContentScale.Fit
                 )
                 Spacer(Modifier.weight(1f))
                 Row(
-                    Modifier.fillMaxWidth(0.55f).height(42.dp)
+                    Modifier.fillMaxWidth(0.72f).height(26.dp)
                         .border(1.dp, Color(0xFFD4AF37), RoundedCornerShape(24.dp))
                         .background(Color(0xCC110A07), RoundedCornerShape(24.dp))
                         .padding(2.dp),
@@ -77,7 +77,7 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(label, color=if(tab==id) Color.White else Color(0xFF8A857D),
-                                fontSize=15.sp, fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                fontSize=14.sp, fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                         }
                     }
                 }
@@ -85,23 +85,26 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                 AsyncImage(
                     model = raw + "file_0000000073ec820b832b6dafb168dabe.png",
                     contentDescription = "Leaderboard rules",
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(32.dp).clickable { /* ranking rules action */ },
                     contentScale = ContentScale.Fit
                 )
             }
-            Row(Modifier.padding(start=14.dp,top=6.dp,bottom=8.dp)) {
-                periods.forEach { (id,label)->
-                    Column(
-                        Modifier.clickable{period=id}.padding(horizontal=10.dp,vertical=5.dp),
-                        horizontalAlignment=Alignment.CenterHorizontally
-                    ) {
-                        Text(label,color=if(period==id) Color.White else Color.White.copy(.5f),
-                            fontSize=15.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        Box(
-                            Modifier.width(22.dp).height(2.dp)
-                                .background(if(period==id) Color.White else Color.Transparent, RoundedCornerShape(2.dp))
-                        )
+            Row(Modifier.fillMaxWidth().height(40.dp).padding(top=2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.width(220.dp).fillMaxHeight()) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        periods.forEach { (id,label)->
+                            Box(Modifier.weight(1f).fillMaxHeight().clickable { period=id }, contentAlignment=Alignment.Center) {
+                                Text(label,color=Color.White,fontSize=15.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
+                            }
+                        }
+                    }
+                    val activeIndex = periods.indexOfFirst { it.first == period }.coerceAtLeast(0)
+                    Box(Modifier.fillMaxSize().padding(start = (activeIndex * (220f / 3f)).dp).width((220f / 3f).dp), contentAlignment=Alignment.TopCenter) {
+                        Column(Modifier.fillMaxWidth().fillMaxHeight(), horizontalAlignment=Alignment.CenterHorizontally) {
+                            Spacer(Modifier.height(2.dp))
+                            Box(Modifier.fillMaxWidth().height(36.dp).background(Brush.verticalGradient(listOf(Color(0x99D4AF37), Color(0x40D4AF37), Color.Transparent)), RoundedCornerShape(6.dp)))
+                        }
                     }
                 }
             }
