@@ -158,7 +158,6 @@ export default function Fourgride({
           await new Promise<void>((resolve, reject) => {
             audio.onloadedmetadata = () => resolve();
             audio.onerror = () => reject();
-            // Fallback timeout
             setTimeout(() => resolve(), 3000);
           });
           if (audio.duration && isFinite(audio.duration)) {
@@ -466,16 +465,6 @@ export default function Fourgride({
                 <div className="flex flex-col items-center"></div>
               </div>
             </div>
-
-            <style jsx>{`
-              @keyframes slideUp {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-              }
-              .animate-slide-up {
-                animation: slideUp 0.3s ease-out;
-              }
-            `}</style>
           </div>
         </div>
       )}
@@ -576,7 +565,8 @@ export default function Fourgride({
         className="hidden"
       />
 
-      <style jsx>{`
+      {/* Single global style tag - avoids nested styled-jsx error */}
+      <style jsx global>{`
         @keyframes slideUp {
           from { transform: translateY(100%); }
           to { transform: translateY(0); }
@@ -587,4 +577,4 @@ export default function Fourgride({
       `}</style>
     </>
   );
-            }
+  }
