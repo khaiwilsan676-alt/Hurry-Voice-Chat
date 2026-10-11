@@ -253,10 +253,7 @@ export default function Fourgride({
     if (onMusicPlay) {
       onMusicPlay({ id, name, url });
     }
-
-    // Close Music sheet AND Fourgride sheet on play
-    setShowMusicSheet(false);
-    onClose();
+    // ❌ Sheet close NAHI hoga play pe — abhi bhi khuli rahegi
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,8 +288,10 @@ export default function Fourgride({
     }
   };
 
+  // Back button: close BOTH Music sheet AND Fourgride
   const handleCloseMusicSheet = () => {
     setShowMusicSheet(false);
+    onClose();
   };
 
   return (
@@ -313,9 +312,9 @@ export default function Fourgride({
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-          {/* Bottom sheet - 4px corner curve */}
+          {/* Bottom sheet - 8px corner curve */}
           <div
-            className="relative bg-white w-full max-w-md rounded-t-[8px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
+            className="relative bg-white w-full max-w-md rounded-t-[12px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
