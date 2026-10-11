@@ -232,21 +232,21 @@ export default function Leaderboard({ onBack, initialTab = 'honour' }: Leaderboa
               <ChromaImage
                 src="/1787994771034~2.jpg"
                 alt="Top 1"
-                className="w-45 h-auto object-contain drop-shadow-2xl"
+                className="w-[44vw] max-w-[180px] min-w-[132px] h-auto object-contain drop-shadow-2xl"
               />
             </div>
 
             {/* Row 2: Top 2 & Top 3 */}
-            <div className="flex justify-between items-center w-full px-0 mt-4">
+            <div className="flex justify-between items-center w-full gap-1 px-1 mt-4">
               <ChromaImage
                 src="/1787994751636~2.jpg"
                 alt="Top 2"
-                className="w-40 h-auto object-contain drop-shadow-lg -ml-1"
+                className="w-[40vw] max-w-[160px] min-w-0 h-auto object-contain drop-shadow-lg -ml-1"
               />
               <ChromaImage
                 src="/1787994761762~2.jpg"
                 alt="Top 3"
-                className="w-40 h-auto object-contain drop-shadow-lg -mr-1"
+                className="w-[40vw] max-w-[160px] min-w-0 h-auto object-contain drop-shadow-lg -mr-1"
               />
             </div>
           </div>
