@@ -879,8 +879,7 @@ useEffect(() => {
     document.removeEventListener('touchstart', handleTouchOutside);
   };
 }, [showChatInput]);
-
-const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
+  const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
   const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
   setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
   setShowUserProfile(true);
@@ -1245,12 +1244,12 @@ if (showSettingPage) return (
 
     <div className="relative z-10 flex flex-col flex-1 min-h-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
-      {/* Top Header — pill card left edge pe chipka, right side round */}
+      {/* Top Header — pill card left edge chipka, DP square, bg-black/30 same as icons */}
       <div className="flex justify-between items-center text-white flex-shrink-0">
-        <div className="flex items-center gap-2 rounded-r-full bg-black/40 backdrop-blur-md py-1 pr-4 pl-2 border-none shadow-sm max-w-[220px]">
+        <div className="flex items-center gap-2 rounded-r-full bg-black/30 py-1 pr-4 pl-2 border-none shadow-sm max-w-[220px]">
           <button
             onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }}
-            className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+            className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer"
             style={{ width: '34px', height: '34px' }}
           >
             <img
@@ -1265,11 +1264,10 @@ if (showSettingPage) return (
           </button>
           <div className="flex flex-col min-w-0 text-left">
             <div className="flex items-center gap-1 min-w-0">
-              <h2 className="font-bold leading-tight" style={{ fontSize: '12px' }}>
-                <MarqueeText
-                  text={roomName || 'Room'}
-                  style={{ maxWidth: '80px' }}
-                />
+              <h2 className="font-bold leading-tight truncate" style={{ fontSize: '12px', maxWidth: '90px' }}>
+                {(roomName || 'Room').length > 12
+                  ? (roomName || 'Room').slice(0, 12) + '...'
+                  : (roomName || 'Room')}
               </h2>
               {roomCountry && (
                 <span className="text-[12px] leading-none shrink-0">{roomCountry}</span>
@@ -1330,7 +1328,7 @@ if (showSettingPage) return (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setMusicControllerState('full'); }}
-              className="relative z-30 pointer-events-auto flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md pl-0.5 pr-2 py-0.5 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
+              className="relative z-30 pointer-events-auto flex items-center gap-1 rounded-full bg-black/30 pl-0.5 pr-2 py-0.5 shadow-sm hover:bg-black/40 active:scale-95 transition-transform cursor-pointer border-none"
               style={{ maxWidth: '110px' }}
               aria-label="Open music player"
             >
@@ -1565,7 +1563,7 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ACTIVE USERS SHEET — black transparent, 15px corner, no line */}
+      {/* ACTIVE USERS SHEET — no cards, black 0.92, 15px corner */}
       {showActiveUsers && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
@@ -1574,7 +1572,7 @@ if (showSettingPage) return (
             style={{
               height: '40vh',
               maxHeight: '40vh',
-              background: 'rgba(0,0,0,0.78)',
+              background: 'rgba(0,0,0,0.92)',
               borderTopLeftRadius: '15px',
               borderTopRightRadius: '15px',
             }}
@@ -1584,8 +1582,8 @@ if (showSettingPage) return (
               <h2 className="text-base font-bold text-white text-center">Active Users</h2>
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
-              <div className="space-y-2 pb-4">
-                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
+              <div className="space-y-3 pb-4">
+                <div className="flex items-center gap-2 px-1">
                   <div
                     className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
                     style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}
@@ -1607,7 +1605,7 @@ if (showSettingPage) return (
                 </div>
 
                 {roomUsers.filter(u => String(u.accountId) !== String(roomOwnerId)).map((user) => (
-                  <div key={user.accountId} className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
+                  <div key={user.accountId} className="flex items-center gap-2 px-1">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
                       <img src={user.image || "/default-avatar.png"} alt={user.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
                     </div>
@@ -1623,7 +1621,7 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ROOM INFO SHEET — black transparent, 15px corner, no lines */}
+      {/* ROOM INFO SHEET — black 0.92, 15px corner, no lines */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
@@ -1632,7 +1630,7 @@ if (showSettingPage) return (
             style={{
               height: '50vh',
               maxHeight: '50vh',
-              background: 'rgba(0,0,0,0.78)',
+              background: 'rgba(0,0,0,0.92)',
               borderTopLeftRadius: '15px',
               borderTopRightRadius: '15px',
             }}
@@ -1682,7 +1680,7 @@ if (showSettingPage) return (
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
+                  <div className="flex items-center gap-2 px-1">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
                       <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                     </div>
@@ -1818,7 +1816,7 @@ if (showSettingPage) return (
             className="relative w-full max-w-md px-4 pt-3 pb-6 animate-slide-up"
             style={{
               height: '20vh',
-              background: 'rgba(0,0,0,0.78)',
+              background: 'rgba(0,0,0,0.92)',
               borderTopLeftRadius: '15px',
               borderTopRightRadius: '15px',
             }}
