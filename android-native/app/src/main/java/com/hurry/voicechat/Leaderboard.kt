@@ -10,6 +10,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
