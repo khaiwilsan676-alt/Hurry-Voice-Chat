@@ -193,7 +193,7 @@ fun RoomPage(
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                     RoomFooterButton(onClick={showChat=!showChat},description="Say Hi Chat",icon=R.drawable.ic_hurry_chat)
                     val selfSeatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
-                    if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=R.drawable.ic_hurry_mic)
+                    if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                 }
                 Box(Modifier.size(54.dp),contentAlignment=Alignment.Center){
