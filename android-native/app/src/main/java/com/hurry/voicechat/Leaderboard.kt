@@ -91,23 +91,30 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                     contentScale = ContentScale.Fit
                 )
             }
-            Row(Modifier.fillMaxWidth().height(40.dp).padding(top=2.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.width(220.dp).fillMaxHeight()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        periods.forEach { (id,label)->
-                            Box(Modifier.weight(1f).fillMaxHeight().clickable { period=id }, contentAlignment=Alignment.Center) {
-                                Text(label,color=Color.White,fontSize=15.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
-                            }
+            Box(Modifier.fillMaxWidth().height(40.dp), contentAlignment = Alignment.Center) {
+                Row(Modifier.width(220.dp).fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    periods.forEach { (id, label) ->
+                        Box(
+                            Modifier.weight(1f).fillMaxHeight().clickable { period = id },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(label, color = Color.White, fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
                         }
                     }
-                    val activeIndex = periods.indexOfFirst { it.first == period }.coerceAtLeast(0)
-                    Box(Modifier.fillMaxSize().padding(start = (activeIndex * (220f / 3f)).dp).width((220f / 3f).dp), contentAlignment=Alignment.TopCenter) {
-                        Column(Modifier.fillMaxWidth().fillMaxHeight(), horizontalAlignment=Alignment.CenterHorizontally) {
-                            Spacer(Modifier.height(2.dp))
-                            Box(Modifier.fillMaxWidth().height(36.dp).background(Brush.verticalGradient(listOf(Color(0x99D4AF37), Color(0x40D4AF37), Color.Transparent)), RoundedCornerShape(6.dp)))
-                        }
-                    }
+                }
+                val activeIndex = periods.indexOfFirst { it.first == period }.coerceAtLeast(0)
+                Box(
+                    Modifier.width((220f / 3f).dp).fillMaxHeight()
+                        .offset(x = ((activeIndex - 1) * (220f / 3f)).dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Box(
+                        Modifier.fillMaxWidth().height(36.dp)
+                            .background(
+                                Brush.verticalGradient(listOf(Color(0x6699D4AF37), Color(0x2299D4AF37), Color.Transparent)),
+                                RoundedCornerShape(6.dp)
+                            )
+                    )
                 }
             }
             LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=90.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
