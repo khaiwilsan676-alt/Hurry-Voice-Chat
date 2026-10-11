@@ -60,6 +60,7 @@ fun RoomPage(
     var locked by remember{mutableStateOf(false)}
     var showChat by remember{mutableStateOf(false)}
     var showMenu by remember{mutableStateOf(false)}
+    var showExitMenu by remember{mutableStateOf(false)}
     var showInfo by remember{mutableStateOf(false)}
     var showActiveUsers by remember{mutableStateOf(false)}
     var showSettings by remember{mutableStateOf(false)}
@@ -163,7 +164,7 @@ fun RoomPage(
                 TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",color=Color.White)}
                 IconButton(onClick={showInfo=true}){Icon(Icons.Default.Info,null,tint=Color.White)}
                 IconButton(onClick={showActiveUsers=true}){Icon(Icons.Default.PeopleAlt,null,tint=Color.White)}
-                IconButton(onClick={onClose}){Icon(Icons.Default.Close,null,tint=Color.White)}
+                IconButton(onClick={showExitMenu=true}){Icon(Icons.Default.Close,null,tint=Color.White)}
                 IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
             }
             if(announcement.isNotBlank()) Surface(Modifier.fillMaxWidth().padding(10.dp),color=Color.Black.copy(.4f),shape=RoundedCornerShape(18.dp)){
@@ -187,11 +188,16 @@ fun RoomPage(
             Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(8.dp),horizontalArrangement=Arrangement.SpaceEvenly){
                 IconButton(onClick={speaker=!speaker}){Icon(if(speaker)Icons.Default.VolumeUp else Icons.Default.VolumeOff,null,tint=Color.White)}
                 IconButton(onClick={showChat=!showChat}){Icon(Icons.Default.ChatBubbleOutline,null,tint=Color.White)}
-                IconButton(onClick={showGift=true}){Icon(Icons.Default.CardGiftcard,null,tint=Color.White)}
+                Box(Modifier.size(48.dp),contentAlignment=Alignment.Center){ AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(46.dp).clickable{showGift=true},contentScale=ContentScale.Fit) }
                 IconButton(onClick={showMusic=!showMusic}){Icon(Icons.Default.MusicNote,null,tint=Color.White)}
                 IconButton(onClick={showGames=true}){Icon(Icons.Default.SportsEsports,null,tint=Color.White)}
             }
         }
+        if(showExitMenu) RoomExitMenu(
+            onKeep={showExitMenu=false;onKeepRoom(roomName,roomImage,roomId)},
+            onExit={showExitMenu=false;onClose()},
+            onDismiss={showExitMenu=false}
+        )
         if(showMenu) RoomMenu(
             owner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
             onClose={showMenu=false},
@@ -252,6 +258,22 @@ fun RoomPage(
     Row(Modifier.fillMaxWidth().padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
         AsyncImage(model=m.senderImage,contentDescription=null,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
         Column(Modifier.padding(start=6.dp)){Text(m.sender,color=Color.White.copy(.7f),fontSize=11.sp);Text(m.text,color=Color.White,fontSize=13.sp)}
+    }
+}
+
+@Composable private fun RoomExitMenu(onKeep:()->Unit,onExit:()->Unit,onDismiss:()->Unit){
+    val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(.45f)).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
+        Row(Modifier.fillMaxWidth().padding(top=150.dp).clickable(enabled=false){}.padding(horizontal=34.dp),horizontalArrangement=Arrangement.spacedBy(56.dp),verticalAlignment=Alignment.CenterVertically){
+            Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.weight(1f).clickable{onKeep()}){
+                AsyncImage(model=raw+"IMG_20261002_113229.png",contentDescription="Keep",modifier=Modifier.size(67.dp),contentScale=ContentScale.Fit)
+                Text("Keep",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+            }
+            Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.weight(1f).clickable{onExit()}){
+                AsyncImage(model=raw+"IMG_20261002_113213.png",contentDescription="Exit",modifier=Modifier.size(67.dp),contentScale=ContentScale.Fit)
+                Text("Exit",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+            }
+        }
     }
 }
 
