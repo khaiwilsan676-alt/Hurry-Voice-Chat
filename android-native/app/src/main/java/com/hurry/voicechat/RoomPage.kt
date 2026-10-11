@@ -231,13 +231,17 @@ fun RoomPage(
 }
 
 @Composable private fun NativeSeat(seat:NativeRoomSeat,ownerId:String,onClick:()->Unit){
-    val pulse=rememberInfiniteTransition(label="seat").animateFloat(1f,if(seat.speaking)1.1f else 1f,infiniteRepeatable(tween(600),RepeatMode.Reverse),label="pulse")
+    val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.width(62.dp).clickable(onClick=onClick)){
         Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
-            Box(Modifier.size(62.dp).clip(CircleShape).background(Brush.linearGradient(listOf(if(seat.locked)Color(0xFFBFC3C8) else Color(0xFFBDEFFF),if(seat.locked)Color(0xFF4B5563) else Color(0xFF167DB9)))).border(if(seat.speaking)2.dp else 0.dp,Color(0xFF55C6F3),CircleShape))
-            if(seat.locked) Icon(Icons.Default.Lock,null,tint=Color.White,modifier=Modifier.size(26.dp))
-            else if(seat.occupied&&seat.userImage.isNotBlank()) AsyncImage(model=seat.userImage,contentDescription=seat.userName,modifier=Modifier.size(56.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-            else Icon(Icons.Default.Person,null,tint=Color.White.copy(.8f),modifier=Modifier.size(28.dp))
+            Box(Modifier.size(62.dp).border(if(seat.speaking)2.dp else 0.dp,Color(0xFF55C6F3),CircleShape))
+            if(seat.locked) {
+                AsyncImage(model=raw+"file_0000000015a48211b000ee447a786f7c.png",contentDescription="Locked seat",modifier=Modifier.size(56.dp),contentScale=ContentScale.Fit)
+            } else if(seat.occupied&&seat.userImage.isNotBlank()) {
+                AsyncImage(model=seat.userImage,contentDescription=seat.userName,modifier=Modifier.size(56.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+            } else {
+                AsyncImage(model=raw+"file_000000003e7482309b7f6e7f2a922160.png",contentDescription="Empty seat",modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit)
+            }
             if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(17.dp))
         }
         Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=10.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
