@@ -1235,9 +1235,13 @@ if (showSettingPage) return (
           </button>
           <div className="text-left py-0.5">
             <div className="flex items-center gap-1 sm:gap-2">
-              <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>
+              <h2
+                className="font-bold leading-tight rounded-full px-2 py-0.5"
+                style={{ fontSize: 'var(--header-room-name-size)' }}
+              >
                 <MarqueeText
                   text={roomName || 'Room'}
+                  className="rounded-full"
                   style={{ maxWidth: 'calc(var(--header-room-name-size) * 4)' }}
                 />
               </h2>
@@ -1291,8 +1295,9 @@ if (showSettingPage) return (
 
           {musicControllerState === 'minimized' && currentTrack && (
             <button
-              onClick={() => setMusicControllerState('full')}
-              className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md pl-0.5 pr-2 py-0.5 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setMusicControllerState('full'); }}
+              className="relative z-30 pointer-events-auto flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md pl-0.5 pr-2 py-0.5 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
               style={{ maxWidth: '110px' }}
               aria-label="Open music player"
             >
@@ -1483,7 +1488,7 @@ if (showSettingPage) return (
       )}
     </div>
 
-    {/* RIGHT-SIDE STACK — tight gaps; music pill ab yahan NAHI hai */}
+    {/* RIGHT-SIDE STACK — tight gaps */}
     <div
       className={`absolute z-20 flex flex-col items-center pointer-events-auto gap-0.5 ${showChatInput ? 'hidden' : ''}`}
       style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }}
@@ -1722,10 +1727,7 @@ if (showSettingPage) return (
       {showMessageSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowMessageSheet(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden" style={{ height: '60vh' }} onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setShowMessageSheet(false)} className="absolute top-2 left-2 z-20 p-1 bg-white/80 rounded-full shadow hover:bg-white transition-colors">
-              <svg viewBox="0 0 24 24" className="fill-none stroke-gray-700 stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><polyline points="15 18 9 12 15 6" /></svg>
-            </button>
+          <div className="relative bg-white w-full max-w-md shadow-2xl animate-slide-up overflow-hidden" style={{ height: '60vh', borderTopLeftRadius: '15px', borderTopRightRadius: '15px' }} onClick={(e) => e.stopPropagation()}>
             <div className="h-full overflow-y-auto">
               <MessagePage sharedRoomData={{ roomId: roomId, roomName: roomName || "Room", roomDp: roomDp || "/default-avatar.png" }} />
             </div>
@@ -1758,25 +1760,33 @@ if (showSettingPage) return (
       {showGameSheet && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowGameSheet(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl px-4 pt-4 pb-6 animate-slide-up" style={{ height: '20vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-800">Games</h2>
-              <button onClick={() => setShowGameSheet(false)} className="p-1 hover:bg-gray-100 rounded-full">
-                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2.5]"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
+          <div
+            className="relative w-full max-w-md shadow-2xl px-4 pt-4 pb-6 animate-slide-up"
+            style={{
+              height: '20vh',
+              background: 'rgba(0,0,0,0.78)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              borderTopLeftRadius: '15px',
+              borderTopRightRadius: '15px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-center mb-4">
+              <h2 className="text-lg font-bold text-white">Games</h2>
             </div>
             <div className="grid grid-cols-4 gap-4">
               <div className="flex flex-col items-center">
                 <button onClick={() => { setShowGameSheet(false); setShowWildParty(true); }} className="transition-transform hover:scale-105 -mt-1">
                   <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild party" className="w-14 h-14 object-contain" loading="eager" decoding="async" />
                 </button>
-                <span className="text-[10px] text-gray-700 -mt-1 whitespace-nowrap">Wild party</span>
+                <span className="text-[10px] text-white/90 -mt-1 whitespace-nowrap">Wild party</span>
               </div>
               <div className="flex flex-col items-center">
                 <button onClick={() => { setShowGameSheet(false); setShowFruitParty(true); }} className="transition-transform hover:scale-105">
-                  <img src="/fruit-party-logo.jpg" alt="Fruit party" className="w-12 h-12 object-contain rounded-md" loading="eager" decoding="async" />
+                  <img src="/file_00000000c9e08211ab3e8c4d511b7965.png" alt="Fruit party" className="w-12 h-12 object-contain rounded-md" loading="eager" decoding="async" />
                 </button>
-                <span className="text-[10px] text-gray-700 mt-1 whitespace-nowrap">Fruit party</span>
+                <span className="text-[10px] text-white/90 mt-1 whitespace-nowrap">Fruit party</span>
               </div>
             </div>
           </div>
@@ -1791,7 +1801,7 @@ if (showSettingPage) return (
 
       {musicControllerState === 'full' && currentTrack && !showFourGride && (
         <div className="fixed left-1/2 transform -translate-x-1/2 z-[45] w-full max-w-sm px-3" style={{ bottom: 'var(--music-controller-bottom)' }} onClick={(e) => e.stopPropagation()}>
-          <div className="relative rounded-2xl overflow-hidden bg-black/90 backdrop-blur-md border border-white/10" style={{ padding: 'var(--music-padding)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+          <div className="relative rounded-md overflow-hidden bg-black/90 backdrop-blur-md border border-white/10" style={{ padding: 'var(--music-padding)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
             <button onClick={handleCloseMusicController} className="absolute top-1.5 left-1.5 p-1 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer z-10" aria-label="Close music controller">
               <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--music-icon-size)', height: 'var(--music-icon-size)' }}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
