@@ -262,28 +262,33 @@ const EntryToastStack = memo(function EntryToastStack({ toasts }: { toasts: Entr
   if (toasts.length === 0) return null;
   return (
     <div
-      className="fixed left-0 z-[9998] pointer-events-none flex flex-col items-start pl-2"
-      style={{ bottom: '33vh' }}
+      className="fixed z-[9998] pointer-events-none flex flex-col items-start pl-2"
+      style={{ left: 0, bottom: '33vh' }}
     >
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="entry-toast mb-1 flex items-center gap-1.5 bg-green-500/80 backdrop-blur-sm pr-3 pl-1 py-1 shadow-lg"
-          style={{ borderRadius: '999px 0 0 999px' }}
+          className="entry-toast mb-1 flex items-center gap-2 shadow-lg"
+          style={{
+            background: 'linear-gradient(to right, rgba(37,99,235,0.95) 0%, rgba(37,99,235,0.95) 55%, rgba(37,99,235,0) 100%)',
+            borderRadius: '999px 0 0 999px',
+            padding: '4px 48px 4px 6px',
+            minWidth: '230px',
+          }}
         >
           <img
             src={t.image || '/default-avatar.png'}
             alt={t.name}
             className="rounded-full object-cover shrink-0"
-            style={{ width: '22px', height: '22px' }}
+            style={{ width: '24px', height: '24px' }}
             loading="eager"
             decoding="async"
             onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
           />
-          <span className="text-white font-semibold truncate" style={{ fontSize: '11px', maxWidth: '90px' }}>
+          <span className="text-white font-semibold truncate" style={{ fontSize: '12px', maxWidth: '95px' }}>
             {t.name}
           </span>
-          <span className="text-white/90 whitespace-nowrap" style={{ fontSize: '10px' }}>
+          <span className="text-white/95 whitespace-nowrap" style={{ fontSize: '11px' }}>
             Enter the Room
           </span>
         </div>
@@ -1230,8 +1235,11 @@ if (showSettingPage) return (
           </button>
           <div className="text-left py-0.5">
             <div className="flex items-center gap-1 sm:gap-2">
-              <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)', maxWidth: '110px' }}>
-                <MarqueeText text={roomName || 'Room'} />
+              <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>
+                <MarqueeText
+                  text={roomName || 'Room'}
+                  style={{ maxWidth: 'calc(var(--header-room-name-size) * 4)' }}
+                />
               </h2>
               {!isRoomOwner && (
                 <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
@@ -1270,9 +1278,9 @@ if (showSettingPage) return (
         </div>
       </div>
 
-      {/* Trophy Card */}
+      {/* Trophy Card + Music Pill (Cup ke side, top pe) */}
       <div className="h-0 w-full relative z-20">
-        <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
+        <div className="absolute top-2 left-0 -ml-1 sm:-ml-2 flex items-center gap-2">
           <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
             <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
               <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
@@ -1280,6 +1288,30 @@ if (showSettingPage) return (
             <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>{formatCupCount(cupCount)}</span>
             <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
           </button>
+
+          {musicControllerState === 'minimized' && currentTrack && (
+            <button
+              onClick={() => setMusicControllerState('full')}
+              className="flex items-center gap-1 rounded-full bg-black/40 backdrop-blur-md pl-0.5 pr-2 py-0.5 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
+              style={{ maxWidth: '110px' }}
+              aria-label="Open music player"
+            >
+              <img
+                src="/file_00000000ee70820b9fd0dfe71739874e.png"
+                alt="Music"
+                className={`shrink-0 ${isMusicPlaying ? 'music-minimize-icon' : ''}`}
+                style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                draggable={false}
+                loading="eager"
+                decoding="async"
+              />
+              <MarqueeText
+                text={currentTrack.name}
+                className="text-white text-[11px] font-semibold"
+                style={{ maxWidth: '68px' }}
+              />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1451,35 +1483,12 @@ if (showSettingPage) return (
       )}
     </div>
 
-    {/* ⭐ RIGHT-SIDE STACK — tight gaps, music pill + game logos + banner + icons */}
+    {/* RIGHT-SIDE STACK — tight gaps; music pill ab yahan NAHI hai */}
     <div
       className={`absolute z-20 flex flex-col items-center pointer-events-auto gap-0.5 ${showChatInput ? 'hidden' : ''}`}
       style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }}
       onClick={(e) => e.stopPropagation()}
     >
-      {musicControllerState === 'minimized' && currentTrack && (
-        <button
-          onClick={() => setMusicControllerState('full')}
-          className="flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md pl-1 pr-3 py-1 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
-          style={{ maxWidth: '140px' }}
-          aria-label="Open music player"
-        >
-          <div
-            className={`shrink-0 flex items-center justify-center rounded-full bg-blue-600 ${isMusicPlaying ? 'music-minimize-icon' : ''}`}
-            style={{ width: '26px', height: '26px' }}
-          >
-            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '16px', height: '16px' }}>
-              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
-            </svg>
-          </div>
-          <MarqueeText
-            text={currentTrack.name}
-            className="text-white text-[11px] font-semibold"
-            style={{ maxWidth: '90px' }}
-          />
-        </button>
-      )}
-
       {showWildParty === 'minimized' && (
         <button onClick={() => setShowWildParty(true)} className="rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0" style={{ width: '56px', height: '56px' }} aria-label="Open Wild Party">
           <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild Party" className="w-full h-full object-contain" draggable={false} loading="eager" decoding="async" />
@@ -1860,8 +1869,11 @@ if (showSettingPage) return (
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .marquee-inner { animation: marquee-scroll 9s linear infinite; }
         @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        .entry-toast { animation: entryToastIn 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
-        @keyframes entryToastIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .entry-toast { animation: entryToastIn 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes entryToastIn {
+          from { transform: translateX(100vw); opacity: 0; }
+          to   { transform: translateX(0);    opacity: 1; }
+        }
       `}</style>
 
       <LuckyGiftAnimation roomId={String(roomId)} />
