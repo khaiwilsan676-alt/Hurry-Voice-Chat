@@ -539,7 +539,7 @@ private fun RoomListCard(
                     room.image.equals("null", ignoreCase = true) ||
                     room.image.endsWith("/default-avatar.png") ||
                     room.image.equals("default-avatar.png", ignoreCase = true)
-                ) RAW + "file_000000009aac81faa8564416680aba4e.png"
+                ) RAW + "IMG_20261009_170410.png"
                 else if (room.image.startsWith("http")) room.image
                 else RAW + room.image.trimStart('/'),
                 contentDescription = null,
@@ -556,7 +556,7 @@ private fun RoomListCard(
         ) {
             Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
-                room.name,
+                room.name.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && !it.equals("undefined", ignoreCase = true) } ?: "Hurry_User",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF202124),
@@ -573,7 +573,7 @@ private fun RoomListCard(
 @Composable
 fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
-        model = RAW + "IMG_20261009_170410.png",
+        model = RAW + "file_000000009aac81faa8564416680aba4e.png",
         contentDescription = null,
         modifier = Modifier.size(32.dp),
         contentScale = ContentScale.Fit
