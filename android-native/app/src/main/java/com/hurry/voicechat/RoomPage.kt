@@ -1,6 +1,7 @@
 package com.hurry.voicechat
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -71,6 +73,7 @@ fun RoomPage(
     var input by remember{mutableStateOf("")}
     var announcement by remember{mutableStateOf("")}
     var selectedSeat by remember{mutableIntStateOf(0)}
+    var showSeatSheet by remember{mutableStateOf(false)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..8)add(NativeRoomSeat(i))}}
     val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
@@ -155,24 +158,26 @@ fun RoomPage(
         AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         Column(Modifier.fillMaxSize()){
             Row(Modifier.fillMaxWidth().padding(top=28.dp,start=6.dp,end=6.dp),verticalAlignment=Alignment.CenterVertically){
-                IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,null,tint=Color.White)}
-                AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.size(44.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+                AsyncImage(model=roomImage,contentDescription="Room profile",modifier=Modifier.size(44.dp).clip(CircleShape).clickable{showInfo=true},contentScale=ContentScale.Crop)
                 Column(Modifier.weight(1f).padding(start=8.dp)){
-                    Text(roomName,color=Color.White,fontSize=16.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)){
+                        Text(roomName,color=Color.White,fontSize=16.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) IconButton(onClick={followed=!followed;onFollowToggle(roomId,followed)},modifier=Modifier.size(28.dp)){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(17.dp))}
+                    }
                     Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
-                TextButton(onClick={followed=!followed;onFollowToggle(roomId,followed)}){Text(if(followed)"Following" else "Follow",color=Color.White)}
-                IconButton(onClick={showInfo=true}){Icon(Icons.Default.Info,null,tint=Color.White)}
-                IconButton(onClick={showActiveUsers=true}){Icon(Icons.Default.PeopleAlt,null,tint=Color.White)}
-                IconButton(onClick={showExitMenu=true}){Icon(Icons.Default.Close,null,tint=Color.White)}
-                IconButton(onClick={showMenu=!showMenu}){Icon(Icons.Default.MoreVert,null,tint=Color.White)}
+                Row(verticalAlignment=Alignment.CenterVertically){
+                    IconButton(onClick={showActiveUsers=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(23.dp))}
+                    if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) IconButton(onClick={showSettings=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(22.dp))}
+                    IconButton(onClick={showExitMenu=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(22.dp))}
+                }
             }
             if(announcement.isNotBlank()) Surface(Modifier.fillMaxWidth().padding(10.dp),color=Color.Black.copy(.4f),shape=RoundedCornerShape(18.dp)){
                 Text(announcement,color=Color.White,fontSize=13.sp,modifier=Modifier.padding(10.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
             }
             Spacer(Modifier.weight(1f))
             Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
-                seats.take(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number}}
+                seats.take(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number;showSeatSheet=true}}
             }
             Spacer(Modifier.height(18.dp))
             Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
@@ -185,12 +190,20 @@ fun RoomPage(
                 OutlinedTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f),singleLine=true,placeholder={Text("Message")})
                 IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}}){Icon(Icons.Default.Send,null,tint=Color.White)}
             }
-            Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(8.dp),horizontalArrangement=Arrangement.SpaceEvenly){
-                IconButton(onClick={speaker=!speaker}){Icon(if(speaker)Icons.Default.VolumeUp else Icons.Default.VolumeOff,null,tint=Color.White)}
-                IconButton(onClick={showChat=!showChat}){Icon(Icons.Default.ChatBubbleOutline,null,tint=Color.White)}
-                Box(Modifier.size(48.dp),contentAlignment=Alignment.Center){ AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(46.dp).clickable{showGift=true},contentScale=ContentScale.Fit) }
-                IconButton(onClick={showMusic=!showMusic}){Icon(Icons.Default.MusicNote,null,tint=Color.White)}
-                IconButton(onClick={showGames=true}){Icon(Icons.Default.SportsEsports,null,tint=Color.White)}
+            Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=8.dp).height(48.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                    RoomFooterButton(onClick={showChat=!showChat},description="Say Hi Chat",icon=R.drawable.ic_hurry_chat)
+                    val selfSeatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
+                    if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
+                    if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
+                }
+                Box(Modifier.size(54.dp),contentAlignment=Alignment.Center){
+                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(54.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                }
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                    RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
+                    RoomFooterButton(onClick={showMenu=true},description="Apps Menu",icon=R.drawable.ic_hurry_apps)
+                }
             }
         }
         if(showExitMenu) RoomExitMenu(
@@ -230,9 +243,53 @@ fun RoomPage(
         if(showGames) GamesSheet{showGames=false}
         if(showMusic) MusicSheet{showMusic=false}
         if(showEmoji) EmojiSheet({showEmoji=false}){input+=it;showEmoji=false}
-        if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true) {
+        if(showSeatSheet && selectedSeat>0) {
+            val seat=seats.firstOrNull{it.number==selectedSeat}
+            if(seat!=null) SeatActionSheet(
+                seat=seat,
+                isOwner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
+                isMySeat=seat.occupied && seat.accountId==accountId,
+                onDismiss={showSeatSheet=false;selectedSeat=0},
+                onTake={ if(!seat.occupied && !seat.locked){seats[selectedSeat-1]=seat.copy(occupied=true,userName=currentUser.name,userImage=currentUser.image,accountId=accountId);showSeatSheet=false;selectedSeat=0} },
+                onLeave={seats[selectedSeat-1]=seat.copy(occupied=false,userName="",userImage="",accountId="",muted=false,speaking=false);showSeatSheet=false;selectedSeat=0},
+                onMute={seats[selectedSeat-1]=seat.copy(muted=!seat.muted);showSeatSheet=false;selectedSeat=0},
+                onLock={seats[selectedSeat-1]=seat.copy(locked=!seat.locked);showSeatSheet=false;selectedSeat=0},
+                onInvite={clipboard.setText(AnnotatedString("Join room $roomName — seat $selectedSeat (ID: $roomId)"));showSeatSheet=false;selectedSeat=0}
+            )
+        }
+        if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true && !showSeatSheet) {
             MemberSheet(seats.first{it.number==selectedSeat}){selectedSeat=0}
         }
+    }
+}
+
+@Composable private fun SeatActionSheet(
+    seat:NativeRoomSeat,isOwner:Boolean,isMySeat:Boolean,onDismiss:()->Unit,
+    onTake:()->Unit,onLeave:()->Unit,onMute:()->Unit,onLock:()->Unit,onInvite:()->Unit
+){
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{onDismiss()},contentAlignment=Alignment.BottomCenter){
+        Surface(Modifier.fillMaxWidth(),color=Color.White.copy(alpha=.96f),shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)){
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(2.dp)){
+                if(!seat.occupied && !isMySeat) SeatSheetAction("Take Mic",enabled=!seat.locked,onClick=onTake)
+                if(isMySeat) SeatSheetAction("Leave Seat",onClick=onLeave)
+                if(isOwner || isMySeat || seat.occupied) SeatSheetAction(if(seat.muted)"Unmute Seat" else "Mute Seat",onClick=onMute)
+                if(isOwner) SeatSheetAction(if(seat.locked)"Unlock Mic" else "Lock Mic",onClick=onLock)
+                SeatSheetAction("Invite",onClick=onInvite)
+                Spacer(Modifier.height(4.dp))
+                TextButton(onClick=onDismiss,modifier=Modifier.fillMaxWidth()){Text("Cancel",color=Color.DarkGray)}
+            }
+        }
+    }
+}
+@Composable private fun SeatSheetAction(label:String,enabled:Boolean=true,onClick:()->Unit){
+    TextButton(onClick=onClick,enabled=enabled,modifier=Modifier.fillMaxWidth().height(44.dp),shape=RoundedCornerShape(10.dp)){
+        Text(label,color=if(enabled)Color(0xFF171717) else Color.Gray,fontSize=14.sp)
+    }
+}
+
+@Composable private fun RoomFooterButton(onClick:()->Unit,description:String,icon:Int){
+    Box(Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
+        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(24.dp))
     }
 }
 
