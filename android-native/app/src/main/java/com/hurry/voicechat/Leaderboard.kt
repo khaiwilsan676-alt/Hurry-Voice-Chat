@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
-    var tab by remember { mutableStateOf(initialTab) }; var period by remember { mutableStateOf("daily") }
+    var tab by remember { mutableStateOf(initialTab) }; var period by remember { mutableStateOf("daily") }; var showRules by remember { mutableStateOf(false) }
     val tabs=listOf("honour" to "Honour","charm" to "Charm","room" to "Room")
     val periods=listOf("daily" to "Daily","weekly" to "Weekly","monthly" to "Monthly")
     val raw = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
@@ -85,7 +85,7 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                 AsyncImage(
                     model = raw + "file_0000000073ec820b832b6dafb168dabe.png",
                     contentDescription = "Leaderboard rules",
-                    modifier = Modifier.size(32.dp).clickable { /* ranking rules action */ },
+                    modifier = Modifier.size(32.dp).clickable { showRules = true },
                     contentScale = ContentScale.Fit
                 )
             }
@@ -108,10 +108,38 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                     }
                 }
             }
-            LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(12.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                items(50) { i -> Row(Modifier.fillMaxWidth().background(Color(0xFF240A0D),RoundedCornerShape(10.dp)).padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-                    Text("#"+(i+4),color=Color.White,modifier=Modifier.width(45.dp)); Box(Modifier.size(44.dp).background(Color(0xFF402126),RoundedCornerShape(22.dp))); Spacer(Modifier.width(10.dp)); Text("Hurry User "+(i+4),color=Color.White,modifier=Modifier.weight(1f)); Text(""+(50-i).coerceAtLeast(1),color=Color(0xFFFFD56A))
+            LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=90.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
+                item {
+                    Column(Modifier.fillMaxWidth().padding(top=18.dp,bottom=24.dp),horizontalAlignment=Alignment.CenterHorizontally) {
+                        AsyncImage(model=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(180.dp).height(150.dp),contentScale=ContentScale.Fit)
+                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+                            AsyncImage(model=raw+"1787994751636~2.jpg",contentDescription="Rank 2 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
+                            AsyncImage(model=raw+"1787994761762~2.jpg",contentDescription="Rank 3 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
+                        }
+                    }
+                }
+                items(47) { i -> Box(Modifier.fillMaxWidth().height(80.dp)) {
+                    AsyncImage(model=raw+"1787992320047~2.jpg",contentDescription="Rank ${i+4} frame",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
+                    Text("${i+4}",color=Color.White,fontSize=18.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterStart).padding(start=40.dp))
                 }}
+            }
+            if (showRules) {
+                Box(Modifier.fillMaxSize().background(Color(0x99000000)).clickable { showRules=false },contentAlignment=Alignment.BottomCenter) {
+                    Column(Modifier.fillMaxWidth().fillMaxHeight(0.82f).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Color(0xFF1A0204)).padding(20.dp)) {
+                        Text("Rules",color=Color(0xFFE7B865),fontSize=20.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterHorizontally))
+                        Spacer(Modifier.height(20.dp))
+                        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                            Text("Contribution Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
+                            Text("Charm Leaderboard: ranking is determined by Coins received.",color=Color.White)
+                            Text("Room Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
+                            Divider(color=Color(0x4DD4AF37))
+                            Text("Data Periods",color=Color(0xFFE7B865),fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                            Text("Daily: finalized every day at 5:30+GMT. Weekly: every Monday at 5:30+GMT. Monthly: on the first day of each month at 5:30+GMT.",color=Color.White)
+                            Text("Users who violate platform rules are ineligible. The platform reserves the right to make the final decision.",color=Color.White)
+                            Text("Regard Zyora team",color=Color(0xFFE7B865),modifier=Modifier.align(Alignment.End))
+                        }
+                    }
+                }
             }
         }
     }
