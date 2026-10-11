@@ -11,7 +11,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +34,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -47,9 +53,11 @@ private const val INVITE_ASSET_BASE = "https://raw.githubusercontent.com/khaiwil
 @Composable
 fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
     val context = LocalContext.current
-    val prefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
-    val storedUid = prefs.getString("uid", "")?.takeIf { it.isNotBlank() }
-        ?: prefs.getString("userUID", "")?.takeIf { it.isNotBlank() }
+    val userPrefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
+    val authPrefs = remember { context.getSharedPreferences("hurry_auth", Context.MODE_PRIVATE) }
+    val storedUid = userPrefs.getString("uid", "")?.takeIf { it.isNotBlank() }
+        ?: userPrefs.getString("userUID", "")?.takeIf { it.isNotBlank() }
+        ?: authPrefs.getString("uid", "")?.takeIf { it.isNotBlank() }
     val inviteCode = storedUid ?: "WELCOME123"
     val inviteLink = "https://yourapp.com/invite/$inviteCode"
     var showShare by remember { mutableStateOf(false) }
@@ -77,7 +85,7 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
         ) {
             // Ornament / Friend's Invite image; keep source aspect ratio just like the TSX canvas.
             Box(Modifier.fillMaxWidth().widthIn(max = 448.dp)) {
-                KeyedInviteImage("1788074201753~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true)
+                KeyedInviteImage("1788074201753~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true, preserveAspectRatio = true)
                 Row(Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(start = 30.dp, end = 30.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Friend's Invite", color = gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -87,7 +95,7 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
 
             // My Gain panel and all three interactive reward rows.
             Box(Modifier.fillMaxWidth().widthIn(max = 448.dp)) {
-                KeyedInviteImage("1788100666322~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true)
+                KeyedInviteImage("1788100666322~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true, preserveAspectRatio = true)
                 Column(Modifier.fillMaxWidth().padding(top = 100.dp, start = 40.dp, end = 35.dp)) {
                     InviteRewardRow("Invite Friends", "250000", gold, onClick = { ruleType = "invite" })
                     Spacer(Modifier.height(53.dp))
@@ -99,30 +107,28 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
 
             // Coins panel. Original image and reward labels stay in the artwork's own proportions.
             Box(Modifier.fillMaxWidth().widthIn(max = 448.dp)) {
-                KeyedInviteImage("1788102034828~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true)
-                Column(Modifier.fillMaxWidth().align(Alignment.TopCenter).padding(top = h * .31f),
+                KeyedInviteImage("1788102034828~2.jpg", Modifier.fillMaxWidth(), ContentScale.Fit, removeGreen = true, preserveAspectRatio = true)
+                Column(Modifier.align(Alignment.BottomCenter).padding(bottom = h * .31f),
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     KeyedInviteImage("file_00000000e56882119c217d508b6733dc.png", Modifier.size(50.dp), ContentScale.Fit, removeGreen = false)
                     Text("0", color = gold, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
                     Spacer(Modifier.height(12.dp))
                     Box(Modifier.clip(RoundedCornerShape(24.dp))
                         .background(Brush.verticalGradient(listOf(Color(0xFFE62E2E), Color(0xFFB80D0D), Color(0xFF7A0000))))
-                        .clickable { showShare = true }
                         .padding(horizontal = 40.dp, vertical = 7.dp)) {
                         Text("Claim", color = Color(0xFFFFE66B), fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                     }
                 }
-                Row(Modifier.fillMaxWidth().align(Alignment.BottomCenter).padding(bottom = h * .09f, start = 85.dp, end = 80.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("0", color = gold, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                        Text("Number\nInvitation", color = gold, fontSize = 10.sp, textAlign = TextAlign.Center, lineHeight = 12.sp)
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        KeyedInviteImage("file_00000000e56882119c217d508b6733dc.png", Modifier.size(40.dp), ContentScale.Fit, removeGreen = false)
-                        Text("0", color = gold, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                        Text("Total Coins\nRewards", color = gold, fontSize = 10.sp, textAlign = TextAlign.Center, lineHeight = 12.sp)
-                    }
+                Column(Modifier.align(Alignment.BottomStart).padding(start = 85.dp, bottom = h * .09f),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("0", color = gold, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                    Text("Number\nInvitation", color = gold, fontSize = 10.sp, textAlign = TextAlign.Center, lineHeight = 12.sp)
+                }
+                Column(Modifier.align(Alignment.BottomEnd).padding(end = 80.dp, bottom = h * .10f),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    KeyedInviteImage("file_00000000e56882119c217d508b6733dc.png", Modifier.size(40.dp), ContentScale.Fit, removeGreen = false)
+                    Text("0", color = gold, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                    Text("Total Coins\nRewards", color = gold, fontSize = 10.sp, textAlign = TextAlign.Center, lineHeight = 12.sp)
                 }
             }
             Spacer(Modifier.height(h * .08f))
@@ -137,11 +143,11 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
         )
 
         IconButton(onClick = { (onBack ?: onClose)?.invoke() },
-            modifier = Modifier.align(Alignment.TopStart).padding(top = 24.dp, start = 0.dp)) {
+            modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(top = 24.dp, start = 0.dp)) {
             Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(28.dp))
         }
         IconButton(onClick = { ruleType = "help" },
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 24.dp, end = 12.dp)) {
+            modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(top = 24.dp, end = 12.dp)) {
             Icon(Icons.Default.HelpOutline, "Details", tint = Color.White, modifier = Modifier.size(28.dp))
         }
 
@@ -154,7 +160,7 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
             }
             Dialog(onDismissRequest = { ruleType = "" }) {
                 Column(Modifier.fillMaxWidth().widthIn(max = 300.dp).clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF750A75)).padding(16.dp)) {
+                    .background(Color(0xFF750A75)).border(3.dp, gold, RoundedCornerShape(16.dp)).padding(16.dp)) {
                     Text("Rules", Modifier.fillMaxWidth(), color = gold, fontSize = 19.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(12.dp))
                     Column(Modifier.heightIn(max = h * .62f).verticalScroll(rememberScrollState())) {
@@ -201,7 +207,8 @@ private fun KeyedInviteImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
     removeGreen: Boolean,
-    alignment: Alignment = Alignment.Center
+    alignment: Alignment = Alignment.Center,
+    preserveAspectRatio: Boolean = false
 ) {
     var bitmap by remember(asset, removeGreen) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(asset, removeGreen) {
@@ -248,7 +255,8 @@ private fun KeyedInviteImage(
     }
     val loaded = bitmap
     if (loaded != null) {
-        Image(bitmap = loaded.asImageBitmap(), contentDescription = asset, modifier = modifier,
+        val ratioModifier = if (preserveAspectRatio && loaded.height > 0) Modifier.aspectRatio(loaded.width.toFloat() / loaded.height.toFloat()) else Modifier
+        Image(bitmap = loaded.asImageBitmap(), contentDescription = asset, modifier = modifier.then(ratioModifier),
             contentScale = contentScale, alignment = alignment)
     } else {
         Spacer(modifier)
@@ -285,9 +293,46 @@ private fun InviteShareOption(label: String, color: Color, symbol: String, onCli
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(5.dp),
         modifier = Modifier.clickable { onClick() }.padding(horizontal = 2.dp)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(color), contentAlignment = Alignment.Center) {
-            Text(symbol, color = Color.White, fontSize = if (symbol == "•••") 17.sp else 22.sp, fontWeight = FontWeight.Bold)
+            when (label) {
+                "WhatsApp" -> WhatsAppMark()
+                "Facebook" -> Text("f", color = Color.White, fontSize = 31.sp, fontWeight = FontWeight.ExtraBold)
+                "Copy Link" -> Icon(Icons.Default.Link, contentDescription = null, tint = Color.White, modifier = Modifier.size(23.dp))
+                else -> Icon(Icons.Default.MoreHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(25.dp))
+            }
         }
         Text(label, color = Color(0xFF262626), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun WhatsAppMark() {
+    Canvas(Modifier.size(27.dp)) {
+        val scale = size.width / 24f
+        val bubble = Path().apply {
+            moveTo(12f * scale, 2f * scale)
+            cubicTo(6.5f * scale, 2f * scale, 2f * scale, 6.4f * scale, 2f * scale, 11.8f * scale)
+            cubicTo(2f * scale, 13.7f * scale, 2.5f * scale, 15.4f * scale, 3.5f * scale, 17f * scale)
+            lineTo(2.3f * scale, 22f * scale)
+            lineTo(7.4f * scale, 20.7f * scale)
+            cubicTo(8.8f * scale, 21.4f * scale, 10.3f * scale, 21.7f * scale, 12f * scale, 21.7f * scale)
+            cubicTo(17.5f * scale, 21.7f * scale, 22f * scale, 17.3f * scale, 22f * scale, 11.8f * scale)
+            cubicTo(22f * scale, 6.4f * scale, 17.5f * scale, 2f * scale, 12f * scale, 2f * scale)
+            close()
+        }
+        drawPath(bubble, Color.White, style = Stroke(width = 1.7f * scale))
+        val phone = Path().apply {
+            moveTo(8f * scale, 6.7f * scale)
+            cubicTo(7.4f * scale, 6.5f * scale, 6.8f * scale, 7.3f * scale, 6.8f * scale, 8f * scale)
+            cubicTo(7.1f * scale, 12.1f * scale, 10.8f * scale, 16f * scale, 14.8f * scale, 17f * scale)
+            cubicTo(15.7f * scale, 17.2f * scale, 17.1f * scale, 16.2f * scale, 17.3f * scale, 15.3f * scale)
+            lineTo(14.5f * scale, 13.9f * scale)
+            lineTo(13.2f * scale, 15.1f * scale)
+            cubicTo(11.4f * scale, 14.3f * scale, 9.7f * scale, 12.6f * scale, 9f * scale, 10.8f * scale)
+            lineTo(10.1f * scale, 9.6f * scale)
+            lineTo(8.9f * scale, 6.9f * scale)
+            close()
+        }
+        drawPath(phone, Color.White)
     }
 }
 
