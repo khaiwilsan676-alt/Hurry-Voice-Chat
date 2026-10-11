@@ -310,11 +310,11 @@ export default function Fourgride({
       {!showLuckyBag && !showMusicSheet && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+          <div className="absolute inset-0 " onClick={onClose} />
 
           {/* Bottom sheet - 8px corner curve */}
           <div
-            className="relative bg-white w-full max-w-md rounded-t-[12px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
+            className="relative bg-white w-full max-w-md rounded-t-[14px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
