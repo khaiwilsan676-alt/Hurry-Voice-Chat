@@ -78,6 +78,10 @@ function formatTime(seconds: number | undefined): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+// ---------- Module-level audio so it survives component unmount ----------
+let globalAudio: HTMLAudioElement | null = null;
+let globalPlayingId: string | null = null;
+
 export default function Fourgride({
   onClose,
   onClearChat,
@@ -96,7 +100,7 @@ export default function Fourgride({
 
   const [musicFiles, setMusicFiles] = useState<{ id: string; name: string; url: string }[]>([]);
   const [durations, setDurations] = useState<Record<string, number>>({});
-  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(globalPlayingId);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
   const [currentTrackName, setCurrentTrackName] = useState('');
@@ -173,13 +177,10 @@ export default function Fourgride({
     return () => { cancelled = true; };
   }, [musicFiles]);
 
+  // Cleanup: ONLY revoke URLs. Do NOT pause global audio.
   useEffect(() => {
     return () => {
       musicFiles.forEach((file) => URL.revokeObjectURL(file.url));
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
     };
   }, [musicFiles]);
 
@@ -214,55 +215,55 @@ export default function Fourgride({
   };
 
   const togglePlay = (id: string, url: string, name: string) => {
-    if (currentlyPlaying === id) {
-      if (audioRef.current) {
-        if (isPlaying) {
-          audioRef.current.pause();
-          setIsPlaying(false);
-        } else {
-          audioRef.current.play();
-          setIsPlaying(true);
-        }
+    if (globalPlayingId === id && globalAudio) {
+      // Same track - toggle play/pause
+      if (!globalAudio.paused) {
+        globalAudio.pause();
+        setIsPlaying(false);
+      } else {
+        globalAudio.play();
+        setIsPlaying(true);
       }
     } else {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = url;
-        audioRef.current.volume = volume;
-        audioRef.current.play();
+      // New track
+      if (globalAudio) {
+        globalAudio.pause();
+        globalAudio.src = url;
+        globalAudio.volume = volume;
+        globalAudio.play();
       } else {
-        const audio = new Audio(url);
-        audio.volume = volume;
-        audioRef.current = audio;
-        audio.play();
+        globalAudio = new Audio(url);
+        globalAudio.volume = volume;
+        globalAudio.play();
       }
+      globalPlayingId = id;
+      audioRef.current = globalAudio;
       setCurrentlyPlaying(id);
       setCurrentTrackName(name);
       setIsPlaying(true);
+
+      // Handle ended
+      globalAudio.onended = () => {
+        setIsPlaying(false);
+        setCurrentlyPlaying(null);
+        globalPlayingId = null;
+      };
     }
 
     if (onMusicPlay) {
       onMusicPlay({ id, name, url });
     }
 
-    // Close music sheet on play
+    // Close Music sheet AND Fourgride sheet on play
     setShowMusicSheet(false);
+    onClose();
   };
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.onended = () => {
-        setIsPlaying(false);
-        setCurrentlyPlaying(null);
-      };
-    }
-  }, [audioRef.current]);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+    if (globalAudio) {
+      globalAudio.volume = newVolume;
     }
   };
 
@@ -276,11 +277,12 @@ export default function Fourgride({
         }
         return prev.filter(f => f.id !== id);
       });
-      if (currentlyPlaying === id) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current = null;
+      if (globalPlayingId === id) {
+        if (globalAudio) {
+          globalAudio.pause();
+          globalAudio = null;
         }
+        globalPlayingId = null;
         setCurrentlyPlaying(null);
         setIsPlaying(false);
       }
@@ -311,9 +313,9 @@ export default function Fourgride({
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-          {/* Bottom sheet */}
+          {/* Bottom sheet - 4px corner curve */}
           <div
-            className="relative bg-white w-full max-w-md rounded-t-md shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
+            className="relative bg-white w-full max-w-md rounded-t-[4px] shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -472,7 +474,7 @@ export default function Fourgride({
       {/* ---------- Music Full Screen Sheet (BLACK) ---------- */}
       {showMusicSheet && (
         <div className="fixed inset-0 z-[60] flex flex-col bg-black animate-slide-up">
-          {/* Header: back icon left, title center */}
+          {/* Header: back arrow left, title center */}
           <div className="relative flex items-center justify-center px-4 pt-5 pb-4">
             <button
               onClick={handleCloseMusicSheet}
@@ -480,7 +482,8 @@ export default function Fourgride({
               aria-label="Back"
             >
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
-                <polyline points="15 18 9 12 15 6" />
+                <line x1="19" y1="12" x2="5" y2="12" />
+                <polyline points="12 19 5 12 12 5" />
               </svg>
             </button>
             <h2 className="text-lg font-bold text-white">Music</h2>
@@ -555,7 +558,7 @@ export default function Fourgride({
         </div>
       )}
 
-      {/* Hidden file input - audio picker (opens music library) */}
+      {/* Hidden file input - audio picker */}
       <input
         ref={fileInputRef}
         type="file"
@@ -565,7 +568,7 @@ export default function Fourgride({
         className="hidden"
       />
 
-      {/* Single global style tag - avoids nested styled-jsx error */}
+      {/* Single global style tag */}
       <style jsx global>{`
         @keyframes slideUp {
           from { transform: translateY(100%); }
