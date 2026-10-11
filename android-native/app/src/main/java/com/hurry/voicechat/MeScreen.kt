@@ -48,14 +48,14 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
     )
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Color(0xFFF9FAFB)),
+        modifier = Modifier.fillMaxSize().background(Color(0xFFF1F1F1)),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         item {
             Column(
                 Modifier.fillMaxWidth().background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF3B82F6), Color(0xFFEFF6FF), Color(0xFFF9FAFB)),
+                        listOf(Color(0xFF2563EB), Color(0xFFEFF6FF), Color(0xFFF1F1F1)),
                         startY = 0f, endY = 620f
                     )
                 ).padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
