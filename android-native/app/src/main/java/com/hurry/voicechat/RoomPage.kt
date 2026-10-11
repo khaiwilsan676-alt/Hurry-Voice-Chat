@@ -73,6 +73,7 @@ fun RoomPage(
     var input by remember{mutableStateOf("")}
     var announcement by remember{mutableStateOf("")}
     var selectedSeat by remember{mutableIntStateOf(0)}
+    var showSeatSheet by remember{mutableStateOf(false)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..8)add(NativeRoomSeat(i))}}
     val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
@@ -176,7 +177,7 @@ fun RoomPage(
             }
             Spacer(Modifier.weight(1f))
             Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
-                seats.take(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number}}
+                seats.take(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number;showSeatSheet=true}}
             }
             Spacer(Modifier.height(18.dp))
             Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
@@ -242,9 +243,47 @@ fun RoomPage(
         if(showGames) GamesSheet{showGames=false}
         if(showMusic) MusicSheet{showMusic=false}
         if(showEmoji) EmojiSheet({showEmoji=false}){input+=it;showEmoji=false}
-        if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true) {
+        if(showSeatSheet && selectedSeat>0) {
+            val seat=seats.firstOrNull{it.number==selectedSeat}
+            if(seat!=null) SeatActionSheet(
+                seat=seat,
+                isOwner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
+                isMySeat=seat.occupied && seat.accountId==accountId,
+                onDismiss={showSeatSheet=false;selectedSeat=0},
+                onTake={ if(!seat.occupied && !seat.locked){seats[selectedSeat-1]=seat.copy(occupied=true,userName=currentUser.name,userImage=currentUser.image,accountId=accountId);showSeatSheet=false;selectedSeat=0} },
+                onLeave={seats[selectedSeat-1]=seat.copy(occupied=false,userName="",userImage="",accountId="",muted=false,speaking=false);showSeatSheet=false;selectedSeat=0},
+                onMute={seats[selectedSeat-1]=seat.copy(muted=!seat.muted);showSeatSheet=false;selectedSeat=0},
+                onLock={seats[selectedSeat-1]=seat.copy(locked=!seat.locked);showSeatSheet=false;selectedSeat=0},
+                onInvite={clipboard.setText(AnnotatedString("Join room $roomName — seat $selectedSeat (ID: $roomId)"));showSeatSheet=false;selectedSeat=0}
+            )
+        }
+        if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true && !showSeatSheet) {
             MemberSheet(seats.first{it.number==selectedSeat}){selectedSeat=0}
         }
+    }
+}
+
+@Composable private fun SeatActionSheet(
+    seat:NativeRoomSeat,isOwner:Boolean,isMySeat:Boolean,onDismiss:()->Unit,
+    onTake:()->Unit,onLeave:()->Unit,onMute:()->Unit,onLock:()->Unit,onInvite:()->Unit
+){
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{onDismiss()},contentAlignment=Alignment.BottomCenter){
+        Surface(Modifier.fillMaxWidth(),color=Color.White.copy(alpha=.96f),shape=RoundedCornerShape(topStart=24.dp,topEnd=24.dp)){
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=16.dp,vertical=12.dp),verticalArrangement=Arrangement.spacedBy(2.dp)){
+                if(!seat.occupied && !isMySeat) SeatSheetAction("Take Mic",enabled=!seat.locked,onClick=onTake)
+                if(isMySeat) SeatSheetAction("Leave Seat",onClick=onLeave)
+                if(isOwner || isMySeat || seat.occupied) SeatSheetAction(if(seat.muted)"Unmute Seat" else "Mute Seat",onClick=onMute)
+                if(isOwner) SeatSheetAction(if(seat.locked)"Unlock Mic" else "Lock Mic",onClick=onLock)
+                SeatSheetAction("Invite",onClick=onInvite)
+                Spacer(Modifier.height(4.dp))
+                TextButton(onClick=onDismiss,modifier=Modifier.fillMaxWidth()){Text("Cancel",color=Color.DarkGray)}
+            }
+        }
+    }
+}
+@Composable private fun SeatSheetAction(label:String,enabled:Boolean=true,onClick:()->Unit){
+    TextButton(onClick=onClick,enabled=enabled,modifier=Modifier.fillMaxWidth().height(44.dp),shape=RoundedCornerShape(10.dp)){
+        Text(label,color=if(enabled)Color(0xFF171717) else Color.Gray,fontSize=14.sp)
     }
 }
 
