@@ -50,7 +50,7 @@ async function addCoinsToDB(amount: number): Promise<void> {
 }
 
 interface RoomPageProps {
-  roomOwner: { id?: string; uid?: string; accountId?: string; name: string; image: string; };
+  roomOwner: { id?: string; uid?: string; accountId?: string; name: string; image: string; country?: string; };
   currentUser: { id?: string; uid?: string; accountId: string; name: string; image: string; };
   onClose?: () => void;
   onBack?: () => void;
@@ -245,8 +245,19 @@ const MarqueeText = memo(function MarqueeText({
     return () => { clearTimeout(t); window.removeEventListener("resize", check); };
   }, [text]);
 
+  const fadeStyle: React.CSSProperties = shouldScroll
+    ? {
+        WebkitMaskImage: "linear-gradient(to right, transparent 0%, #000 10%, #000 80%, transparent 100%)",
+        maskImage: "linear-gradient(to right, transparent 0%, #000 10%, #000 80%, transparent 100%)",
+      }
+    : {};
+
   return (
-    <div ref={containerRef} className={`overflow-hidden ${className}`} style={style}>
+    <div
+      ref={containerRef}
+      className={`overflow-hidden ${className}`}
+      style={{ ...style, ...fadeStyle }}
+    >
       <div
         ref={innerRef}
         className={`inline-flex whitespace-nowrap will-change-transform ${shouldScroll ? "marquee-inner" : ""}`}
@@ -454,6 +465,7 @@ function RoomContent({
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [roomPassword, setRoomPassword] = useState<string>("");
   const [roomDp, setRoomDp] = useState<string>(roomOwner.image || "/default-avatar.png");
+  const [roomCountry, setRoomCountry] = useState<string>(roomOwner.country || "");
   const [micMode, setMicMode] = useState<number>(15);
   const [roomInfoTab, setRoomInfoTab] = useState<'profile' | 'members'>('profile');
   const [backgroundImage, setBackgroundImage] = useState<string>("/1784533036732~2.jpg");
@@ -480,6 +492,10 @@ function RoomContent({
     const image = localStorage.getItem('userPhoto') || '/default-avatar.png';
     const storedAccNum = localStorage.getItem('accountNumber') || '';
     setLocalUser({ name, image, accountId: storedAccNum });
+    if (!roomCountry) {
+      const flag = localStorage.getItem('userCountry') || '';
+      if (flag) setRoomCountry(flag);
+    }
   }, []);
 
   useEffect(() => { localStorage.setItem('cupCount', String(cupCount)); }, [cupCount]);
@@ -576,6 +592,7 @@ useEffect(() => {
           if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
           if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
           if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
+          if (dbRoom.country) setRoomCountry(String(dbRoom.country));
           await saveRoomSettingsToIndexedDB({
             roomId: String(roomId), roomName: realName || roomName, roomDp: realDp || roomDp,
             announcement: dbRoom.announcement || "", micMode: Number(dbRoom.micMode || 15),
@@ -862,7 +879,8 @@ useEffect(() => {
     document.removeEventListener('touchstart', handleTouchOutside);
   };
 }, [showChatInput]);
-  const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
+
+const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
   const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
   setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
   setShowUserProfile(true);
@@ -1041,7 +1059,7 @@ const handleSaveSettings = async (data: Partial<RoomSettingsData>) => {
       accountId: roomOwner.accountId || roomId, id: roomOwner.accountId || roomId, roomId: roomOwner.accountId || roomId,
       name: roomSettings.roomName, roomName: roomSettings.roomName, 'Room Name': roomSettings.roomName,
       image: roomSettings.roomDp, roomDp: roomSettings.roomDp, 'Room dp': roomSettings.roomDp,
-      country: localStorage.getItem('userCountry') || '🇮🇳',
+      country: roomCountry || localStorage.getItem('userCountry') || '🇮🇳',
       message: roomSettings.announcement, announcement: roomSettings.announcement,
       theme: roomSettings.theme, micMode: roomSettings.micMode,
       isLocked: roomSettings.isLocked, roomPassword: roomSettings.roomPassword,
@@ -1058,7 +1076,7 @@ const handleSaveSettings = async (data: Partial<RoomSettingsData>) => {
       id: currentUser.id || roomId,
       accountId: currentUser.accountId || roomOwner.accountId,
       name: roomSettings.roomName, image: roomSettings.roomDp,
-      country: localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
+      country: roomCountry || localStorage.getItem('userCountry') || existingMyRoom.country || '🇮🇳'
     };
     localStorage.setItem('myRoom', JSON.stringify(updatedMyRoomCard));
     window.dispatchEvent(new Event('storage'));
@@ -1225,37 +1243,52 @@ if (showSettingPage) return (
     <img src={backgroundImage} alt="Room Background" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" draggable={false} />
     <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
 
-    <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
+    <div className="relative z-10 flex flex-col flex-1 min-h-0" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
-      {/* Top Header */}
-      <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
-        <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
-          <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
-            <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
+      {/* Top Header — pill card left edge pe chipka, right side round */}
+      <div className="flex justify-between items-center text-white flex-shrink-0">
+        <div className="flex items-center gap-2 rounded-r-full bg-black/40 backdrop-blur-md py-1 pr-4 pl-2 border-none shadow-sm max-w-[220px]">
+          <button
+            onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }}
+            className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+            style={{ width: '34px', height: '34px' }}
+          >
+            <img
+              src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"}
+              onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }}
+              alt="Room Cover"
+              className="w-full h-full object-cover"
+              draggable={false}
+              loading="eager"
+              decoding="async"
+            />
           </button>
-          <div className="text-left py-0.5">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <h2
-                className="font-bold leading-tight rounded-full px-2 py-0.5"
-                style={{ fontSize: 'var(--header-room-name-size)' }}
-              >
+          <div className="flex flex-col min-w-0 text-left">
+            <div className="flex items-center gap-1 min-w-0">
+              <h2 className="font-bold leading-tight" style={{ fontSize: '12px' }}>
                 <MarqueeText
                   text={roomName || 'Room'}
-                  className="rounded-full"
-                  style={{ maxWidth: 'calc(var(--header-room-name-size) * 4)' }}
+                  style={{ maxWidth: '80px' }}
                 />
               </h2>
+              {roomCountry && (
+                <span className="text-[12px] leading-none shrink-0">{roomCountry}</span>
+              )}
               {!isRoomOwner && (
-                <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
-                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                <button
+                  onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }}
+                  className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600 shrink-0"
+                  style={{ width: '20px', height: '20px', border: 'none' }}
+                >
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '12px', height: '12px' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
                 </button>
               )}
             </div>
-            <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || ''}</p>
+            <span className="text-white leading-tight mt-0.5" style={{ fontSize: '10px' }}>ID:{roomOwner.accountId || ''}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5 pr-2">
           <button onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }} className="flex items-center gap-1 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm" style={{ height: 'var(--header-btn-size)', padding: 'var(--header-btn-padding)' }}>
             <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
               <circle cx="9" cy="7" r="4.2" />
@@ -1282,7 +1315,7 @@ if (showSettingPage) return (
         </div>
       </div>
 
-      {/* Trophy Card + Music Pill (Cup ke side, top pe) */}
+      {/* Trophy Card + Music Pill */}
       <div className="h-0 w-full relative z-20">
         <div className="absolute top-2 left-0 -ml-1 sm:-ml-2 flex items-center gap-2">
           <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
@@ -1321,7 +1354,7 @@ if (showSettingPage) return (
       </div>
 
       {/* Middle */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 px-1 sm:px-2">
         <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">{renderSeats()}</div>
 
         <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
@@ -1488,7 +1521,7 @@ if (showSettingPage) return (
       )}
     </div>
 
-    {/* RIGHT-SIDE STACK — tight gaps */}
+    {/* RIGHT-SIDE STACK */}
     <div
       className={`absolute z-20 flex flex-col items-center pointer-events-auto gap-0.5 ${showChatInput ? 'hidden' : ''}`}
       style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }}
@@ -1532,16 +1565,27 @@ if (showSettingPage) return (
         </div>
       )}
 
+      {/* ACTIVE USERS SHEET — black transparent, 15px corner, no line */}
       {showActiveUsers && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '40vh', maxHeight: '40vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-4 pt-4 pb-2 border-b border-gray-200 flex-shrink-0">
-              <h2 className="text-base font-bold text-gray-800 text-center">Active Users</h2>
+          <div
+            className="relative w-full max-w-md animate-slide-up overflow-hidden flex flex-col"
+            style={{
+              height: '40vh',
+              maxHeight: '40vh',
+              background: 'rgba(0,0,0,0.78)',
+              borderTopLeftRadius: '15px',
+              borderTopRightRadius: '15px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 pt-4 pb-2 flex-shrink-0">
+              <h2 className="text-base font-bold text-white text-center">Active Users</h2>
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
               <div className="space-y-2 pb-4">
-                <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                <div className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
                   <div
                     className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
                     style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}
@@ -1557,19 +1601,19 @@ if (showSettingPage) return (
                     />
                   </div>
                   <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <h4 className="text-xs font-semibold text-gray-800 truncate">{localUser.name || 'Owner'}</h4>
+                    <h4 className="text-xs font-semibold text-white truncate">{localUser.name || 'Owner'}</h4>
                     <HouseIcon size={14} className="shrink-0" />
                   </div>
                 </div>
 
                 {roomUsers.filter(u => String(u.accountId) !== String(roomOwnerId)).map((user) => (
-                  <div key={user.accountId} className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                  <div key={user.accountId} className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: user.name, image: user.image, accountId: user.accountId })}>
                       <img src={user.image || "/default-avatar.png"} alt={user.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-semibold text-gray-800 truncate">{user.name}</h4>
-                      <p className="text-[10px] text-gray-400">ID: {user.accountId}</p>
+                      <h4 className="text-xs font-semibold text-white truncate">{user.name}</h4>
+                      <p className="text-[10px] text-white/60">ID: {user.accountId}</p>
                     </div>
                   </div>
                 ))}
@@ -1579,25 +1623,35 @@ if (showSettingPage) return (
         </div>
       )}
 
+      {/* ROOM INFO SHEET — black transparent, 15px corner, no lines */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
-          <div className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden flex flex-col" style={{ height: '50vh', maxHeight: '50vh' }} onClick={(e) => e.stopPropagation()}>
-
+          <div
+            className="relative w-full max-w-md animate-slide-up overflow-hidden flex flex-col"
+            style={{
+              height: '50vh',
+              maxHeight: '50vh',
+              background: 'rgba(0,0,0,0.78)',
+              borderTopLeftRadius: '15px',
+              borderTopRightRadius: '15px',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-3 px-4 pt-4 pb-2 flex-shrink-0">
               <button onClick={() => setRoomInfoTab('profile')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-black' : 'text-gray-400'}`}>Room info</span>
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'profile' ? 'text-white' : 'text-white/50'}`}>Room info</span>
                 {roomInfoTab === 'profile' && (
                   <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
-                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                    <path d="M 1 1 Q 10 7 19 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                   </svg>
                 )}
               </button>
               <button onClick={() => setRoomInfoTab('members')} className="flex-1 flex flex-col items-center py-1 cursor-pointer">
-                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-black' : 'text-gray-400'}`}>Members</span>
+                <span className={`text-sm font-semibold transition-colors ${roomInfoTab === 'members' ? 'text-white' : 'text-white/50'}`}>Members</span>
                 {roomInfoTab === 'members' && (
                   <svg width="20" height="6" viewBox="0 0 20 6" fill="none" style={{ marginTop: '2px' }}>
-                    <path d="M 1 1 Q 10 7 19 1" stroke="#000" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                    <path d="M 1 1 Q 10 7 19 1" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                   </svg>
                 )}
               </button>
@@ -1607,33 +1661,33 @@ if (showSettingPage) return (
               {roomInfoTab === 'profile' ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <div className="rounded-md overflow-hidden border border-gray-200 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
+                    <div className="rounded-md overflow-hidden border border-white/15 flex-shrink-0" style={{ width: '80px', height: '80px' }}>
                       <img src={roomDp} alt="Room" className="w-full h-full object-cover" loading="eager" decoding="async" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-800 text-sm truncate">{roomName || 'Room'}</h3>
-                      <div className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <h3 className="font-semibold text-white text-sm truncate">{roomName || 'Room'}</h3>
+                      <div className="flex items-center gap-1 text-[10px] text-white/60">
                         <span className="truncate">ID: {roomOwner.accountId}</span>
-                        <button onClick={handleCopyId} className="p-0.5 hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0" title="Copy ID">
-                          <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: '12px', height: '12px' }}>
+                        <button onClick={handleCopyId} className="p-0.5 hover:bg-white/10 rounded transition-colors cursor-pointer shrink-0" title="Copy ID">
+                          <svg viewBox="0 0 24 24" className="fill-none stroke-white/70 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: '12px', height: '12px' }}>
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                           </svg>
                         </button>
-                        {copied && <span className="text-green-500 text-xs shrink-0">Copied!</span>}
+                        {copied && <span className="text-green-400 text-xs shrink-0">Copied!</span>}
                       </div>
                     </div>
                   </div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Host</span><p className="text-xs font-medium text-gray-800 mt-0.5">{localUser.name || "Unknown"}</p></div>
-                  <div><span className="text-[10px] text-gray-400 font-medium">Announcement:</span><p className="text-xs text-gray-700 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
+                  <div><span className="text-[10px] text-white/50 font-medium">Host</span><p className="text-xs font-medium text-white mt-0.5">{localUser.name || "Unknown"}</p></div>
+                  <div><span className="text-[10px] text-white/50 font-medium">Announcement:</span><p className="text-xs text-white/90 mt-0.5 leading-relaxed">{roomAnnouncement || '—'}</p></div>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
+                  <div className="flex items-center gap-2 bg-white/5 rounded-lg px-2 py-2">
                     <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }} onClick={() => openProfile({ name: localUser.name, image: localUser.image, accountId: localUser.accountId || '' })}>
                       <img src={localUser.image || "/default-avatar.png"} alt={localUser.name} className="w-full h-full object-cover" loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
                     </div>
                     <div className="flex-1 min-w-0 flex items-center gap-1">
-                      <h4 className="text-xs font-medium text-gray-800 truncate">{localUser.name}</h4>
+                      <h4 className="text-xs font-medium text-white truncate">{localUser.name}</h4>
                       <span className="flex items-center justify-center flex-shrink-0" style={{ width: 'calc(var(--header-follow-btn-size) + 4px)', height: 'calc(var(--header-follow-btn-size) + 4px)' }}>
                         <HouseIcon size={26} style={{ width: '100%', height: '100%' }} />
                       </span>
@@ -1761,26 +1815,24 @@ if (showSettingPage) return (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowGameSheet(false)} />
           <div
-            className="relative w-full max-w-md shadow-2xl px-4 pt-4 pb-6 animate-slide-up"
+            className="relative w-full max-w-md px-4 pt-3 pb-6 animate-slide-up"
             style={{
               height: '20vh',
               background: 'rgba(0,0,0,0.78)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
               borderTopLeftRadius: '15px',
               borderTopRightRadius: '15px',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center mb-4">
-              <h2 className="text-lg font-bold text-white">Games</h2>
+            <div className="flex items-center justify-start mb-3">
+              <h2 className="text-base font-bold text-white">Games</h2>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="flex items-start gap-5">
               <div className="flex flex-col items-center">
-                <button onClick={() => { setShowGameSheet(false); setShowWildParty(true); }} className="transition-transform hover:scale-105 -mt-1">
+                <button onClick={() => { setShowGameSheet(false); setShowWildParty(true); }} className="transition-transform hover:scale-105">
                   <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild party" className="w-14 h-14 object-contain" loading="eager" decoding="async" />
                 </button>
-                <span className="text-[10px] text-white/90 -mt-1 whitespace-nowrap">Wild party</span>
+                <span className="text-[10px] text-white/90 mt-1 whitespace-nowrap">Wild party</span>
               </div>
               <div className="flex flex-col items-center">
                 <button onClick={() => { setShowGameSheet(false); setShowFruitParty(true); }} className="transition-transform hover:scale-105">
@@ -1877,7 +1929,7 @@ if (showSettingPage) return (
         .wave-ripple-delayed { animation: waveBehind 1.2s ease-out 0.4s infinite; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
-        .marquee-inner { animation: marquee-scroll 9s linear infinite; }
+        .marquee-inner { animation: marquee-scroll 14s linear infinite; }
         @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
         .entry-toast { animation: entryToastIn 0.55s cubic-bezier(0.22, 1, 0.36, 1); }
         @keyframes entryToastIn {
