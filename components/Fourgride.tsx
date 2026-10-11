@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import LuckyBag from './luckybag'; // <-- Yahan LuckyBag import kiya hai
+import LuckyBag from './luckybag';
 
 interface FourgrideProps {
   onClose: () => void;
@@ -81,26 +81,21 @@ export default function Fourgride({
   onMusicPlay,
   onOpenStore,
 }: FourgrideProps) {
-  // Toggle states (except publicMsgOff, which is controlled)
   const [entryEffect, setEntryEffect] = useState(false);
   const [giftEffect, setGiftEffect] = useState(false);
 
-  // States for Modals
   const [showMusicSheet, setShowMusicSheet] = useState(false);
-  const [showLuckyBag, setShowLuckyBag] = useState(false); // <-- Lucky Bag State
+  const [showLuckyBag, setShowLuckyBag] = useState(false);
 
-  // Music state
   const [musicFiles, setMusicFiles] = useState<{ id: string; name: string; url: string }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentlyPlaying, setCurrentlyPlaying] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showDeleteCard, setShowDeleteCard] = useState<string | null>(null);
   const [volume, setVolume] = useState(1);
   const [currentTrackName, setCurrentTrackName] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Toggle handlers
   const toggleEntryEffect = () => {
     setEntryEffect(prev => {
       const next = !prev;
@@ -123,12 +118,10 @@ export default function Fourgride({
     setGiftEffect(localStorage.getItem(GIFT_EFFECT_KEY) === 'true');
   }, []);
 
-  // Clear chat handler
   const handleClearChat = () => {
     onClearChat();
   };
 
-  // Load music files from IndexedDB on mount
   useEffect(() => {
     const loadMusic = async () => {
       try {
@@ -146,7 +139,6 @@ export default function Fourgride({
     loadMusic();
   }, []);
 
-  // Cleanup object URLs when component unmounts
   useEffect(() => {
     return () => {
       musicFiles.forEach((file) => URL.revokeObjectURL(file.url));
@@ -157,7 +149,6 @@ export default function Fourgride({
     };
   }, [musicFiles]);
 
-  // Handle music file selection - supports multiple files
   const handleAddMusic = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -181,7 +172,6 @@ export default function Fourgride({
 
     setMusicFiles(prev => [...prev, ...newMusicFiles.map(({ blob, ...rest }) => rest)]);
 
-    // Save all files to IndexedDB
     newMusicFiles.forEach(({ id, name, blob }) => {
       addMusicToDB({ id, name, blob });
     });
@@ -189,10 +179,8 @@ export default function Fourgride({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Play/pause handler
   const togglePlay = (id: string, url: string, name: string) => {
     if (currentlyPlaying === id) {
-      // Same track - toggle play/pause
       if (audioRef.current) {
         if (isPlaying) {
           audioRef.current.pause();
@@ -203,7 +191,6 @@ export default function Fourgride({
         }
       }
     } else {
-      // Different track - stop current and play new
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = url;
@@ -220,13 +207,11 @@ export default function Fourgride({
       setIsPlaying(true);
     }
 
-    // Notify parent component about music playback
     if (onMusicPlay) {
       onMusicPlay({ id, name, url });
     }
   };
 
-  // Handle audio ended
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.onended = () => {
@@ -236,7 +221,6 @@ export default function Fourgride({
     }
   }, [audioRef.current]);
 
-  // Handle volume change
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
@@ -245,7 +229,6 @@ export default function Fourgride({
     }
   };
 
-  // Delete music handler
   const handleDeleteMusic = async (id: string) => {
     try {
       await deleteMusicFromDB(id);
@@ -264,18 +247,15 @@ export default function Fourgride({
         setCurrentlyPlaying(null);
         setIsPlaying(false);
       }
-      setShowDeleteCard(null);
     } catch (error) {
       console.error('Error deleting music:', error);
     }
   };
 
-  // Close music sheet but keep playing
   const handleCloseMusicSheet = () => {
     setShowMusicSheet(false);
   };
 
-  // Filter music by search query
   const filteredMusic = musicFiles.filter((file) =>
     file.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -287,32 +267,25 @@ export default function Fourgride({
         <LuckyBag 
           onClose={() => {
             setShowLuckyBag(false);
-            onClose(); // Poora overlay close karne ke liye
+            onClose();
           }} 
         />
       )}
 
-      {/* ---------- Main Tools Sheet (Fourgride) ---------- */}
-      {/* Hide this sheet if Lucky Bag is showing */}
+      {/* ---------- Main Tools Sheet (Fourgride) – WHITE ---------- */}
       {!showLuckyBag && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-          {/* Bottom sheet */}
+          {/* Bottom sheet – WHITE background, small corner curve */}
           <div
-            className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
+            className="relative bg-white w-full max-w-md rounded-t-lg shadow-2xl px-4 pt-4 pb-6 animate-slide-up max-h-[70vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
+            {/* Header (no cross icon) */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-800">Tools</h2>
-              <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full">
-                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2.5]">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
             </div>
 
             {/* Row 1 – 4 items */}
@@ -328,7 +301,7 @@ export default function Fourgride({
                 <span className="text-[10px] text-gray-700 mt-1 text-center">Clear-Chat</span>
               </div>
 
-              {/* 2. Public msg Off with toggle overlay */}
+              {/* 2. Public msg Off */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img src="/IMG_20260814_110608.png" alt="Public msg Off" className="w-12 h-12 object-contain" />
@@ -349,7 +322,7 @@ export default function Fourgride({
                 <span className="text-[10px] text-gray-700 mt-1 whitespace-nowrap">Public msg</span>
               </div>
 
-              {/* 3. Entry Effect with toggle overlay */}
+              {/* 3. Entry Effect */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img src="/IMG_20260814_110709.png" alt="Entry Effect" className="w-12 h-12 object-contain" />
@@ -369,7 +342,7 @@ export default function Fourgride({
                 <span className="text-[10px] text-gray-700 mt-1 whitespace-nowrap">Entry Effect</span>
               </div>
 
-              {/* 4. Gift Effect with toggle overlay */}
+              {/* 4. Gift Effect */}
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img src="/IMG_20260814_110727.png" alt="Gift Effect" className="w-12 h-12 object-contain" />
@@ -392,7 +365,7 @@ export default function Fourgride({
 
             {/* Row 2 – 4 items */}
             <div className="grid grid-cols-4 gap-4 mb-4">
-              {/* 5. Music - opens music sheet */}
+              {/* 5. Music */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => setShowMusicSheet(true)}
@@ -403,7 +376,7 @@ export default function Fourgride({
                 <span className="text-[10px] text-gray-700 mt-1">Music</span>
               </div>
 
-              {/* 6. Speaker - OFF state (no toggle) */}
+              {/* 6. Speaker */}
               <div className="flex flex-col items-center">
                 <img src="/IMG_20260814_110628.png" alt="Speaker" className="w-12 h-12 object-contain" />
                 <button
@@ -450,16 +423,15 @@ export default function Fourgride({
               </div>
             </div>
 
-            {/* Bottom Section - Play Tools with Lucky Bag and PK Battle */}
+            {/* Bottom Section - Play Tools */}
             <div className="mt-2">
               <div className="flex items-center mb-2">
                 <h3 className="text-sm font-semibold text-gray-800">Play Tools</h3>
               </div>
               <div className="grid grid-cols-4 gap-4">
-                {/* Lucky Bag - Column 1 */}
                 <div className="flex flex-col items-center">
                   <button
-                    onClick={(e) => { e.stopPropagation(); setShowLuckyBag(true); }} // <-- Yahan onClick me state change laga di
+                    onClick={(e) => { e.stopPropagation(); setShowLuckyBag(true); }}
                     className="transition-transform hover:scale-105"
                   >
                     <img src="/1790602570756~2.jpg" alt="Lucky bag" className="w-12 h-12 object-contain" />
@@ -467,7 +439,6 @@ export default function Fourgride({
                   <span className="text-[10px] text-gray-700 mt-1">Lucky bag</span>
                 </div>
 
-                {/* PK Battle - Column 2 */}
                 <div className="flex flex-col items-center">
                   <button
                     onClick={() => console.log('PK Battle')}
@@ -478,7 +449,6 @@ export default function Fourgride({
                   <span className="text-[10px] text-gray-700 mt-1">Pk Battle</span>
                 </div>
 
-                {/* Empty columns 3 and 4 */}
                 <div className="flex flex-col items-center"></div>
                 <div className="flex flex-col items-center"></div>
               </div>
@@ -495,39 +465,29 @@ export default function Fourgride({
             `}</style>
           </div>
 
-          {/* ---------- Music Bottom Sheet ---------- */}
+          {/* ---------- Music Bottom Sheet (BLACK, smaller corner curve) ---------- */}
           {showMusicSheet && (
             <div className="fixed inset-0 z-[60] flex items-end justify-center">
+              {/* Backdrop - click closes sheet */}
               <div className="absolute inset-0 bg-black/40" onClick={handleCloseMusicSheet} />
               <div
-                className="relative bg-white w-full max-w-md rounded-t-3xl shadow-2xl animate-slide-up overflow-hidden"
+                className="relative bg-black w-full max-w-md rounded-t-lg shadow-2xl animate-slide-up overflow-hidden"
                 style={{ height: '50vh' }}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 pt-4 pb-2 border-b border-gray-200">
-                  <h2 className="text-lg font-bold text-gray-800">Music</h2>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-3 py-1 flex items-center gap-1 transition-colors cursor-pointer"
-                    >
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
-                        <line x1="12" y1="5" x2="12" y2="19" />
-                        <line x1="5" y1="12" x2="19" y2="12" />
-                      </svg>
-                      Add
-                    </button>
-                    <button
-                      onClick={handleCloseMusicSheet}
-                      className="p-1 hover:bg-gray-100 rounded-full"
-                    >
-                      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2.5]">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                      </svg>
-                    </button>
-                  </div>
+                {/* Header (no cross icon) */}
+                <div className="flex items-center justify-between px-6 pt-4 pb-2 border-b border-white/10">
+                  <h2 className="text-lg font-bold text-white">Music</h2>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-3 py-1 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Add
+                  </button>
                 </div>
 
                 {/* Search input */}
@@ -537,70 +497,53 @@ export default function Fourgride({
                     placeholder="Search music..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-gray-100 rounded-lg px-4 py-2 text-sm text-gray-700 outline-none border border-gray-200 focus:border-blue-400"
+                    className="w-full bg-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder-white/40 outline-none border border-white/10 focus:border-blue-400"
                   />
                 </div>
 
                 {/* Music list */}
                 <div className="flex-1 overflow-y-auto px-4 py-3" style={{ maxHeight: 'calc(50vh - 120px)' }}>
                   {filteredMusic.length === 0 ? (
-                    <p className="text-center text-gray-400 text-sm py-8">
+                    <p className="text-center text-white/40 text-sm py-8">
                       {musicFiles.length === 0 ? 'No music added yet. Click Add to select multiple files!' : 'No matching music found'}
                     </p>
                   ) : (
                     <div className="space-y-2">
                       {filteredMusic.map((file) => (
-                        <div key={file.id} className="relative">
-                          <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-3 py-2.5">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-800 truncate">{file.name}</p>
-                            </div>
-                            <button
-                              onClick={() => togglePlay(file.id, file.url, file.name)}
-                              className="p-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
-                              aria-label={currentlyPlaying === file.id && isPlaying ? 'Pause' : 'Play'}
-                            >
-                              {currentlyPlaying === file.id && isPlaying ? (
-                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2] stroke-linecap-round stroke-linejoin-round">
-                                  <rect x="6" y="4" width="4" height="16" rx="1" />
-                                  <rect x="14" y="4" width="4" height="16" rx="1" />
-                                </svg>
-                              ) : (
-                                <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gray-700 stroke-[2] stroke-linecap-round stroke-linejoin-round">
-                                  <polygon points="5 3 19 12 5 21 5 3" />
-                                </svg>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => setShowDeleteCard(showDeleteCard === file.id ? null : file.id)}
-                              className="p-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
-                              aria-label="More options"
-                            >
-                              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-gray-600">
-                                <circle cx="12" cy="5" r="2" />
-                                <circle cx="12" cy="12" r="2" />
-                                <circle cx="12" cy="19" r="2" />
-                              </svg>
-                            </button>
+                        <div key={file.id} className="flex items-center gap-3 bg-white/5 rounded-lg px-3 py-2.5">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-white truncate">{file.name}</p>
                           </div>
 
-                          {/* Delete Card */}
-                          {showDeleteCard === file.id && (
-                            <div className="absolute right-0 top-full mt-1 z-10 bg-white rounded-lg shadow-lg border border-gray-200 p-2">
-                              <button
-                                onClick={() => handleDeleteMusic(file.id)}
-                                className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer w-full"
-                              >
-                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-red-600 stroke-[2] stroke-linecap-round stroke-linejoin-round">
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                  <line x1="10" y1="11" x2="10" y2="17" />
-                                  <line x1="14" y1="11" x2="14" y2="17" />
-                                </svg>
-                                Delete
-                              </button>
-                            </div>
-                          )}
+                          {/* Play / Pause button - FULL WHITE */}
+                          <button
+                            onClick={() => togglePlay(file.id, file.url, file.name)}
+                            className="p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                            aria-label={currentlyPlaying === file.id && isPlaying ? 'Pause' : 'Play'}
+                          >
+                            {currentlyPlaying === file.id && isPlaying ? (
+                              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
+                                <rect x="6" y="4" width="4" height="16" rx="1" />
+                                <rect x="14" y="4" width="4" height="16" rx="1" />
+                              </svg>
+                            ) : (
+                              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-white">
+                                <polygon points="5 3 19 12 5 21 5 3" />
+                              </svg>
+                            )}
+                          </button>
+
+                          {/* Cross icon in white/10 circle - removes music on click */}
+                          <button
+                            onClick={() => handleDeleteMusic(file.id)}
+                            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                            aria-label="Remove music"
+                          >
+                            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-white stroke-[2.5] stroke-linecap-round">
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -612,7 +555,7 @@ export default function Fourgride({
         </div>
       )}
 
-      {/* Hidden file input for music - supports multiple files */}
+      {/* Hidden file input for music */}
       <input
         ref={fileInputRef}
         type="file"
@@ -623,5 +566,4 @@ export default function Fourgride({
       />
     </>
   );
-}
-
+                                       }
