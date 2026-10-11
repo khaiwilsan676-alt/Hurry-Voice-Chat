@@ -37,15 +37,15 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
         )
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF3F6FA))) {
+    Column(Modifier.fillMaxSize().background(Color(0xFFEFEFEF))) {
         Box(
             Modifier.fillMaxWidth().background(
                 Brush.verticalGradient(
-                    0.0f to Color(0xFF3B82F6),
-                    0.60f to Color(0xFFEFF6FF),
-                    1.0f to Color(0xFFF3F6FA)
+                    0.0f to Color(0xFF2563EB),
+                    0.72f to Color(0xFFEFEFEF),
+                    1.0f to Color(0xFFEFEFEF)
                 )
-            )  .padding(top = 14.dp)
+            ).statusBarsPadding().padding(top = 8.dp)
         ) {
             Text(
                 "Message",

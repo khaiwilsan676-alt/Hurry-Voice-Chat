@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -189,7 +190,7 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
 
                 // ─── Banner ───
-                Box(Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth().then(if (tab == 1) Modifier.padding(horizontal = 8.dp) else Modifier)) {
                     AsyncImage(RAW_WALLET + banner, null, Modifier.fillMaxWidth(),
                         contentScale = ContentScale.Fit)
                     Column(Modifier.padding(start = 34.dp, top = 34.dp)) {
@@ -245,7 +246,36 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
                     2 -> AgentContent()
                 }
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(if (tab == 1) 100.dp else 24.dp))
+            }
+        }
+
+        if (tab == 1) {
+            Box(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    .navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    Modifier.fillMaxWidth(0.75f).height(50.dp)
+                        .clip(RoundedCornerShape(28.dp)).background(Color(0xFF0044FF))
+                        .clickable {
+                            val d = din.toLongOrNull() ?: 0L
+                            val c = cin.toLongOrNull() ?: 0L
+                            if (d > 0 && c > 0) {
+                                scope.launch {
+                                    if (subtractDiamondsFromDB(dao, d)) {
+                                        recordTransaction(dao, "Diamond Exchange", -d, "diamond")
+                                        addCoinsToDB(dao, c)
+                                        din = ""; cin = ""
+                                    }
+                                }
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Exchange", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
             }
         }
 
@@ -375,50 +405,44 @@ private fun DiamondsContent(
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                InputBox("Input multiple", din, Modifier.weight(1f), onDinChange, suffix = "x100")
+                DiamondInputBox("Input multiple", din, Modifier.weight(1f), onDinChange,
+                    icon = "1787321690452.png", suffix = "x100")
                 Text("=", color = Color(0xFFD1D5DB), fontWeight = FontWeight.Bold)
-                InputBox("Coins", cin, Modifier.weight(1f), onCinChange)
+                DiamondInputBox("Coins", cin, Modifier.weight(1f), onCinChange,
+                    icon = "file_00000000e56882119c217d508b6733dc.png")
             }
         }
 
         // ─── Exchange rate ───
         Column(Modifier.fillMaxWidth().padding(top = 16.dp)) {
             Text("exchange rate", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF6B7280))
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("20%", "40%", "60%", "80%", "100%").forEach { r ->
-                    Box(
-                        Modifier.weight(1f).height(38.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (rate == r) Color(0xFF0044FF) else Color.White)
-                            .border(1.dp,
-                                if (rate == r) Color(0xFF0044FF) else Color(0xFFBFDBFE),
-                                RoundedCornerShape(12.dp))
-                            .clickable { onRateSelect(r) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(r, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            color = if (rate == r) Color.White else Color(0xFF0044FF))
+            Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("20%", "40%", "60%", "80%", "100%").chunked(3).forEach { rowRates ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        rowRates.forEach { r ->
+                            Box(
+                                Modifier.weight(1f).height(38.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(if (rate == r) Color(0xFF0044FF) else Color.White)
+                                    .border(1.dp,
+                                        if (rate == r) Color(0xFF0044FF) else Color(0xFFBFDBFE),
+                                        RoundedCornerShape(12.dp))
+                                    .clickable { onRateSelect(r) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(r, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                    color = if (rate == r) Color.White else Color(0xFF0044FF))
+                            }
+                        }
+                        if (rowRates.size < 3) repeat(3 - rowRates.size) {
+                            Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
             }
         }
 
-        Spacer(Modifier.weight(1f))
 
-        // ─── Exchange button at bottom ───
-        Row(Modifier.fillMaxWidth().padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.Center) {
-            Box(
-                Modifier.fillMaxWidth(.75f).height(50.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Color(0xFF0044FF))
-                    .clickable { onExchange() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Exchange", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            }
-        }
     }
 }
 
@@ -487,44 +511,63 @@ private fun Pack(c: String, p: String, b: String, m: Modifier, onClick: () -> Un
 }
 
 @Composable
-private fun InputBox(hint: String, value: String, m: Modifier, onChange: (String) -> Unit, suffix: String? = null) {
-    OutlinedTextField(
-        value = value, onValueChange = onChange,
-        modifier = m.height(52.dp), singleLine = true,
-        placeholder = { Text(hint, fontSize = 13.sp, color = Color(0xFF9CA3AF)) },
-        shape = RoundedCornerShape(12.dp),
-        suffix = suffix?.let { { Text(it, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF)) } },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF0044FF),
-            unfocusedBorderColor = Color(0xFFE5E7EB),
-            focusedContainerColor = Color(0xFFF9FAFB),
-            unfocusedContainerColor = Color(0xFFF9FAFB),
-            focusedTextColor = Color(0xFF111827),
-            unfocusedTextColor = Color(0xFF111827)
-        ),
-        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    )
+private fun DiamondInputBox(
+    hint: String,
+    value: String,
+    m: Modifier,
+    onChange: (String) -> Unit,
+    icon: String,
+    suffix: String? = null
+) {
+    Row(
+        m.height(42.dp).clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF9FAFB).copy(alpha = 0.9f))
+            .border(1.dp, Color(0xFFDBEAFE), RoundedCornerShape(12.dp))
+            .padding(horizontal = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        AsyncImage(RAW_WALLET + icon, null, Modifier.size(16.dp), contentScale = ContentScale.Fit)
+        Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (value.isEmpty()) {
+                Text(hint, fontSize = 12.sp, color = Color(0xFF9CA3AF), maxLines = 1)
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 12.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151)
+                )
+            )
+        }
+        if (suffix != null) {
+            Text(suffix, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
+        }
+    }
 }
 
 // ─── Agent chat icon (blue circle + white bubble + 3 dots) ───
 @Composable
 private fun ChatIcon() {
     Box(Modifier.size(44.dp).clickable {}, contentAlignment = Alignment.Center) {
-        Box(Modifier.size(32.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)),
-            contentAlignment = Alignment.Center) {
-            Box(Modifier.size(19.dp).clip(RoundedCornerShape(50)).background(Color.White)) {
-                Row(Modifier.fillMaxSize().padding(horizontal = 3.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    repeat(3) {
-                        Box(Modifier.size(3.dp).clip(RoundedCornerShape(50)).background(Color(0xFF0044FF)))
-                    }
-                }
+        androidx.compose.foundation.Canvas(Modifier.size(32.dp)) {
+            val scale = size.width / 48f
+            val blue = Color(0xFF0044FF)
+            drawCircle(blue, radius = 23f * scale)
+            drawCircle(Color.White, radius = 14f * scale)
+            val tail = androidx.compose.ui.graphics.Path().apply {
+                moveTo(14f * scale, 32f * scale)
+                lineTo(13f * scale, 38f * scale)
+                lineTo(19f * scale, 34f * scale)
+                close()
             }
-            Box(Modifier.size(6.dp)
-                .offset(x = (-5).dp, y = 7.dp)
-                .rotate(45f)
-                .background(Color.White))
+            drawPath(tail, Color.White)
+            listOf(18f, 24f, 30f).forEach { x ->
+                drawCircle(blue, radius = 2f * scale,
+                    center = androidx.compose.ui.geometry.Offset(x * scale, 24f * scale))
+            }
         }
     }
 }

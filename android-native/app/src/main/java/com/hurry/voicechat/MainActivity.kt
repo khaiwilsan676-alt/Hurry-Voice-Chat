@@ -52,6 +52,12 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             var showLaunch by remember { mutableStateOf(true) }
+            var authenticated by remember {
+                mutableStateOf(
+                    getSharedPreferences("hurry_auth", MODE_PRIVATE)
+                        .getString("uid", null).isNullOrBlank().not()
+                )
+            }
             LaunchedEffect(Unit) {
                 kotlinx.coroutines.delay(1200)
                 showLaunch = false
@@ -59,6 +65,8 @@ class MainActivity : ComponentActivity() {
             }
             if (showLaunch) {
                 HurryLaunchScreen()
+            } else if (!authenticated) {
+                NativeLoginScreen(onLoginSuccess = { authenticated = true })
             } else {
                 HurryNativeRoot()
             }
