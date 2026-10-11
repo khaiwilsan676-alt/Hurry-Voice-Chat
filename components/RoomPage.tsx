@@ -74,6 +74,7 @@ interface Message {
 
 interface RoomUser { accountId: string; name: string; image: string; }
 interface MusicTrack { id: string; name: string; url: string; }
+interface EntryToastData { id: string; name: string; image: string; }
 
 const THEME_BACKGROUNDS: { [key: string]: string } = {
   'forest-night': '/1784875884052~2.jpg',
@@ -225,6 +226,71 @@ const SeatBubbleIconGrey = memo(function SeatBubbleIconGrey() {
   );
 });
 
+const MarqueeText = memo(function MarqueeText({
+  text, className = "", style = {},
+}: { text: string; className?: string; style?: React.CSSProperties }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      if (containerRef.current && innerRef.current) {
+        setShouldScroll(innerRef.current.scrollWidth > containerRef.current.clientWidth + 1);
+      }
+    };
+    check();
+    const t = setTimeout(check, 50);
+    window.addEventListener("resize", check);
+    return () => { clearTimeout(t); window.removeEventListener("resize", check); };
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className={`overflow-hidden ${className}`} style={style}>
+      <div
+        ref={innerRef}
+        className={`inline-flex whitespace-nowrap will-change-transform ${shouldScroll ? "marquee-inner" : ""}`}
+      >
+        <span className={shouldScroll ? "pr-8" : ""}>{text}</span>
+        {shouldScroll && <span className="pr-8" aria-hidden="true">{text}</span>}
+      </div>
+    </div>
+  );
+});
+
+const EntryToastStack = memo(function EntryToastStack({ toasts }: { toasts: EntryToastData[] }) {
+  if (toasts.length === 0) return null;
+  return (
+    <div
+      className="fixed left-0 z-[9998] pointer-events-none flex flex-col items-start pl-2"
+      style={{ bottom: '33vh' }}
+    >
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className="entry-toast mb-1 flex items-center gap-1.5 bg-green-500/80 backdrop-blur-sm pr-3 pl-1 py-1 shadow-lg"
+          style={{ borderRadius: '999px 0 0 999px' }}
+        >
+          <img
+            src={t.image || '/default-avatar.png'}
+            alt={t.name}
+            className="rounded-full object-cover shrink-0"
+            style={{ width: '22px', height: '22px' }}
+            loading="eager"
+            decoding="async"
+            onError={(e) => { (e.target as HTMLImageElement).src = '/default-avatar.png'; }}
+          />
+          <span className="text-white font-semibold truncate" style={{ fontSize: '11px', maxWidth: '90px' }}>
+            {t.name}
+          </span>
+          <span className="text-white/90 whitespace-nowrap" style={{ fontSize: '10px' }}>
+            Enter the Room
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+});
 export default function RoomPage({ roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle }: RoomPageProps) {
   const [jitsiApi, setJitsiApi] = useState<any>(null);
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
@@ -314,7 +380,8 @@ function RoomVoiceJitsi({
       {children}
     </>
   );
-                                                             }
+}
+
 function RoomContent({
   roomOwner, currentUser, onClose, onBack, onKeepRoom, onFollowToggle, jitsiApi,
 }: RoomPageProps & { jitsiApi?: any }) {
@@ -328,8 +395,6 @@ function RoomContent({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const musicAudioRef = useRef<HTMLAudioElement | null>(null);
-  const isDraggingMiniRef = useRef(false);
-  const miniDragOffset = useRef({ x: 0, y: 0 });
 
   const [showExitMenu, setShowExitMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -362,7 +427,6 @@ function RoomContent({
   const [musicCurrentTime, setMusicCurrentTime] = useState(0);
   const [musicDuration, setMusicDuration] = useState(0);
 
-  const [miniPos, setMiniPos] = useState({ x: 20, y: 150 });
   const [publicMsgOff, setPublicMsgOff] = useState(false);
   const [showPublicMsgModal, setShowPublicMsgModal] = useState(false);
   const [roomAdmins, setRoomAdmins] = useState<string[]>([]);
@@ -394,13 +458,11 @@ function RoomContent({
   const [seats, setSeats] = useState<Seat[]>([]);
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [showSeatSheet, setShowSeatSheet] = useState(false);
+  const [entryToasts, setEntryToasts] = useState<EntryToastData[]>([]);
 
   const roomId = roomOwner.id || roomOwner.accountId || 'default-room';
   const hasSeat = seats.some(s => s.isOccupied && s.user?.accountId === userAccountId);
   const currentUserSeat = seats.find(s => s.isOccupied && s.user?.accountId === userAccountId);
-
-  const displayRoomName = roomName
-    ? (roomName.length > 6 ? roomName.substring(0, 6) + '...' : roomName) : 'Room';
 
   const formatCupCount = (n: number): string => {
     if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
@@ -416,380 +478,392 @@ function RoomContent({
   }, []);
 
   useEffect(() => { localStorage.setItem('cupCount', String(cupCount)); }, [cupCount]);
-
   const getInitialSeats = useCallback((mode: number): Seat[] => {
-    const s: Seat[] = [];
-    for (let i = 1; i <= mode; i++) s.push({ number: i, isOccupied: false, isLocked: false, isMuted: false, isSpeaking: false });
-    return s;
-  }, []);
+  const s: Seat[] = [];
+  for (let i = 1; i <= mode; i++) s.push({ number: i, isOccupied: false, isLocked: false, isMuted: false, isSpeaking: false });
+  return s;
+}, []);
 
-  useEffect(() => {
-    setMessages([]);
-    joinMessageSentRef.current = false;
-    clearedAtRef.current = null;
-  }, [roomId]);
+useEffect(() => {
+  setMessages([]);
+  setEntryToasts([]);
+  joinMessageSentRef.current = false;
+  clearedAtRef.current = null;
+}, [roomId]);
 
-  useEffect(() => {
-    setSeats(prev => {
-      const newSeats = getInitialSeats(micMode);
-      return newSeats.map(newSeat => {
-        const oldSeat = prev.find(s => s.number === newSeat.number);
-        if (oldSeat && oldSeat.isOccupied) {
-          return { ...newSeat, isOccupied: oldSeat.isOccupied, user: oldSeat.user, isMuted: oldSeat.isMuted, isSpeaking: oldSeat.isSpeaking, isLocked: oldSeat.isLocked, gif: oldSeat.gif };
-        }
-        return newSeat;
-      });
+useEffect(() => {
+  setSeats(prev => {
+    const newSeats = getInitialSeats(micMode);
+    return newSeats.map(newSeat => {
+      const oldSeat = prev.find(s => s.number === newSeat.number);
+      if (oldSeat && oldSeat.isOccupied) {
+        return { ...newSeat, isOccupied: oldSeat.isOccupied, user: oldSeat.user, isMuted: oldSeat.isMuted, isSpeaking: oldSeat.isSpeaking, isLocked: oldSeat.isLocked, gif: oldSeat.gif };
+      }
+      return newSeat;
     });
-  }, [micMode, getInitialSeats]);
+  });
+}, [micMode, getInitialSeats]);
 
-  useEffect(() => {
-    const handleHardwareBack = (e: Event) => {
-      e.preventDefault();
-      if (showSettingPage) setShowSettingPage(false);
-      else if (showSeatSheet) { setShowSeatSheet(false); setSelectedSeat(null); }
-      else if (showEmojiPicker) setShowEmojiPicker(false);
-      else if (showGiftPicker) setShowGiftPicker(false);
-      else if (showFourGride) setShowFourGride(false);
-      else if (showActiveUsers) setShowActiveUsers(false);
-      else if (showRoomInfo) setShowRoomInfo(false);
-      else if (showGameSheet) setShowGameSheet(false);
-      else if (showStore) setShowStore(false);
-      else if (showRoomTask) setShowRoomTask(false);
-      else if (showUserProfile) setShowUserProfile(false);
-      else if (showMessageSheet) setShowMessageSheet(false);
-      else setShowExitMenu(true);
+useEffect(() => {
+  const handleHardwareBack = (e: Event) => {
+    e.preventDefault();
+    if (showSettingPage) setShowSettingPage(false);
+    else if (showSeatSheet) { setShowSeatSheet(false); setSelectedSeat(null); }
+    else if (showEmojiPicker) setShowEmojiPicker(false);
+    else if (showGiftPicker) setShowGiftPicker(false);
+    else if (showFourGride) setShowFourGride(false);
+    else if (showActiveUsers) setShowActiveUsers(false);
+    else if (showRoomInfo) setShowRoomInfo(false);
+    else if (showGameSheet) setShowGameSheet(false);
+    else if (showStore) setShowStore(false);
+    else if (showRoomTask) setShowRoomTask(false);
+    else if (showUserProfile) setShowUserProfile(false);
+    else if (showMessageSheet) setShowMessageSheet(false);
+    else setShowExitMenu(true);
+  };
+  window.addEventListener('hardwareBackPress', handleHardwareBack);
+  return () => window.removeEventListener('hardwareBackPress', handleHardwareBack);
+}, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
+
+useEffect(() => {
+  if (!jitsiApi) return;
+  const isMuted = currentUserSeat?.isMuted ?? true;
+  const desiredState = hasSeat && !isMuted;
+  if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
+    desiredAudioStateRef.current = desiredState;
+    try { jitsiApi.executeCommand("setAudioMute", !desiredState); } catch (e) { console.error(e); }
+  }
+}, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
+
+useEffect(() => {
+  let mounted = true;
+  const loadRoomSettings = async () => {
+    if (!roomId) return;
+    try {
+      const cached = await loadRoomSettingsFromIndexedDB(String(roomId));
+      if (!mounted) return;
+      if (cached) {
+        if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
+        if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
+        if (cached.announcement) setRoomAnnouncement(cached.announcement);
+        if (cached.micMode) setMicMode(Number(cached.micMode));
+        if (cached.theme && THEME_BACKGROUNDS[cached.theme]) setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
+        if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
+        if (cached.roomPassword) setRoomPassword(cached.roomPassword);
+      } else {
+        setRoomName(roomOwner.name || "Room");
+        setRoomDp(roomOwner.image || "/default-avatar.png");
+      }
+    } catch (err) { console.error("Room settings IndexedDB load error:", err); }
+
+    try {
+      const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomOwner.accountId || roomOwner.id || roomId))}`));
+      if (response.ok) {
+        const result = await response.json();
+        const dbRoom = result?.room;
+        if (dbRoom && mounted) {
+          const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
+          const realDp = dbRoom.dp || dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
+          if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") setRoomName(realName);
+          if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") setRoomDp(realDp);
+          if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
+          if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
+          if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
+          if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
+          if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
+          await saveRoomSettingsToIndexedDB({
+            roomId: String(roomId), roomName: realName || roomName, roomDp: realDp || roomDp,
+            announcement: dbRoom.announcement || "", micMode: Number(dbRoom.micMode || 15),
+            theme: dbRoom.theme || "mood-light", isLocked: Boolean(dbRoom.isLocked),
+            roomPassword: dbRoom.roomPassword || "", updatedAt: Date.now()
+          });
+        }
+      }
+    } catch (e) { console.warn("Failed to fetch fresh room settings from MongoDB", e); }
+  };
+  loadRoomSettings();
+  return () => { mounted = false; };
+}, [roomId, roomOwner.name, roomOwner.image]);
+
+useEffect(() => {
+  let cancelled = false;
+  (async () => {
+    try {
+      const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomId))}`), { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json();
+      const admins = Array.isArray(data?.room?.admin) ? data.room.admin.map(String) : [];
+      if (!cancelled) setRoomAdmins(admins);
+    } catch {}
+  })();
+  return () => { cancelled = true; };
+}, [roomId]);
+
+// ⭐ MAIN REAL-TIME SOCKET EFFECT
+useEffect(() => {
+  if (!roomId || userAccountId === "guest") return;
+
+  const currentRoomUser: RoomUser = {
+    accountId: String(userAccountId),
+    name: currentUser.name || "User",
+    image: currentUser.image || "/default-avatar.png",
+  };
+
+  const handleRoomPresence = (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.users)) return;
+    const users: RoomUser[] = data.users
+      .map((user: any) => ({
+        accountId: String(user?.accountId || user?.userId || user?.id || ""),
+        name: user?.name || "User",
+        image: user?.image || user?.dp || "/default-avatar.png",
+      }))
+      .filter((user: RoomUser) => Boolean(user.accountId));
+    setRoomUsers(users);
+  };
+
+  const handleRoomUserOnline = (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
+    const userId = String(data.userId);
+    setRoomUsers(prev => {
+      const existing = prev.find(u => String(u.accountId) === userId);
+      if (existing) return prev.map(u => String(u.accountId) === userId ? { ...u, name: data.user?.name || u.name, image: data.user?.image || u.image } : u);
+      return [...prev, { accountId: userId, name: data.user?.name || "User", image: data.user?.image || "/default-avatar.png" }];
+    });
+  };
+
+  const handleRoomUserOffline = (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
+    setRoomUsers(prev => prev.filter(u => String(u.accountId) !== String(data.userId)));
+  };
+
+  const handleRoomMessage = async (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId)) return;
+    const incoming: Message = {
+      id: String(data.id || `${data.senderId || "user"}-${data.createdAt || Date.now()}`),
+      text: data.text || "",
+      sender: data.senderName || "Unknown",
+      senderImage: data.senderAvatar || "/default-avatar.png",
+      senderAccountId: data.senderAccountId || data.senderId || "",
+      timestamp: Number(data.createdAt || Date.now()),
+      type: data.type || "message",
+      imageUrl: data.imageUrl || undefined,
+      equippedBubble: data.equippedBubble || undefined,
+      equippedVehicle: data.equippedVehicle || undefined,
     };
-    window.addEventListener('hardwareBackPress', handleHardwareBack);
-    return () => window.removeEventListener('hardwareBackPress', handleHardwareBack);
-  }, [showSettingPage, showSeatSheet, showEmojiPicker, showGiftPicker, showFourGride, showActiveUsers, showRoomInfo, showGameSheet, showStore, showRoomTask, showUserProfile, showMessageSheet]);
 
-  useEffect(() => {
-    if (!jitsiApi) return;
-    const isMuted = currentUserSeat?.isMuted ?? true;
-    const desiredState = hasSeat && !isMuted;
-    if (desiredAudioStateRef.current !== desiredState || desiredAudioStateRef.current === null) {
-      desiredAudioStateRef.current = desiredState;
-      try { jitsiApi.executeCommand("setAudioMute", !desiredState); } catch (e) { console.error(e); }
+    if (incoming.type === 'join') {
+      const toastId = incoming.id;
+      setEntryToasts((prev) => {
+        if (prev.some((t) => t.id === toastId)) return prev;
+        return [...prev, { id: toastId, name: incoming.sender, image: incoming.senderImage }];
+      });
+      setTimeout(() => {
+        setEntryToasts((prev) => prev.filter((t) => t.id !== toastId));
+      }, 4000);
     }
-  }, [currentUserSeat?.isMuted, hasSeat, jitsiApi]);
 
-  useEffect(() => {
-    let mounted = true;
-    const loadRoomSettings = async () => {
-      if (!roomId) return;
-      try {
-        const cached = await loadRoomSettingsFromIndexedDB(String(roomId));
-        if (!mounted) return;
-        if (cached) {
-          if (cached.roomName && cached.roomName !== "Room") setRoomName(cached.roomName);
-          if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
-          if (cached.announcement) setRoomAnnouncement(cached.announcement);
-          if (cached.micMode) setMicMode(Number(cached.micMode));
-          if (cached.theme && THEME_BACKGROUNDS[cached.theme]) setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
-          if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
-          if (cached.roomPassword) setRoomPassword(cached.roomPassword);
-        } else {
-          setRoomName(roomOwner.name || "Room");
-          setRoomDp(roomOwner.image || "/default-avatar.png");
-        }
-      } catch (err) { console.error("Room settings IndexedDB load error:", err); }
-
-      try {
-        const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomOwner.accountId || roomOwner.id || roomId))}`));
-        if (response.ok) {
-          const result = await response.json();
-          const dbRoom = result?.room;
-          if (dbRoom && mounted) {
-            const realName = dbRoom['Room Name'] || dbRoom.roomName || dbRoom.name;
-            const realDp = dbRoom.dp || dbRoom['Room dp'] || dbRoom.roomDp || dbRoom.image;
-            if (realName && realName !== "My Room" && realName !== "My room" && realName !== "User") setRoomName(realName);
-            if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") setRoomDp(realDp);
-            if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
-            if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
-            if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
-            if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
-            if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
-            await saveRoomSettingsToIndexedDB({
-              roomId: String(roomId), roomName: realName || roomName, roomDp: realDp || roomDp,
-              announcement: dbRoom.announcement || "", micMode: Number(dbRoom.micMode || 15),
-              theme: dbRoom.theme || "mood-light", isLocked: Boolean(dbRoom.isLocked),
-              roomPassword: dbRoom.roomPassword || "", updatedAt: Date.now()
-            });
-          }
-        }
-      } catch (e) { console.warn("Failed to fetch fresh room settings from MongoDB", e); }
-    };
-    loadRoomSettings();
-    return () => { mounted = false; };
-  }, [roomId, roomOwner.name, roomOwner.image]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const response = await fetch(apiUrl(`/api/rooms?roomId=${encodeURIComponent(String(roomId))}`), { cache: "no-store" });
-        if (!response.ok) return;
-        const data = await response.json();
-        const admins = Array.isArray(data?.room?.admin) ? data.room.admin.map(String) : [];
-        if (!cancelled) setRoomAdmins(admins);
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [roomId]);
-
-  // ⭐⭐⭐ MAIN REAL-TIME SOCKET EFFECT ⭐⭐⭐
-  useEffect(() => {
-    if (!roomId || userAccountId === "guest") return;
-
-    const currentRoomUser: RoomUser = {
-      accountId: String(userAccountId),
-      name: currentUser.name || "User",
-      image: currentUser.image || "/default-avatar.png",
-    };
-
-    const handleRoomPresence = (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.users)) return;
-      const users: RoomUser[] = data.users
-        .map((user: any) => ({
-          accountId: String(user?.accountId || user?.userId || user?.id || ""),
-          name: user?.name || "User",
-          image: user?.image || user?.dp || "/default-avatar.png",
-        }))
-        .filter((user: RoomUser) => Boolean(user.accountId));
-      setRoomUsers(users);
-    };
-
-    const handleRoomUserOnline = (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
-      const userId = String(data.userId);
-      setRoomUsers(prev => {
-        const existing = prev.find(u => String(u.accountId) === userId);
-        if (existing) return prev.map(u => String(u.accountId) === userId ? { ...u, name: data.user?.name || u.name, image: data.user?.image || u.image } : u);
-        return [...prev, { accountId: userId, name: data.user?.name || "User", image: data.user?.image || "/default-avatar.png" }];
-      });
-    };
-
-    const handleRoomUserOffline = (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId) || !data.userId) return;
-      setRoomUsers(prev => prev.filter(u => String(u.accountId) !== String(data.userId)));
-    };
-
-    const handleRoomMessage = async (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      const incoming: Message = {
-        id: String(data.id || `${data.senderId || "user"}-${data.createdAt || Date.now()}`),
-        text: data.text || "",
-        sender: data.senderName || "Unknown",
-        senderImage: data.senderAvatar || "/default-avatar.png",
-        senderAccountId: data.senderAccountId || data.senderId || "",
-        timestamp: Number(data.createdAt || Date.now()),
-        type: data.type || "message",
-        imageUrl: data.imageUrl || undefined,
-        equippedBubble: data.equippedBubble || undefined,
-        equippedVehicle: data.equippedVehicle || undefined,
-      };
-      setMessages(prev => {
-        if (prev.some(msg => msg.id === incoming.id)) return prev;
-        return [...prev, incoming];
-      });
-      try {
-        const db = await openRoomMessagesDB();
-        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
-        transaction.objectStore(ROOM_MESSAGES_STORE).put({ ...incoming, roomId });
-        transaction.oncomplete = () => db.close();
-        transaction.onerror = () => db.close();
-      } catch (err) { console.error("IndexedDB room message save error:", err); }
-    };
-
-    const handleRoomChatCleared = async (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      clearedAtRef.current = Number(data.timestamp || Date.now());
-      setMessages([]);
-      try {
-        const db = await openRoomMessagesDB();
-        const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
-        const store = transaction.objectStore(ROOM_MESSAGES_STORE);
-        const request = store.index("roomId").openCursor(roomId);
-        request.onsuccess = () => {
-          const cursor = request.result;
-          if (cursor) { cursor.delete(); cursor.continue(); } else { db.close(); }
-        };
-        request.onerror = () => { db.close(); };
-      } catch (err) { console.error("Room chat cleared socket error:", err); }
-    };
-
-    const handleRoomLocked = (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      const ownerId = String(data.ownerId || "");
-      if (ownerId && ownerId === String(userAccountId)) return;
-      setIsLocked(true);
-      try { jitsiApi?.executeCommand("hangup"); } catch {}
-      alert("This room is locked. You cannot enter or listen to the room voice.");
-      if (onBack) onBack(); else if (onClose) onClose();
-    };
-
-    const handleSettingsUpdated = async (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId)) return;
-      if (data.roomName) setRoomName(data.roomName);
-      if (data.roomDp) setRoomDp(data.roomDp);
-      if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
-      if (data.micMode !== undefined) setMicMode(Number(data.micMode));
-      if (data.theme && THEME_BACKGROUNDS[data.theme]) setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
-      if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
-      if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
-      try {
-        await saveRoomSettingsToIndexedDB({
-          roomId: String(roomId), roomName: data.roomName || roomName, roomDp: data.roomDp || roomDp,
-          announcement: data.announcement || "", micMode: Number(data.micMode || 15),
-          theme: data.theme || "mood-light", isLocked: Boolean(data.isLocked),
-          roomPassword: data.roomPassword || "", updatedAt: Number(data.updatedAt || Date.now()),
-        });
-      } catch (err) { console.error("Realtime room settings IndexedDB save error:", err); }
-    };
-
-    const handleRoomSeats = (data: any) => {
-      if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.seats)) return;
-      setSeats(() => {
-        const base = getInitialSeats(micMode);
-        const byNumber = new Map(base.map(seat => [seat.number, seat]));
-        for (const incoming of data.seats) {
-          const number = Number(incoming?.number);
-          if (!Number.isFinite(number)) continue;
-          const existing = byNumber.get(number);
-          byNumber.set(number, { ...(existing || { number, isOccupied: false, isLocked: false, isMuted: false, isSpeaking: false }), ...incoming, number });
-        }
-        return Array.from(byNumber.values()).sort((a, b) => a.number - b.number);
-      });
-    };
-
-    const joinRoom = () => {
-      socket.emit("room_join", {
-        roomId,
-        userId: currentUser.uid || currentUser.id || userAccountId,
-        accountId: userAccountId,
-        roomOwnerId: roomOwner.uid || roomOwner.id || roomOwner.accountId || roomId,
-        name: currentRoomUser.name,
-        dp: currentRoomUser.image,
-        email: (currentUser as any)?.email || (currentUser as any)?.emailPhone || "",
-      });
-      socket.emit("room_seats_request", { roomId });
-    };
-
-    socket.emit("room_presence_request", { roomId });
-    socket.on("room_locked", handleRoomLocked);
-    socket.on("room_settings_updated", handleSettingsUpdated);
-    socket.on("room_seats", handleRoomSeats);
-    socket.on("room_presence", handleRoomPresence);
-    socket.on("room_user_online", handleRoomUserOnline);
-    socket.on("room_user_offline", handleRoomUserOffline);
-    socket.on("room_message", handleRoomMessage);
-    socket.on("room_chat_cleared", handleRoomChatCleared);
-
-    setRoomUsers(prev => prev.some(u => String(u.accountId) === String(userAccountId)) ? prev : [...prev, currentRoomUser]);
-
-    if (socket.connected) joinRoom();
-    else { socket.once("connect", joinRoom); socket.connect(); }
-
-    return () => {
-      socket.off("connect", joinRoom);
-      socket.off("room_presence", handleRoomPresence);
-      socket.off("room_user_online", handleRoomUserOnline);
-      socket.off("room_user_offline", handleRoomUserOffline);
-      socket.off("room_message", handleRoomMessage);
-      socket.off("room_chat_cleared", handleRoomChatCleared);
-      socket.off("room_locked", handleRoomLocked);
-      socket.off("room_settings_updated", handleSettingsUpdated);
-      socket.off("room_seats", handleRoomSeats);
-      if (!isKeepingRef.current) socket.emit("room_leave", { roomId, userId: userAccountId });
-    };
-  }, [roomId, userAccountId, currentUser.name, currentUser.image, getInitialSeats]);
-
-  const sendMessageToSocket = useCallback(async (
-    text: string,
-    imageUrl?: string,
-    type: "message" | "join" | "leave" = "message"
-  ) => {
-    if (!roomId || userAccountId === "guest") return;
-    const bubbleExpiry = Number(localStorage.getItem('equipped_Chat Bubble_expiresAt') || 0);
-    const bubbleExpired = bubbleExpiry > 0 && bubbleExpiry <= Date.now();
-    if (bubbleExpired) {
-      localStorage.removeItem('equipped_Chat Bubble');
-      localStorage.removeItem('equipped_Chat Bubble_expiresAt');
-    }
-    const equippedBubble = bubbleExpired ? undefined : (localStorage.getItem('equipped_Chat Bubble') || undefined);
-    const equippedVehicle = localStorage.getItem('equipped_Vehicle') || undefined;
-    const message = {
-      id: `${userAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      roomId, senderId: userAccountId, senderAccountId: userAccountId,
-      senderName: currentUser.name || "User",
-      senderAvatar: currentUser.image || "/default-avatar.png",
-      text, type,
-      imageUrl: imageUrl || null,
-      equippedBubble: type === 'message' ? equippedBubble : undefined,
-      equippedVehicle: type === 'join' ? equippedVehicle : undefined,
-      createdAt: Date.now(),
-    };
     setMessages(prev => {
-      if (prev.some(m => m.id === message.id)) return prev;
-      return [...prev, {
-        id: message.id, text, sender: message.senderName,
-        senderImage: message.senderAvatar, senderAccountId: message.senderAccountId,
-        timestamp: message.createdAt, type, imageUrl,
-        equippedBubble: message.equippedBubble, equippedVehicle: message.equippedVehicle,
-      }];
+      if (prev.some(msg => msg.id === incoming.id)) return prev;
+      return [...prev, incoming];
     });
-    if (!socket.connected) socket.connect();
-    if (socket.connected) { socket.emit("room_message", message); return; }
-    const sendAfterConnect = () => { socket.emit("room_message", message); socket.off("connect", sendAfterConnect); };
-    socket.once("connect", sendAfterConnect);
-  }, [roomId, userAccountId, currentUser.name, currentUser.image]);
+    try {
+      const db = await openRoomMessagesDB();
+      const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+      transaction.objectStore(ROOM_MESSAGES_STORE).put({ ...incoming, roomId });
+      transaction.oncomplete = () => db.close();
+      transaction.onerror = () => db.close();
+    } catch (err) { console.error("IndexedDB room message save error:", err); }
+  };
 
-  useEffect(() => {
-    if (joinMessageSentRef.current || userAccountId === "guest") return;
-    joinMessageSentRef.current = true;
-    sendMessageToSocket('Enter the Room', undefined, 'join');
-  }, [userAccountId, roomId, sendMessageToSocket]);
+  const handleRoomChatCleared = async (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId)) return;
+    clearedAtRef.current = Number(data.timestamp || Date.now());
+    setMessages([]);
+    try {
+      const db = await openRoomMessagesDB();
+      const transaction = db.transaction([ROOM_MESSAGES_STORE], "readwrite");
+      const store = transaction.objectStore(ROOM_MESSAGES_STORE);
+      const request = store.index("roomId").openCursor(roomId);
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (cursor) { cursor.delete(); cursor.continue(); } else { db.close(); }
+      };
+      request.onerror = () => { db.close(); };
+    } catch (err) { console.error("Room chat cleared socket error:", err); }
+  };
 
-  useEffect(() => {
-    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const handleRoomLocked = (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId)) return;
+    const ownerId = String(data.ownerId || "");
+    if (ownerId && ownerId === String(userAccountId)) return;
+    setIsLocked(true);
+    try { jitsiApi?.executeCommand("hangup"); } catch {}
+    alert("This room is locked. You cannot enter or listen to the room voice.");
+    if (onBack) onBack(); else if (onClose) onClose();
+  };
 
-  useEffect(() => {
-    if (showChatInput && inputRef.current) {
-      const timer = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 100);
-      return () => clearTimeout(timer);
+  const handleSettingsUpdated = async (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId)) return;
+    if (data.roomName) setRoomName(data.roomName);
+    if (data.roomDp) setRoomDp(data.roomDp);
+    if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
+    if (data.micMode !== undefined) setMicMode(Number(data.micMode));
+    if (data.theme && THEME_BACKGROUNDS[data.theme]) setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+    if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
+    if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
+    try {
+      await saveRoomSettingsToIndexedDB({
+        roomId: String(roomId), roomName: data.roomName || roomName, roomDp: data.roomDp || roomDp,
+        announcement: data.announcement || "", micMode: Number(data.micMode || 15),
+        theme: data.theme || "mood-light", isLocked: Boolean(data.isLocked),
+        roomPassword: data.roomPassword || "", updatedAt: Number(data.updatedAt || Date.now()),
+      });
+    } catch (err) { console.error("Realtime room settings IndexedDB save error:", err); }
+  };
+
+  const handleRoomSeats = (data: any) => {
+    if (!data || String(data.roomId) !== String(roomId) || !Array.isArray(data.seats)) return;
+    setSeats(() => {
+      const base = getInitialSeats(micMode);
+      const byNumber = new Map(base.map(seat => [seat.number, seat]));
+      for (const incoming of data.seats) {
+        const number = Number(incoming?.number);
+        if (!Number.isFinite(number)) continue;
+        const existing = byNumber.get(number);
+        byNumber.set(number, { ...(existing || { number, isOccupied: false, isLocked: false, isMuted: false, isSpeaking: false }), ...incoming, number });
+      }
+      return Array.from(byNumber.values()).sort((a, b) => a.number - b.number);
+    });
+  };
+
+  const joinRoom = () => {
+    socket.emit("room_join", {
+      roomId,
+      userId: currentUser.uid || currentUser.id || userAccountId,
+      accountId: userAccountId,
+      roomOwnerId: roomOwner.uid || roomOwner.id || roomOwner.accountId || roomId,
+      name: currentRoomUser.name,
+      dp: currentRoomUser.image,
+      email: (currentUser as any)?.email || (currentUser as any)?.emailPhone || "",
+    });
+    socket.emit("room_seats_request", { roomId });
+  };
+
+  socket.emit("room_presence_request", { roomId });
+  socket.on("room_locked", handleRoomLocked);
+  socket.on("room_settings_updated", handleSettingsUpdated);
+  socket.on("room_seats", handleRoomSeats);
+  socket.on("room_presence", handleRoomPresence);
+  socket.on("room_user_online", handleRoomUserOnline);
+  socket.on("room_user_offline", handleRoomUserOffline);
+  socket.on("room_message", handleRoomMessage);
+  socket.on("room_chat_cleared", handleRoomChatCleared);
+
+  setRoomUsers(prev => prev.some(u => String(u.accountId) === String(userAccountId)) ? prev : [...prev, currentRoomUser]);
+
+  if (socket.connected) joinRoom();
+  else { socket.once("connect", joinRoom); socket.connect(); }
+
+  return () => {
+    socket.off("connect", joinRoom);
+    socket.off("room_presence", handleRoomPresence);
+    socket.off("room_user_online", handleRoomUserOnline);
+    socket.off("room_user_offline", handleRoomUserOffline);
+    socket.off("room_message", handleRoomMessage);
+    socket.off("room_chat_cleared", handleRoomChatCleared);
+    socket.off("room_locked", handleRoomLocked);
+    socket.off("room_settings_updated", handleSettingsUpdated);
+    socket.off("room_seats", handleRoomSeats);
+    if (!isKeepingRef.current) socket.emit("room_leave", { roomId, userId: userAccountId });
+  };
+}, [roomId, userAccountId, currentUser.name, currentUser.image, getInitialSeats]);
+
+const sendMessageToSocket = useCallback(async (
+  text: string,
+  imageUrl?: string,
+  type: "message" | "join" | "leave" = "message"
+) => {
+  if (!roomId || userAccountId === "guest") return;
+  const bubbleExpiry = Number(localStorage.getItem('equipped_Chat Bubble_expiresAt') || 0);
+  const bubbleExpired = bubbleExpiry > 0 && bubbleExpiry <= Date.now();
+  if (bubbleExpired) {
+    localStorage.removeItem('equipped_Chat Bubble');
+    localStorage.removeItem('equipped_Chat Bubble_expiresAt');
+  }
+  const equippedBubble = bubbleExpired ? undefined : (localStorage.getItem('equipped_Chat Bubble') || undefined);
+  const equippedVehicle = localStorage.getItem('equipped_Vehicle') || undefined;
+  const message = {
+    id: `${userAccountId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    roomId, senderId: userAccountId, senderAccountId: userAccountId,
+    senderName: currentUser.name || "User",
+    senderAvatar: currentUser.image || "/default-avatar.png",
+    text, type,
+    imageUrl: imageUrl || null,
+    equippedBubble: type === 'message' ? equippedBubble : undefined,
+    equippedVehicle: type === 'join' ? equippedVehicle : undefined,
+    createdAt: Date.now(),
+  };
+  setMessages(prev => {
+    if (prev.some(m => m.id === message.id)) return prev;
+    return [...prev, {
+      id: message.id, text, sender: message.senderName,
+      senderImage: message.senderAvatar, senderAccountId: message.senderAccountId,
+      timestamp: message.createdAt, type, imageUrl,
+      equippedBubble: message.equippedBubble, equippedVehicle: message.equippedVehicle,
+    }];
+  });
+  if (!socket.connected) socket.connect();
+  if (socket.connected) { socket.emit("room_message", message); return; }
+  const sendAfterConnect = () => { socket.emit("room_message", message); socket.off("connect", sendAfterConnect); };
+  socket.once("connect", sendAfterConnect);
+}, [roomId, userAccountId, currentUser.name, currentUser.image]);
+
+useEffect(() => {
+  if (joinMessageSentRef.current || userAccountId === "guest") return;
+  joinMessageSentRef.current = true;
+  sendMessageToSocket('Enter the Room', undefined, 'join');
+}, [userAccountId, roomId, sendMessageToSocket]);
+
+useEffect(() => {
+  if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+}, [messages]);
+
+useEffect(() => {
+  if (showChatInput && inputRef.current) {
+    const timer = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 100);
+    return () => clearTimeout(timer);
+  }
+}, [showChatInput]);
+
+useEffect(() => {
+  if (!showChatInput) return;
+  const handleClickOutside = (e: MouseEvent) => {
+    if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
+      setShowChatInput(false); setMessage("");
     }
-  }, [showChatInput]);
-
-  useEffect(() => {
-    if (!showChatInput) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
-        setShowChatInput(false); setMessage("");
-      }
-    };
-    const handleTouchOutside = (e: TouchEvent) => {
-      if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
-        setShowChatInput(false); setMessage("");
-      }
-    };
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleTouchOutside);
-    }, 300);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleTouchOutside);
-    };
-  }, [showChatInput]);
-
+  };
+  const handleTouchOutside = (e: TouchEvent) => {
+    if (inputContainerRef.current && !inputContainerRef.current.contains(e.target as Node)) {
+      setShowChatInput(false); setMessage("");
+    }
+  };
+  const timer = setTimeout(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleTouchOutside);
+  }, 300);
+  return () => {
+    clearTimeout(timer);
+    document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener('touchstart', handleTouchOutside);
+  };
+}, [showChatInput]);
   const openProfile = useCallback((user: { name: string; image: string; accountId: string }) => {
-    const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
-    setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
-    setShowUserProfile(true);
-  }, [seats]);
-  const handleCopyId = (e: React.MouseEvent) => {
+  const userInSeat = seats.some(s => s.isOccupied && s.user?.accountId === user.accountId);
+  setProfileUser({ name: user.name, image: user.image, accountId: user.accountId, isInSeat: userInSeat });
+  setShowUserProfile(true);
+}, [seats]);
+
+const handleCopyId = (e: React.MouseEvent) => {
   e.stopPropagation();
   navigator.clipboard.writeText(roomOwner.accountId || '');
   setCopied(true);
@@ -1099,29 +1173,6 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-const handleTouchStartMini = (e: React.TouchEvent) => {
-  const touch = e.touches[0];
-  isDraggingMiniRef.current = true;
-  miniDragOffset.current = { x: touch.clientX - miniPos.x, y: touch.clientY - miniPos.y };
-};
-const handleTouchMoveMini = (e: React.TouchEvent) => {
-  if (!isDraggingMiniRef.current) return;
-  const touch = e.touches[0];
-  setMiniPos({ x: Math.max(10, Math.min(window.innerWidth - 50, touch.clientX - miniDragOffset.current.x)), y: Math.max(50, Math.min(window.innerHeight - 80, touch.clientY - miniDragOffset.current.y)) });
-};
-const handleTouchEndMini = () => { isDraggingMiniRef.current = false; };
-const handleMouseDownMini = (e: React.MouseEvent) => {
-  isDraggingMiniRef.current = true;
-  miniDragOffset.current = { x: e.clientX - miniPos.x, y: e.clientY - miniPos.y };
-  const handleMouseMove = (me: MouseEvent) => {
-    if (!isDraggingMiniRef.current) return;
-    setMiniPos({ x: Math.max(10, Math.min(window.innerWidth - 50, me.clientX - miniDragOffset.current.x)), y: Math.max(50, Math.min(window.innerHeight - 80, me.clientY - miniDragOffset.current.y)) });
-  };
-  const handleMouseUp = () => { isDraggingMiniRef.current = false; window.removeEventListener('mousemove', handleMouseMove); window.removeEventListener('mouseup', handleMouseUp); };
-  window.addEventListener('mousemove', handleMouseMove);
-  window.addEventListener('mouseup', handleMouseUp);
-};
-
 const liveUserCount = roomUsers.length;
 const selectedSeatData = selectedSeat !== null ? seats.find(s => s.number === selectedSeat) : null;
 const isSelectedSeatMySeat = selectedSeatData ? isCurrentUsersSeat(selectedSeatData) : false;
@@ -1135,7 +1186,7 @@ const renderSeats = () => {
     );
   });
   if (micMode === 5) return (
-    <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '73px' } as React.CSSProperties}>
+    <div className="flex flex-col gap-2.5 w-full px-0 -mt-4" style={{ '--seat-size': '66px' } as React.CSSProperties}>
       <div className="flex justify-center">{renderSeatItems([1])}</div>
       <div className="flex justify-around items-center w-full px-0">{renderSeatItems([2, 3, 4, 5])}</div>
     </div>
@@ -1164,259 +1215,300 @@ if (showSettingPage) return (
     onSave={handleSaveSettings}
   />
 );
-    return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
-      <img src={backgroundImage} alt="Room Background" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" draggable={false} />
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
+  return (
+  <div className="fixed inset-0 z-50 bg-black flex flex-col" style={{ height: '100dvh', maxHeight: '100dvh', paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
+    <img src={backgroundImage} alt="Room Background" className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none" draggable={false} />
+    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" aria-label="Upload image" />
 
-      <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
+    <div className="relative z-10 flex flex-col flex-1 min-h-0 px-1 sm:px-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 30px)', paddingBottom: '8px', boxSizing: 'border-box' }} onClick={(e) => e.stopPropagation()}>
 
-        {/* Top Header */}
-        <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
-          <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
-            <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
-              <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
+      {/* Top Header */}
+      <div className="flex justify-between items-center text-white flex-shrink-0 px-2">
+        <div className="flex items-center gap-2 sm:gap-3 bg-black/30 rounded-r-full pr-4 py-0.5 pl-1 border border-none shadow-sm border-l-0 -ml-3 sm:-ml-4">
+          <button onClick={() => { setRoomInfoTab('profile'); setShowRoomInfo(true); }} className="rounded-md overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--header-room-img-size)', height: 'var(--header-room-img-size)' }}>
+            <img src={roomDp && roomDp !== "undefined" && roomDp !== "null" ? roomDp : "/default-avatar.png"} onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} alt="Room Cover" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
+          </button>
+          <div className="text-left py-0.5">
+            <div className="flex items-center gap-1 sm:gap-2">
+              <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)', maxWidth: '110px' }}>
+                <MarqueeText text={roomName || 'Room'} />
+              </h2>
+              {!isRoomOwner && (
+                <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
+                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
+                </button>
+              )}
+            </div>
+            <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || ''}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-0.5">
+          <button onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }} className="flex items-center gap-1 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm" style={{ height: 'var(--header-btn-size)', padding: 'var(--header-btn-padding)' }}>
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+              <circle cx="9" cy="7" r="4.2" />
+              <path d="M2 20.5 C 2 15.5 5.2 13 9 13 C 12.8 13 16 15.5 16 20.5 Z" />
+              <rect x="17.5" y="7.5" width="4.5" height="1.8" rx="0.9" />
+              <rect x="17.5" y="11.1" width="4.5" height="1.8" rx="0.9" />
+              <rect x="17.5" y="14.7" width="3.5" height="1.8" rx="0.9" />
+            </svg>
+            <span className="text-white font-semibold leading-none" style={{ fontSize: 'var(--header-count-size)' }}>{liveUserCount}</span>
+          </button>
+
+          {isRoomOwner && (
+            <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
+                <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
+                <circle cx="12" cy="12" r="2.8" />
+              </svg>
             </button>
-            <div className="text-left py-0.5">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <h2 className="font-bold leading-tight" style={{ fontSize: 'var(--header-room-name-size)' }}>{displayRoomName}</h2>
-                {!isRoomOwner && (
-                  <button onClick={(e) => { e.stopPropagation(); const nf = !isFollowed; setIsFollowed(nf); if (onFollowToggle) onFollowToggle(roomId, nf); }} className="rounded-full flex items-center justify-center transition-all cursor-pointer bg-blue-500 shadow-md hover:bg-blue-600" style={{ width: 'var(--header-follow-btn-size)', height: 'var(--header-follow-btn-size)', border: 'none' }}>
-                    <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-follow-icon-size)', height: 'var(--header-follow-icon-size)' }}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                  </button>
-                )}
-              </div>
-              <p className="text-gray-300 opacity-90 leading-tight mt-0.5" style={{ fontSize: 'var(--header-id-size)' }}>ID:{roomOwner.accountId || ''}</p>
+          )}
+
+          <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
+            <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Trophy Card */}
+      <div className="h-0 w-full relative z-20">
+        <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
+          <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
+            <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
+              <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
+            </div>
+            <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>{formatCupCount(cupCount)}</span>
+            <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Middle */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">{renderSeats()}</div>
+
+        <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
+          <div className="mx-1 mb-3 flex justify-start">
+            <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
+              <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
+              </p>
+              {roomAnnouncement && (
+                <div className="mt-2 pt-2 border-t border-white/10">
+                  <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
+                    <span className="font-bold mr-1">ANNOUNCEMENT: </span>{roomAnnouncement}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-0.5">
-            <button onClick={(e) => { e.stopPropagation(); setShowActiveUsers(true); }} className="flex items-center gap-1 bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer shadow-sm" style={{ height: 'var(--header-btn-size)', padding: 'var(--header-btn-padding)' }}>
-              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                <circle cx="9" cy="7" r="4.2" />
-                <path d="M2 20.5 C 2 15.5 5.2 13 9 13 C 12.8 13 16 15.5 16 20.5 Z" />
-                <rect x="17.5" y="7.5" width="4.5" height="1.8" rx="0.9" />
-                <rect x="17.5" y="11.1" width="4.5" height="1.8" rx="0.9" />
-                <rect x="17.5" y="14.7" width="3.5" height="1.8" rx="0.9" />
-              </svg>
-              <span className="text-white font-semibold leading-none" style={{ fontSize: 'var(--header-count-size)' }}>{liveUserCount}</span>
-            </button>
-
-            {isRoomOwner && (
-              <button onClick={openSettings} aria-label="Settings" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors cursor-pointer flex items-center justify-center shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}>
-                  <polygon points="12 2.5 20.2 7.25 20.2 16.75 12 21.5 3.8 16.75 3.8 7.25" />
-                  <circle cx="12" cy="12" r="2.8" />
-                </svg>
-              </button>
-            )}
-
-            <button onClick={openExitMenu} aria-label="Power" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--header-btn-size)', height: 'var(--header-btn-size)' }}>
-              <svg viewBox="0 0 24 24" className="fill-none stroke-white stroke-[2.5] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--header-icon-size)', height: 'var(--header-icon-size)' }}><path d="M12 4v8" /><path d="M18.36 6.64a9 9 0 1 1-12.72 0" /></svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Trophy Card */}
-        <div className="h-0 w-full relative z-20">
-          <div className="absolute top-2 left-0 -ml-1 sm:-ml-2">
-            <button onClick={() => setShowCupIcon(true)} className="bg-gradient-to-r from-[#242b35]/90 via-[#242b35]/60 to-transparent flex items-center pr-3 pl-3 py-1 cursor-pointer border-none">
-              <div className="w-4 h-4 flex items-center justify-center shrink-0 relative overflow-visible mr-1.5">
-                <GreenColorRemovalShader imageSrc="/1788258883971~2.jpg" threshold={0.5} className="w-full h-full" style={{ width: '115%', height: '115%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
-              </div>
-              <span className="font-bold text-[13px] leading-none tracking-tight" style={{ color: '#eef3a3' }}>{formatCupCount(cupCount)}</span>
-              <svg viewBox="0 0 24 24" className="fill-none stroke-[3] ml-1 opacity-90" stroke="#eef3a3" style={{ width: '10px', height: '10px' }}><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Middle */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <div className="flex-shrink-0 flex flex-col gap-5 pt-12 sm:pt-10 w-full">{renderSeats()}</div>
-
-          <div ref={messagesContainerRef} className="mx-1 mt-4 flex-1 overflow-y-auto scrollbar-none">
-            <div className="mx-1 mb-3 flex justify-start">
-              <div className="max-w-[75%] bg-black/30 border border-none shadow-sm" style={{ padding: '12px 14px', borderRadius: '8px' }}>
-                <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
-                  Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!
-                </p>
-                {roomAnnouncement && (
-                  <div className="mt-2 pt-2 border-t border-white/10">
-                    <p className="leading-snug font-medium" style={{ fontSize: 'var(--announcement-text-size)', color: '#e2c67d' }}>
-                      <span className="font-bold mr-1">ANNOUNCEMENT: </span>{roomAnnouncement}
-                    </p>
+          <div className="space-y-0.5">
+            {messages.map((msg) => (
+              <div key={msg.id} className="leading-[1.8rem]">
+                {msg.type === 'join' ? (
+                  <>
+                    <div className="flex items-start gap-1.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
+                      <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-0.5 min-w-0">
+                          <span className="font-semibold text-white/95 leading-none truncate" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                          <span className="flex items-center justify-center shrink-0" style={{ width: 'calc(var(--msg-avatar-size) * 0.7)', height: 'calc(var(--msg-avatar-size) * 0.7)' }}>
+                            <HouseIcon size={14} style={{ width: '100%', height: '100%' }} />
+                          </span>
+                        </div>
+                        <span className="text-white/80 leading-none mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
+                      </div>
+                    </div>
+                    {msg.equippedVehicle && <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />}
+                  </>
+                ) : msg.imageUrl ? (
+                  <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
+                    <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                      <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                      <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
+                        <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2 max-w-[75%]">
+                    <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
+                      <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
+                      {msg.equippedBubble ? (
+                        <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
+                          <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                        </div>
+                      ) : (
+                        <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
+                          <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className="space-y-0.5">
-              {messages.map((msg) => (
-                <div key={msg.id} className="leading-[1.8rem]">
-                  {msg.type === 'join' ? (
-                    <>
-                      <div className="flex items-start gap-1.5 px-2.5 py-1.5 w-fit bg-black/20 rounded-md">
-                        <div className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                          <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png"; }} />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-0.5 min-w-0">
-                            <span className="font-semibold text-white/95 leading-none truncate" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                            <span className="flex items-center justify-center shrink-0" style={{ width: 'calc(var(--msg-avatar-size) * 0.7)', height: 'calc(var(--msg-avatar-size) * 0.7)' }}>
-                              <HouseIcon size={14} style={{ width: '100%', height: '100%' }} />
-                            </span>
-                          </div>
-                          <span className="text-white/80 leading-none mt-0.5" style={{ fontSize: 'var(--msg-jointime-size)' }}>Enter the Room</span>
-                        </div>
-                      </div>
-                      {msg.equippedVehicle && <EntryEffect vehicleUrl={msg.equippedVehicle} userName={msg.sender} />}
-                    </>
-                  ) : msg.imageUrl ? (
-                    <div className="flex items-start gap-2 max-w-[75%]" style={{ height: 'calc(4 * 1.8rem)' }}>
-                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-black/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        <div onClick={() => setFullImageModal(msg.imageUrl || null)} className="rounded-xl overflow-hidden border border-black/10 cursor-pointer hover:opacity-90 transition-opacity bg-black/40 flex items-center justify-center mt-0.5 shadow-sm" style={{ height: 'calc(3.5 * 1.8rem)', width: 'calc(3.5 * 1.8rem)' }}>
-                          <img src={msg.imageUrl} alt="Shared image" className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-2 max-w-[75%]">
-                      <div className="rounded-full overflow-hidden flex-shrink-0 mt-0.5 cursor-pointer border border-white/10" style={{ width: 'var(--msg-avatar-size)', height: 'var(--msg-avatar-size)' }} onClick={() => openProfile({ name: msg.sender, image: msg.senderImage, accountId: msg.senderAccountId || generateStableId(msg.sender) })}>
-                        <img src={msg.senderImage || "/default-avatar.png"} alt={msg.sender} className="w-full h-full object-cover" draggable={false} loading="eager" decoding="async" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.png" }} />
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="font-semibold text-white/90 leading-tight drop-shadow-sm" style={{ fontSize: 'var(--msg-name-size)' }}>{msg.sender}</span>
-                        {msg.equippedBubble ? (
-                          <div className="px-3 py-2 mt-0.5 inline-flex w-fit max-w-full items-center justify-center relative" style={{ backgroundImage: `url(${msg.equippedBubble})`, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', backgroundPosition: 'center', minHeight: '40px' }}>
-                            <p className="break-words leading-tight text-white relative z-10" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                          </div>
-                        ) : (
-                          <div className="px-2 py-1.5 rounded-xl bg-black/30 text-white rounded-tl-sm mt-0.5 border border-black/10 shadow-sm">
-                            <p className="break-words leading-tight" style={{ fontSize: 'var(--msg-text-size)' }}>{msg.text}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
+            ))}
+            <div ref={messagesEndRef} />
           </div>
         </div>
-
-        {/* Footer Controls */}
-        <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
-          <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
-            <div className="flex items-center justify-start gap-1 z-10">
-              <button onClick={openChatInput} aria-label="Say Hi Chat" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
-                  <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
-                </svg>
-              </button>
-              {hasSeat && (
-                <button onClick={handleBottomMicToggle} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                  {currentUserSeat?.isMuted ? (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs><mask id="mic-cut-muted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
-                      <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
-                      <defs><mask id="mic-cut-unmuted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
-                      <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
-                      <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
-                      <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
-                    </svg>
-                  )}
-                </button>
-              )}
-              {hasSeat && (
-                <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                  <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                    <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
-                  </svg>
-                </button>
-              )}
-            </div>
-
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
-              <img src="/file_0000000019c4821180028eebae10dbfc.png" alt="Gift" className="cursor-pointer active:scale-95 transition-transform select-none" style={{ width: 'calc(var(--footer-btn-size) + 9px)', height: 'auto' }} draggable={false} loading="eager" decoding="async" onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} />
-            </div>
-
-            <div className="flex items-center justify-end gap-1 z-10">
-              <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Message Box Menu" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
-                <svg viewBox="0 0 24 24" style={{ width: 'calc(var(--footer-icon-size) + 2px)', height: 'calc(var(--footer-icon-size) + 2px)' }}>
-                  <defs><mask id="mail-v-cutout"><rect x="0" y="0" width="24" height="24" fill="white" /><path d="M3.5 7.5L12 13.5L20.5 7.5" stroke="black" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></mask></defs>
-                  <rect x="2" y="4.5" width="20" height="15" rx="3.5" fill="#ffffff" mask="url(#mail-v-cutout)" />
-                </svg>
-              </button>
-
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
-                aria-label="Apps Menu"
-                className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
-                style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
-              >
-                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <rect x="3" y="3" width="8" height="8" rx="1.5" />
-                  <rect x="13" y="3" width="8" height="8" rx="1.5" />
-                  <rect x="3" y="13" width="8" height="8" rx="1.5" />
-                  <rect x="13.5" y="13.5" width="7" height="1.6" rx="0.8" />
-                  <rect x="13.5" y="16.2" width="7" height="1.6" rx="0.8" />
-                  <rect x="13.5" y="18.9" width="7" height="1.6" rx="0.8" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {showChatInput && (
-          <div ref={inputContainerRef} className="fixed left-0 right-0 z-[10000] flex items-center w-full" style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
-            <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
-              <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
-                <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
-                </svg>
-              </button>
-              <input ref={inputRef} type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} onFocus={handleInputFocus} placeholder="Type a message..." className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 px-2 py-1.5 outline-none border-none rounded-none" style={{ fontSize: 'var(--footer-input-text)' }} />
-              <button onMouseDown={(e) => e.preventDefault()} onClick={handleSendMessage} className="hover:bg-blue-50 rounded-full transition-colors cursor-pointer flex-shrink-0">
-                <svg viewBox="0 0 24 24" className="fill-none stroke-blue-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
-                  <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
-      {musicControllerState === 'minimized' && currentTrack && (
-        <div onTouchStart={handleTouchStartMini} onTouchMove={handleTouchMoveMini} onTouchEnd={handleTouchEndMini} onMouseDown={handleMouseDownMini} onClick={() => { if (!isDraggingMiniRef.current) setMusicControllerState('full'); }} className="fixed z-[9999] cursor-pointer touch-none select-none transition-transform hover:scale-105 active:scale-95" style={{ left: `${miniPos.x}px`, top: `${miniPos.y}px` }}>
-          <div className={`w-9 h-9 rounded-full bg-blue-600 shadow-[0_4px_14px_rgba(37,99,235,0.6)] flex items-center justify-center ${isMusicPlaying ? 'music-minimize-icon' : ''}`}>
-            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '24px', height: '24px' }}><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      {/* Footer Controls */}
+      <div className={`flex-shrink-0 pt-2 px-2 ${showChatInput ? 'hidden' : ''}`}>
+        <div className="relative flex items-center justify-between w-full h-full gap-1 min-h-[var(--footer-btn-size)]">
+          <div className="flex items-center justify-start gap-1 z-10">
+            <button onClick={openChatInput} aria-label="Say Hi Chat" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'calc(var(--footer-icon-size) + 4px)', height: 'calc(var(--footer-icon-size) + 4px)' }}>
+                <path d="M12 2C6.48 2 2 5.92 2 10.75c0 2.8 1.5 5.29 3.82 6.84l-1.4 3.7c-.12.33.22.64.53.5l4-1.63c1 .3 2 .46 3.05.46 5.52 0 10-3.92 10-8.75S17.52 2 12 2zm-4 11.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z" />
+              </svg>
+            </button>
+            {hasSeat && (
+              <button onClick={handleBottomMicToggle} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-all shrink-0 flex items-center justify-center cursor-pointer shadow-sm p-0 overflow-visible" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+                {currentUserSeat?.isMuted ? (
+                  <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                    <defs><mask id="mic-cut-muted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
+                    <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-muted)" />
+                    <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                    <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="#000000" strokeWidth="3.5" strokeLinecap="round" />
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="#ffffff" strokeWidth="2.2" strokeLinecap="round" />
+                  </svg>
+                ) : (
+                  <svg viewBox="-2 -2 28 28" className="fill-white overflow-visible" style={{ width: '32px', height: '32px' }}>
+                    <defs><mask id="mic-cut-unmuted"><rect x="-2" y="-2" width="32" height="32" fill="white" /><rect x="9" y="6" width="6" height="2" rx="1" fill="black" /></mask></defs>
+                    <rect x="7.5" y="1" width="9" height="14" rx="4.5" fill="#ffffff" mask="url(#mic-cut-unmuted)" />
+                    <path d="M4 11 a8 8 0 0 0 16 0 h-3 a5 5 0 0 1 -10 0 Z" fill="#ffffff" />
+                    <rect x="10.5" y="18" width="3" height="5" fill="#ffffff" />
+                  </svg>
+                )}
+              </button>
+            )}
+            {hasSeat && (
+              <button onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(true); }} className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors shrink-0 flex items-center justify-center cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+                <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zM8.5 7.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm7 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 14h10c0 3-2.5 5-5 5s-5-2-5-5z" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
+            <img src="/file_0000000019c4821180028eebae10dbfc.png" alt="Gift" className="cursor-pointer active:scale-95 transition-transform select-none" style={{ width: 'calc(var(--footer-btn-size) + 9px)', height: 'auto' }} draggable={false} loading="eager" decoding="async" onClick={(e) => { e.stopPropagation(); setShowGiftPicker(true); }} />
+          </div>
+
+          <div className="flex items-center justify-end gap-1 z-10">
+            <button onClick={(e) => { e.stopPropagation(); setShowMessageSheet(true); }} aria-label="Message Box Menu" className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm" style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}>
+              <svg viewBox="0 0 24 24" style={{ width: 'calc(var(--footer-icon-size) + 2px)', height: 'calc(var(--footer-icon-size) + 2px)' }}>
+                <defs><mask id="mail-v-cutout"><rect x="0" y="0" width="24" height="24" fill="white" /><path d="M3.5 7.5L12 13.5L20.5 7.5" stroke="black" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none" /></mask></defs>
+                <rect x="2" y="4.5" width="20" height="15" rx="3.5" fill="#ffffff" mask="url(#mail-v-cutout)" />
+              </svg>
+            </button>
+
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowFourGride(true); }}
+              aria-label="Apps Menu"
+              className="bg-black/30 rounded-full border-none hover:bg-black/30 transition-colors flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+              style={{ width: 'var(--footer-btn-size)', height: 'var(--footer-btn-size)' }}
+            >
+              <svg viewBox="0 0 24 24" className="fill-white" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                <rect x="3" y="3" width="8" height="8" rx="1.5" />
+                <rect x="13" y="3" width="8" height="8" rx="1.5" />
+                <rect x="3" y="13" width="8" height="8" rx="1.5" />
+                <rect x="13.5" y="13.5" width="7" height="1.6" rx="0.8" />
+                <rect x="13.5" y="16.2" width="7" height="1.6" rx="0.8" />
+                <rect x="13.5" y="18.9" width="7" height="1.6" rx="0.8" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {showChatInput && (
+        <div ref={inputContainerRef} className="fixed left-0 right-0 z-[10000] flex items-center w-full" style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom, 0px)', boxSizing: 'border-box' }}>
+          <div className="flex-1 bg-white flex items-center px-3 py-2 w-full rounded-none">
+            <button onMouseDown={(e) => e.preventDefault()} onClick={handleImageClick} className="hover:bg-gray-100 rounded-full transition-colors flex-shrink-0 cursor-pointer">
+              <svg viewBox="0 0 24 24" className="fill-none stroke-gray-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+              </svg>
+            </button>
+            <input ref={inputRef} type="text" value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={handleKeyPress} onFocus={handleInputFocus} placeholder="Type a message..." className="flex-1 bg-transparent text-gray-800 placeholder-gray-400 px-2 py-1.5 outline-none border-none rounded-none" style={{ fontSize: 'var(--footer-input-text)' }} />
+            <button onMouseDown={(e) => e.preventDefault()} onClick={handleSendMessage} className="hover:bg-blue-50 rounded-full transition-colors cursor-pointer flex-shrink-0">
+              <svg viewBox="0 0 24 24" className="fill-none stroke-blue-500 stroke-[2] stroke-linecap-round stroke-linejoin-round" style={{ width: 'var(--footer-icon-size)', height: 'var(--footer-icon-size)' }}>
+                <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
+    </div>
 
-      <div className={`absolute z-20 flex flex-col items-center pointer-events-auto ${showChatInput ? 'hidden' : ''}`} style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }} onClick={(e) => e.stopPropagation()}>
-        <RoomSideBanner />
-        <div onClick={() => setShowRoomTask(true)} className="relative cursor-pointer transition-transform hover:scale-105 mt-1 flex items-center justify-center" style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}>
-          <GreenColorRemovalShader imageSrc="/IMG-20260902-WA0066.jpg" threshold={0.45} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
-        </div>
-        <div className="relative cursor-pointer transition-transform hover:scale-105 mt-1" style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }} onClick={() => setShowGameSheet(true)}>
-          <WhiteColorRemovalShader imageSrc="/IMG_20260814_111008.png" threshold={0.85} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', maxWidth: 'none', maxHeight: 'none', pointerEvents: 'none' }} />
-        </div>
+    {/* ⭐ RIGHT-SIDE STACK — tight gaps, music pill + game logos + banner + icons */}
+    <div
+      className={`absolute z-20 flex flex-col items-center pointer-events-auto gap-0.5 ${showChatInput ? 'hidden' : ''}`}
+      style={{ right: '10px', bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)' }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {musicControllerState === 'minimized' && currentTrack && (
+        <button
+          onClick={() => setMusicControllerState('full')}
+          className="flex items-center gap-1.5 rounded-full bg-black/40 backdrop-blur-md pl-1 pr-3 py-1 shadow-lg hover:bg-black/55 active:scale-95 transition-transform cursor-pointer border-none"
+          style={{ maxWidth: '140px' }}
+          aria-label="Open music player"
+        >
+          <div
+            className={`shrink-0 flex items-center justify-center rounded-full bg-blue-600 ${isMusicPlaying ? 'music-minimize-icon' : ''}`}
+            style={{ width: '26px', height: '26px' }}
+          >
+            <svg viewBox="0 0 24 24" className="fill-white" style={{ width: '16px', height: '16px' }}>
+              <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+            </svg>
+          </div>
+          <MarqueeText
+            text={currentTrack.name}
+            className="text-white text-[11px] font-semibold"
+            style={{ maxWidth: '90px' }}
+          />
+        </button>
+      )}
+
+      {showWildParty === 'minimized' && (
+        <button onClick={() => setShowWildParty(true)} className="rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0" style={{ width: '56px', height: '56px' }} aria-label="Open Wild Party">
+          <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild Party" className="w-full h-full object-contain" draggable={false} loading="eager" decoding="async" />
+        </button>
+      )}
+      {showFruitParty === 'minimized' && (
+        <button onClick={() => setShowFruitParty(true)} className="rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0" style={{ width: '44px', height: '44px' }} aria-label="Open Fruit Party">
+          <img src="/fruit-party-logo.jpg" alt="Fruit Party" className="w-full h-full object-contain rounded-md" draggable={false} loading="eager" decoding="async" />
+        </button>
+      )}
+
+      <RoomSideBanner />
+
+      <div onClick={() => setShowRoomTask(true)} className="relative cursor-pointer transition-transform hover:scale-105 flex items-center justify-center" style={{ width: 'calc(var(--footer-btn-size) * 1.35)', height: 'calc(var(--footer-btn-size) * 1.35)' }}>
+        <GreenColorRemovalShader imageSrc="/IMG-20260902-WA0066.jpg" threshold={0.45} className="w-full h-full" style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
       </div>
 
-      {showPublicMsgModal && (
+      <div className="relative cursor-pointer transition-transform hover:scale-105" style={{ width: 'calc(var(--footer-btn-size) * 1.2)', height: 'calc(var(--footer-btn-size) * 1.2)' }} onClick={() => setShowGameSheet(true)}>
+        <img
+          src="/file_000000002a8c81fab8232bebeeeb45cc.png"
+          alt="Games"
+          className="w-full h-full object-contain select-none pointer-events-none"
+          draggable={false}
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+    </div>
+          {showPublicMsgModal && (
         <div className="absolute inset-0 z-[10000] flex items-center justify-center bg-black/50" onClick={() => setShowPublicMsgModal(false)}>
           <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-xs w-full text-center" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-base font-bold text-gray-800 mb-1">Public msg are off</h3>
@@ -1426,7 +1518,6 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ⭐ ACTIVE USERS SHEET — Owner row from localUser (Me page) */}
       {showActiveUsers && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowActiveUsers(false)} />
@@ -1436,7 +1527,6 @@ if (showSettingPage) return (
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-2" style={{ minHeight: 0 }}>
               <div className="space-y-2 pb-4">
-                {/* ⭐ OWNER ROW — ab localUser (Me page) se */}
                 <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-2 py-2">
                   <div
                     className="rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
@@ -1475,7 +1565,6 @@ if (showSettingPage) return (
         </div>
       )}
 
-      {/* ROOM INFO SHEET — 50vh, gap-3, SMILE indicator */}
       {showRoomInfo && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="absolute inset-0 bg-black/30" onClick={() => setShowRoomInfo(false)} />
@@ -1565,7 +1654,6 @@ if (showSettingPage) return (
         />
       )}
 
-      {/* TOP 25vh SHEET — SOLID BLACK + fade, Keep/Exit IMAGES + TEXT below */}
       {showExitMenu && (
         <div className="fixed inset-x-0 top-0 z-[9999]" style={{ height: '26vh' }}>
           <div className="fixed inset-0 bg-transparent" onClick={closeExitMenu} />
@@ -1689,19 +1777,6 @@ if (showSettingPage) return (
       {showWildParty === true && <Wildparty onClose={() => setShowWildParty(false)} onMinimize={() => setShowWildParty('minimized')} />}
       {showFruitParty === true && <Fruitparty onClose={() => setShowFruitParty(false)} onMinimize={() => setShowFruitParty('minimized')} />}
 
-      <div className={`absolute z-30 flex flex-col items-center gap-2 pointer-events-auto ${showChatInput ? 'hidden' : ''}`} style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + var(--footer-btn-size) + 24px)', right: '10px', width: '60px' }} onClick={(e) => e.stopPropagation()}>
-        {showWildParty === 'minimized' && (
-          <button onClick={() => setShowWildParty(true)} className="w-15 h-15 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0">
-            <img src="/file_000000009d808211b8ffb7c2183b4ef5.png" alt="Wild Party" className="w-full h-full object-contain" draggable={false} loading="eager" decoding="async" />
-          </button>
-        )}
-        {showFruitParty === 'minimized' && (
-          <button onClick={() => setShowFruitParty(true)} className="w-10 h-10 rounded-md overflow-hidden shadow-lg border-none bg-transparent transition-transform active:scale-95 cursor-pointer p-0">
-            <img src="/fruit-party-logo.jpg" alt="Fruit Party" className="w-full h-full object-contain rounded-md" draggable={false} loading="eager" decoding="async" />
-          </button>
-        )}
-      </div>
-
       {showRoomTask && <div className="absolute inset-0 z-[11000] pointer-events-none"><Roomtask onBack={() => setShowRoomTask(false)} /></div>}
       {showCupIcon && <div className="absolute inset-0 z-[11000] pointer-events-none"><CupIcon onBack={() => setShowCupIcon(false)} count={cupCount} /></div>}
 
@@ -1743,9 +1818,11 @@ if (showSettingPage) return (
         </div>
       )}
 
+      <EntryToastStack toasts={entryToasts} />
+
       <style jsx global>{`
         :root {
-          --seat-size: 62px; --header-btn-size: 42px; --header-btn-padding: 4px 8px; --header-icon-size: 26px;
+          --seat-size: 56px; --header-btn-size: 42px; --header-btn-padding: 4px 8px; --header-icon-size: 26px;
           --header-room-img-size: 44px; --header-room-name-size: 16px; --header-id-size: 11px;
           --header-follow-btn-size: 22px; --header-follow-icon-size: 14px; --header-count-size: 11px;
           --footer-btn-size: 47px; --footer-icon-size: 30px; --footer-input-text: 13px;
@@ -1757,7 +1834,7 @@ if (showSettingPage) return (
         }
         @media (max-width: 400px) {
           :root {
-            --seat-size: 62px; --header-btn-size: 38px; --header-icon-size: 22px;
+            --seat-size: 56px; --header-btn-size: 38px; --header-icon-size: 22px;
             --header-room-img-size: 38px; --header-room-name-size: 15px;
             --footer-btn-size: 42px; --footer-icon-size: 26px;
           }
@@ -1781,6 +1858,10 @@ if (showSettingPage) return (
         .wave-ripple-delayed { animation: waveBehind 1.2s ease-out 0.4s infinite; }
         .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
+        .marquee-inner { animation: marquee-scroll 9s linear infinite; }
+        @keyframes marquee-scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .entry-toast { animation: entryToastIn 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes entryToastIn { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
       `}</style>
 
       <LuckyGiftAnimation roomId={String(roomId)} />
@@ -1798,7 +1879,8 @@ if (showSettingPage) return (
       />
     </div>
   );
-                }
+}
+
 function SeatItemBase({ seatNumber, seatData, onClick, onAvatarClick, accountId, roomOwnerId }: {
   seatNumber: number; seatData?: Seat; onClick: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void; accountId: string; roomOwnerId: string;
