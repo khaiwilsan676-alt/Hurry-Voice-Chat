@@ -52,8 +52,8 @@ private const val CARD_FRAME = RAW + "file_00000000048882118276c7215012963f.png"
 
 // MePage wala exact gradient
 private val MePageTopGradient = androidx.compose.ui.graphics.Brush.verticalGradient(
-    0.0f  to Color(0xFF3B82F6),
-    0.94f to Color(0xFFEFF6FF),
+    0.0f  to Color(0xFF2563EB),
+    0.97f to Color(0xFFEFF6FF),
     1.0f  to Color(0xFFF9FAFB)
 )
 
@@ -242,7 +242,7 @@ fun HomeScreen(
     }
 
     Column(
-        Modifier.fillMaxSize().background(Color(0xFFF9FAFB))
+        Modifier.fillMaxSize().background(Color(0xFFF5F5F5))
     ) {
         // ═══════════ FIXED TOP HEADER (does not scroll) ═══════════
         Column(
