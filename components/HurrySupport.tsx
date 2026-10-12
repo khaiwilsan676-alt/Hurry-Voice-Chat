@@ -95,7 +95,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
           setMessages(cachedChat.messages);
         } else {
           const welcomeMessage: MessageType = {
-            text: "Welcome to Hurry Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
+            text: "Welcome to Zaho Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Zaho App se juda koi bhi sawal pooch sakte hain! 😊",
             isBot: true,
             timestamp: Date.now()
           };
@@ -135,7 +135,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
         console.error("Error loading support chat from IndexedDB:", error);
 
         const welcomeMessage: MessageType = {
-          text: "Welcome to Hurry Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊",
+          text: "Welcome to Zaho Support 👋\\n\\nI am Daisy, your Official Customer Support Assistant.\\n\\nHow can I help you today? Aap Zaho App se juda koi bhi sawal pooch sakte hain! 😊",
           isBot: true,
           timestamp: Date.now()
         };
@@ -296,7 +296,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
         };
       }
       return {
-        text: "Hello! 👋\n\nWelcome to Hurry Support. I am Daisy, your AI Customer Support Assistant.\n\nKaise help kar sakti hoon aaj aapki? Please feel free to ask!",
+        text: "Hello! 👋\n\nWelcome to Zaho Support. I am Daisy, your AI Customer Support Assistant.\n\nKaise help kar sakti hoon aaj aapki? Please feel free to ask!",
         isBot: true
       };
     }
@@ -323,7 +323,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
       const prefix = isYesNoQuestion ? getYesPrefix() : "";
       
       return {
-        text: prefix + "💎 Hurry App Coins Rates & Recharge Info\n\n" +
+        text: prefix + "💎 Zaho App Coins Rates & Recharge Info\n\n" +
                "💰 Coins Exchange Rates:\n" +
                "• Offline (Through Official Seller):\n" +
                "  👉 1$ = 1,050,000 Coins\n\n" +
@@ -410,7 +410,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
     if (msg.includes("hawa kya") || msg.includes("what is hawa") || msg.includes("about hawa") ||
         msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is hurry") || msg.includes("hurry app")) {
       return {
-        text: "🌟 About Hurry App:\n\n" +
+        text: "🌟 About Zaho App:\n\n" +
                "Hurry ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n" +
                "✨ Key Features:\n" +
                "• Live Audio Party Rooms\n" +
@@ -426,7 +426,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
         msg.includes("officer") || msg.includes("अधिकारी") || msg.includes("मालिक") ||
         msg.includes("owner") || msg.includes("team")) {
       return {
-        text: "👑 Hurry Official Team Details:\n\n" +
+        text: "👑 Zaho Official Team Details:\n\n" +
                "• Hurry_IN\n" +
                "  🆔 ID: 100002\n\n" +
                "• Paras\n" +
