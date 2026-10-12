@@ -196,38 +196,40 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(122.dp).offset(y = (-40).dp)) {
-                    LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxWidth().aspectRatio(3.25f).align(Alignment.TopCenter))
-                    Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
-                            if (userPhoto.isNotBlank()) {
-                                AsyncImage(
-                                    model = userPhoto,
-                                    contentDescription = "User",
-                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Text(displayName.take(1).uppercase(), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                Box(Modifier.fillMaxWidth().height(82.dp)) {
+                    Box(Modifier.fillMaxWidth().height(122.dp).offset(y = (-40).dp)) {
+                        LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxWidth().aspectRatio(3.25f).align(Alignment.TopCenter))
+                        Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
+                                if (userPhoto.isNotBlank()) {
+                                    AsyncImage(
+                                        model = userPhoto,
+                                        contentDescription = "User",
+                                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(displayName.take(1).uppercase(), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column(Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(displayName, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Spacer(Modifier.width(6.dp))
-                                LevelAsset(levelTiers[0].badge, Modifier.height(28.dp).width(58.dp))
+                            Spacer(Modifier.width(14.dp))
+                            Column(Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(displayName, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Spacer(Modifier.width(6.dp))
+                                    LevelAsset(levelTiers[0].badge, Modifier.height(28.dp).width(58.dp))
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha=.25f))) {
+                                    Box(Modifier.fillMaxWidth(.38f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Color(0xFFFFE072), Color(0xFFF4B63F)))))
+                                }
+                                Text("4.5k/20.2k remaining to reach Level 5 >", color = Color.White.copy(alpha=.9f), fontSize = 10.5.sp, modifier = Modifier.padding(top = 5.dp), maxLines = 1)
                             }
-                            Spacer(Modifier.height(8.dp))
-                            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha=.25f))) {
-                                Box(Modifier.fillMaxWidth(.38f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Color(0xFFFFE072), Color(0xFFF4B63F)))))
-                            }
-                            Text("4.5k/20.2k remaining to reach Level 5 >", color = Color.White.copy(alpha=.9f), fontSize = 10.5.sp, modifier = Modifier.padding(top = 5.dp), maxLines = 1)
                         }
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(85.dp).padding(horizontal = 16.dp).offset(y = (-18).dp)) {
+                Box(Modifier.fillMaxWidth().height(85.dp).padding(horizontal = 16.dp).offset(y = (-40).dp)) {
                     LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).height(28.dp).width(54.dp))
                     Row(Modifier.align(Alignment.CenterStart).padding(top = 15.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
