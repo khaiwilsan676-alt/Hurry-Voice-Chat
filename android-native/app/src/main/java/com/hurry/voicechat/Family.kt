@@ -1,6 +1,10 @@
 package com.hurry.voicechat
 
 import android.content.Context
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +19,10 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +70,14 @@ fun Family(onBack: () -> Unit) {
  var familyName by remember { mutableStateOf(prefs.getString("familyName", "") ?: "") }
  var announcement by remember { mutableStateOf(prefs.getString("familyAnnouncement", "") ?: "") }
  var familyImage by remember { mutableStateOf(prefs.getString("familyImage", "") ?: "") }
+ var createBusy by remember { mutableStateOf(false) }
+ var createError by remember { mutableStateOf<String?>(null) }
+ val scope = rememberCoroutineScope()
+ val walletDao = remember { WalletDatabase.get(context).walletDao() }
+ val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+  if (uri != null) runCatching { context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+  familyImage = uri?.toString().orEmpty()
+ }
  var activeRank by remember { mutableIntStateOf(0) }
  var seconds by remember { mutableIntStateOf(0) }
  LaunchedEffect(Unit) {
@@ -75,10 +91,43 @@ fun Family(onBack: () -> Unit) {
  }
  Box(Modifier.fillMaxSize().background(if (view == "create") Color.White else if (view == "top") familyBrown else familyDark)) {
   when (view) {
-   "create" -> FamilyCreate(onBack = { view = "main" }, name = familyName, onName = { familyName = it }, announcement = announcement, onAnnouncement = { announcement = it }, image = familyImage, onImage = { familyImage = it }, mode = applyMode, onMode = { showApplyMode = true }, onCreate = {
-    if (familyName.isNotBlank()) {
-     prefs.edit().putString("familyName", familyName).putString("familyAnnouncement", announcement).putString("familyImage", familyImage).putString("applyMode", applyMode).apply()
-     view = "top"
+   "create" -> FamilyCreate(onBack = { view = "main" }, name = familyName, onName = { familyName = it }, announcement = announcement, onAnnouncement = { announcement = it }, image = familyImage, onImage = { imagePicker.launch(arrayOf("image/*")) }, mode = applyMode, onMode = { showApplyMode = true }, busy = createBusy, error = createError, onCreate = {
+    if (createBusy) return@FamilyCreate
+    if (familyName.isBlank()) {
+     createError = "Please enter a Family Name."
+    } else {
+     createBusy = true
+     createError = null
+     scope.launch {
+      val result = withContext(Dispatchers.IO) {
+       runCatching {
+        val current = walletDao.getUserData() ?: UserDataEntity()
+        if (current.balance < 10_000_000L) {
+         "You need 10,000,000 coins to create a family."
+        } else {
+         walletDao.saveUserData(current.copy(balance = current.balance - 10_000_000L))
+         val now = System.currentTimeMillis()
+         walletDao.insertTransaction(TransactionEntity(
+          title = "Create Family", amount = -10_000_000L,
+          date = java.text.SimpleDateFormat("yyyy.MM.dd HH:mm", java.util.Locale.getDefault()).format(java.util.Date(now)),
+          timestamp = now, type = "coins"
+         ))
+         null
+        }
+       }.getOrElse { "Could not create family. Please try again." }
+      }
+      createBusy = false
+      if (result == null) {
+       prefs.edit().putString("familyName", familyName.trim())
+        .putString("familyAnnouncement", announcement)
+        .putString("familyImage", familyImage)
+        .putString("applyMode", applyMode)
+        .putString("familyCode", prefs.getString("familyCode", "")?.ifBlank { "FAM" + System.currentTimeMillis().toString().takeLast(6) } ?: "FAM" + System.currentTimeMillis().toString().takeLast(6))
+        .putBoolean("familyCreated", true).apply()
+       view = "top"
+       Toast.makeText(context, "Family created successfully", Toast.LENGTH_SHORT).show()
+      } else createError = result
+     }
     }
    })
    "top" -> FamilyTop(onBack = { view = "main" }, onRules = { showRules = true }, activeRank = activeRank, onRank = { activeRank = it })
@@ -163,11 +212,11 @@ private fun FamilyTop(onBack: () -> Unit,onRules: () -> Unit,activeRank: Int,onR
 }
 
 @Composable
-private fun FamilyCreate(onBack:()->Unit,name:String,onName:(String)->Unit,announcement:String,onAnnouncement:(String)->Unit,image:String,onImage:(String)->Unit,mode:String,onMode:()->Unit,onCreate:()->Unit) {
+private fun FamilyCreate(onBack:()->Unit,name:String,onName:(String)->Unit,announcement:String,onAnnouncement:(String)->Unit,image:String,onImage:()->Unit,mode:String,onMode:()->Unit,busy:Boolean,error:String?,onCreate:()->Unit) {
  Column(Modifier.fillMaxSize().background(Color.White)) {
   Row(Modifier.fillMaxWidth().statusBarsPadding().padding(top=16.dp,start=8.dp),verticalAlignment=Alignment.CenterVertically){IconButton(onClick=onBack){Icon(Icons.Default.ArrowBack,"Back",tint=Color.Black,modifier=Modifier.size(28.dp))}}
   Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom=20.dp)) {
-   Box(Modifier.align(Alignment.CenterHorizontally).padding(top=4.dp).size(96.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFF9FAFB)).border(2.dp,familyGold,RoundedCornerShape(8.dp)).clickable{onImage("")},contentAlignment=Alignment.Center) {
+   Box(Modifier.align(Alignment.CenterHorizontally).padding(top=4.dp).size(96.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFFF9FAFB)).border(2.dp,familyGold,RoundedCornerShape(8.dp)).clickable(onClick=onImage),contentAlignment=Alignment.Center) {
     if(image.isNotBlank()) AsyncImage(model=image,contentDescription="Family image",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop) else Icon(Icons.Default.Add,"Upload Image",tint=Color.Gray,modifier=Modifier.size(36.dp))
    }
    Text("Upload Image",color=Color.Gray,fontSize=14.sp,fontWeight=FontWeight.Bold,modifier=Modifier.align(Alignment.CenterHorizontally).padding(top=8.dp))
@@ -178,12 +227,13 @@ private fun FamilyCreate(onBack:()->Unit,name:String,onName:(String)->Unit,annou
     OutlinedTextField(value=announcement,onValueChange=onAnnouncement,modifier=Modifier.fillMaxWidth(),singleLine=true,shape=RoundedCornerShape(12.dp),colors=OutlinedTextFieldDefaults.colors(unfocusedContainerColor=Color(0xFFF3F4F6),focusedContainerColor=Color(0xFFF3F4F6)))
     Spacer(Modifier.height(12.dp)); Text("Setting",color=Color.Gray,fontWeight=FontWeight.Bold,fontSize=14.sp)
     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFFF3F4F6)).clickable(onClick=onMode).padding(16.dp),verticalAlignment=Alignment.CenterVertically){Text("Apply Mode",color=Color.Black,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));Text(if(mode=="admin")"Apply Mode / Admin & Owner" else "Free mode",color=Color.Gray,fontSize=12.sp);Icon(Icons.Default.ChevronRight,null,tint=Color.Gray)}
+    if (error != null) Text(error,color=Color(0xFFDC2626),fontSize=13.sp,fontWeight=FontWeight.Medium,modifier=Modifier.padding(top=10.dp))
     Spacer(Modifier.height(16.dp)); Text("1. Creating a family requires ≥ LV.5",color=Color.Gray,fontSize=13.sp)
     Text("2. Family info can be modified once a week",color=Color.Gray,fontSize=13.sp,modifier=Modifier.padding(top=4.dp))
     Text("3. If family with only 1 member for 7 days will be disbanded automatically",color=Color.Gray,fontSize=13.sp,modifier=Modifier.padding(top=4.dp))
    }
   }
-  Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom=16.dp),contentAlignment=Alignment.Center){Button(onClick=onCreate,shape=RoundedCornerShape(50),colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF00BFA5)),modifier=Modifier.height(52.dp).widthIn(min=280.dp)){Text("Created with 10,000,000 coins",color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)}}
+  Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom=16.dp),contentAlignment=Alignment.Center){Button(onClick=onCreate,enabled=!busy,shape=RoundedCornerShape(50),colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF00BFA5)),modifier=Modifier.height(52.dp).widthIn(min=280.dp)){Text(if(busy) "Creating family..." else "Created with 10,000,000 coins",color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)}}
  }
 }
 
