@@ -13,8 +13,8 @@ fun LoginPage(onLogin:(String)->Unit={}) {
  var phone by remember { mutableStateOf("") }
  Box(Modifier.fillMaxSize().padding(24.dp),contentAlignment=Alignment.Center) {
   Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(16.dp)) {
-   AsyncImage(model="file:///android_asset/logo.png",contentDescription="Hurry",modifier=Modifier.size(92.dp))
-   Text("Hurry",style=MaterialTheme.typography.headlineLarge)
+   AsyncImage(model="file:///android_asset/logo.png",contentDescription="Zaho",modifier=Modifier.size(92.dp))
+   Text("Zaho",style=MaterialTheme.typography.headlineLarge)
    OutlinedTextField(phone,{phone=it},singleLine=true,label={Text("Phone")},shape=RoundedCornerShape(14.dp))
    Button({onLogin(phone)},enabled=phone.isNotBlank(),modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(14.dp)){Text("Continue")}
   }
