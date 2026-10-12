@@ -166,10 +166,23 @@ fun RoomPage(
                     }
                     Text("ID: "+roomId,color=Color.White.copy(.65f),fontSize=11.sp,maxLines=1)
                 }
-                Row(verticalAlignment=Alignment.CenterVertically){
-                    IconButton(onClick={showActiveUsers=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(23.dp))}
-                    if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) IconButton(onClick={showSettings=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(22.dp))}
-                    IconButton(onClick={showExitMenu=true},modifier=Modifier.size(36.dp)){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(22.dp))}
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                    Row(
+                        modifier=Modifier.height(36.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=8.dp),
+                        verticalAlignment=Alignment.CenterVertically,
+                        horizontalArrangement=Arrangement.spacedBy(4.dp)
+                    ){
+                        Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(23.dp))
+                        Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                    }
+                    if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) Box(
+                        Modifier.size(36.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showSettings=true},
+                        contentAlignment=Alignment.Center
+                    ){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(22.dp))}
+                    Box(
+                        Modifier.size(36.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showExitMenu=true},
+                        contentAlignment=Alignment.Center
+                    ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(22.dp))}
                 }
             }
             if(announcement.isNotBlank()) Surface(Modifier.fillMaxWidth().padding(10.dp),color=Color.Black.copy(.4f),shape=RoundedCornerShape(18.dp)){
