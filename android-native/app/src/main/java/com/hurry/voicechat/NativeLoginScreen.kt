@@ -73,7 +73,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(model = HURRY_LOGO, contentDescription = "Hurry", modifier = Modifier.size(80.dp).clip(RoundedCornerShape(18.dp)))
-                    Text("Hurry", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    Text("Zaho", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.weight(1.2f))
                 Button(
