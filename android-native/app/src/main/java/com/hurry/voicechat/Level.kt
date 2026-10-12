@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import android.content.Context
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.lazy.LazyColumn
@@ -155,6 +157,15 @@ private fun LevelUpgradeDialog(onDismiss: () -> Unit) {
 
 @Composable
 fun Level(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
+    val userPrefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
+    val storedName = userPrefs.getString("name", "")?.trim().orEmpty()
+    val userName = storedName.takeIf { it.isNotBlank() && it.lowercase() !in listOf("guest", "user", "null", "undefined") }
+    val userUid = userPrefs.getString("uid", "")?.trim().orEmpty().ifBlank {
+        userPrefs.getString("phone", "")?.trim().orEmpty()
+    }
+    val userPhoto = userPrefs.getString("photo", "")?.trim().orEmpty()
+    val displayName = userName ?: userUid.take(8).ifBlank { "Guest" }
     var showUpgrade by remember { mutableStateOf(false) }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val activeTierIndex by remember {
@@ -189,12 +200,21 @@ fun Level(onBack: () -> Unit = {}) {
                     LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxWidth().aspectRatio(3.25f).align(Alignment.TopCenter))
                     Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
-                            Text("G", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            if (userPhoto.isNotBlank()) {
+                                AsyncImage(
+                                    model = userPhoto,
+                                    contentDescription = "User",
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Text(displayName.take(1).uppercase(), color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Guest", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(displayName, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Spacer(Modifier.width(6.dp))
                                 LevelAsset(levelTiers[0].badge, Modifier.height(28.dp).width(58.dp))
                             }
