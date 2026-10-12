@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -83,52 +86,65 @@ private fun LevelRewardRow(title: String, subtitle: String? = null, trailing: @C
 
 @Composable
 private fun LevelUpgradeDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
-        containerColor = Color.White,
-        title = {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                Text("◆", color = Color(0xFFF59E0B), fontSize = 18.sp)
-                Text("  How to upgrade  ", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text("◆", color = Color(0xFFF59E0B), fontSize = 18.sp)
-            }
-        },
-        text = {
-            Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
-                val methods = listOf(
-                    Triple("Send Gifts","1 coins=1 EXP",0),
-                    Triple("Join rooms","2000 EXP/Day",1),
-                    Triple("Share Rooms","2000 EXP/Day",2),
-                    Triple("Take the mic and unmute in your ov","1 min = 500 exp, 10000 exp/day",3),
-                    Triple("Take the mic and unmute in others'","1 min = 500 exp, 20000 exp/day",4)
-                )
-                methods.forEachIndexed { index, item ->
-                    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-                            when (item.third) {
-                                0 -> Icon(Icons.Default.CardGiftcard, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(34.dp))
-                                1 -> Icon(Icons.Default.Home, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(34.dp))
-                                2 -> Icon(Icons.Default.Share, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(34.dp))
-                                else -> Icon(Icons.Default.Mic, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(34.dp))
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).widthIn(max = 340.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E7EB)),
+            shadowElevation = 20.dp
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("◆", color = Color(0xFFF59E0B), fontSize = 18.sp)
+                    Text("  How to upgrade  ", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.3.sp)
+                    Text("◆", color = Color(0xFFF59E0B), fontSize = 18.sp)
+                }
+                Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+                    val methods = listOf(
+                        Triple("Send Gifts", "1 coins=1 EXP", 0),
+                        Triple("Join rooms", "2000 EXP/Day", 1),
+                        Triple("Share Rooms", "2000 EXP/Day", 2),
+                        Triple("Take the mic and unmute in your ov", "1 min = 500 exp, 10000 exp/day", 3),
+                        Triple("Take the mic and unmute in others'", "1 min = 500 exp, 20000 exp/day", 4)
+                    )
+                    methods.forEachIndexed { index, item ->
+                        Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                                when (item.third) {
+                                    0 -> Icon(Icons.Default.CardGiftcard, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(40.dp))
+                                    1 -> Icon(Icons.Default.Home, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(40.dp))
+                                    2 -> Icon(Icons.Default.Share, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(40.dp))
+                                    else -> Icon(Icons.Default.Mic, null, tint = Color(0xFF3B82F6), modifier = Modifier.size(40.dp))
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(item.first, color = Color(0xFF111827), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, lineHeight = 17.sp, maxLines = 1, overflow = TextOverflow.Clip)
+                                Text(item.second, color = Color(0xFF6B7280), fontSize = 13.sp, lineHeight = 16.sp)
                             }
                         }
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(item.first, color = Color(0xFF111827), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            Text(item.second, color = Color(0xFF6B7280), fontSize = 12.sp)
-                        }
+                        if (index != methods.lastIndex) HorizontalDivider(color = Color(0xFFF3F4F6))
                     }
-                    if (index != methods.lastIndex) HorizontalDivider(color = Color(0xFFF3F4F6))
+                }
+                Box(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 16.dp)) {
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB)),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+                    ) {
+                        Text("Confirm", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.3.sp)
+                    }
                 }
             }
-        },
-        confirmButton = {
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(50), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))) {
-                Text("Confirm", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 5.dp))
-            }
         }
-    )
+    }
 }
 
 @Composable
@@ -159,8 +175,8 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(150.dp).offset(y = (-30).dp)) {
-                    LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxSize())
+                Box(Modifier.fillMaxWidth().height(122.dp).offset(y = (-40).dp)) {
+                    LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxWidth().aspectRatio(3.25f).align(Alignment.TopCenter))
                     Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
                             Text("G", color = Color.White, fontSize = 19.sp, fontWeight = FontWeight.Bold)
@@ -201,7 +217,7 @@ fun Level(onBack: () -> Unit = {}) {
                 state = listState,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp)
+                verticalArrangement = Arrangement.spacedBy(36.dp)
             ) {
                 itemsIndexed(levelTiers, key = { index, tier -> tier.range }) { index, tier ->
                     Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
@@ -219,6 +235,7 @@ fun Level(onBack: () -> Unit = {}) {
                                 Column(Modifier.weight(1f).height(92.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                     Text("Lv.${reward.first}", color = Color.White.copy(alpha=.75f), fontSize = 9.sp, modifier = Modifier.align(Alignment.Start))
                                     LevelAsset("file_00000000b2d481fd8cd233482dbeb9ef.png", Modifier.size(32.dp))
+                                    Spacer(Modifier.height(6.dp))
                                     Text(reward.second, color = Color.White.copy(alpha=.9f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
