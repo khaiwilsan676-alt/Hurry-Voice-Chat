@@ -224,7 +224,7 @@ private fun HurryNativeRoot() {
                                 "Level" -> Level(onBack = { openedMePage = null })
                                 "Medal" -> Medal(onBack = { openedMePage = null })
                                 "Store" -> StorePage(onBack = { openedMePage = null })
-                                "Bag" -> BagPage(onBack = { openedMePage = null })
+                                "Bag" -> StorePage(onBack = { openedMePage = null }, initialView = "bag")
                                 "Seller Center" -> SellerCenter(onBack = { openedMePage = null })
                                 "Language Setting" -> LanguagePage(onBack = { openedMePage = null })
                                 "Settings" -> SettingsPage(onBack = { openedMePage = null })
