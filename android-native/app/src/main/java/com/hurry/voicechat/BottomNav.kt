@@ -53,7 +53,9 @@ private fun NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        Canvas(Modifier.size(30.dp)) {
+        if (which == HurryTab.MESSAGE) {
+            HurryMessageIcon(active = which == selected, modifier = Modifier.size(30.dp))
+        } else Canvas(Modifier.size(30.dp)) {
             val s = size.minDimension / 36f
             val active = which == selected
             val fill = if (active) Color(0xFF3B82F6) else Color.White
