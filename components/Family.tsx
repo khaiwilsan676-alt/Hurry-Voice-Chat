@@ -21,7 +21,7 @@ interface FamilyProps {
 // Helper Component for Reward Items
 const RewardItem = ({ title }: { title: string }) => (
   <div className="flex flex-col items-center w-[28%]">
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] relative">
       {/* Andar ki image hata di hai */}
     </div>
     <div className="flex gap-[1px] mt-1.5">
@@ -35,7 +35,7 @@ const RewardItem = ({ title }: { title: string }) => (
   </div>
 );
 
-// BLACK BACKGROUND VIDEO REWARD ITEM (PAUSED)
+// BLACK BACKGROUND VIDEO REWARD ITEM (PLAYS ON TOUCH & CONTINUES)
 const VideoRewardItem = ({ 
   title, 
   videoSrc, 
@@ -48,70 +48,98 @@ const VideoRewardItem = ({
   onClick: () => void, 
   scaleClass?: string, 
   blendScreen?: boolean 
-}) => (
-  <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
-      <video 
-        src={videoSrc} 
-        preload="auto"
-        autoPlay
-        loop
-        playsInline
-        muted
-        disablePictureInPicture
-        disableRemotePlayback
-        className={`w-full h-full object-cover pointer-events-none ${scaleClass}`} 
-        style={{ 
-          mixBlendMode: blendScreen ? 'screen' : 'normal', 
-          filter: 'url(#remove-black)' 
-        }} 
-      />
-    </div>
-    <div className="flex gap-[1px] mt-1.5">
-      {[...Array(5)].map((_, i) => (
-        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-    </div>
-    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
-  </div>
-);
+}) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-// GREEN BACKGROUND VIDEO REWARD ITEM (PAUSED)
-const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
-  <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
-      <video 
-        src={videoSrc} 
-        preload="auto"
-        autoPlay
-        loop
-        playsInline
-        muted
-        disablePictureInPicture
-        disableRemotePlayback
-        className="w-full h-full object-cover scale-150 pointer-events-none" 
-        style={{ 
-          filter: 'url(#remove-green)' 
-        }} 
-      />
+  const handleTouch = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
+      <div 
+        className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative"
+        onTouchStart={handleTouch}
+        onMouseDown={handleTouch}
+      >
+        <video 
+          ref={videoRef}
+          src={videoSrc} 
+          preload="auto"
+          loop
+          playsInline
+          muted
+          disablePictureInPicture
+          disableRemotePlayback
+          className={`w-full h-full object-cover pointer-events-none ${scaleClass}`} 
+          style={{ 
+            mixBlendMode: blendScreen ? 'screen' : 'normal', 
+            filter: 'url(#remove-black)' 
+          }} 
+        />
+      </div>
+      <div className="flex gap-[1px] mt-1.5">
+        {[...Array(5)].map((_, i) => (
+          <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+      <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
     </div>
-    <div className="flex gap-[1px] mt-1.5">
-      {[...Array(5)].map((_, i) => (
-        <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
+  );
+};
+
+// GREEN BACKGROUND VIDEO REWARD ITEM (PLAYS ON TOUCH & CONTINUES)
+const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleTouch = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
+      <div 
+        className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative"
+        onTouchStart={handleTouch}
+        onMouseDown={handleTouch}
+      >
+        <video 
+          ref={videoRef}
+          src={videoSrc} 
+          preload="auto"
+          loop
+          playsInline
+          muted
+          disablePictureInPicture
+          disableRemotePlayback
+          className="w-full h-full object-cover scale-150 pointer-events-none" 
+          style={{ 
+            filter: 'url(#remove-green)' 
+          }} 
+        />
+      </div>
+      <div className="flex gap-[1px] mt-1.5">
+        {[...Array(5)].map((_, i) => (
+          <svg key={i} className="w-2.5 h-2.5 text-[#FFD700] fill-current" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+        ))}
+      </div>
+      <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
     </div>
-    <span className="text-[#FDE68A] text-[10px] text-center mt-1 leading-tight font-medium opacity-90 drop-shadow-sm">{title}</span>
-  </div>
-);
+  );
+};
 
 // VEHICLE REWARD ITEM
 const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative">
       <img 
         src={imageSrc} 
         alt={title} 
@@ -136,7 +164,7 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
 // TALL REWARD ITEM
 const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
   <div className="flex flex-col items-center w-[45%]">
-    <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] relative">
+    <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] relative">
       <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md pointer-events-none" />
     </div>
     <div className="flex gap-[1px] mt-1.5">
@@ -153,7 +181,7 @@ const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }
 // NEW: MIXED IMAGE REWARD ITEM (For Top 3 & Top 4-10)
 const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative">
       <img 
         src={imageSrc} 
         alt={title} 
