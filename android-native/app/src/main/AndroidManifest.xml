@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <application
         android:theme="@style/Theme.Hurry"
-        android:label="Hurry"
+        android:label="Zaho"
         android:icon="@drawable/hurry_logo"
         android:roundIcon="@drawable/hurry_logo">
         <provider
