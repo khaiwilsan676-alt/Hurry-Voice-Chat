@@ -159,7 +159,7 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().padding(top = (-30).dp).height(150.dp)) {
+                Box(Modifier.fillMaxWidth().height(150.dp).offset(y = (-30).dp)) {
                     LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxSize())
                     Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
