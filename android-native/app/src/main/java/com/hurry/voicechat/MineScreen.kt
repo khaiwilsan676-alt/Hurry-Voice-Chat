@@ -61,7 +61,7 @@ fun MineNativePage(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
-                        Text("Embark Your Hurry Journey!", color=Color.White, fontSize=20.sp, maxLines=1, softWrap=false)
+                        Text("Embark Your Zaho Journey!", color=Color.White, fontSize=20.sp, maxLines=1, softWrap=false)
                         Text("Tap to create your room", color=Color.White.copy(alpha=.8f), fontSize=14.sp)
                     }
                 }
