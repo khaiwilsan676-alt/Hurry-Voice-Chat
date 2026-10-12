@@ -52,7 +52,6 @@ private enum class InviteKey { NONE, GREEN, WHITE }
 
 @Composable
 private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKey = InviteKey.NONE, scale: ContentScale = ContentScale.Fit) {
-    val context = LocalContext.current
     var bitmap by remember(file, key) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(file, key) {
         bitmap = withContext(Dispatchers.IO) {
@@ -162,7 +161,6 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(inviteRed)) {
-        val pageWidth = maxWidth
         Box(Modifier.fillMaxWidth().height(screenHeight * .5f).align(Alignment.TopCenter)) {
             InviteArt(
                 "IMG-20260830-WA0076.jpg",
@@ -242,7 +240,6 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
                                 Modifier.padding(top = 12.dp).clip(CircleShape)
                                     .background(Brush.verticalGradient(listOf(Color(0xFFE62E2E), Color(0xFFB80D0D), Color(0xFF7A0000))))
                                     .border(1.5.dp, inviteYellow, CircleShape)
-                                    .clickable { Toast.makeText(context, "Claim", Toast.LENGTH_SHORT).show() }
                                     .padding(horizontal = 40.dp, vertical = 6.dp)
                             ) {
                                 Text("Claim", color = inviteYellow, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
@@ -271,7 +268,7 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
 
         InviteArt(
             "1788074191602~2.jpg",
-            Modifier.align(Alignment.BottomEnd).padding(end = 8.dp).widthIn(max = 360.dp).fillMaxWidth(.88f).wrapContentHeight(),
+            Modifier.align(Alignment.BottomEnd).padding(end = 8.dp).widthIn(max = 360.dp).fillMaxWidth(.88f).wrapContentHeight().clickable { isSheetOpen = true },
             key = InviteKey.GREEN
         )
         IconButton(
