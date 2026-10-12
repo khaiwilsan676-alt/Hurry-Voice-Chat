@@ -23,6 +23,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import android.net.Uri
+import android.widget.VideoView
 import coil3.compose.AsyncImage
 
 private val StoreBlue = Color(0xFF1D4ED8)
@@ -169,12 +172,12 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                                 Text(item.duration, color = if (theme) Color.White else Color.Gray, fontSize = 11.sp)
                             }
                         }
-                        if (theme) {
-                            AsyncImage(model = StoreAssetBase + item.image, contentDescription = item.name,
-                                modifier = Modifier.fillMaxWidth().weight(1f).padding(vertical = 2.dp))
+                        val mediaModifier = if (theme) Modifier.fillMaxWidth().weight(1f).padding(vertical = 2.dp)
+                            else Modifier.fillMaxWidth().height(if (item.tab == "Vehicle" || item.tab == "Avatar Frame") 120.dp else 80.dp)
+                        if (item.image.endsWith(".mp4", ignoreCase = true)) {
+                            StoreVideoPreview(StoreAssetBase + item.image, mediaModifier)
                         } else {
-                            AsyncImage(model = StoreAssetBase + item.image, contentDescription = item.name,
-                                modifier = Modifier.fillMaxWidth().height(if (item.tab == "Vehicle" || item.tab == "Avatar Frame") 120.dp else 80.dp))
+                            AsyncImage(model = StoreAssetBase + item.image, contentDescription = item.name, modifier = mediaModifier)
                         }
                         Text("★".repeat(item.stars) + "☆".repeat(5 - item.stars), color = Color(0xFFFFC928), fontSize = 16.sp, lineHeight = 18.sp)
                         Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
@@ -210,7 +213,12 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
         }) {
             Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Purchase", color = Color(0xFF111827), fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                AsyncImage(model = StoreAssetBase + (item.video ?: item.image), contentDescription = item.name, modifier = Modifier.size(180.dp))
+                val previewSource = item.video ?: item.image
+                if (previewSource.endsWith(".mp4", ignoreCase = true)) {
+                    StoreVideoPreview(StoreAssetBase + previewSource, Modifier.size(180.dp))
+                } else {
+                    AsyncImage(model = StoreAssetBase + previewSource, contentDescription = item.name, modifier = Modifier.size(180.dp))
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("%,d".format(item.price), color = Color(0xFF111827), fontSize = 24.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.width(6.dp))
@@ -275,4 +283,33 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
             }
         }
     }
+}
+
+@Composable
+private fun StoreVideoPreview(url: String, modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    AndroidView(
+        modifier = modifier,
+        factory = {
+            VideoView(context).apply {
+                tag = url
+                setVideoURI(Uri.parse(url))
+                setOnPreparedListener { player ->
+                    player.isLooping = true
+                    start()
+                }
+                setOnErrorListener { _, _, _ -> true }
+            }
+        },
+        update = { view ->
+            if (view.tag != url) {
+                view.tag = url
+                view.setVideoURI(Uri.parse(url))
+                view.setOnPreparedListener { player ->
+                    player.isLooping = true
+                    start()
+                }
+            }
+        }
+    )
 }
