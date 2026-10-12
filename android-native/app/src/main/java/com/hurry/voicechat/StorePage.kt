@@ -291,15 +291,15 @@ private fun StoreVideoPreview(url: String, modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier,
         factory = {
-            VideoView(context).apply {
-                tag = url
-                setVideoURI(Uri.parse(url))
-                setOnPreparedListener { player ->
-                    player.isLooping = true
-                    start()
-                }
-                setOnErrorListener { _, _, _ -> true }
+            val videoView = VideoView(context)
+            videoView.tag = url
+            videoView.setVideoURI(Uri.parse(url))
+            videoView.setOnPreparedListener { player ->
+                player.isLooping = true
+                videoView.start()
             }
+            videoView.setOnErrorListener { _, _, _ -> true }
+            videoView
         },
         update = { view ->
             if (view.tag != url) {
@@ -307,7 +307,7 @@ private fun StoreVideoPreview(url: String, modifier: Modifier = Modifier) {
                 view.setVideoURI(Uri.parse(url))
                 view.setOnPreparedListener { player ->
                     player.isLooping = true
-                    start()
+                    view.start()
                 }
             }
         }
