@@ -27,7 +27,7 @@ fun HomePage(rooms: List<HurryRoom> = emptyList(), onOpenRoom: (HurryRoom)->Unit
     }) { pad ->
         Column(Modifier.fillMaxSize().padding(pad)) {
             Row(Modifier.fillMaxWidth().background(Color.White).padding(top=10.dp,start=14.dp,end=14.dp,bottom=8.dp), verticalAlignment=Alignment.CenterVertically) {
-                Text("Hurry", style=MaterialTheme.typography.titleLarge, modifier=Modifier.weight(1f))
+                Text("Zaho", style=MaterialTheme.typography.titleLarge, modifier=Modifier.weight(1f))
                 Text("⌕", style=MaterialTheme.typography.headlineSmall, modifier=Modifier.clickable(onClick=onSearch).padding(8.dp))
             }
             Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal=14.dp,vertical=6.dp), horizontalArrangement=Arrangement.spacedBy(22.dp)) {
