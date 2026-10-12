@@ -21,7 +21,7 @@ interface FamilyProps {
 // Helper Component for Reward Items
 const RewardItem = ({ title }: { title: string }) => (
   <div className="flex flex-col items-center w-[28%]">
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] relative">
       {/* Andar ki image hata di hai */}
     </div>
     <div className="flex gap-[1px] mt-1.5">
@@ -50,7 +50,7 @@ const VideoRewardItem = ({
   blendScreen?: boolean 
 }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
       <video 
         src={videoSrc} 
         preload="auto"
@@ -81,7 +81,7 @@ const VideoRewardItem = ({
 // GREEN BACKGROUND VIDEO REWARD ITEM (PAUSED)
 const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
       <video 
         src={videoSrc} 
         preload="auto"
@@ -111,7 +111,7 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
 // VEHICLE REWARD ITEM
 const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
       <img 
         src={imageSrc} 
         alt={title} 
@@ -136,7 +136,7 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
 // TALL REWARD ITEM
 const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
   <div className="flex flex-col items-center w-[45%]">
-    <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border border-[#A65329]/50">
+    <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] relative">
       <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md pointer-events-none" />
     </div>
     <div className="flex gap-[1px] mt-1.5">
@@ -153,7 +153,7 @@ const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }
 // NEW: MIXED IMAGE REWARD ITEM (For Top 3 & Top 4-10)
 const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick: () => void }) => (
   <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border border-[#A65329]/50 overflow-hidden relative">
+    <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1.5 shadow-inner border-2 border-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.3)] overflow-hidden relative">
       <img 
         src={imageSrc} 
         alt={title} 
