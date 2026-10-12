@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil3.compose.AsyncImage
 
+data class HurryMedal(val id: String, val name: String, val image: String)
+
 private const val MEDAL_ASSET_BASE = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 private fun medalAsset(name: String) = MEDAL_ASSET_BASE + name
 
