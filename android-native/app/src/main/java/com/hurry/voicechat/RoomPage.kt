@@ -206,6 +206,35 @@ fun RoomPage(
                 }
             }
         }
+        // Real Hurry room's right-side image stack (banner, room task and games).
+        Column(
+            modifier=Modifier.align(Alignment.BottomEnd).padding(end=10.dp, bottom=104.dp),
+            horizontalAlignment=Alignment.CenterHorizontally,
+            verticalArrangement=Arrangement.spacedBy(2.dp)
+        ) {
+            AsyncImage(
+                model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg",
+                contentDescription="Room side banner",
+                modifier=Modifier.size(width=60.dp,height=84.dp).clip(RoundedCornerShape(8.dp)),
+                contentScale=ContentScale.Crop
+            )
+            Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
+                Box(Modifier.size(6.dp).clip(CircleShape).background(Color.White))
+                Box(Modifier.size(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.4f)))
+            }
+            AsyncImage(
+                model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
+                contentDescription="Room task",
+                modifier=Modifier.size(63.dp).clickable { showGames=true },
+                contentScale=ContentScale.Fit
+            )
+            AsyncImage(
+                model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000002a8c81fab8232bebeeeb45cc.png",
+                contentDescription="Games",
+                modifier=Modifier.size(56.dp).clickable { showGames=true },
+                contentScale=ContentScale.Fit
+            )
+        }
         if(showExitMenu) RoomExitMenu(
             onKeep={showExitMenu=false;onKeepRoom(roomName,roomImage,roomId)},
             onExit={showExitMenu=false;onClose()},
