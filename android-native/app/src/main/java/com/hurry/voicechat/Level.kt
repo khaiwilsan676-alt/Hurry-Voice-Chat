@@ -1,5 +1,6 @@
 package com.hurry.voicechat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import android.content.Context
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 
 private const val LEVEL_ASSET_BASE = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 private fun levelAsset(file: String) = LEVEL_ASSET_BASE + file
@@ -165,6 +168,11 @@ fun Level(onBack: () -> Unit = {}) {
         userPrefs.getString("phone", "")?.trim().orEmpty()
     }
     val userPhoto = userPrefs.getString("photo", "")?.trim().orEmpty()
+    val profilePainter = rememberAsyncImagePainter(model = levelAsset("file_000000007044820ea729df406d1dc320.png"))
+    val profileIntrinsic = profilePainter.intrinsicSize
+    val profileAspect = if (profileIntrinsic.width.isFinite() && profileIntrinsic.height.isFinite() && profileIntrinsic.width > 0f && profileIntrinsic.height > 0f) profileIntrinsic.width / profileIntrinsic.height else 3.25f
+    val profileFrameWidth = LocalConfiguration.current.screenWidthDp.dp + 8.dp
+    val profileFrameHeight = profileFrameWidth / profileAspect
     val displayName = userName ?: userUid.take(8).ifBlank { "Guest" }
     var showUpgrade by remember { mutableStateOf(false) }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
@@ -186,7 +194,7 @@ fun Level(onBack: () -> Unit = {}) {
 
         Column(Modifier.fillMaxSize()) {
             Column(Modifier.fillMaxWidth().statusBarsPadding()) {
-                Box(Modifier.fillMaxWidth().height(50.dp).padding(top = 8.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(56.dp).padding(top = 8.dp), contentAlignment = Alignment.Center) {
                     IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart).padding(start = 2.dp)) {
                         Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(26.dp))
                     }
@@ -196,10 +204,15 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(82.dp)) {
-                    Box(Modifier.fillMaxWidth().height(122.dp).offset(y = (-40).dp)) {
-                        LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxWidth().aspectRatio(3.25f).align(Alignment.TopCenter))
-                        Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.fillMaxWidth().height((profileFrameHeight - 40.dp).coerceAtLeast(1.dp))) {
+                    Box(Modifier.requiredWidth(profileFrameWidth).height(profileFrameHeight).offset(x = (-20).dp, y = (-40).dp)) {
+                        Image(
+                            painter = profilePainter,
+                            contentDescription = "Top Card Frame",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.FillBounds
+                        )
+                        Row(Modifier.fillMaxSize().padding(horizontal = 32.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
                                 if (userPhoto.isNotBlank()) {
                                     AsyncImage(
@@ -216,12 +229,14 @@ fun Level(onBack: () -> Unit = {}) {
                             Column(Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(displayName, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Spacer(Modifier.width(6.dp))
+                                    Spacer(Modifier.width(8.dp))
                                     LevelAsset(levelTiers[0].badge, Modifier.height(28.dp).width(58.dp))
                                 }
                                 Spacer(Modifier.height(8.dp))
                                 Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha=.25f))) {
-                                    Box(Modifier.fillMaxWidth(.38f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Color(0xFFFFE072), Color(0xFFF4B63F)))))
+                                    Box(Modifier.fillMaxWidth(.38f).fillMaxHeight().clip(RoundedCornerShape(20.dp)).background(Brush.horizontalGradient(listOf(Color(0xFFFFE072), Color(0xFFF4B63F))))) {
+                                        Box(Modifier.align(Alignment.CenterEnd).offset(x = 6.dp).size(12.dp).border(2.dp, Color(0xFFF4B63F), CircleShape).clip(CircleShape).background(Color.White))
+                                    }
                                 }
                                 Text("4.5k/20.2k remaining to reach Level 5 >", color = Color.White.copy(alpha=.9f), fontSize = 10.5.sp, modifier = Modifier.padding(top = 5.dp), maxLines = 1)
                             }
@@ -229,9 +244,9 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(85.dp).padding(horizontal = 16.dp).offset(y = (-40).dp)) {
-                    LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).height(28.dp).width(54.dp))
-                    Row(Modifier.align(Alignment.CenterStart).padding(top = 15.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.fillMaxWidth().height(45.dp).padding(horizontal = 16.dp)) {
+                    LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).offset(x = (-0).dp, y = (-14).dp).height(28.dp).width(54.dp))
+                    Row(Modifier.align(Alignment.CenterStart).offset(y = (-16).dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.KeyboardArrowUp, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Box(Modifier.width(14.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
@@ -239,9 +254,9 @@ fun Level(onBack: () -> Unit = {}) {
                             Box(Modifier.width(8.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
                         }
                         Spacer(Modifier.width(8.dp))
-                        Text("Update level to ${currentTier.range}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text("Update level to ${currentTier.range}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     }
-                    LevelAsset(currentTier.rightGraphic, Modifier.align(Alignment.CenterEnd).padding(top = 2.dp).size(100.dp))
+                    LevelAsset(currentTier.rightGraphic, Modifier.align(Alignment.CenterEnd).offset(y = (-20).dp).padding(end = 0.dp).size(100.dp))
                 }
             }
 
@@ -263,21 +278,21 @@ fun Level(onBack: () -> Unit = {}) {
                         }
 
                         Row(Modifier.fillMaxWidth().padding(horizontal = 2.dp).padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            tier.rewards.filterIndexed { rewardIndex, _ -> rewardIndex == 0 }.forEach { reward ->
-                                Column(Modifier.weight(1f).height(92.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                    Text("Lv.${reward.first}", color = Color.White.copy(alpha=.75f), fontSize = 9.sp, modifier = Modifier.align(Alignment.Start))
+                            Box(Modifier.weight(1f).height(76.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54).copy(alpha = .60f))), RoundedCornerShape(8.dp))) {
+                                Text("Lv.${tier.rewards[0].first}", color = Color.White.copy(alpha=.70f), fontSize = 9.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.TopStart).padding(start = 6.dp, top = 4.dp))
+                                Column(Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                     LevelAsset("file_00000000b2d481fd8cd233482dbeb9ef.png", Modifier.size(32.dp))
                                     Spacer(Modifier.height(6.dp))
-                                    Text(reward.second, color = Color.White.copy(alpha=.9f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(tier.rewards[0].second, color = Color.White.copy(alpha=.9f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
-                            Column(Modifier.weight(1f).height(92.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Column(Modifier.weight(1f).height(76.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54).copy(alpha = .60f))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                 Box(Modifier.background(Brush.horizontalGradient(listOf(Color(0xFF177488), Color(0xFF1EA3B3))), RoundedCornerShape(5.dp)).padding(horizontal = 8.dp, vertical = 3.dp)) {
                                     Text("Entry Tag", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                                 }
                                 Text("Entry", color = Color.White.copy(alpha=.9f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 5.dp))
                             }
-                            Column(Modifier.weight(1f).height(92.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Column(Modifier.weight(1f).height(76.dp).background(Brush.linearGradient(listOf(Color(0xFF06080D), Color(0xFF132C54).copy(alpha = .60f))), RoundedCornerShape(8.dp)).padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                                 Spacer(Modifier.size(32.dp))
                                 Text("Frame", color = Color.White.copy(alpha=.9f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                             }
