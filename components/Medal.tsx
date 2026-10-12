@@ -459,7 +459,7 @@ const RulesScreen = ({ onClose }: { onClose: () => void }) => {
                 (d) These will appear in your info card and room chat area.
               </p>
               <p>
-                (e) To check your medal status, log in to the Hurry app and go
+                (e) To check your medal status, log in to the Zaho app and go
                 to &quot;Me&quot; &gt; &quot;Medals&quot; to view your achieved
                 medals.
               </p>
@@ -472,7 +472,7 @@ const RulesScreen = ({ onClose }: { onClose: () => void }) => {
               <p>
                 (=&gt;) Your medal level is determined by your current task and
                 activity status. You can earn and upgrade your medals by
-                successfully completing tasks and activities in the Hurry app.
+                successfully completing tasks and activities in the Zaho app.
               </p>
             </div>
 
