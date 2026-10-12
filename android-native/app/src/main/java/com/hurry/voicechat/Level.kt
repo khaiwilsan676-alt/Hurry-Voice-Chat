@@ -17,6 +17,9 @@ import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -134,7 +137,7 @@ fun Level(onBack: () -> Unit = {}) {
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val activeTierIndex by remember {
         derivedStateOf {
-            val first = listState.firstVisibleItemIndex - 1
+            val first = listState.firstVisibleItemIndex
             first.coerceIn(0, levelTiers.lastIndex)
         }
     }
@@ -145,8 +148,8 @@ fun Level(onBack: () -> Unit = {}) {
         Box(Modifier.fillMaxWidth().height(280.dp).background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x6604060A), Color(0xFF04060A)))))
 
         Column(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxWidth().padding(top = 24.dp)) {
-                Box(Modifier.fillMaxWidth().height(42.dp), contentAlignment = Alignment.Center) {
+            Column(Modifier.fillMaxWidth().statusBarsPadding()) {
+                Box(Modifier.fillMaxWidth().height(50.dp).padding(top = 8.dp), contentAlignment = Alignment.Center) {
                     IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart).padding(start = 2.dp)) {
                         Icon(Icons.Default.ArrowBack, "Back", tint = Color.White, modifier = Modifier.size(26.dp))
                     }
@@ -156,7 +159,7 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().padding(top = 2.dp).height(126.dp)) {
+                Box(Modifier.fillMaxWidth().padding(top = (-30).dp).height(150.dp)) {
                     LevelAsset("file_000000007044820ea729df406d1dc320.png", Modifier.fillMaxSize())
                     Row(Modifier.fillMaxSize().padding(horizontal = 30.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(48.dp).clip(CircleShape).background(Color(0xFF626A75)), contentAlignment = Alignment.Center) {
@@ -178,14 +181,14 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(85.dp).padding(horizontal = 16.dp)) {
+                Box(Modifier.fillMaxWidth().height(85.dp).padding(horizontal = 16.dp).offset(y = (-18).dp)) {
                     LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).height(28.dp).width(54.dp))
                     Row(Modifier.align(Alignment.CenterStart).padding(top = 15.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("⌃", color = Color.White, fontSize = 20.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold)
-                            Box(Modifier.width(14.dp).height(2.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            Icon(Icons.Default.KeyboardArrowUp, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Box(Modifier.width(14.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
                             Spacer(Modifier.height(2.dp))
-                            Box(Modifier.width(8.dp).height(2.dp).background(Color.White, RoundedCornerShape(2.dp)))
+                            Box(Modifier.width(8.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
                         }
                         Spacer(Modifier.width(8.dp))
                         Text("Update level to ${currentTier.range}", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
@@ -241,14 +244,14 @@ fun Level(onBack: () -> Unit = {}) {
                             if (index >= 2) {
                                 LevelRewardRow("Background Image") {
                                     Box(Modifier.size(32.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131F33)), contentAlignment = Alignment.Center) {
-                                        Text("▧", color = Color(0xFF6EE7B7), fontSize = 20.sp)
+                                        Icon(Icons.Default.Image, contentDescription = null, tint = Color(0xFF6EE7B7), modifier = Modifier.size(18.dp))
                                     }
                                 }
                             }
                             if (index >= 7) {
                                 LevelRewardRow("Room Theme") {
                                     Box(Modifier.size(32.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF131F33)), contentAlignment = Alignment.Center) {
-                                        Text("◎", color = Color(0xFFE879F9), fontSize = 22.sp)
+                                        Icon(Icons.Default.Public, contentDescription = null, tint = Color(0xFFE879F9), modifier = Modifier.size(18.dp))
                                     }
                                 }
                             }
