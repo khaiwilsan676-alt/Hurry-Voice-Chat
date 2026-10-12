@@ -28,6 +28,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -65,8 +66,13 @@ private val levelCardBrush = Brush.horizontalGradient(listOf(Color(0xFF06080D), 
 private val levelTextMuted = Color(0xFFB8BEC9)
 
 @Composable
-private fun LevelAsset(file: String, modifier: Modifier = Modifier, description: String? = null) {
-    AsyncImage(model = levelAsset(file), contentDescription = description, modifier = modifier)
+private fun LevelAsset(
+    file: String,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    contentScale: ContentScale = ContentScale.Fit
+) {
+    AsyncImage(model = levelAsset(file), contentDescription = description, modifier = modifier, contentScale = contentScale)
 }
 
 @Composable
@@ -160,7 +166,11 @@ fun Level(onBack: () -> Unit = {}) {
     val currentTier = levelTiers[activeTierIndex]
 
     Box(Modifier.fillMaxSize().background(Color(0xFF04060A))) {
-        LevelAsset("file_00000000e02481f4bb2153e2714aca47.png", Modifier.fillMaxWidth().height(280.dp).align(Alignment.TopCenter))
+        LevelAsset("file_00000000e02481f4bb2153e2714aca47.png", Modifier.fillMaxWidth().height(280.dp).align(Alignment.TopCenter), contentScale = ContentScale.Crop)
+        Box(
+            Modifier.align(Alignment.TopStart).offset(x = (-40).dp, y = (-40).dp).size(260.dp)
+                .blur(90.dp).clip(CircleShape).background(Color(0x4D1D4ED8))
+        )
         Box(Modifier.fillMaxWidth().height(280.dp).background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x6604060A), Color(0xFF04060A)))))
 
         Column(Modifier.fillMaxSize()) {
