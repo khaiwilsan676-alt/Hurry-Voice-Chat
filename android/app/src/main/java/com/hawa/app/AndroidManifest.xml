@@ -3,7 +3,7 @@
     package="com.hawa.app">
 
     <application
-        android:label="Hurry"
+        android:label="Zaho"
         android:theme="@style/AppTheme.NoActionBar">
 
         <activity
