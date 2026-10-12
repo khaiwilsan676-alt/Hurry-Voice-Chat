@@ -55,8 +55,8 @@ private val familyRules = listOf(
  "5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.",
  "6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.",
  "7. Upon the disbanding of the family, all members will immediately leave the original family.",
- "8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.",
- "9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry."
+ "8. Family rankings reflect the family's strength. Zaho determines family rankings based on the total spending of all family members.",
+ "9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Zaho."
 )
 
 @Composable
@@ -243,7 +243,7 @@ private fun FamilyRules(onClose:()->Unit) {
   Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.5f)),contentAlignment=Alignment.BottomCenter) {
    Column(Modifier.fillMaxWidth().fillMaxHeight(.8f).clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp)).background(Color.White).padding(horizontal=24.dp,vertical=20.dp)) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("Family rules",color=Color.Black,fontSize=18.sp,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,"Close",tint=Color.Gray)}}
-    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom=12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){familyRules.forEach{Text(it,color=Color(0xCC000000),fontSize=14.sp,lineHeight=20.sp)};Text("Regards, Hurry Team",color=Color.Gray,fontSize=12.sp,fontWeight=FontWeight.SemiBold,modifier=Modifier.align(Alignment.End))}
+    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom=12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){familyRules.forEach{Text(it,color=Color(0xCC000000),fontSize=14.sp,lineHeight=20.sp)};Text("Regards, Zaho Team",color=Color.Gray,fontSize=12.sp,fontWeight=FontWeight.SemiBold,modifier=Modifier.align(Alignment.End))}
    }
   }
  }
