@@ -46,7 +46,7 @@ fun HurrySupport(onBack: () -> Unit) {
     var typing by remember { mutableStateOf(false) }
     val messages = remember {
         mutableStateListOf(
-            SupportMessage("Welcome to Hurry Support 👋\n\nI am Daisy, your Official Customer Support Assistant.\n\nHow can I help you today? Aap Hurry App se juda koi bhi sawal pooch sakte hain! 😊", true)
+            SupportMessage("Welcome to Zaho Support 👋\n\nI am Daisy, your Official Customer Support Assistant.\n\nHow can I help you today? Aap Zaho App se juda koi bhi sawal pooch sakte hain! 😊", true)
         )
     }
     val keyboard = LocalSoftwareKeyboardController.current
@@ -66,11 +66,11 @@ fun HurrySupport(onBack: () -> Unit) {
             listOf("seller", "become seller", "seller lena", "seller banna", "seller ki policy").any { msg.contains(it) } ->
                 SupportMessage("Here is our Official Seller Policy. Please check the policy image below:", true, "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_00000000a4a882089e08989f17098062.png")
             listOf("hi", "hello", "hlw", "hey", "नमस्ते", "नमस्कार", "good morning", "good evening").any { msg.contains(it) } ->
-                SupportMessage("Hello! 👋\n\nWelcome to Hurry Support. I am Daisy, your AI Customer Support Assistant.\n\nKaise help kar sakti hoon aaj aapki? Please feel free to ask!", true)
+                SupportMessage("Hello! 👋\n\nWelcome to Zaho Support. I am Daisy, your AI Customer Support Assistant.\n\nKaise help kar sakti hoon aaj aapki? Please feel free to ask!", true)
             listOf("thank", "thanks", "thx", "धन्यवाद", "शुक्रिया").any { msg.contains(it) } ->
                 SupportMessage("You're most welcome! 😊\n\nHelp karke khushi hui. Agar koi aur doubt ho toh zaroor batayein!", true)
             listOf("rate", "coin", "price", "recharge", "dollar", "payment", "paytm", "phonepe", "google play", "purchase").any { msg.contains(it) } ->
-                SupportMessage(prefix + "💎 Hurry App Coins Rates & Recharge Info\n\n💰 Coins Exchange Rates:\n• Offline (Through Official Seller):\n  👉 1$ = 1,050,000 Coins\n\n• Online Recharge (In-App Wallet):\n  👉 1$ = 1,000,000 Coins (+30,000 Bonus Coins)\n  (Total: 1,030,000 Coins aapke Wallet me show honge)\n\n📲 Online Recharge Kaise Karein:\n📌 Step 1: Profile section me jayein.\n📌 Step 2: Coins / Wallet par tap karein.\n📌 Step 3: Package & preferred payment method select karein.\n\n💳 Payment Methods: Google Play, PhonePe, Paytm & Official Site.\n\n🤝 Offline Seller se buy karne ke liye Official Team se contact karein.", true)
+                SupportMessage(prefix + "💎 Zaho App Coins Rates & Recharge Info\n\n💰 Coins Exchange Rates:\n• Offline (Through Official Seller):\n  👉 1$ = 1,050,000 Coins\n\n• Online Recharge (In-App Wallet):\n  👉 1$ = 1,000,000 Coins (+30,000 Bonus Coins)\n  (Total: 1,030,000 Coins aapke Wallet me show honge)\n\n📲 Online Recharge Kaise Karein:\n📌 Step 1: Profile section me jayein.\n📌 Step 2: Coins / Wallet par tap karein.\n📌 Step 3: Package & preferred payment method select karein.\n\n💳 Payment Methods: Google Play, PhonePe, Paytm & Official Site.\n\n🤝 Offline Seller se buy karne ke liye Official Team se contact karein.", true)
             listOf("music", "song", "room music", "संगीत", "गाना", "म्यूजिक", "dj").any { msg.contains(it) } ->
                 SupportMessage(prefix + "🎵 Room Me Music Kaise Play Karein:\n\n📌 Step 1: Apna room open karein.\n📌 Step 2: Bottom me 4-Grid Option (4 squares icon) par tap karein.\n📌 Step 3: Music Play option par click karein.\n📌 Step 4: Song select karke add karein aur Play dabaayein.\n\n🎶 Room members ke saath music enjoy karein!", true)
             listOf("game", "gaming", "खेल", "गेम", "khel").any { msg.contains(it) } ->
@@ -80,9 +80,9 @@ fun HurrySupport(onBack: () -> Unit) {
             listOf("abuse", "gali", "गाली", "complain", "report", "शिकायत", "bad word", "ban", "harass").any { msg.contains(it) } ->
                 SupportMessage("⚠️ Complaint & Report Kaise Karein:\n\n📌 Step 1: Help & Feedback section me jayein.\n📌 Step 2: Clear video ya screenshot proof upload karein.\n📌 Step 3: Official Team ko complaint submit karein.\n\n🚫 Rules & Warning:\nKripya khud abusive language use na karein. Agar dono side se gali di gayi ho, toh dono IDs ban ho sakti hain.", true)
             listOf("what is hurry", "hurry app", "app kya", "about hurry").any { msg.contains(it) } ->
-                SupportMessage("🌟 About Hurry App:\n\nHurry ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n✨ Key Features:\n• Live Audio Party Rooms\n• Interactive Mini Games\n• Family Creation System\n• Social Dating & Chatting", true)
+                SupportMessage("🌟 About Zaho App:\n\nHurry ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n✨ Key Features:\n• Live Audio Party Rooms\n• Interactive Mini Games\n• Family Creation System\n• Social Dating & Chatting", true)
             listOf("official", "admin", "contact", "officer", "owner", "team", "अधिकारी", "मालिक").any { msg.contains(it) } ->
-                SupportMessage("👑 Hurry Official Team Details:\n\n• Hurry_IN\n  🆔 ID: 100002\n\n• Paras\n  🆔 ID: 100003\n\nSeller Registration, Payment issues ya Serious Complaints ke liye Official Team se contact karein.", true)
+                SupportMessage("👑 Zaho Official Team Details:\n\n• Hurry_IN\n  🆔 ID: 100002\n\n• Paras\n  🆔 ID: 100003\n\nSeller Registration, Payment issues ya Serious Complaints ke liye Official Team se contact karein.", true)
             listOf("family", "परिवार", "family tag", "family create", "parivaar").any { msg.contains(it) } ->
                 SupportMessage(prefix + "👨‍👩‍👧‍👦 Family Kaise Banayein:\n\n📌 Steps:\n• Step 1: Profile me jayein.\n• Step 2: Family option par tap karein.\n• Step 3: Family Name & Banner Image set karein.\n• Step 4: Confirm karke create karein.\n\n💰 Cost: 1,300,000 Coins\n🏷️ Benefits: Public Profile par Custom Family Tag milega aur exclusive privileges milenge.", true)
             listOf("name change", "dp change", "profile picture", "bio", "cover", "age", "edit profile", "change name", "change dp").any { msg.contains(it) } ->
