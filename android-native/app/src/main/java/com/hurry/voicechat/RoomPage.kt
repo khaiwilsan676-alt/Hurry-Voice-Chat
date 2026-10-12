@@ -197,8 +197,8 @@ fun RoomPage(
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                 }
-                Box(Modifier.size(54.dp),contentAlignment=Alignment.Center){
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(54.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                Box(Modifier.size(51.dp),contentAlignment=Alignment.Center){
+                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(51.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                 }
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                     RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
@@ -289,7 +289,7 @@ fun RoomPage(
 
 @Composable private fun RoomFooterButton(onClick:()->Unit,description:String,icon:Int){
     Box(Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
-        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(24.dp))
+        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(when(description){"Say Hi Chat"->30.dp;"Microphone"->32.dp;"Emoji"->26.dp;"Message Box Menu"->28.dp;"Apps Menu"->26.dp;else->24.dp}))
     }
 }
 
