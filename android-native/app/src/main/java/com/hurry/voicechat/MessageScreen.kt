@@ -107,7 +107,7 @@ fun NativeChatScreen(
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
     val currentPhoto = prefs.getString("photo", "") ?: ""
-    val currentName = prefs.getString("name", "")?.takeIf { it.isNotBlank() } ?: "Hurry User"
+    val currentName = prefs.getString("name", "")?.takeIf { it.isNotBlank() } ?: "Zyora User"
     val isOfficial = name == "Zyora Team" || name == "Zyora System"
 
     var text by remember { mutableStateOf("") }
