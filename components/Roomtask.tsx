@@ -530,7 +530,7 @@ export default function Roomtask({ onBack }: RoomtaskProps) {
               </div>
 
               <p className="mt-6 text-right text-[#ffd700] text-[13px] font-bold tracking-wide">
-                Regard Hurry Team
+                Regards, Zyora Team
               </p>
             </div>
           </div>
