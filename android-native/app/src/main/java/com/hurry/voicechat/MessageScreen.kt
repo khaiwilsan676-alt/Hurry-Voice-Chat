@@ -37,24 +37,24 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
         )
     }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFEFEFEF))) {
+    Column(Modifier.fillMaxSize().background(Color.White)) {
         Box(
             Modifier.fillMaxWidth().background(
                 Brush.verticalGradient(
-                    0.0f to Color(0xFF2563EB),
-                    0.72f to Color(0xFFEFEFEF),
-                    1.0f to Color(0xFFEFEFEF)
+                    0.0f to Color(0xFF3B82F6),
+                    0.65f to Color(0xFFDBEAFE),
+                    1.0f to Color(0xFFFFFFFF)
                 )
-            ).statusBarsPadding().padding(top = 8.dp)
+            ).statusBarsPadding().padding(top = 11.dp)
         ) {
             Text(
                 "Message",
-                Modifier.padding(start = 16.dp, top = 16.dp, bottom = 13.dp),
-                color = Color.Black, fontSize = 26.sp, fontWeight = FontWeight.Normal
+                Modifier.padding(start = 16.dp, top = 16.dp, bottom = 12.dp),
+                color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
             )
         }
 
-        LazyColumn(Modifier.fillMaxSize().background(Color(0xFFF3F6FA)).padding(bottom = 8.dp)) {
+        LazyColumn(Modifier.fillMaxSize().background(Color.White).padding(bottom = 8.dp)) {
             items(chats) { chat ->
                 MessageRow(chat) { onChat(chat.uid, chat.name, chat.image) }
             }
@@ -77,7 +77,7 @@ private fun MessageRow(chat: MessagePreview, onClick: () -> Unit) {
         )
         Spacer(Modifier.width(8.dp))
         Column(Modifier.weight(1f)) {
-            Text(chat.name, color = Color(0xFF333333), fontSize = 16.sp, fontWeight = FontWeight.Normal)
+            Text(chat.name, color = Color(0xFF1F2937), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             if (chat.message.isNotEmpty()) {
                 Spacer(Modifier.height(3.dp))
                 Text(chat.message, color = HurryMuted, fontSize = 14.sp, maxLines = 1)
