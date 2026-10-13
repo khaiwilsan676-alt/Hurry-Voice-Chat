@@ -211,8 +211,8 @@ fun RoomPage(
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                 }
-                Box(Modifier.size(51.dp),contentAlignment=Alignment.Center){
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(51.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                Box(Modifier.size(47.dp),contentAlignment=Alignment.Center){
+                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(47.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                 }
                 Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp,Alignment.End)){
                     RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
