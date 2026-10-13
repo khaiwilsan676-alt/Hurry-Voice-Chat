@@ -274,13 +274,13 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
         )
         IconButton(
             onClick = { onBack?.invoke() ?: onClose?.invoke() },
-            modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 0.dp, top = 24.dp)
+            modifier = Modifier.align(Alignment.TopStart).statusBarsPadding().padding(start = 0.dp, top = 16.dp)
         ) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White, modifier = Modifier.size(28.dp))
         }
         IconButton(
             onClick = { helpRules = true },
-            modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(end = 8.dp, top = 24.dp)
+            modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(end = 8.dp, top = 16.dp)
         ) {
             Icon(Icons.Default.HelpOutline, contentDescription = "Details", tint = Color.White, modifier = Modifier.size(28.dp))
         }
