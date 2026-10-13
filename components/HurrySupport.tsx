@@ -291,7 +291,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
         msg.includes("good morning") || msg.includes("good evening")) {
       if (isHindi) {
         return {
-          text: "नमस्ते! 🙏\n\nHurry Support में आपका स्वागत है। मैं Daisy हूँ, आपकी AI कस्टमर सपोर्ट असिस्टेंट।\n\nबताएं, मैं आज आपकी क्या सहायता कर सकती हूँ?",
+          text: "नमस्ते! 🙏\n\nZyora Support में आपका स्वागत है। मैं Daisy हूँ, आपकी AI कस्टमर सपोर्ट असिस्टेंट।\n\nबताएं, मैं आज आपकी क्या सहायता कर सकती हूँ?",
           isBot: true
         };
       }
@@ -406,9 +406,9 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
       };
     }
 
-    // WHAT IS HURRY APP
+    // WHAT IS ZYORA APP
     if (msg.includes("hawa kya") || msg.includes("what is hawa") || msg.includes("about hawa") ||
-        msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is zyora") || msg.includes("hurry app")) {
+        msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is zyora") || msg.includes("zyora app")) {
       return {
         text: "🌟 About Zyora App:\n\n" +
                "Zyora ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n" +
