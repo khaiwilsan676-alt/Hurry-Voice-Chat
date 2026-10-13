@@ -32,7 +32,7 @@ export default function HurryOfficial() {
             height={42}
             className="h-9 w-9 object-contain rounded-xl"
           />
-          <span className="text-2xl font-bold tracking-wide text-white">Hurry</span>
+          <span className="text-2xl font-bold tracking-wide text-white">Zyora</span>
         </div>
 
         {/* Menu Button aur Dropdown */}
@@ -107,7 +107,7 @@ export default function HurryOfficial() {
             <div className="md:w-1/2 flex justify-center md:justify-end">
               <Image 
                 src="/file_00000000d60081fa99e9262352f29b19.png" 
-                alt="Hurry App Screen" 
+                alt="Zyora App Screen" 
                 width={380} 
                 height={760} 
                 className="object-contain rounded-2xl shadow-xl w-72 md:w-80 lg:w-[380px]"
@@ -270,7 +270,7 @@ export default function HurryOfficial() {
         <p className="mb-4 transition hover:text-white">
           Support: HurrySup@outlook.com
         </p>
-        <p>© 2026 Hurry App. All rights reserved.</p>
+        <p>© 2026 Zyora App. All rights reserved.</p>
       </footer>
     </div>
   );
