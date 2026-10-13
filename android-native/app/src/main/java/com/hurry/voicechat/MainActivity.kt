@@ -144,7 +144,7 @@ private fun HurryLaunchScreen() {
         ) {
             AsyncImage(
                 model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/assets/logo.png",
-                contentDescription = "Hurry logo",
+                contentDescription = "Zyora logo",
                 modifier = Modifier
                     .width(68.dp)
                     .height(68.dp)
@@ -153,7 +153,7 @@ private fun HurryLaunchScreen() {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Hurry",
+                "Zyora",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
