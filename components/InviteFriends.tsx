@@ -436,7 +436,7 @@ export default function InviteFriends({ onBack, onClose }: InviteFriendsProps) {
                   2. If your invited friend recharges 500,000 coins within 90 days, you will receive 6% of the coins from each recharge. Additionally, if your friend sends gift coins, you will receive 6% of the coins from the gifts they send.
                 </p>
                 <p>
-                  3. The Hurry app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.
+                  3. The Zyora app must not already be downloaded or registered on your friend's phone, and they must not be part of another account's network. The invitation will be considered successful—and rewards granted—only when all these conditions are met.
                 </p>
                 <p>
                   4. Invite your friends; you will earn free coins when they recharge or send gifts.
