@@ -386,6 +386,8 @@ fun RoomPage(
             isOpen=true,
             onClose={showActiveUsers=false},
             roomUsers=activeRoomUsers,
+            currentUser=ActiveUserNative(accountId,currentUser.name,currentUser.image),
+            roomOwnerId=roomOwner.accountId.ifBlank{roomOwner.id},
             onOpenProfile={ user -> seats.firstOrNull{it.accountId==user.accountId}?.let{selectedSeat=it.number};showActiveUsers=false },
             onCopyUserId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id }
         )
