@@ -657,6 +657,23 @@ export default function StorePage({
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
+  // User avatar (from MePage / localStorage)
+  const [userPhoto, setUserPhoto] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
+
+  useEffect(() => {
+    const readUser = () => {
+      if (typeof window === "undefined") return;
+      const photo = localStorage.getItem("userPhoto") || "";
+      const name = localStorage.getItem("userName") || "";
+      setUserPhoto(photo);
+      setUserName(name);
+    };
+    readUser();
+    const id = setInterval(readUser, 800);
+    return () => clearInterval(id);
+  }, []);
+
   // Real-time sync
   useEffect(() => {
     let alive = true;
@@ -852,6 +869,9 @@ export default function StorePage({
     ));
   };
 
+  // Fallback letter for avatar
+  const avatarLetter = (userName && userName.trim().charAt(0).toUpperCase()) || "U";
+
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
@@ -960,6 +980,10 @@ export default function StorePage({
                 const isOwned = ownedIds.has(item.id);
                 const isEquipped = equippedIds.has(item.id);
 
+                // Apply green removal to Vehicle / Frame images automatically (same as video)
+                const shouldRemoveGreen =
+                  item.removeGreen || isVehicle || isAvatarFrame;
+
                 return (
                   <div
                     key={item.id}
@@ -1011,7 +1035,7 @@ export default function StorePage({
                         }`}>
                           {item.image.endsWith('.mp4') ? (
                             <WebGLVideoAvatar src={item.image} />
-                          ) : item.removeGreen ? (
+                          ) : shouldRemoveGreen ? (
                             <WebGLImageAvatar src={item.image} />
                           ) : (
                             <Image
@@ -1095,8 +1119,8 @@ export default function StorePage({
         </div>
       </div>
 
-      {/* Vehicle & Frame Try Modal */}
-      {tryCenterItem && (
+      {/* Vehicle Try Modal (unchanged) */}
+      {tryCenterItem && tryCenterItem.tab !== "Avatar Frame" && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
           onClick={() => setTryCenterItem(null)}
@@ -1106,7 +1130,7 @@ export default function StorePage({
               <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
             ) : tryCenterItem.image.endsWith('.mp4') ? (
               <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : tryCenterItem.removeGreen ? (
+            ) : (tryCenterItem.removeGreen || tryCenterItem.tab === "Vehicle") ? (
               <WebGLImageAvatar src={tryCenterItem.image} />
             ) : (
               <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
@@ -1123,37 +1147,121 @@ export default function StorePage({
         </div>
       )}
 
-      {/* Theme Try Modal */}
-      {tryThemeItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            <button
-              type="button"
-              onClick={() => setTryThemeItem(null)}
-              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
+      {/* ============ Avatar Frame Try Card (white card, centered) ============ */}
+      {tryCenterItem && tryCenterItem.tab === "Avatar Frame" && (() => {
+        const item = tryCenterItem;
+        const isOwned = ownedIds.has(item.id);
+        const isEquipped = equippedIds.has(item.id);
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
+            onClick={() => setTryCenterItem(null)}
+          >
+            <div
+              className="bg-white rounded-2xl w-[270px] max-w-[85vw] flex flex-col items-center px-5 pt-5 pb-5 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              ✕
-            </button>
+              {/* Avatar + Frame video overlay */}
+              <div className="relative w-[150px] h-[150px] flex items-center justify-center">
+                {/* User avatar image at bottom */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-[110px] h-[110px] rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (next) next.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[40px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                      {avatarLetter}
+                    </div>
+                  </div>
+                </div>
 
-            <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
-              <Image
-                src={tryThemeItem.image}
-                alt={tryThemeItem.name}
-                fill
-                className="object-cover"
-              />
-            </div>
+                {/* Frame video on top (green removed) */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  {item.tryVideo ? (
+                    <WebGLVideoAvatar src={item.tryVideo} />
+                  ) : item.image.endsWith('.mp4') ? (
+                    <WebGLVideoAvatar src={item.image} />
+                  ) : (item.removeGreen || item.tab === "Avatar Frame") ? (
+                    <WebGLImageAvatar src={item.image} />
+                  ) : (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-contain"
+                      sizes="150px"
+                    />
+                  )}
+                </div>
+              </div>
 
-            <div className="flex items-center justify-center gap-1 mt-4">
-              {renderStars(tryThemeItem.stars)}
-            </div>
+              {/* Name */}
+              <div className="mt-3 text-[17px] font-bold text-gray-900 text-center leading-tight">
+                {item.name}
+              </div>
 
-            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
-              {tryThemeItem.name}
+              {/* Duration */}
+              <div className="mt-1 flex items-center justify-center gap-1 text-[13px] font-medium text-gray-500">
+                <Clock size={13} strokeWidth={2.5} />
+                <span>{item.duration}</span>
+              </div>
+
+              {/* Coins + amount */}
+              <div className="mt-2 flex items-center justify-center gap-1.5">
+                <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+                <span className="text-[15px] font-bold text-gray-900 tracking-tight">
+                  {item.price}
+                </span>
+              </div>
+
+              {/* Blue Buy button (rounded full) */}
+              <button
+                type="button"
+                disabled={buying === item.id}
+                onClick={async () => {
+                  if (isOwned) {
+                    await handleEquipToggle(item);
+                  } else {
+                    if (balance < parsePrice(item.price)) {
+                      alert('Insufficient balance');
+                      return;
+                    }
+                    await handleBuy(item);
+                  }
+                  setTryCenterItem(null);
+                }}
+                className="mt-4 w-full h-[42px] rounded-full bg-[#1d4ed8] text-white text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {buying === item.id
+                  ? '...'
+                  : isOwned
+                  ? (isEquipped ? 'Equipped' : 'Equip')
+                  : 'Buy'}
+              </button>
+
+              {/* Cancel button */}
+              <button
+                type="button"
+                onClick={() => setTryCenterItem(null)}
+                className="mt-2 w-full h-[42px] rounded-full bg-white border border-gray-300 text-gray-600 text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
-        }
+  }
