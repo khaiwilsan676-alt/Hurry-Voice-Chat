@@ -73,6 +73,7 @@ data class RoomPageOwner(val id:String="",val uid:String="",val accountId:String
 data class RoomPageCurrentUser(val id:String="",val uid:String="",val accountId:String="",val name:String="User",val image:String="")
 data class NativeRoomSeat(val number:Int,val occupied:Boolean=false,val locked:Boolean=false,val muted:Boolean=false,val speaking:Boolean=false,val userName:String="",val userImage:String="",val accountId:String="")
 data class NativeRoomMessage(val id:String,val text:String,val sender:String,val senderImage:String,val senderAccountId:String="",val timestamp:Long=System.currentTimeMillis(),val type:String="message")
+data class NativeEntryToast(val id:String,val name:String,val image:String)
 
 @Composable
 fun RoomPage(
@@ -110,6 +111,7 @@ fun RoomPage(
     var selectedSeat by remember{mutableIntStateOf(0)}
     var showSeatSheet by remember{mutableStateOf(false)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
+    val entryToasts=remember{mutableStateListOf<NativeEntryToast>()}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..15)add(NativeRoomSeat(i))}}
     val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
 
@@ -132,6 +134,27 @@ fun RoomPage(
                 }
                 mainHandler.post { backendRoomUsers.clear(); backendRoomUsers.addAll(parsed) }
             }
+        }
+        val messageListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject
+            if (payload != null && payload.optString("roomId") == roomId) {
+                val id=payload.optString("id", "${payload.optString("senderId","user")}-${payload.optLong("createdAt",System.currentTimeMillis())}")
+                val type=payload.optString("type","message")
+                val sender=payload.optString("senderName","Unknown")
+                val image=payload.optString("senderAvatar",payload.optString("senderImage",""))
+                val message=NativeRoomMessage(id,payload.optString("text",""),sender,image,payload.optString("senderAccountId",payload.optString("senderId","")),payload.optLong("createdAt",System.currentTimeMillis()),type)
+                mainHandler.post {
+                    if(messages.none{it.id==message.id}) messages.add(message)
+                    if(type=="join" && entryToasts.none{it.id==id}) {
+                        entryToasts.add(NativeEntryToast(id,sender,image))
+                        mainHandler.postDelayed({entryToasts.removeAll{it.id==id}},4000)
+                    }
+                }
+            }
+        }
+        val clearedListener = Emitter.Listener { args ->
+            val payload=args.firstOrNull() as? JSONObject
+            if(payload!=null && payload.optString("roomId")==roomId) mainHandler.post { messages.clear() }
         }
         val seatListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject
@@ -175,12 +198,16 @@ fun RoomPage(
             roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
         }
         roomSocket.on("room_presence",presenceListener)
+        roomSocket.on("room_message",messageListener)
+        roomSocket.on("room_chat_cleared",clearedListener)
         roomSocket.on("room_seats",seatListener)
         roomSocket.on(Socket.EVENT_CONNECT,connectListener)
         roomSocket.connect()
         onDispose {
             roomSocket.emit("room_leave",JSONObject().put("roomId",roomId).put("userId",accountId).put("accountId",accountId))
             roomSocket.off("room_presence",presenceListener)
+            roomSocket.off("room_message",messageListener)
+            roomSocket.off("room_chat_cleared",clearedListener)
             roomSocket.off("room_seats",seatListener)
             roomSocket.off(Socket.EVENT_CONNECT,connectListener)
             roomSocket.disconnect()
@@ -292,7 +319,20 @@ fun RoomPage(
                 }
             }
             Spacer(Modifier.weight(1f))
-            if(messages.isNotEmpty()) LazyColumn(Modifier.fillMaxWidth().height(150.dp).padding(horizontal=10.dp)){items(messages,key={it.id}){NativeMessage(it)}}
+            if(messages.isNotEmpty()) LazyColumn(Modifier.fillMaxWidth().height(150.dp).padding(horizontal=10.dp)){items(messages,key={it.id}){message ->
+                if(message.type=="join") {
+                    Row(Modifier.fillMaxWidth().padding(vertical=3.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha=.20f)).padding(horizontal=10.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+                        AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+                        Column {
+                            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                                Text(message.sender,color=Color.White.copy(alpha=.95f),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                androidx.compose.material3.Icon(imageVector=Icons.Outlined.Home,contentDescription=null,modifier=Modifier.size(12.dp),tint=Color.White)
+                            }
+                            Text("Enter the Room",color=Color.White.copy(alpha=.8f),fontSize=10.sp)
+                        }
+                    }
+                } else NativeMessage(message)
+            }}
             if(showChat) Row(Modifier.fillMaxWidth().navigationBarsPadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Image,null,tint=Color(0xFF737373),modifier=Modifier.size(25.dp))}
                 androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
@@ -357,6 +397,24 @@ fun RoomPage(
                 contentScale=ContentScale.Fit
             )
         }
+        Column(
+            Modifier.align(Alignment.BottomStart).padding(bottom=LocalConfiguration.current.screenHeightDp.dp*0.33f,start=8.dp),
+            verticalArrangement=Arrangement.spacedBy(4.dp)
+        ) {
+            entryToasts.toList().forEach { toast ->
+                Row(
+                    Modifier.widthIn(min=230.dp).clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=50.dp,bottomEnd=50.dp))
+                        .background(Brush.horizontalGradient(listOf(Color(0xF52563EB),Color(0xF52563EB),Color.Transparent)))
+                        .padding(start=6.dp,end=48.dp,top=4.dp,bottom=4.dp),
+                    verticalAlignment=Alignment.CenterVertically,
+                    horizontalArrangement=Arrangement.spacedBy(8.dp)
+                ) {
+                    AsyncImage(model=toast.image.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=toast.name,modifier=Modifier.size(24.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+                    Text(toast.name,color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,modifier=Modifier.widthIn(max=95.dp))
+                    Text("Enter the Room",color=Color.White,fontSize=11.sp,maxLines=1)
+                }
+            }
+        }
         if(showExitMenu) RoomExitMenu(
             onKeep={showExitMenu=false;onKeepRoom(roomName,roomImage,roomId)},
             onExit={showExitMenu=false;onClose()},
@@ -366,6 +424,11 @@ fun RoomPage(
             owner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
             onClose={showMenu=false},
             onSettings={showMenu=false;showSettings=true},
+            onClearChat={
+                messages.clear()
+                roomSocketEmitClearChat(roomId,accountId)
+                showMenu=false
+            },
             onLeave={showMenu=false;onClose()}
         )
         val activeRoomUsers = backendRoomUsers.toList()
@@ -524,15 +587,24 @@ fun RoomPage(
         }
     }
 }
+private fun roomSocketEmitClearChat(roomId:String,userId:String) {
+    try {
+        val socket=IO.socket("https://hurry-voice-chat-lz75.onrender.com")
+        socket.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",userId).put("timestamp",System.currentTimeMillis()))
+        socket.disconnect()
+        socket.close()
+    } catch (_:Exception) {}
+}
 private val Int.percentHeight: androidx.compose.ui.unit.Dp
     @Composable get() = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * this / 100
 
-@Composable private fun RoomMenu(owner:Boolean,onClose:()->Unit,onSettings:()->Unit,onLeave:()->Unit){
+@Composable private fun RoomMenu(owner:Boolean,onClose:()->Unit,onSettings:()->Unit,onClearChat:()->Unit,onLeave:()->Unit){
     Box(Modifier.fillMaxSize().background(Color.Black.copy(.35f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
         Surface(Modifier.fillMaxWidth().padding(14.dp),color=Color(0xFF181818),shape=RoundedCornerShape(22.dp)){
             Column(Modifier.padding(18.dp),horizontalAlignment=Alignment.CenterHorizontally){
                 Text("Room",color=Color.White,fontSize=17.sp)
                 if(owner)TextButton(onClick=onSettings){Text("Room settings",color=Color.White)}
+                TextButton(onClick=onClearChat){Text("Clear Chat",color=Color.White)}
                 TextButton(onClick=onLeave){Text("Leave room",color=Color.White)}
                 TextButton(onClick=onClose){Text("Cancel",color=Color.White.copy(.7f))}
             }
