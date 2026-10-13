@@ -112,11 +112,13 @@ fun RoomPage(
     var showSeatSheet by remember{mutableStateOf(false)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
     val entryToasts=remember{mutableStateListOf<NativeEntryToast>()}
+    val roomSocketRef=remember{mutableStateOf<io.socket.client.Socket?>(null)}
     val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..15)add(NativeRoomSeat(i))}}
     val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
 
     DisposableEffect(roomId,accountId,currentUser.name,currentUser.image,roomOwner.id,roomOwner.accountId) {
         val roomSocket = IO.socket("https://hurry-voice-chat-lz75.onrender.com")
+        roomSocketRef.value=roomSocket
         val mainHandler = Handler(Looper.getMainLooper())
         val presenceListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject
@@ -212,6 +214,7 @@ fun RoomPage(
             roomSocket.off(Socket.EVENT_CONNECT,connectListener)
             roomSocket.disconnect()
             roomSocket.close()
+            roomSocketRef.value=null
             mainHandler.post { backendRoomUsers.clear() }
         }
     }
@@ -426,7 +429,7 @@ fun RoomPage(
             onSettings={showMenu=false;showSettings=true},
             onClearChat={
                 messages.clear()
-                roomSocketEmitClearChat(roomId,accountId)
+                roomSocketRef.value?.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",accountId).put("timestamp",System.currentTimeMillis()))
                 showMenu=false
             },
             onLeave={showMenu=false;onClose()}
@@ -586,14 +589,6 @@ fun RoomPage(
             }
         }
     }
-}
-private fun roomSocketEmitClearChat(roomId:String,userId:String) {
-    try {
-        val socket=IO.socket("https://hurry-voice-chat-lz75.onrender.com")
-        socket.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",userId).put("timestamp",System.currentTimeMillis()))
-        socket.disconnect()
-        socket.close()
-    } catch (_:Exception) {}
 }
 private val Int.percentHeight: androidx.compose.ui.unit.Dp
     @Composable get() = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * this / 100
