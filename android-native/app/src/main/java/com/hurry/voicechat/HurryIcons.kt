@@ -37,29 +37,36 @@ fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
 
 @Composable
 fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
-    Canvas(modifier.size(25.dp)) {
-        val c = if (active) HurryBlue else Color(0xFF303030)
+    Canvas(modifier.size(30.dp)) {
         val w = size.width
         val h = size.height
+        val s = size.minDimension / 36f
+        val c = if (active) HurryBlue else Color(0xFF1D1D1F)
         val p = Path().apply {
-            moveTo(w * .27f, h * .13f)
-            lineTo(w * .73f, h * .13f)
-            cubicTo(w * .84f, h * .13f, w * .90f, h * .21f, w * .90f, h * .32f)
-            lineTo(w * .90f, h * .57f)
-            cubicTo(w * .90f, h * .68f, w * .83f, h * .75f, w * .71f, h * .75f)
-            lineTo(w * .59f, h * .75f)
-            lineTo(w * .48f, h * .90f)
-            cubicTo(w * .45f, h * .94f, w * .40f, h * .92f, w * .40f, h * .87f)
-            lineTo(w * .37f, h * .75f)
-            lineTo(w * .27f, h * .75f)
-            cubicTo(w * .15f, h * .75f, w * .10f, h * .68f, w * .10f, h * .57f)
-            lineTo(w * .10f, h * .32f)
-            cubicTo(w * .10f, h * .21f, w * .16f, h * .13f, w * .27f, h * .13f)
+            moveTo(6f*s, 10.5f*s)
+            cubicTo(6f*s, 7f*s, 8.3f*s, 5f*s, 12.2f*s, 5f*s)
+            lineTo(23.8f*s, 5f*s)
+            cubicTo(27.7f*s, 5f*s, 30f*s, 7f*s, 30f*s, 10.5f*s)
+            lineTo(30f*s, 16.5f*s)
+            cubicTo(30f*s, 20f*s, 27.7f*s, 22f*s, 23.8f*s, 22f*s)
+            lineTo(21f*s, 22f*s)
+            lineTo(17.5f*s, 27.2f*s)
+            cubicTo(17f*s, 28f*s, 15.8f*s, 28f*s, 15.2f*s, 27.2f*s)
+            lineTo(12.2f*s, 22f*s)
+            cubicTo(8.3f*s, 22f*s, 6f*s, 20f*s, 6f*s, 16.5f*s)
             close()
         }
-        drawPath(p, c, style = Stroke(width = 2.1.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
-        drawLine(c, Offset(w * .27f, h * .36f), Offset(w * .72f, h * .36f), 1.8.dp.toPx(), cap = StrokeCap.Round)
-        drawLine(c, Offset(w * .27f, h * .52f), Offset(w * .60f, h * .52f), 1.8.dp.toPx(), cap = StrokeCap.Round)
+        drawPath(p, c, style = Stroke(width = 2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        val detail = if (active) HurryBlue else Color(0xFF1D1D1F)
+        drawPath(
+            Path().apply {
+                moveTo(12f*s, 14.5f*s)
+                cubicTo(13.5f*s, 12.5f*s, 15.5f*s, 14.5f*s, 19.5f*s, 12.5f*s)
+                cubicTo(21.5f*s, 14.5f*s, 24f*s, 14.5f*s, 24f*s, 14.5f*s)
+            },
+            detail,
+            style = Stroke(width = 1.8f*s, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        )
     }
 }
 
