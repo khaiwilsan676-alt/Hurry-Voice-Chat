@@ -46,69 +46,69 @@ fun RoomInfo(
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClose))
         Column(
             Modifier.fillMaxWidth().fillMaxHeight(.50f)
-                .clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp))
-                .background(Color.White)
+                .clip(RoundedCornerShape(topStart=15.dp,topEnd=15.dp))
+                .background(Color(0xEB000000))
         ) {
-            Box(Modifier.fillMaxWidth().padding(start=24.dp,end=24.dp,top=22.dp,bottom=14.dp)) {
+            Box(Modifier.fillMaxWidth().padding(start=16.dp,end=16.dp,top=16.dp,bottom=8.dp)) {
                 if (!isRoomOwner) {
                     Icon(Icons.Default.Warning, contentDescription="Report room", tint=Color.Black,
                         modifier=Modifier.align(Alignment.CenterStart).size(22.dp))
                 }
-                Text("Room Information", modifier=Modifier.fillMaxWidth(),
-                    textAlign=TextAlign.Center, fontSize=18.sp, fontWeight=FontWeight.Bold,
-                    color=Color(0xFF333333))
+                Text("Room info", modifier=Modifier.fillMaxWidth(),
+                    textAlign=TextAlign.Center, fontSize=14.sp, fontWeight=FontWeight.SemiBold,
+                    color=Color.White)
             }
 
-            Row(Modifier.fillMaxWidth().padding(horizontal=24.dp)) {
-                listOf("Profile","Members").forEachIndexed { index, label ->
+            Row(Modifier.fillMaxWidth().padding(horizontal=16.dp)) {
+                listOf("Room info","Members").forEachIndexed { index, label ->
                     Column(
-                        Modifier.weight(1f).clickable { tab=index }.padding(top=2.dp),
+                        Modifier.weight(1f).clickable { tab=index }.padding(top=4.dp),
                         horizontalAlignment=Alignment.CenterHorizontally
                     ) {
                         Text(label, modifier=Modifier.padding(vertical=11.dp),
                             fontSize=14.sp, fontWeight=FontWeight.SemiBold,
-                            color=if(tab==index) Color.Black else Color(0xFF9CA3AF))
+                            color=if(tab==index) Color.White else Color.White.copy(alpha=.50f))
                         Box(Modifier.fillMaxWidth().height(2.dp)
-                            .background(if(tab==index) Color.Black else Color.Transparent))
+                            .background(Color.Transparent))
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE5E7EB)))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Color.Transparent))
 
             if (tab==0) {
                 Column(
-                    Modifier.fillMaxWidth().weight(1f).padding(horizontal=24.dp,vertical=16.dp),
-                    verticalArrangement=Arrangement.spacedBy(16.dp)
+                    Modifier.fillMaxWidth().weight(1f).padding(horizontal=16.dp,vertical=12.dp),
+                    verticalArrangement=Arrangement.spacedBy(12.dp)
                 ) {
                     Row(verticalAlignment=Alignment.CenterVertically) {
                         AsyncImage(
                             model=roomData.roomDp.ifBlank { "/default-avatar.png" },
                             contentDescription="Room",
-                            modifier=Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)),
+                            modifier=Modifier.size(80.dp).clip(RoundedCornerShape(6.dp)),
                             contentScale=ContentScale.Crop
                         )
-                        Column(Modifier.padding(start=12.dp)) {
+                        Column(Modifier.padding(start=8.dp)) {
                             Text(roomData.roomName.ifBlank{"Room"},fontSize=15.sp,
-                                fontWeight=FontWeight.SemiBold,color=Color(0xFF333333))
+                                fontWeight=FontWeight.SemiBold,color=Color.White)
                             Row(verticalAlignment=Alignment.CenterVertically) {
-                                Text("ID: "+roomData.roomId,fontSize=12.sp,color=Color(0xFF9CA3AF))
+                                Text("ID: "+roomData.roomId,fontSize=10.sp,color=Color.White.copy(alpha=.60f))
                                 IconButton(onClick={onCopyId(roomData.roomId)},modifier=Modifier.size(26.dp)) {
                                     Icon(Icons.Default.ContentCopy,contentDescription="Copy room ID",
-                                        tint=Color(0xFF6B7280),modifier=Modifier.size(15.dp))
+                                        tint=Color.White.copy(alpha=.70f),modifier=Modifier.size(15.dp))
                                 }
-                                if(copied) Text("Copied!",fontSize=11.sp,color=Color(0xFF22C55E))
+                                if(copied) Text("Copied!",fontSize=12.sp,color=Color(0xFF4ADE80))
                             }
                         }
                     }
                     Column {
-                        Text("Host",fontSize=12.sp,fontWeight=FontWeight.Medium,color=Color(0xFF9CA3AF))
+                        Text("Host",fontSize=10.sp,fontWeight=FontWeight.Medium,color=Color.White.copy(alpha=.50f))
                         Text(roomOwner.name.ifBlank{"Unknown"},Modifier.padding(top=4.dp),
-                            fontSize=14.sp,fontWeight=FontWeight.Medium,color=Color(0xFF333333))
+                            fontSize=12.sp,fontWeight=FontWeight.Medium,color=Color.White)
                     }
                     Column {
                         Text("Announcement:",fontSize=12.sp,fontWeight=FontWeight.Medium,color=Color(0xFF9CA3AF))
                         Text(roomData.roomAnnouncement.ifBlank{"—"},Modifier.padding(top=4.dp),
-                            fontSize=14.sp,color=Color(0xFF374151))
+                            fontSize=12.sp,color=Color.White.copy(alpha=.90f))
                     }
                 }
             } else {
@@ -145,7 +145,7 @@ fun RoomInfo(
 private fun MemberRow(name:String,image:String,id:String,owner:Boolean,onClick:()->Unit) {
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFF9FAFB)).clickable(onClick=onClick).padding(horizontal=12.dp,vertical=10.dp),
+            .background(Color.White.copy(alpha=.06f)).clickable(onClick=onClick).padding(horizontal=12.dp,vertical=10.dp),
         verticalAlignment=Alignment.CenterVertically
     ) {
         AsyncImage(
@@ -154,8 +154,8 @@ private fun MemberRow(name:String,image:String,id:String,owner:Boolean,onClick:(
             modifier=Modifier.size(36.dp).clip(CircleShape),
             contentScale=ContentScale.Crop
         )
-        Text(name,Modifier.weight(1f).padding(start=12.dp),fontSize=14.sp,
-            fontWeight=FontWeight.Medium,color=Color(0xFF333333),maxLines=1)
-        if(owner) Text("⌂",fontSize=18.sp,color=Color(0xFF3B82F6))
+        Text(name,Modifier.weight(1f).padding(start=12.dp),fontSize=12.sp,
+            fontWeight=FontWeight.Medium,color=Color.White,maxLines=1)
+        if(owner) Text("⌂",fontSize=18.sp,color=Color.White)
     }
 }
