@@ -35,7 +35,7 @@ const RewardItem = ({ title }: { title: string }) => (
   </div>
 );
 
-// BLACK BACKGROUND VIDEO REWARD ITEM (PLAYS ON TOUCH & CONTINUES)
+// BLACK BACKGROUND VIDEO REWARD ITEM (PAUSED FRAME SHOWN, VIDEO ONLY OUTSIDE)
 const VideoRewardItem = ({ 
   title, 
   videoSrc, 
@@ -51,19 +51,17 @@ const VideoRewardItem = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleTouch = () => {
+  useEffect(() => {
+    // Force pause and show first frame
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
-  };
+  }, []);
 
   return (
     <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-      <div 
-        className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative"
-        onTouchStart={handleTouch}
-        onMouseDown={handleTouch}
-      >
+      <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative">
         <video 
           ref={videoRef}
           src={videoSrc} 
@@ -92,23 +90,21 @@ const VideoRewardItem = ({
   );
 };
 
-// GREEN BACKGROUND VIDEO REWARD ITEM (PLAYS ON TOUCH & CONTINUES)
+// GREEN BACKGROUND VIDEO REWARD ITEM (PAUSED FRAME SHOWN, VIDEO ONLY OUTSIDE)
 const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, videoSrc: string, onClick: () => void }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleTouch = () => {
+  useEffect(() => {
+    // Force pause and show first frame
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
     }
-  };
+  }, []);
 
   return (
     <div className="flex flex-col items-center w-[28%] cursor-pointer active:scale-95 transition-transform" onClick={onClick}>
-      <div 
-        className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative"
-        onTouchStart={handleTouch}
-        onMouseDown={handleTouch}
-      >
+      <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-1 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] overflow-hidden relative">
         <video 
           ref={videoRef}
           src={videoSrc} 
@@ -247,14 +243,14 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
         <p>5. Each user can join only one family. Regular family members can leave the family at any time without the leader's approval.</p>
         <p>6. The family leader has the authority to remove other members from the family at any time without the removed member's consent. The family leader can also disband the family freely without official approval.</p>
         <p>7. Upon the disbanding of the family, all members will immediately leave the original family.</p>
-        <p>8. Family rankings reflect the family's strength. Zyora determines family rankings based on the total spending of all family members.</p>
+        <p>8. Family rankings reflect the family's strength. Hurry determines family rankings based on the total spending of all family members.</p>
         <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
       </div>
 
-      {/* ⭐ Regards, Zyora Team */}
+      {/* ⭐ Regards, Hurry Team */}
       <div className="flex justify-end pt-2 pb-1">
         <span className="text-black/60 text-xs font-semibold italic tracking-wide">
-          Regards, Zyora Team
+          Regards, Hurry Team
         </span>
       </div>
     </div>
