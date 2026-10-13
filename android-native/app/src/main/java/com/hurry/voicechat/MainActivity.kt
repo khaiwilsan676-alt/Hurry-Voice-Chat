@@ -236,6 +236,7 @@ private fun HurryNativeRoot() {
                                 "Store" -> StorePage(onBack = { openedMePage = null })
                                 "Bag" -> StorePage(onBack = { openedMePage = null }, initialView = "bag")
                                 "Seller Center" -> SellerCenter(onBack = { openedMePage = null })
+                                "SVIP" -> Svip(onBack = { openedMePage = null })
                                 "Language Setting" -> LanguagePage(onBack = { openedMePage = null })
                                 "Settings" -> SettingsPage(onBack = { openedMePage = null })
                                 "Customer Service" -> HurrySupport(onBack = { openedMePage = null })
