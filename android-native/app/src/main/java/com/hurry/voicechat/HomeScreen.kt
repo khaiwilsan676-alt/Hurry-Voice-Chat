@@ -461,7 +461,7 @@ private fun CountryPillRow(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (active) HurryBlue else Color(0xFFF5F5F5))
+                    .background(if (active) HurryBlue else Color.White)
                     .clickable { onSelect(pill.value) }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
