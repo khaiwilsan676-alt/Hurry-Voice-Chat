@@ -489,19 +489,27 @@ fun RoomPage(
 
 @Composable private fun RoomExitMenu(onKeep:()->Unit,onExit:()->Unit,onDismiss:()->Unit){
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(.45f)).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
-        Row(Modifier.fillMaxWidth().padding(top=150.dp).clickable(enabled=false){}.padding(horizontal=34.dp),horizontalArrangement=Arrangement.spacedBy(56.dp),verticalAlignment=Alignment.CenterVertically){
-            Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.weight(1f).clickable{onKeep()}){
-                AsyncImage(model=raw+"IMG_20261002_113229.png",contentDescription="Keep",modifier=Modifier.size(67.dp),contentScale=ContentScale.Fit)
-                Text("Keep",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
-            }
-            Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.weight(1f).clickable{onExit()}){
-                AsyncImage(model=raw+"IMG_20261002_113213.png",contentDescription="Exit",modifier=Modifier.size(67.dp),contentScale=ContentScale.Fit)
-                Text("Exit",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+    Box(Modifier.fillMaxSize().background(Color.Transparent).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
+        Column(
+            modifier=Modifier.fillMaxWidth().height(26.percentHeight()).background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent))).clickable(enabled=false){},
+            horizontalAlignment=Alignment.CenterHorizontally,
+            verticalArrangement=Arrangement.Center
+        ){
+            Row(Modifier.fillMaxWidth().padding(horizontal=42.dp).offset(y=(-4).dp),horizontalArrangement=Arrangement.spacedBy(64.dp),verticalAlignment=Alignment.CenterVertically){
+                Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.weight(1f)){
+                    AsyncImage(model=raw+"IMG_20261002_113229.png",contentDescription="Keep",modifier=Modifier.size(67.dp).clickable{onKeep()},contentScale=ContentScale.Fit)
+                    Text("Keep",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                }
+                Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(8.dp),modifier=Modifier.weight(1f)){
+                    AsyncImage(model=raw+"IMG_20261002_113213.png",contentDescription="Exit",modifier=Modifier.size(67.dp).clickable{onExit()},contentScale=ContentScale.Fit)
+                    Text("Exit",color=Color.White,fontSize=14.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                }
             }
         }
     }
 }
+private val Int.percentHeight: androidx.compose.ui.unit.Dp
+    @Composable get() = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * this / 100
 
 @Composable private fun RoomMenu(owner:Boolean,onClose:()->Unit,onSettings:()->Unit,onLeave:()->Unit){
     Box(Modifier.fillMaxSize().background(Color.Black.copy(.35f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
