@@ -189,6 +189,16 @@ fun RoomPage(
                     }
                     Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1)
                 }
+                Row(
+                    modifier=Modifier.padding(top=8.dp).clip(RoundedCornerShape(topStart=16.dp,bottomStart=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent))).clickable{showInfo=true}.padding(start=12.dp,end=10.dp,top=5.dp,bottom=5.dp),
+                    verticalAlignment=Alignment.CenterVertically
+                ) {
+                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",contentDescription="Cup",modifier=Modifier.size(18.dp),contentScale=ContentScale.Fit)
+                    Spacer(Modifier.width(6.dp))
+                    Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,lineHeight=14.sp)
+                    Spacer(Modifier.width(5.dp))
+                    Icon(Icons.Default.ChevronRight,contentDescription=null,tint=Color(0xFFEEF3A3),modifier=Modifier.size(12.dp))
+                }
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
                     Row(
                         modifier=Modifier.height(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=6.dp),
