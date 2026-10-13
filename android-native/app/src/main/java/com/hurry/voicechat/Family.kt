@@ -243,7 +243,7 @@ private fun FamilyRules(onClose:()->Unit) {
   Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.5f)),contentAlignment=Alignment.BottomCenter) {
    Column(Modifier.fillMaxWidth().fillMaxHeight(.8f).clip(RoundedCornerShape(topStart=24.dp,topEnd=24.dp)).background(Color.White).padding(horizontal=24.dp,vertical=20.dp)) {
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("Family rules",color=Color.Black,fontSize=18.sp,fontWeight=FontWeight.Bold,modifier=Modifier.weight(1f));IconButton(onClick=onClose){Icon(Icons.Default.Close,"Close",tint=Color.Gray)}}
-    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom=12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){familyRules.forEach{Text(it,color=Color(0xCC000000),fontSize=14.sp,lineHeight=20.sp)};Text("Regards, Zaho Team",color=Color.Gray,fontSize=12.sp,fontWeight=FontWeight.SemiBold,modifier=Modifier.align(Alignment.End))}
+    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(bottom=12.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){familyRules.forEach{Text(it,color=Color(0xCC000000),fontSize=14.sp,lineHeight=20.sp)};Text("Regards, Zyora Team",color=Color.Gray,fontSize=12.sp,fontWeight=FontWeight.SemiBold,modifier=Modifier.align(Alignment.End))}
    }
   }
  }
