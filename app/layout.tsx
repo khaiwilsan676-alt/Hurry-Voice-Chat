@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Zyora',
 
   description:
-    'Hurry – connect with friends, join voice chat rooms, share moments, and discover new people.',
+    'Zyora – connect with friends, join voice chat rooms, share moments, and discover new people.',
 
   robots: {
     index: false,
