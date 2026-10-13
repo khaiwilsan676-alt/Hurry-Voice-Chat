@@ -124,8 +124,8 @@ const FIXED_CHAT_UIDS = ['hurry_team_official', 'hurry_system_official'];
 
 export default function MessagePage({ onChatOpen, onJoinRoom, sharedRoomData, onNavigate }: MessagePageProps) {
   const [fixedChats] = useState<FixedChat[]>([
-    { id: 'hawa-team', name: 'Hurry Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
-    { id: 'hawa-system', name: 'Hurry System', image: '/file_00000000a66881f8aa9e15d2fe2b9a0c.png', uid: 'hurry_system_official', isFixed: true }
+    { id: 'hawa-team', name: 'Zyora Team', image: '/logo.png', uid: 'hurry_team_official', isFixed: true },
+    { id: 'hawa-system', name: 'Zyora System', image: '/file_00000000a66881f8aa9e15d2fe2b9a0c.png', uid: 'hurry_system_official', isFixed: true }
   ]);
 
   const [dynamicChats, setDynamicChats] = useState<ChatPreview[]>([]);
