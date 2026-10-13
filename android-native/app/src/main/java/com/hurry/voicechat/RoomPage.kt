@@ -78,7 +78,7 @@ fun RoomPage(
     var selectedSeat by remember{mutableIntStateOf(0)}
     var showSeatSheet by remember{mutableStateOf(false)}
     val messages=remember{mutableStateListOf<NativeRoomMessage>()}
-    val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..8)add(NativeRoomSeat(i))}}
+    val seats=remember{mutableStateListOf<NativeRoomSeat>().apply{for(i in 1..15)add(NativeRoomSeat(i))}}
     val backendRoomUsers=remember{mutableStateListOf<ActiveUserNative>()}
 
     DisposableEffect(roomId,accountId,currentUser.name,currentUser.image,roomOwner.id,roomOwner.accountId) {
@@ -212,12 +212,20 @@ fun RoomPage(
                 Text(announcement,color=Color.White,fontSize=13.sp,modifier=Modifier.padding(10.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
             }
             Spacer(Modifier.weight(1f))
-            Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
-                seats.take(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number;showSeatSheet=true}}
-            }
-            Spacer(Modifier.height(18.dp))
-            Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),horizontalArrangement=Arrangement.SpaceEvenly){
-                seats.drop(4).forEach{seat->NativeSeat(seat,roomOwner.accountId.ifBlank{roomOwner.id}){selectedSeat=seat.number}}
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal=5.dp),
+                verticalArrangement=Arrangement.spacedBy(7.dp)
+            ) {
+                seats.chunked(5).forEach { rowSeats ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
+                        rowSeats.forEach { seat ->
+                            NativeSeat(seat, roomOwner.accountId.ifBlank{roomOwner.id}) {
+                                selectedSeat = seat.number
+                                showSeatSheet = true
+                            }
+                        }
+                    }
+                }
             }
             Spacer(Modifier.weight(1f))
             if(messages.isNotEmpty()) LazyColumn(Modifier.fillMaxWidth().height(150.dp).padding(horizontal=10.dp)){items(messages,key={it.id}){NativeMessage(it)}}
@@ -391,19 +399,36 @@ fun RoomPage(
 
 @Composable private fun NativeSeat(seat:NativeRoomSeat,ownerId:String,onClick:()->Unit){
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
-    Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.width(62.dp).clickable(onClick=onClick)){
-        Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
-            Box(Modifier.size(62.dp).border(if(seat.speaking)2.dp else 0.dp,Color(0xFF55C6F3),CircleShape))
-            if(seat.locked) {
-                AsyncImage(model=raw+"file_0000000015a48211b000ee447a786f7c.png",contentDescription="Locked seat",modifier=Modifier.size(56.dp),contentScale=ContentScale.Fit)
-            } else if(seat.occupied&&seat.userImage.isNotBlank()) {
-                AsyncImage(model=seat.userImage,contentDescription=seat.userName,modifier=Modifier.size(56.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-            } else {
-                AsyncImage(model=raw+"file_000000003e7482309b7f6e7f2a922160.png",contentDescription="Empty seat",modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit)
+    Column(
+        horizontalAlignment=Alignment.CenterHorizontally,
+        modifier=Modifier.width(66.dp).clickable(onClick=onClick)
+    ){
+        Box(Modifier.size(56.dp),contentAlignment=Alignment.Center){
+            Box(
+                Modifier.fillMaxSize().border(
+                    width=2.5.dp,
+                    brush=Brush.linearGradient(
+                        if(seat.locked) listOf(Color(0xFFF3F4F6),Color(0xFF9CA3AF),Color(0xFF4B5563))
+                        else listOf(Color(0xFFD9F7FF),Color(0xFF91E1FF),Color(0xFF4DBFEF),Color(0xFF167DB9))
+                    ),
+                    shape=CircleShape
+                )
+            )
+            Box(
+                Modifier.fillMaxSize(.91f).clip(CircleShape),
+                contentAlignment=Alignment.Center
+            ){
+                if(seat.locked) {
+                    AsyncImage(model=raw+"file_0000000015a48211b000ee447a786f7c.png",contentDescription="Locked seat",modifier=Modifier.fillMaxSize(.62f),contentScale=ContentScale.Fit)
+                } else if(seat.occupied&&seat.userImage.isNotBlank()) {
+                    AsyncImage(model=seat.userImage,contentDescription=seat.userName,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+                } else {
+                    AsyncImage(model=raw+"file_000000003e7482309b7f6e7f2a922160.png",contentDescription="Empty seat",modifier=Modifier.fillMaxSize(.65f),contentScale=ContentScale.Fit)
+                }
             }
-            if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(17.dp))
+            if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(15.dp))
         }
-        Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=10.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+        Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
     }
 }
 
