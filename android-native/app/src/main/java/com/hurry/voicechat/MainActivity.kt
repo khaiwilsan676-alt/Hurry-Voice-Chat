@@ -170,9 +170,13 @@ private fun HurryNativeRoot() {
     var openedMePage by remember { mutableStateOf<String?>(null) }
     var openedLeaderboard by remember { mutableStateOf<String?>(null) }
     var openedInvite by remember { mutableStateOf(false) }
+    var openedSearch by remember { mutableStateOf(false) }
+    var openedPublicProfile by remember { mutableStateOf<RoomProfileUser?>(null) }
 
-    BackHandler(enabled = openedRoom != null || openedChat != null || openedMePage != null) {
+    BackHandler(enabled = openedRoom != null || openedChat != null || openedMePage != null || openedSearch || openedPublicProfile != null) {
         when {
+            openedPublicProfile != null -> openedPublicProfile = null
+            openedSearch -> openedSearch = false
             openedChat != null -> openedChat = null
             openedRoom != null -> openedRoom = null
             openedMePage != null -> openedMePage = null
@@ -181,7 +185,11 @@ private fun HurryNativeRoot() {
 
     HurryTheme {
         Box(Modifier.fillMaxSize()) {
-            if (openedRoom != null) {
+            if (openedPublicProfile != null) {
+                PublicProfile(user=openedPublicProfile!!,onBack={openedPublicProfile=null})
+            } else if (openedSearch) {
+                SearchPage(onBack={openedSearch=false},onOpenProfile={openedPublicProfile=it;openedSearch=false})
+            } else if (openedRoom != null) {
                 RoomPage(
                     roomOwner = RoomPageOwner(
                         id = openedRoom!!.id,
@@ -211,6 +219,7 @@ private fun HurryNativeRoot() {
                                 onPopular = { homeMine = false },
                                 onLeaderboard = { openedLeaderboard = it },
                                 onInviteFriends = { openedInvite = true },
+                                onSearch = { openedSearch = true },
                                 mineSelected = homeMine
                             )
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
