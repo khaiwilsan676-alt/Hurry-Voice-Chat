@@ -239,11 +239,12 @@ fun RoomPage(
                 Box(Modifier.size(6.dp).clip(CircleShape).background(Color.White))
                 Box(Modifier.size(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.4f)))
             }
-            AsyncImage(
-                model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
+            GreenColorRemovalImage(
+                imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
                 contentDescription="Room task",
                 modifier=Modifier.size(63.dp).clickable { showRoomTask=true },
-                contentScale=ContentScale.Fit
+                contentScale=ContentScale.Fit,
+                threshold=0.45f
             )
             AsyncImage(
                 model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000002a8c81fab8232bebeeeb45cc.png",
