@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -245,10 +245,10 @@ fun Level(onBack: () -> Unit = {}) {
                 }
 
                 Box(Modifier.fillMaxWidth().height(38.dp).padding(horizontal = 16.dp)) {
-                    LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).offset(x = (-0).dp, y = (-14).dp).height(28.dp).width(54.dp))
+                    LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).offset(x = (-0).dp, y = (-14).dp).height(28.dp))
                     Row(Modifier.align(Alignment.CenterStart).offset(y = (-16).dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.KeyboardArrowUp, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.ArrowUpward, null, tint = Color.White, modifier = Modifier.size(16.dp))
                             Box(Modifier.width(14.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
                             Spacer(Modifier.height(2.dp))
                             Box(Modifier.width(8.dp).height(1.5.dp).background(Color.White, RoundedCornerShape(2.dp)))
