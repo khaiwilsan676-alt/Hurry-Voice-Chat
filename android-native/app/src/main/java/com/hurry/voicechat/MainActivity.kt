@@ -185,9 +185,10 @@ private fun HurryNativeRoot() {
                 RoomPage(
                     roomOwner = RoomPageOwner(
                         id = openedRoom!!.id,
-                        accountId = openedRoom!!.accountId ?: "",
+                        accountId = openedRoom!!.accountId.ifBlank { openedRoom!!.id },
                         name = openedRoom!!.name,
-                        image = openedRoom!!.image
+                        image = openedRoom!!.image,
+                        country = openedRoom!!.country
                     ),
                     currentUser = RoomPageCurrentUser(),
                     onBack = { openedRoom = null },
