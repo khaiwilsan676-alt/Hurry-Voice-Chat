@@ -27,7 +27,7 @@ private const val RAW_ME = "https://raw.githubusercontent.com/khaiwilsan676-alt/
 private data class MeMenu(val label: String, val asset: String)
 
 @Composable
-fun MeScreen(onOpen: (String) -> Unit = {}) {
+fun MeScreen(onOpen: (String) -> Unit = {}, onPublicProfile: (RoomProfileUser) -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("hurry_user", Context.MODE_PRIVATE) }
     val uid = prefs.getString("uid", "") ?: ""
@@ -76,7 +76,7 @@ fun MeScreen(onOpen: (String) -> Unit = {}) {
                             if (phone.isNotBlank()) Text(phone, fontSize = 12.sp, fontWeight = FontWeight.Normal, color = Color(0xFF4B5563))
                         }
                     }
-                    Text("›", fontSize = 32.sp, color = Color(0xFF374151), modifier = Modifier.padding(top = 10.dp))
+                    Text("›", fontSize = 32.sp, color = Color(0xFF374151), modifier = Modifier.padding(top = 10.dp).clickable { onPublicProfile(RoomProfileUser(id = uid, uid = uid, accountId = account.ifBlank { uid }, name = name, image = photo, country = "India")) })
                 }
 
                 Spacer(Modifier.height(18.dp))
