@@ -10,6 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Description
+import coil3.compose.AsyncImage
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -81,7 +85,11 @@ fun SellerCenter(onBack: () -> Unit = {}) {
                     Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), verticalAlignment = Alignment.Top) {
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("◉", fontSize = 20.sp, color = Color(0xFFFFC34D))
+                                AsyncImage(
+                                    model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_00000000e56882119c217d508b6733dc.png",
+                                    contentDescription = "Coins",
+                                    modifier = Modifier.size(24.dp)
+                                )
                                 Spacer(Modifier.width(6.dp))
                                 Text("%,d".format(balance), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = SellerText)
                             }
@@ -92,7 +100,12 @@ fun SellerCenter(onBack: () -> Unit = {}) {
                             Modifier.clickable { showingDetails = true }.padding(3.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("▤", fontSize = 15.sp, color = SellerBlue)
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Filled.Description,
+                                contentDescription = "Details",
+                                tint = SellerBlue,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Spacer(Modifier.width(3.dp))
                             Text("Details", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SellerBlue)
                         }
@@ -101,7 +114,13 @@ fun SellerCenter(onBack: () -> Unit = {}) {
                     Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("Total Balance:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF6B7280))
                         Spacer(Modifier.weight(1f))
-                        Text("◉  %,d".format(balance), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = SellerText)
+                        AsyncImage(
+                            model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_00000000e56882119c217d508b6733dc.png",
+                            contentDescription = "Coins",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text("%,d".format(balance), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = SellerText)
                     }
                     Row(Modifier.fillMaxWidth().padding(bottom = 24.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text("Sales method:", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = SellerText)
@@ -146,7 +165,12 @@ fun SellerCenter(onBack: () -> Unit = {}) {
 @Composable
 private fun SellerBackArrow(onClick: () -> Unit) {
     Box(Modifier.size(32.dp).clickable { onClick() }, contentAlignment = Alignment.Center) {
-        Text("‹", fontSize = 32.sp, color = Color.Black)
+        androidx.compose.material3.Icon(
+            imageVector = Icons.Filled.ArrowBack,
+            contentDescription = "Back",
+            tint = Color.Black,
+            modifier = Modifier.size(24.dp)
+        )
     }
 }
 
