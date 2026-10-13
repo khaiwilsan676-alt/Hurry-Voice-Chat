@@ -46,6 +46,7 @@ import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
+import kotlin.math.roundToInt
 
 private const val INVITE_ASSET_BASE = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 private fun inviteAsset(file: String) = INVITE_ASSET_BASE + file
