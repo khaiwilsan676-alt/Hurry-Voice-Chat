@@ -103,6 +103,13 @@ abstract class HurryDatabase : RoomDatabase() {
     }
 }
 
+// Process-wide fast cache: survives HomeScreen being removed during tab changes.
+private object NativeRoomMemoryCache {
+    var rooms by mutableStateOf<List<HurryRoom>?>(null)
+    var lastRefreshAt: Long = 0L
+    var refreshInFlight: Boolean = false
+}
+
 // ═══════════════════════════════════════════════════════
 // COUNTRY PILL DATA
 // ═══════════════════════════════════════════════════════
@@ -159,55 +166,69 @@ fun HomeScreen(
         runCatching { HurryDatabase.get(context).roomDao() }.getOrNull()
     }
 
-    var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
+    var rooms by remember { mutableStateOf(NativeRoomMemoryCache.rooms) }
     var selectedCountry by remember { mutableStateOf("all") }
 
-    // Room cache is optional: a corrupt/old database must never close the app.
+    // Keep the room list in process memory when users switch tabs. Show cached
+    // cards immediately and refresh from the API at most once per 60 seconds.
     LaunchedEffect(Unit) {
-        val cached = if (dao != null) {
-            runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
-        } else {
-            emptyList()
-        }
-
-        if (cached.isNotEmpty()) {
-            rooms = cached.map {
-                HurryRoom(
-                    id = it.id,
-                    name = it.name,
-                    country = it.country,
-                    image = it.image,
-                    accountId = it.accountId
-                )
+        if (NativeRoomMemoryCache.rooms == null) {
+            val cached = if (dao != null) {
+                runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
+            } else emptyList()
+            if (cached.isNotEmpty()) {
+                val cachedRooms = cached.map {
+                    HurryRoom(
+                        id = it.id,
+                        name = it.name,
+                        country = it.country,
+                        image = it.image,
+                        accountId = it.accountId
+                    )
+                }
+                NativeRoomMemoryCache.rooms = cachedRooms
+                rooms = cachedRooms
             }
+        } else {
+            rooms = NativeRoomMemoryCache.rooms
         }
 
-        // Server data remains the source of truth.
-        val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
-
-        if (fresh.isNotEmpty()) {
-            rooms = fresh
-            if (dao != null) {
-                runCatching {
-                    withContext(Dispatchers.IO) {
-                        dao.clearAll()
-                        dao.insertAll(
-                            fresh.map {
-                                RoomEntity(
-                                    id = it.id,
-                                    name = it.name,
-                                    country = it.country,
-                                    image = it.image,
-                                    accountId = it.accountId ?: "",
-                                    createdAt = System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        if (!NativeRoomMemoryCache.refreshInFlight &&
+            (NativeRoomMemoryCache.lastRefreshAt == 0L || now - NativeRoomMemoryCache.lastRefreshAt >= 60_000L)
+        ) {
+            NativeRoomMemoryCache.refreshInFlight = true
+            try {
+                val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
+                NativeRoomMemoryCache.lastRefreshAt = System.currentTimeMillis()
+                if (fresh.isNotEmpty()) {
+                    NativeRoomMemoryCache.rooms = fresh
+                    rooms = fresh
+                    if (dao != null) {
+                        runCatching {
+                            withContext(Dispatchers.IO) {
+                                dao.clearAll()
+                                dao.insertAll(
+                                    fresh.map {
+                                        RoomEntity(
+                                            id = it.id,
+                                            name = it.name,
+                                            country = it.country,
+                                            image = it.image,
+                                            accountId = it.accountId,
+                                            createdAt = System.currentTimeMillis()
+                                        )
+                                    }
                                 )
                             }
-                        )
+                        }
                     }
+                } else if (rooms == null) {
+                    rooms = emptyList()
                 }
+            } finally {
+                NativeRoomMemoryCache.refreshInFlight = false
             }
-        } else if (rooms == null) {
-            rooms = emptyList()
         }
     }
 
