@@ -9,6 +9,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -125,17 +130,20 @@ fun NativeChatScreen(
             Row(
                 Modifier.fillMaxWidth()
                     .background(Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFF0F2F5))))
-                    .padding(top = (4f * LocalConfiguration.current.screenHeightDp / 100f).dp, start = 8.dp, end = 8.dp, bottom = 10.dp),
+                    .padding(top = (4f * LocalConfiguration.current.screenHeightDp / 100f).dp, start = 8.dp, end = 8.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    "‹",
-                    fontSize = 38.sp,
-                    color = Color(0xFF222222),
-                    modifier = Modifier
-                        .clickable(onClick = onBack)
-                        .padding(horizontal = 7.dp)
-                )
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF1F2937),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
                 AsyncImage(
                     model = image,
                     contentDescription = name,
@@ -147,12 +155,12 @@ fun NativeChatScreen(
                     Text(
                         name,
                         fontSize = 18.sp,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = FontWeight.Bold,
                         color = Color(0xFF1F2937),
                         maxLines = 1
                     )
                     if (!isOfficial) {
-                        Text("Online", fontSize = 11.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.Medium)
+                        Text("Offline", fontSize = 11.sp, color = Color(0xFF4B5563), fontWeight = FontWeight.Medium)
                     }
                 }
                 if (!isOfficial) {
@@ -267,6 +275,7 @@ fun NativeChatScreen(
             if (!isOfficial) {
                 Column(
                     Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                         .background(Color.White)
                         .navigationBarsPadding()
                 ) {
@@ -288,25 +297,36 @@ fun NativeChatScreen(
 
                     Row(
                         Modifier.fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 9.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("▧", fontSize = 25.sp, color = Color(0xFF6B7280), modifier = Modifier.padding(horizontal = 2.dp))
-                        Spacer(Modifier.width(7.dp))
-                        Text(
-                            "☺",
-                            fontSize = 25.sp,
-                            color = if (showEmojiPicker) Color(0xFF3B82F6) else Color(0xFF6B7280),
-                            modifier = Modifier.clickable { showEmojiPicker = !showEmojiPicker }
-                        )
+                        IconButton(
+                            onClick = { },
+                            enabled = false,
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(Icons.Default.Image, contentDescription = "Image", tint = Color(0xFF6B7280), modifier = Modifier.size(24.dp))
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { showEmojiPicker = !showEmojiPicker },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.SentimentSatisfiedAlt,
+                                contentDescription = "Emoji",
+                                tint = if (showEmojiPicker) Color(0xFF3B82F6) else Color(0xFF6B7280),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         Spacer(Modifier.width(8.dp))
 
                         Box(Modifier.weight(1f)) {
                             Row(
                                 Modifier.fillMaxWidth()
                                     .clip(CircleShape)
-                                    .background(Color(0xFFF1F3F5))
-                                    .padding(start = 15.dp, end = 9.dp, top = 2.dp, bottom = 2.dp),
+                                    .background(Color(0xFFF3F4F6))
+                                    .padding(start = 16.dp, end = 9.dp, top = 2.dp, bottom = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 androidx.compose.foundation.text.BasicTextField(
@@ -323,19 +343,25 @@ fun NativeChatScreen(
                                         inner()
                                     }
                                 )
-                                Text(
-                                    "➤",
-                                    fontSize = 21.sp,
-                                    color = if (text.isBlank()) Color(0xFFD1D5DB) else Color(0xFF3B82F6),
-                                    modifier = Modifier
-                                        .clickable(enabled = text.isNotBlank()) {
+                                IconButton(
+                                    onClick = {
+                                        if (text.isNotBlank()) {
                                             messages.add(true to text.trim())
                                             text = ""
                                             showEmojiPicker = false
                                             replyText = null
                                         }
-                                        .padding(horizontal = 5.dp)
-                                )
+                                    },
+                                    enabled = text.isNotBlank(),
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Send,
+                                        contentDescription = "Send",
+                                        tint = if (text.isBlank()) Color(0xFFD1D5DB) else Color(0xFF3B82F6),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
                             }
                         }
                     }
