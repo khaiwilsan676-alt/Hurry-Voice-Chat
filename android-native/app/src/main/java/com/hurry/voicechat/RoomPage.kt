@@ -185,7 +185,7 @@ fun RoomPage(
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
                         Text(roomName.take(12).let { if(roomName.length>12) it+"..." else it },color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                         Text(roomCountryFlag(roomOwner.country),color=Color.White,fontSize=12.sp,maxLines=1)
-                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) IconButton(onClick={followed=!followed;onFollowToggle(roomId,followed)},modifier=Modifier.size(22.dp)){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(12.dp))}
+                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) Box(Modifier.size(22.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{followed=!followed;onFollowToggle(roomId,followed)},contentAlignment=Alignment.Center){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(14.dp))}
                     }
                     Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1)
                 }
@@ -208,8 +208,16 @@ fun RoomPage(
                     ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(19.dp))}
                 }
             }
-            if(announcement.isNotBlank()) Surface(Modifier.fillMaxWidth().padding(10.dp),color=Color.Black.copy(.4f),shape=RoundedCornerShape(18.dp)){
-                Text(announcement,color=Color.White,fontSize=13.sp,modifier=Modifier.padding(10.dp),maxLines=1,overflow=TextOverflow.Ellipsis)
+            Column(Modifier.fillMaxWidth().padding(start=10.dp,top=8.dp,end=82.dp,bottom=4.dp)) {
+                Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
+                    Text("Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                    if(announcement.isNotBlank()) {
+                        Spacer(Modifier.height(8.dp))
+                        Divider(color=Color.White.copy(alpha=.10f),thickness=1.dp)
+                        Spacer(Modifier.height(7.dp))
+                        Text("ANNOUNCEMENT: $announcement",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                    }
+                }
             }
             Spacer(Modifier.weight(1f))
             Column(
@@ -229,10 +237,10 @@ fun RoomPage(
             }
             Spacer(Modifier.weight(1f))
             if(messages.isNotEmpty()) LazyColumn(Modifier.fillMaxWidth().height(150.dp).padding(horizontal=10.dp)){items(messages,key={it.id}){NativeMessage(it)}}
-            if(showChat) Row(Modifier.fillMaxWidth().padding(8.dp),verticalAlignment=Alignment.CenterVertically){
-                IconButton(onClick={showEmoji=!showEmoji}){Icon(Icons.Default.EmojiEmotions,null,tint=Color.White)}
-                OutlinedTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f),singleLine=true,placeholder={Text("Message")})
-                IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}}){Icon(Icons.Default.Send,null,tint=Color.White)}
+            if(showChat) Row(Modifier.fillMaxWidth().navigationBarsPadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Image,null,tint=Color(0xFF737373),modifier=Modifier.size(25.dp))}
+                androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
+                IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(25.dp))}
             }
             Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=6.dp).height(40.dp),verticalAlignment=Alignment.CenterVertically){
                 Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
