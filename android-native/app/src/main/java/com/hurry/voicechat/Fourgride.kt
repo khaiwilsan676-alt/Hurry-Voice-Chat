@@ -134,12 +134,12 @@ private data class ToolItem(val title: String, val image: String, val action: ()
 @Composable
 private fun ToolToggle(enabled: Boolean) {
     Box(
-        Modifier.padding(1.dp).size(width = 23.dp, height = 14.dp)
+        Modifier.padding(1.dp).size(width = 24.dp, height = 16.dp)
             .clip(RoundedCornerShape(50)).background(if (enabled) Color(0xFF3B82F6) else Color(0xFFD1D5DB))
             .padding(2.dp),
         contentAlignment = if (enabled) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        Box(Modifier.size(10.dp).clip(RoundedCornerShape(50)).background(Color.White))
+        Box(Modifier.size(12.dp).clip(RoundedCornerShape(50)).background(Color.White))
     }
 }
 
@@ -153,7 +153,7 @@ private fun ToolCell(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
         Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
-            AsyncImage(model = imageUrl, contentDescription = title, modifier = Modifier.fillMaxSize().clickable(onClick = onClick), contentScale = ContentScale.Fit)
+            AsyncImage(model = imageUrl, contentDescription = title, modifier = Modifier.fillMaxSize().then(if (toggle == null) Modifier.clickable(onClick = onClick) else Modifier), contentScale = ContentScale.Fit)
             if (toggle != null) Box(Modifier.align(Alignment.BottomEnd).clickable(onClick = onClick)) { ToolToggle(toggle) }
         }
         Text(title, modifier = Modifier.padding(top = 4.dp), fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1, softWrap = false)
