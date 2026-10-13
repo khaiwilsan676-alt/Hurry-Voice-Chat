@@ -226,7 +226,7 @@ private fun HurryNativeRoot() {
                                 openedChat = Triple(uid, name, image)
                             }
                             HurryTab.ME -> when (openedMePage) {
-                                null -> MeScreen(onOpen = { openedMePage = it })
+                                null -> MeScreen(onOpen = { openedMePage = it }, onPublicProfile = { openedPublicProfile = it })
                                 "Coins" -> CoinsNativePage(onBack = { openedMePage = null })
                                 "Diamonds" -> DiamondsNativePage(onBack = { openedMePage = null })
                                 "Invite Friends" -> InviteFriends(onBack = { openedMePage = null })
