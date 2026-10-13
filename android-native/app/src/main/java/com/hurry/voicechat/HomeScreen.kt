@@ -302,12 +302,8 @@ fun HomeScreen(
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(Color(0xFFEFF6FF), Color(0xFFF9FAFB))
-                            )
-                        )
-                        .padding(top = 6.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
+                        .background(Color(0xFFF5F5F5))
+                        .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                 ) {
                     Box(
                         Modifier
@@ -371,7 +367,7 @@ fun HomeScreen(
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF9FAFB))
+                        .background(Color(0xFFF5F5F5))
                 ) {
                     CountryPillRow(
                         selected = selectedCountry,
@@ -428,7 +424,7 @@ fun HomeScreen(
                     Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
-                        .background(Color(0xFFF9FAFB))
+                        .background(Color(0xFFF5F5F5))
                 ) {
                     CountryPillRow(
                         selected = selectedCountry,
@@ -465,7 +461,7 @@ private fun CountryPillRow(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (active) HurryBlue else Color.White)
+                    .background(if (active) HurryBlue else Color(0xFFF5F5F5))
                     .clickable { onSelect(pill.value) }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -575,7 +571,7 @@ fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
         model = RAW + "file_000000009aac81faa8564416680aba4e.png",
         contentDescription = null,
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier.size(40.dp),
         contentScale = ContentScale.Fit
     )
 }
