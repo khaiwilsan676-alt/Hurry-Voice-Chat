@@ -222,14 +222,28 @@ fun RoomPage(
                     Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1)
                 }
                 Row(
-                    modifier=Modifier.padding(top=8.dp).clip(RoundedCornerShape(topStart=16.dp,bottomStart=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent))).clickable{showInfo=true}.padding(start=12.dp,end=10.dp,top=5.dp,bottom=5.dp),
-                    verticalAlignment=Alignment.CenterVertically
+                    modifier=Modifier.padding(top=8.dp),
+                    verticalAlignment=Alignment.CenterVertically,
+                    horizontalArrangement=Arrangement.spacedBy(8.dp)
                 ) {
-                    GreenRemovedCupImage(url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",modifier=Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,lineHeight=14.sp)
-                    Spacer(Modifier.width(5.dp))
-                    Icon(Icons.Default.ChevronRight,contentDescription=null,tint=Color(0xFFEEF3A3),modifier=Modifier.size(12.dp))
+                    Row(
+                        modifier=Modifier.clip(RoundedCornerShape(topStart=16.dp,bottomStart=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent))).clickable{showInfo=true}.padding(start=12.dp,end=10.dp,top=5.dp,bottom=5.dp),
+                        verticalAlignment=Alignment.CenterVertically
+                    ) {
+                        GreenRemovedCupImage(url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",modifier=Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,lineHeight=14.sp)
+                        Spacer(Modifier.width(5.dp))
+                        Icon(Icons.Default.ChevronRight,contentDescription=null,tint=Color(0xFFEEF3A3),modifier=Modifier.size(12.dp))
+                    }
+                    Row(
+                        modifier=Modifier.clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showMusic=true}.padding(start=2.dp,end=9.dp,top=2.dp,bottom=2.dp),
+                        verticalAlignment=Alignment.CenterVertically,
+                        horizontalArrangement=Arrangement.spacedBy(4.dp)
+                    ) {
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_00000000ee70820b9fd0dfe71739874e.png",contentDescription="Music minimize",modifier=Modifier.size(24.dp),contentScale=ContentScale.Fit)
+                        Text("Music",color=Color.White,fontSize=11.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1)
+                    }
                 }
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
                     Row(
