@@ -379,8 +379,6 @@ fun RoomPage(
                 if(isOwner || isMySeat || seat.occupied) SeatSheetAction(if(seat.muted)"Unmute Seat" else "Mute Seat",onClick=onMute)
                 if(isOwner) SeatSheetAction(if(seat.locked)"Unlock Mic" else "Lock Mic",onClick=onLock)
                 SeatSheetAction("Invite",onClick=onInvite)
-                Spacer(Modifier.height(4.dp))
-                TextButton(onClick=onDismiss,modifier=Modifier.fillMaxWidth()){Text("Cancel",color=Color.DarkGray)}
             }
         }
     }
