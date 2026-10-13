@@ -3,7 +3,11 @@ package com.hurry.voicechat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -58,56 +62,51 @@ fun Fourgride(
         ToolItem("Pk Battle", "IMG_20260814_110802.png") { }
     )
 
-    Box(Modifier.fillMaxSize().background(Color(0x66000000)).clickable { onClose() }, contentAlignment = Alignment.BottomCenter) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        Box(Modifier.fillMaxSize().clickable { onClose() })
         Column(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
-                .background(Color.White).clickable(enabled = false) {}.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
-                .heightIn(max = 560.dp)
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 14.dp, topEnd = 14.dp))
+                .background(Color.White)
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 24.dp)
+                .heightIn(max = LocalConfiguration.current.screenHeightDp.dp * 0.70f)
         ) {
             Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("Tools", modifier = Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-                Text("×", Modifier.clip(RoundedCornerShape(20.dp)).clickable { onClose() }.padding(horizontal = 8.dp, vertical = 2.dp), fontSize = 28.sp, color = Color(0xFF6B7280))
             }
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(4),
-                modifier = Modifier.fillMaxWidth().heightIn(max = 210.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                userScrollEnabled = false
-            ) {
-                items(tools.size) { index ->
-                    val item = tools[index]
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Box(Modifier.size(48.dp).clickable { item.action() }, contentAlignment = Alignment.Center) {
-                            AsyncImage(model = base + item.image, contentDescription = item.title, modifier = Modifier.fillMaxSize())
-                            when (item.title) {
-                                "Public msg" -> ToolToggle(!publicMsgOff)
-                                "Entry Effect" -> ToolToggle(entryEffect)
-                                "Gift Effect" -> ToolToggle(giftEffect)
-                                "Speaker" -> ToolToggle(speaker)
-                            }
-                        }
-                        Text(item.title, modifier = Modifier.padding(top = 4.dp), fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1, softWrap = false)
+
+            Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ToolCell(Modifier.weight(1f), "Clear-Chat", base + "IMG_20260814_110525.png", onClick = onClearChat)
+                ToolCell(Modifier.weight(1f), "Public msg", base + "IMG_20260814_110608.png", toggle = !publicMsgOff, onClick = onTogglePublicMsg)
+                ToolCell(Modifier.weight(1f), "Entry Effect", base + "IMG_20260814_110709.png", toggle = entryEffect, onClick = {
+                    entryEffect = !entryEffect
+                    prefs.edit().putBoolean("entry_effect", entryEffect).apply()
+                })
+                ToolCell(Modifier.weight(1f), "Gift Effect", base + "IMG_20260814_110727.png", toggle = giftEffect, onClick = {
+                    giftEffect = !giftEffect
+                    prefs.edit().putBoolean("gift_effect", giftEffect).apply()
+                })
+            }
+
+            Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ToolCell(Modifier.weight(1f), "Music", base + "IMG_20260814_144255.png", onClick = { showMusic = true })
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    AsyncImage(model = base + "IMG_20260814_110628.png", contentDescription = "Speaker", modifier = Modifier.size(48.dp), contentScale = ContentScale.Fit)
+                    Row(Modifier.padding(top = 4.dp).clickable { onToggleSpeaker() }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("Speaker", fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1, softWrap = false)
+                        ToolToggle(speaker)
                     }
                 }
+                ToolCell(Modifier.weight(1f), "Store", base + "IMG_20260814_110501.png", onClick = { onOpenStore?.invoke("store") })
+                ToolCell(Modifier.weight(1f), "My-Iteam", base + "IMG_20260814_110545.png", onClick = { onOpenStore?.invoke("bag") })
             }
-            Text("Play Tools", modifier = Modifier.padding(top = 18.dp, bottom = 10.dp), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937))
-            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
-                columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(4),
-                modifier = Modifier.fillMaxWidth().heightIn(max = 100.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                userScrollEnabled = false
-            ) {
-                items(playTools.size) { index ->
-                    val item = playTools[index]
-                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                        Box(Modifier.size(48.dp).clickable { item.action() }, contentAlignment = Alignment.Center) {
-                            AsyncImage(model = base + item.image, contentDescription = item.title, modifier = Modifier.fillMaxSize())
-                        }
-                        Text(item.title, modifier = Modifier.padding(top = 4.dp), fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1, softWrap = false)
-                    }
-                }
+
+            Text("Play Tools", modifier = Modifier.padding(top = 8.dp, bottom = 8.dp), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ToolCell(Modifier.weight(1f), "Lucky bag", base + "1790602570756~2.jpg", onClick = { showLuckyBag = true })
+                ToolCell(Modifier.weight(1f), "Pk Battle", base + "IMG_20260814_110802.png", onClick = {})
+                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -141,5 +140,22 @@ private fun ToolToggle(enabled: Boolean) {
         contentAlignment = if (enabled) Alignment.CenterEnd else Alignment.CenterStart
     ) {
         Box(Modifier.size(10.dp).clip(RoundedCornerShape(50)).background(Color.White))
+    }
+}
+
+@Composable
+private fun ToolCell(
+    modifier: Modifier,
+    title: String,
+    imageUrl: String,
+    toggle: Boolean? = null,
+    onClick: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = modifier) {
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            AsyncImage(model = imageUrl, contentDescription = title, modifier = Modifier.fillMaxSize().clickable(onClick = onClick), contentScale = ContentScale.Fit)
+            if (toggle != null) Box(Modifier.align(Alignment.BottomEnd).clickable(onClick = onClick)) { ToolToggle(toggle) }
+        }
+        Text(title, modifier = Modifier.padding(top = 4.dp), fontSize = 10.sp, color = Color(0xFF374151), maxLines = 1, softWrap = false)
     }
 }
