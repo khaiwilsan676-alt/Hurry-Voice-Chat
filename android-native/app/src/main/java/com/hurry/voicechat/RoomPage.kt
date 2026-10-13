@@ -448,7 +448,8 @@ fun RoomPage(
 }
 @Composable private fun GameSheetItem(image:String,label:String,onClick:()->Unit){
     Column(Modifier.width(84.dp).clickable(onClick=onClick),horizontalAlignment=Alignment.CenterHorizontally){
-        AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
+        if(label=="Room task") GreenColorRemovalImage(imageUrl=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit,threshold=0.45f)
+        else AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
         Spacer(Modifier.height(5.dp))
         Text(label,color=Color.White,fontSize=10.sp,maxLines=1)
     }
