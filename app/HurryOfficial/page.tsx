@@ -27,7 +27,7 @@ export default function HurryOfficial() {
         <div className="flex items-center gap-3">
           <Image
             src="/logo.png"
-            alt="Hurry Logo"
+            alt="Zyora Logo"
             width={42}
             height={42}
             className="h-9 w-9 object-contain rounded-xl"
@@ -94,7 +94,7 @@ export default function HurryOfficial() {
                   className="h-20 w-20 object-contain rounded-3xl shadow-[0_0_40px_rgba(37,99,235,0.4)]"
                 />
                 <h1 className="text-5xl font-bold leading-tight text-white md:text-6xl">
-                  Hurry
+                  Zyora
                 </h1>
               </div>
               
@@ -169,11 +169,11 @@ export default function HurryOfficial() {
               <h2 className="mb-4 text-3xl font-bold text-white">Find Your Crowd</h2>
               <p className="mb-6 text-lg font-light leading-relaxed text-gray-300">
                 Whether you're discussing a punchline or sharing your own
-                stories, Hurry helps you find your crowd and express yourself
+                stories, Zyora helps you find your crowd and express yourself
                 freely.
               </p>
               <p className="text-lg font-medium text-white">
-                Join Hurry and make your day!
+                Join Zyora and make your day!
               </p>
             </div>
             <div className="md:w-2/5 flex justify-center md:justify-end">
@@ -225,7 +225,7 @@ export default function HurryOfficial() {
             <SectionTitle title="Join Our Community" />
 
             <p className="mb-6 text-center text-lg font-light leading-relaxed text-gray-300 md:px-10">
-              Hurry is more than an app—it's a home for creative expression.
+              Zyora is more than an app—it's a home for creative expression.
               Whether you're a theater enthusiast, comedy lover, or just
               someone who appreciates authentic connections, you'll find your
               place here.
