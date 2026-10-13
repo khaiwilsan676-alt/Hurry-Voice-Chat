@@ -20,7 +20,7 @@ interface StoreItem {
 }
 
 // ==========================================
-// SHARED WALLET DB (Same as Wallet / WildParty / SellerCenter / GiftPicker)
+// SHARED WALLET DB
 // ==========================================
 const SHARED_DB = 'FruitPartyDB';
 const SHARED_STORE = 'GameState';
@@ -113,7 +113,6 @@ const getExpiredStoreItemIds = (items: StoreItem[]): string[] => {
   return expired;
 };
 
-// delta positive = add, negative = deduct
 const updateWalletBalance = async (delta: number): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -136,7 +135,6 @@ const updateWalletBalance = async (delta: number): Promise<void> => {
   }
 };
 
-// Add item id to ownedItems array (persist)
 const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -159,7 +157,6 @@ const addOwnedItemToDB = async (itemId: string): Promise<void> => {
   }
 };
 
-// Persist equipped items
 const saveEquippedItemsToDB = async (equipped: string[]): Promise<void> => {
   try {
     const db = await initWalletDB();
@@ -192,7 +189,6 @@ const tabData = [
 ];
 
 const allStoreItems: StoreItem[] = [
-  // Vehicle
   {
     id: "v1",
     name: "Leopard Roar",
@@ -205,12 +201,10 @@ const allStoreItems: StoreItem[] = [
     duration: "5D",
   },
 
-  // Avatar Frame
   { id: "a1", name: "Crown Wings", image: "/VID_20260905_024534_955_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "250,000", duration: "3D" },
   { id: "a2", name: "Host Wings", image: "/VID_20260905_024726_660_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "500,000", duration: "3D" },
   { id: "a3", name: "Mystic Wings", image: "/VID_20260905_083446_619_bsl.mp4", tab: "Avatar Frame", stars: 5, price: "750,000", duration: "3D" },
 
-  // Theme
   { id: "t1", name: "Seafood", image: "/IMG-20260904-WA0004.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t2", name: "Night Sky", image: "/IMG-20260904-WA0005.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
   { id: "t3", name: "Seafood", image: "/IMG-20260904-WA0006.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
@@ -218,7 +212,6 @@ const allStoreItems: StoreItem[] = [
   { id: "t5", name: "Seafood", image: "/IMG-20260904-WA0040.jpg", tab: "Theme", stars: 4, price: "2,700,000", duration: "30D" },
   { id: "t6", name: "Night Sky", image: "/IMG-20260904-WA0041.jpg ", tab: "Theme", stars: 5, price: "2,400,000", duration: "30D" },
 
-  // Chat Bubble
   { id: "c1", name: "1", image: "/file_000000003d888211822aa6837fe5013c.png", tab: "Chat Bubble", stars: 4, price: "500,000", duration: "3D" },
   { id: "c2", name: "2", image: "/file_000000006044821186ff566329797142.png", tab: "Chat Bubble", stars: 4, price: "250,000", duration: "2D" },
   { id: "c3", name: "3", image: "/file_00000000c44c81f598f62ae8a45e13a7.png", tab: "Chat Bubble", stars: 5, price: "300,000", duration: "3D" },
@@ -226,15 +219,13 @@ const allStoreItems: StoreItem[] = [
   { id: "c5", name: "5", image: "/IMG_20260920_122743.png", tab: "Chat Bubble", stars: 4, price: "159,000", duration: "3D" },
   { id: "c6", name: "6", image: "/IMG_20260920_121752.png", tab: "Chat Bubble", stars: 4, price: "200,000", duration: "3D" },
 
-  // ID
   { id: "i1", name: "ID Badge 8", image: "/1784533036732~2.jpg", tab: "ID", stars: 5, price: "10,000,000", duration: "3D", isOwned: true },
 ];
 
 // ==========================================
-// SHARED WebGL WHITE-REMOVAL (single context)
+// WebGL WHITE-REMOVAL
 // ==========================================
 const processedCache = new Map<string, Promise<string>>();
-
 let glCanvas: HTMLCanvasElement | null = null;
 let glCtx: WebGLRenderingContext | null = null;
 let glTex: WebGLTexture | null = null;
@@ -272,65 +263,44 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 function ensureGL(): WebGLRenderingContext | null {
   if (glCtx) return glCtx;
   if (typeof document === 'undefined') return null;
-
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl', {
-    premultipliedAlpha: false,
-    alpha: true,
-    preserveDrawingBuffer: true,
-    antialias: false,
+    premultipliedAlpha: false, alpha: true, preserveDrawingBuffer: true, antialias: false,
   }) as WebGLRenderingContext | null;
   if (!gl) return null;
-
   const program = gl.createProgram()!;
   gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VS));
   gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FS));
   gl.linkProgram(program);
   gl.useProgram(program);
-
   const posBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
   const posLoc = gl.getAttribLocation(program, 'a_position');
   gl.enableVertexAttribArray(posLoc);
   gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-
   const texBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0]),
-    gl.STATIC_DRAW
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,1, 1,1, 0,0, 0,0, 1,1, 1,0]), gl.STATIC_DRAW);
   const texLoc = gl.getAttribLocation(program, 'a_texCoord');
   gl.enableVertexAttribArray(texLoc);
   gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-  glCanvas = canvas;
-  glCtx = gl;
-  glTex = tex;
+  glCanvas = canvas; glCtx = gl; glTex = tex;
   return gl;
 }
 
 function processWhiteRemoval(src: string): Promise<string> {
   const hit = processedCache.get(src);
   if (hit) return hit;
-
   const p = new Promise<string>((resolve, reject) => {
     const gl = ensureGL();
     if (!gl || !glCanvas) return reject(new Error('no webgl'));
-
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -338,23 +308,17 @@ function processWhiteRemoval(src: string): Promise<string> {
         glCanvas!.width = img.width || 120;
         glCanvas!.height = img.height || 120;
         gl.viewport(0, 0, glCanvas!.width, glCanvas!.height);
-
         gl.bindTexture(gl.TEXTURE_2D, glTex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-
         resolve(glCanvas!.toDataURL('image/png'));
-      } catch (e) {
-        reject(e);
-      }
+      } catch (e) { reject(e); }
     };
     img.onerror = reject;
     img.src = src;
   });
-
   processedCache.set(src, p);
   return p;
 }
@@ -363,22 +327,17 @@ function WebGLCoinIcon({ src, className = 'w-full h-full object-contain' }: { sr
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    processWhiteRemoval(src)
-      .then((u) => alive && setUrl(u))
-      .catch(() => alive && setUrl(src));
-    return () => {
-      alive = false;
-    };
+    processWhiteRemoval(src).then((u) => alive && setUrl(u)).catch(() => alive && setUrl(src));
+    return () => { alive = false; };
   }, [src]);
   if (!url) return <div className={className} aria-hidden />;
   return <img src={url} alt="Coin" className={className} draggable={false} />;
 }
 
 // ==========================================
-// WebGL Image Avatar (green removal - smooth transparency + despill)
+// WebGL Image (green removal)
 // ==========================================
 const avatarCache = new Map<string, Promise<string>>();
-
 let imgGlCanvas: HTMLCanvasElement | null = null;
 let imgGlCtx: WebGLRenderingContext | null = null;
 let imgGlTex: WebGLTexture | null = null;
@@ -409,65 +368,44 @@ void main() {
 function ensureImageGL(): WebGLRenderingContext | null {
   if (imgGlCtx) return imgGlCtx;
   if (typeof document === 'undefined') return null;
-
   const canvas = document.createElement('canvas');
   const gl = canvas.getContext('webgl', {
-    premultipliedAlpha: false,
-    alpha: true,
-    preserveDrawingBuffer: true,
-    antialias: false,
+    premultipliedAlpha: false, alpha: true, preserveDrawingBuffer: true, antialias: false,
   }) as WebGLRenderingContext | null;
   if (!gl) return null;
-
   const program = gl.createProgram()!;
   gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, IMG_VS));
   gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, IMG_FS));
   gl.linkProgram(program);
   gl.useProgram(program);
-
   const posBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
   const posLoc = gl.getAttribLocation(program, 'a_position');
   gl.enableVertexAttribArray(posLoc);
   gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-
   const texBuf = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, texBuf);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1]),
-    gl.STATIC_DRAW
-  );
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]), gl.STATIC_DRAW);
   const texLoc = gl.getAttribLocation(program, 'a_texCoord');
   gl.enableVertexAttribArray(texLoc);
   gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-
-  imgGlCanvas = canvas;
-  imgGlCtx = gl;
-  imgGlTex = tex;
+  imgGlCanvas = canvas; imgGlCtx = gl; imgGlTex = tex;
   return gl;
 }
 
 function processGreenRemovalImage(src: string): Promise<string> {
   const hit = avatarCache.get(src);
   if (hit) return hit;
-
   const p = new Promise<string>((resolve, reject) => {
     const gl = ensureImageGL();
     if (!gl || !imgGlCanvas) return reject(new Error('no webgl'));
-
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
@@ -475,24 +413,18 @@ function processGreenRemovalImage(src: string): Promise<string> {
         imgGlCanvas!.width = img.naturalWidth || img.width || 256;
         imgGlCanvas!.height = img.naturalHeight || img.height || 256;
         gl.viewport(0, 0, imgGlCanvas!.width, imgGlCanvas!.height);
-
         gl.bindTexture(gl.TEXTURE_2D, imgGlTex);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
-
         resolve(imgGlCanvas!.toDataURL('image/png'));
-      } catch (e) {
-        reject(e);
-      }
+      } catch (e) { reject(e); }
     };
     img.onerror = reject;
     img.src = src;
   });
-
   avatarCache.set(src, p);
   return p;
 }
@@ -501,19 +433,15 @@ function WebGLImageAvatar({ src, className = 'w-full h-full object-contain' }: {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    processGreenRemovalImage(src)
-      .then((u) => alive && setUrl(u))
-      .catch(() => alive && setUrl(src));
-    return () => {
-      alive = false;
-    };
+    processGreenRemovalImage(src).then((u) => alive && setUrl(u)).catch(() => alive && setUrl(src));
+    return () => { alive = false; };
   }, [src]);
   if (!url) return <div className={className} aria-hidden />;
   return <img src={url} alt="Avatar" className={className} draggable={false} />;
 }
 
 // ==========================================
-// WebGL Video Avatar (green removal - video)
+// WebGL Video (green removal)
 // ==========================================
 function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehicleModal?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -581,19 +509,13 @@ function WebGLVideoAvatar({ src, isVehicleModal = false }: { src: string; isVehi
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1, 1, -1, -1, 1,
-      -1, 1, 1, -1, 1, 1,
-    ]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
     const texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      0, 0, 1, 0, 0, 1,
-      0, 1, 1, 0, 1, 1,
-    ]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0,0, 1,0, 0,1, 0,1, 1,0, 1,1]), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(texCoordLocation);
     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
@@ -649,7 +571,6 @@ export default function StorePage({
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
 
-  // Shared wallet
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
     new Set(allStoreItems.filter((i) => i.isOwned).map((i) => i.id))
@@ -657,7 +578,6 @@ export default function StorePage({
   const [equippedIds, setEquippedIds] = useState<Set<string>>(new Set());
   const [buying, setBuying] = useState<string | null>(null);
 
-  // User avatar (from MePage / localStorage)
   const [userPhoto, setUserPhoto] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
 
@@ -674,7 +594,6 @@ export default function StorePage({
     return () => clearInterval(id);
   }, []);
 
-  // Real-time sync
   useEffect(() => {
     let alive = true;
     const sync = async () => {
@@ -750,30 +669,23 @@ export default function StorePage({
     }
   };
 
-  // Buy handler
   const handleBuy = async (item: StoreItem) => {
     if (buying) return;
     const cost = parsePrice(item.price);
-
     if (balance < cost) {
       alert('Insufficient balance');
       return;
     }
-
     setBuying(item.id);
-    // Optimistic UI
     setBalance((b) => b - cost);
     setOwnedIds((prev) => new Set(prev).add(item.id));
     saveItemExpiry(item);
-
     await updateWalletBalance(-cost);
     await addOwnedItemToDB(item.id);
     recordTransaction(`Purchased ${item.name}`, -cost);
-
     setBuying(null);
   };
 
-  // Equip / Unequip toggle (one equipped item per tab)
   const handleEquipToggle = async (item: StoreItem) => {
     const next = new Set(equippedIds);
     const wasEquipped = next.has(item.id);
@@ -781,7 +693,6 @@ export default function StorePage({
     if (wasEquipped) {
       next.delete(item.id);
     } else {
-      // Remove any other equipped item from the same tab.
       allStoreItems.forEach((it) => {
         if (it.tab === item.tab && next.has(it.id)) next.delete(it.id);
       });
@@ -791,7 +702,6 @@ export default function StorePage({
     setEquippedIds(next);
     await saveEquippedItemsToDB(Array.from(next));
 
-    // Chat Bubble is local to the user and expires with the purchased duration.
     if (item.tab === "Chat Bubble") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Chat Bubble");
@@ -806,15 +716,12 @@ export default function StorePage({
       window.dispatchEvent(new Event("hurry-chat-bubble-equipped"));
     }
 
-    // RoomPage uses this exact value for the next Room entry event.
-    // Store the actual playable asset, not only the item ID.
     if (item.tab === "Vehicle") {
       if (wasEquipped) {
         localStorage.removeItem("equipped_Vehicle");
         localStorage.removeItem("equipped_Vehicle_image");
       } else {
         const vehicleAsset = String(item.tryVideo || "").trim();
-        // Only an actual MP4 can be equipped as an entry vehicle.
         if (vehicleAsset && /\.mp4(?:[?#].*)?$/i.test(vehicleAsset)) {
           localStorage.setItem("equipped_Vehicle", vehicleAsset);
           localStorage.setItem("equipped_Vehicle_image", String(item.image || ""));
@@ -829,18 +736,14 @@ export default function StorePage({
     }
   };
 
-  // Keep the legacy RoomPage vehicle key synchronized with the persisted
-  // IndexedDB equipment, including equipment restored after app restart.
   useEffect(() => {
     const equippedVehicleId = Array.from(equippedIds).find((id) => {
       const item = allStoreItems.find((it) => it.id === id);
       return item?.tab === "Vehicle";
     });
-
     const equippedVehicle = equippedVehicleId
       ? allStoreItems.find((it) => it.id === equippedVehicleId)
       : null;
-
     if (equippedVehicle) {
       localStorage.setItem(
         "equipped_Vehicle",
@@ -857,7 +760,6 @@ export default function StorePage({
     if (currentView === "bag") {
       return isOwned && isActive && item.tab === activeTab;
     }
-    // Expired items are no longer owned, so they appear in Store again as Buy.
     return !item.dailyReward && item.tab === activeTab;
   });
 
@@ -869,7 +771,6 @@ export default function StorePage({
     ));
   };
 
-  // Fallback letter for avatar
   const avatarLetter = (userName && userName.trim().charAt(0).toUpperCase()) || "U";
 
   return (
@@ -909,11 +810,9 @@ export default function StorePage({
             </button>
           </div>
 
-          {/* Category Tabs */}
           <div className="flex items-center gap-1 pl-3 pr-[2vh] mt-1 mb-3 overflow-hidden shrink-0 w-full">
             {tabData.map((tab) => {
               const isActive = activeTab === tab.id;
-
               return (
                 <button
                   key={tab.id}
@@ -925,23 +824,12 @@ export default function StorePage({
                 >
                   {isActive && (
                     <div className="absolute inset-0 z-0">
-                      <Image
-                        src="/IMG_20260913_090226.png"
-                        alt="Active Bg"
-                        fill
-                        className="object-contain"
-                      />
+                      <Image src="/IMG_20260913_090226.png" alt="Active Bg" fill className="object-contain" />
                     </div>
                   )}
-
                   <div className="relative z-10 flex flex-col items-center gap-1 mt-1">
                     <div className="relative w-10 h-10">
-                      <Image
-                        src={tab.icon}
-                        alt={tab.label}
-                        fill
-                        className="object-contain"
-                      />
+                      <Image src={tab.icon} alt={tab.label} fill className="object-contain" />
                     </div>
                     <span className="text-[12px] font-medium text-white tracking-wide">
                       {tab.label}
@@ -963,11 +851,7 @@ export default function StorePage({
                   Start Your Customization Journey
                 </div>
               </div>
-
-              <button
-                type="button"
-                className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center"
-              >
+              <button type="button" className="w-full bg-[#f3f4f6] text-gray-400 font-semibold py-3.5 rounded-2xl text-[15px] shadow-sm text-center">
                 Customize
               </button>
             </div>
@@ -979,10 +863,8 @@ export default function StorePage({
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
                 const isEquipped = equippedIds.has(item.id);
-
-                // Apply green removal to Vehicle / Frame images automatically (same as video)
-                const shouldRemoveGreen =
-                  item.removeGreen || isVehicle || isAvatarFrame;
+                // SAME green-removal logic for Vehicle AND Frame images (matches video shader)
+                const shouldRemoveGreen = isVehicle || isAvatarFrame;
 
                 return (
                   <div
@@ -993,12 +875,7 @@ export default function StorePage({
                   >
                     {isTheme && (
                       <div className="absolute inset-0 w-full h-full z-0">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
                         <div className="absolute inset-0 bg-black/20"></div>
                       </div>
                     )}
@@ -1015,9 +892,7 @@ export default function StorePage({
                           }
                         }}
                         className={`px-3 py-[2px] rounded-full text-[11px] font-medium border ${
-                          isTheme
-                            ? "text-white border-white bg-white/20"
-                            : "text-[#1d4ed8] border-[#1d4ed8]"
+                          isTheme ? "text-white border-white bg-white/20" : "text-[#1d4ed8] border-[#1d4ed8]"
                         }`}
                       >
                         Try
@@ -1038,13 +913,7 @@ export default function StorePage({
                           ) : shouldRemoveGreen ? (
                             <WebGLImageAvatar src={item.image} />
                           ) : (
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-contain"
-                              sizes="50vw"
-                            />
+                            <Image src={item.image} alt={item.name} fill className="object-contain" sizes="50vw" />
                           )}
                         </div>
                       </div>
@@ -1066,29 +935,19 @@ export default function StorePage({
                     </div>
 
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
-                      <button
-                        type="button"
-                        className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
-                      >
+                      <button type="button" className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50">
                         Send
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          if (isOwned) {
-                            handleEquipToggle(item);
-                          } else {
-                            handleBuy(item);
-                          }
+                          if (isOwned) handleEquipToggle(item);
+                          else handleBuy(item);
                         }}
                         disabled={buying === item.id}
                         className="flex-1 h-full bg-[#1d4ed8] text-white text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        {buying === item.id
-                          ? '...'
-                          : isOwned
-                          ? (isEquipped ? 'Equipped' : 'Equip')
-                          : 'Buy'}
+                        {buying === item.id ? '...' : isOwned ? (isEquipped ? 'Equipped' : 'Equip') : 'Buy'}
                       </button>
                     </div>
                   </div>
@@ -1100,12 +959,7 @@ export default function StorePage({
                   {currentView === "bag" ? (
                     <div className="flex flex-col items-center">
                       <div className="relative w-[120px] h-[120px] mb-2">
-                        <Image
-                          src="/file_0000000047308211a02722299d1fda2e.png"
-                          alt="No data"
-                          fill
-                          className="object-contain"
-                        />
+                        <Image src="/file_0000000047308211a02722299d1fda2e.png" alt="No data" fill className="object-contain" />
                       </div>
                       <span className="text-gray-400 text-sm font-medium">No data</span>
                     </div>
@@ -1119,7 +973,7 @@ export default function StorePage({
         </div>
       </div>
 
-      {/* Vehicle Try Modal (unchanged) */}
+      {/* ============ Vehicle Try Modal (unchanged) ============ */}
       {tryCenterItem && tryCenterItem.tab !== "Avatar Frame" && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
@@ -1130,24 +984,49 @@ export default function StorePage({
               <WebGLVideoAvatar src={tryCenterItem.tryVideo} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
             ) : tryCenterItem.image.endsWith('.mp4') ? (
               <WebGLVideoAvatar src={tryCenterItem.image} isVehicleModal={tryCenterItem.tab === "Vehicle"} />
-            ) : (tryCenterItem.removeGreen || tryCenterItem.tab === "Vehicle") ? (
+            ) : tryCenterItem.tab === "Vehicle" ? (
               <WebGLImageAvatar src={tryCenterItem.image} />
             ) : (
               <Image src={tryCenterItem.image} alt={tryCenterItem.name} fill className="object-contain" />
             )}
           </div>
-
           <div className="flex items-center justify-center gap-1 mt-4 pointer-events-none">
             {renderStars(tryCenterItem.stars)}
           </div>
-
           <div className="mt-2 text-[20px] font-bold text-gray-900 pointer-events-none">
             {tryCenterItem.name}
           </div>
         </div>
       )}
 
-      {/* ============ Avatar Frame Try Card (white card, centered) ============ */}
+      {/* ============ Theme Try Modal (RESTORED) ============ */}
+      {tryThemeItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
+            <button
+              type="button"
+              onClick={() => setTryThemeItem(null)}
+              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
+            >
+              ✕
+            </button>
+
+            <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
+              <Image src={tryThemeItem.image} alt={tryThemeItem.name} fill className="object-cover" />
+            </div>
+
+            <div className="flex items-center justify-center gap-1 mt-4">
+              {renderStars(tryThemeItem.stars)}
+            </div>
+
+            <div className="mt-2 text-[20px] font-bold text-white tracking-wide text-center drop-shadow-md">
+              {tryThemeItem.name}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ Frame Try Card — SQUARE, avatar half outside top ============ */}
       {tryCenterItem && tryCenterItem.tab === "Avatar Frame" && (() => {
         const item = tryCenterItem;
         const isOwned = ownedIds.has(item.id);
@@ -1157,111 +1036,96 @@ export default function StorePage({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
             onClick={() => setTryCenterItem(null)}
           >
+            {/* Square card */}
             <div
-              className="bg-white rounded-2xl w-[270px] max-w-[85vw] flex flex-col items-center px-5 pt-5 pb-5 shadow-2xl"
+              className="relative bg-white rounded-2xl w-[300px] h-[300px] max-w-[85vw] max-h-[85vw] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Avatar + Frame video overlay */}
-              <div className="relative w-[150px] h-[150px] flex items-center justify-center">
-                {/* User avatar image at bottom */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative w-[110px] h-[110px] rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    {userPhoto ? (
-                      <img
-                        src={userPhoto}
-                        alt="User"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          const next = e.currentTarget.nextElementSibling as HTMLElement | null;
-                          if (next) next.classList.remove('hidden');
-                        }}
-                      />
-                    ) : null}
-                    <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[40px] font-bold ${userPhoto ? 'hidden' : ''}`}>
-                      {avatarLetter}
-                    </div>
+              {/* Avatar straddling top edge — half outside, half inside */}
+              <div className="absolute left-1/2 -translate-x-1/2 -top-[55px] w-[110px] h-[110px]">
+                {/* Avatar circle */}
+                <div className="relative w-full h-full rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow-md">
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+                        if (next) next.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[40px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                    {avatarLetter}
                   </div>
                 </div>
 
-                {/* Frame video on top (green removed) */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                {/* Frame video/image overlay — same position, same size */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   {item.tryVideo ? (
                     <WebGLVideoAvatar src={item.tryVideo} />
                   ) : item.image.endsWith('.mp4') ? (
                     <WebGLVideoAvatar src={item.image} />
-                  ) : (item.removeGreen || item.tab === "Avatar Frame") ? (
-                    <WebGLImageAvatar src={item.image} />
                   ) : (
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-contain"
-                      sizes="150px"
-                    />
+                    <WebGLImageAvatar src={item.image} />
                   )}
                 </div>
               </div>
 
-              {/* Name */}
-              <div className="mt-3 text-[17px] font-bold text-gray-900 text-center leading-tight">
-                {item.name}
-              </div>
-
-              {/* Duration */}
-              <div className="mt-1 flex items-center justify-center gap-1 text-[13px] font-medium text-gray-500">
-                <Clock size={13} strokeWidth={2.5} />
-                <span>{item.duration}</span>
-              </div>
-
-              {/* Coins + amount */}
-              <div className="mt-2 flex items-center justify-center gap-1.5">
-                <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
-                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+              {/* Content inside square card, offset below avatar's lower half */}
+              <div className="absolute inset-x-0 top-[70px] bottom-0 flex flex-col items-center px-4">
+                <div className="text-[17px] font-bold text-gray-900 text-center leading-tight">
+                  {item.name}
                 </div>
-                <span className="text-[15px] font-bold text-gray-900 tracking-tight">
-                  {item.price}
-                </span>
-              </div>
 
-              {/* Blue Buy button (rounded full) */}
-              <button
-                type="button"
-                disabled={buying === item.id}
-                onClick={async () => {
-                  if (isOwned) {
-                    await handleEquipToggle(item);
-                  } else {
-                    if (balance < parsePrice(item.price)) {
-                      alert('Insufficient balance');
-                      return;
+                <div className="mt-1 flex items-center justify-center gap-1 text-[13px] font-medium text-gray-500">
+                  <Clock size={13} strokeWidth={2.5} />
+                  <span>{item.duration}</span>
+                </div>
+
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                  <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                    <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                  </div>
+                  <span className="text-[15px] font-bold text-gray-900 tracking-tight">
+                    {item.price}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={buying === item.id}
+                  onClick={async () => {
+                    if (isOwned) {
+                      await handleEquipToggle(item);
+                    } else {
+                      if (balance < parsePrice(item.price)) {
+                        alert('Insufficient balance');
+                        return;
+                      }
+                      await handleBuy(item);
                     }
-                    await handleBuy(item);
-                  }
-                  setTryCenterItem(null);
-                }}
-                className="mt-4 w-full h-[42px] rounded-full bg-[#1d4ed8] text-white text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {buying === item.id
-                  ? '...'
-                  : isOwned
-                  ? (isEquipped ? 'Equipped' : 'Equip')
-                  : 'Buy'}
-              </button>
+                    setTryCenterItem(null);
+                  }}
+                  className="mt-3 w-full h-[42px] rounded-full bg-[#1d4ed8] text-white text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {buying === item.id ? '...' : isOwned ? (isEquipped ? 'Equipped' : 'Equip') : 'Buy'}
+                </button>
 
-              {/* Cancel button */}
-              <button
-                type="button"
-                onClick={() => setTryCenterItem(null)}
-                className="mt-2 w-full h-[42px] rounded-full bg-white border border-gray-300 text-gray-600 text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
-              >
-                Cancel
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setTryCenterItem(null)}
+                  className="mt-2 w-full h-[42px] rounded-full bg-white border border-gray-300 text-gray-600 text-[14px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         );
       })()}
     </div>
   );
-  }
+   }
