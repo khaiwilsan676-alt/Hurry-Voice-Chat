@@ -1,7 +1,13 @@
 package com.hurry.voicechat
 
-import android.net.Uri
-import android.widget.VideoView
+import android.content.Context
+import android.graphics.Color as AndroidColor
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +29,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,22 +75,36 @@ private val medalBg = Color(0xFF02050E)
 
 @Composable
 private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: Boolean = true) {
+    val context = LocalContext.current
+    val player = remember(video) {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(MediaItem.fromUri(medalAsset(video)))
+            repeatMode = Player.REPEAT_MODE_ONE
+            volume = 0f
+            playWhenReady = animated
+            prepare()
+        }
+    }
+    DisposableEffect(player) {
+        onDispose { player.release() }
+    }
     AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            VideoView(context).apply {
-                setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                setVideoURI(Uri.parse(medalAsset(video)))
-                setOnPreparedListener { player ->
-                    player.isLooping = true
-                    player.setVolume(0f, 0f)
-                    if (animated) start() else { seekTo(0); pause() }
-                }
+        modifier = modifier.aspectRatio(1f),
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                useController = false
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                setShutterBackgroundColor(AndroidColor.TRANSPARENT)
+                setBackgroundColor(AndroidColor.TRANSPARENT)
+                keepScreenOn = false
+                player = player
             }
         },
         update = { view ->
-            if (!animated && view.isPlaying) { view.pause(); view.seekTo(0) }
-            else if (animated && !view.isPlaying) view.start()
+            view.player = player
+            player.playWhenReady = animated
+            if (animated && player.playbackState == Player.STATE_IDLE) player.prepare()
+            if (!animated && player.playbackState == Player.STATE_READY) player.pause()
         }
     )
 }
@@ -103,10 +125,21 @@ fun Medal(onBack: () -> Unit = {}, medals: List<HurryMedal> = emptyList()) {
         AsyncImage(
             model = medalAsset("file_00000000f1dc821196bf96f688c3b2f6.png"),
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(.48f).align(Alignment.TopCenter)
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(.48f).align(Alignment.TopCenter),
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            Modifier.fillMaxWidth().fillMaxHeight(.48f).align(Alignment.TopCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, medalBg.copy(alpha = .24f), medalBg),
+                        startY = 0f,
+                        endY = 1050f
+                    )
+                )
         )
         Column(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxWidth().padding(top = 18.dp, start = 12.dp, end = 12.dp)) {
+            Column(Modifier.fillMaxWidth().padding(top = 22.dp, start = 12.dp, end = 12.dp)) {
                 Box(Modifier.fillMaxWidth().height(42.dp), contentAlignment = Alignment.Center) {
                     IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
                         Icon(Icons.Default.ArrowBack, "Back", tint = Color.White)
@@ -167,7 +200,7 @@ fun Medal(onBack: () -> Unit = {}, medals: List<HurryMedal> = emptyList()) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                            MedalVideo(medal.video, Modifier.size((medal.size.coerceAtMost(250) / 2).dp), animated = false)
+                            MedalVideo(medal.video, Modifier.size((medal.size.coerceAtMost(250) / 2).dp).aspectRatio(1f), animated = false)
                         }
                         Text(medal.name, color = Color(0xFFE4DFED), fontSize = 13.sp, maxLines = 1, textAlign = TextAlign.Center)
                     }
@@ -185,7 +218,7 @@ fun Medal(onBack: () -> Unit = {}, medals: List<HurryMedal> = emptyList()) {
                     IconButton(onClick = { overlay = "Rules" }, modifier = Modifier.align(Alignment.TopEnd).padding(top = 22.dp)) {
                         Icon(Icons.Default.HelpOutline, "Rules", tint = Color.White)
                     }
-                    MedalVideo(display.video, Modifier.align(Alignment.Center).size(280.dp), animated = true)
+                    MedalVideo(display.video, Modifier.align(Alignment.Center).size(280.dp).aspectRatio(1f), animated = true)
                 }
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(model = medalAsset("IMG_20260924_132112.png"), contentDescription = "Medal frame", modifier = Modifier.size(288.dp))
