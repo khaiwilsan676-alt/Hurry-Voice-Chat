@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.hawa.app',
-  appName: 'Hurry',
+  appName: 'Zyora',
   webDir: 'out',
 
   plugins: {
