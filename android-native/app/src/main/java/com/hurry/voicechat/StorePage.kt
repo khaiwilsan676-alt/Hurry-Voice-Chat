@@ -91,7 +91,7 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                 Box(Modifier.size(36.dp).clip(CircleShape).clickable {
                     if (isBag) currentView = "store" else onBack()
                 }, contentAlignment = Alignment.Center) {
-                    Text("‹", fontSize = 34.sp, color = Color.Black, lineHeight = 34.sp)
+                    Icon(androidx.compose.material.icons.Icons.Default.ArrowBack, "Back", tint = Color.Black, modifier = Modifier.size(26.dp))
                 }
                 Text(if (isBag) "Bag" else "Store", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 Text(
