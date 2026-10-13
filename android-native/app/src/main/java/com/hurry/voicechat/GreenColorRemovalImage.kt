@@ -31,7 +31,7 @@ fun GreenColorRemovalImage(
                     val r=android.graphics.Color.red(p)
                     val g=android.graphics.Color.green(p)
                     val b=android.graphics.Color.blue(p)
-                    if(g>70 && g>r*(1f+threshold) && g>b*(1f+threshold)){
+                    if(g>70 && g>r*1.2f && g>b*1.2f){
                         pixels[i]=android.graphics.Color.argb(0,r,g,b)
                     }
                 }
