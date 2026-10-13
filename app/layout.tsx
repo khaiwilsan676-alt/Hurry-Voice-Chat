@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Hurry',
     description:
-      'Join Hurry, connect with friends, and discover new people.',
+      'Join Zyora, connect with friends, and discover new people.',
     url: 'https://hurry-voice-chat.vercel.app/HurryOfficial',
-    siteName: 'Hurry',
+    siteName: 'Zyora',
     images: [
       {
         url: 'https://hurry-voice-chat.vercel.app/logo.png',
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Hurry',
     description:
-      'Join Hurry, connect with friends, and discover new people.',
+      'Join Zyora, connect with friends, and discover new people.',
     images: ['https://hurry-voice-chat.vercel.app/logo.png'],
   },
 }
