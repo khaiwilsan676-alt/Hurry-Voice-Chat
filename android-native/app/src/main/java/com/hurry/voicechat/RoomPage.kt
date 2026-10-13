@@ -26,6 +26,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.compose.ui.graphics.asImageBitmap
 import android.os.Handler
 import android.os.Looper
 import io.socket.client.IO
@@ -36,6 +42,32 @@ import org.json.JSONObject
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+
+@Composable
+private fun GreenRemovedCupImage(url:String, modifier:Modifier=Modifier) {
+    var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(url) {
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                val source = URL(url).openStream().use { BitmapFactory.decodeStream(it) } ?: return@runCatching null
+                val result = source.copy(Bitmap.Config.ARGB_8888, true)
+                for (y in 0 until result.height) {
+                    for (x in 0 until result.width) {
+                        val pixel = result.getPixel(x, y)
+                        val red = android.graphics.Color.red(pixel)
+                        val green = android.graphics.Color.green(pixel)
+                        val blue = android.graphics.Color.blue(pixel)
+                        if (green > red * 1.2 && green > blue * 1.2 && green > 70) {
+                            result.setPixel(x, y, android.graphics.Color.TRANSPARENT)
+                        }
+                    }
+                }
+                result
+            }.getOrNull()
+        }
+    }
+    bitmap?.let { Image(bitmap=it.asImageBitmap(),contentDescription="Cup",modifier=modifier,contentScale=ContentScale.Fit) }
+}
 
 data class RoomPageOwner(val id:String="",val uid:String="",val accountId:String="",val name:String="Room",val image:String="",val country:String="🇮🇳")
 data class RoomPageCurrentUser(val id:String="",val uid:String="",val accountId:String="",val name:String="User",val image:String="")
@@ -193,7 +225,7 @@ fun RoomPage(
                     modifier=Modifier.padding(top=8.dp).clip(RoundedCornerShape(topStart=16.dp,bottomStart=16.dp)).background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent))).clickable{showInfo=true}.padding(start=12.dp,end=10.dp,top=5.dp,bottom=5.dp),
                     verticalAlignment=Alignment.CenterVertically
                 ) {
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",contentDescription="Cup",modifier=Modifier.size(18.dp),contentScale=ContentScale.Fit)
+                    GreenRemovedCupImage(url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",modifier=Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
                     Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,lineHeight=14.sp)
                     Spacer(Modifier.width(5.dp))
