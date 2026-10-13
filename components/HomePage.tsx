@@ -1182,7 +1182,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
             .filter((room: GlobalRoom) =>
               room &&
               room.name !== 'User' &&
-              room.name !== 'Hurry Room' &&
+              room.name !== 'Zyora Room' &&
               room.accountId !== 'undefined' &&
               room.accountId !== 'null' &&
               room.accountId !== ''
