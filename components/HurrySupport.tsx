@@ -410,8 +410,8 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
     if (msg.includes("hawa kya") || msg.includes("what is hawa") || msg.includes("about hawa") ||
         msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is hurry") || msg.includes("hurry app")) {
       return {
-        text: "🌟 About Zaho App:\n\n" +
-               "Hurry ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n" +
+        text: "🌟 About Zyora App:\n\n" +
+               "Zyora ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n" +
                "✨ Key Features:\n" +
                "• Live Audio Party Rooms\n" +
                "• Interactive Mini Games\n" +
@@ -426,8 +426,8 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
         msg.includes("officer") || msg.includes("अधिकारी") || msg.includes("मालिक") ||
         msg.includes("owner") || msg.includes("team")) {
       return {
-        text: "👑 Zaho Official Team Details:\n\n" +
-               "• Hurry_IN\n" +
+        text: "👑 Zyora Official Team Details:\n\n" +
+               "• Zyora_IN\n" +
                "  🆔 ID: 100002\n\n" +
                "• Paras\n" +
                "  🆔 ID: 100003\n\n" +
