@@ -97,7 +97,7 @@ private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: B
                 setShutterBackgroundColor(AndroidColor.TRANSPARENT)
                 setBackgroundColor(AndroidColor.TRANSPARENT)
                 keepScreenOn = false
-                player = player
+                this.player = player
             }
         },
         update = { view ->
