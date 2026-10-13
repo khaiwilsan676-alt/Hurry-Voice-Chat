@@ -574,7 +574,7 @@ private fun RoomListCard(
         ) {
             Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
-                room.name.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && !it.equals("undefined", ignoreCase = true) } ?: "Hurry_User",
+                room.name.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && !it.equals("undefined", ignoreCase = true) } ?: "Zyora_User",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF202124),
