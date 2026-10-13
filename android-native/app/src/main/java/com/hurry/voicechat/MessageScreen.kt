@@ -175,8 +175,6 @@ fun NativeChatScreen(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFE1E5E9), thickness = 1.dp)
-
             // Real-chat style message surface: no card around the whole list.
             LazyColumn(
                 Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp),
@@ -184,26 +182,6 @@ fun NativeChatScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(top = 14.dp, bottom = 12.dp)
             ) {
-                if (isOfficial && messages.isEmpty()) {
-                    item {
-                        Box(
-                            Modifier.fillMaxWidth().padding(top = 10.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "Messages from $name",
-                                color = Color(0xFF6B7280),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(9.dp))
-                                    .background(Color(0xFFD8DADD).copy(alpha = .72f))
-                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                            )
-                        }
-                    }
-                }
-
                 items(messages) { item ->
                     val mine = item.first
                     Row(
