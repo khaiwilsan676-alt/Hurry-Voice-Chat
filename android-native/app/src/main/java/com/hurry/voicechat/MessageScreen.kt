@@ -126,15 +126,15 @@ fun NativeChatScreen(
         if (officialId == null) return@DisposableEffect onDispose { }
 
         val mainHandler = Handler(Looper.getMainLooper())
+        val socketOptions = IO.Options()
+        socketOptions.transports = arrayOf("websocket")
+        socketOptions.reconnection = true
+        socketOptions.reconnectionAttempts = Int.MAX_VALUE
+        socketOptions.reconnectionDelay = 1000
+        socketOptions.reconnectionDelayMax = 5000
         val officialSocket: Socket = IO.socket(
             "https://hurry-voice-chat-lz75.onrender.com",
-            IO.Options.builder()
-                .setTransports(arrayOf("websocket"))
-                .setReconnection(true)
-                .setReconnectionAttempts(Int.MAX_VALUE)
-                .setReconnectionDelay(1000)
-                .setReconnectionDelayMax(5000)
-                .build()
+            socketOptions
         )
 
         val appendOfficial: (JSONObject) -> Unit = { payload ->
