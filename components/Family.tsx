@@ -251,10 +251,10 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
         <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
       </div>
 
-      {/* ⭐ Regards, Hurry Team */}
+      {/* ⭐ Regards, Zyora Team */}
       <div className="flex justify-end pt-2 pb-1">
         <span className="text-black/60 text-xs font-semibold italic tracking-wide">
-          Regards, Hurry Team
+          Regards, Zyora Team
         </span>
       </div>
     </div>
