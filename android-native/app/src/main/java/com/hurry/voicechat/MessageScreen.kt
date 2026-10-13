@@ -32,8 +32,8 @@ private data class MessagePreview(val uid: String, val name: String, val image: 
 fun MessageScreen(onChat: (String, String, String) -> Unit) {
     val chats = remember {
         listOf(
-            MessagePreview("hurry_team_official", "Hurry Team", RAW_MSG + "logo.png", ""),
-            MessagePreview("hurry_system_official", "Hurry System", RAW_MSG + "file_00000000a66881f8aa9e15d2fe2b9a0c.png", "")
+            MessagePreview("hurry_team_official", "Zyora Team", RAW_MSG + "logo.png", ""),
+            MessagePreview("hurry_system_official", "Zyora System", RAW_MSG + "file_00000000a66881f8aa9e15d2fe2b9a0c.png", "")
         )
     }
 
