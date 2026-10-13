@@ -5,7 +5,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 const { MongoClient } = require("mongodb");
-const { setOnlineStatus, removeOnlineStatus, setSecondaryStatus, removeSecondaryStatus } = require("./redis");
+const { redis, setOnlineStatus, removeOnlineStatus, setSecondaryStatus, removeSecondaryStatus } = require("./redis");
 
 const app = express();
 const server = http.createServer(app);
@@ -449,6 +449,24 @@ app.get("/api/rooms", async (req, res) => {
       return res.json({ room: safeRoom });
     }
 
+    // Redis keeps the frequently requested room-card payload warm; MongoDB
+    // remains the source of truth and Redis failures never block the API.
+    const roomCacheKey = "rooms:list:v1";
+    if (redis) {
+      try {
+        const cachedRooms = await redis.get(roomCacheKey);
+        if (cachedRooms) {
+          const parsed = typeof cachedRooms === "string" ? JSON.parse(cachedRooms) : cachedRooms;
+          if (Array.isArray(parsed)) {
+            res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=30");
+            return res.json({ rooms: parsed });
+          }
+        }
+      } catch (cacheError) {
+        console.warn("Room Redis cache read skipped:", cacheError.message);
+      }
+    }
+
     const rooms = await db.collection("rooms")
       .find({})
       .sort({ updatedAt: -1, createdAt: -1 })
@@ -467,6 +485,11 @@ app.get("/api/rooms", async (req, res) => {
       return safeRoom;
     });
 
+    if (redis) {
+      try { await redis.set(roomCacheKey, JSON.stringify(safeRooms), { ex: 30 }); }
+      catch (cacheError) { console.warn("Room Redis cache write skipped:", cacheError.message); }
+    }
+    res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=30");
     return res.json({ rooms: safeRooms });
   } catch (error) {
     console.error("GET /api/rooms error:", error);
