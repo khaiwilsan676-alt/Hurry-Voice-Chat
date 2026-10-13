@@ -805,7 +805,7 @@ export default function HomePage({ onLogout }: HomePageProps) {
         sender: 'other',
         senderId,
         receiverId: userUID,
-        senderName: data.senderName || (senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System'),
+        senderName: data.senderName || (senderId === 'hurry_team_official' ? 'Zyora Team' : 'Zyora System'),
         senderPhoto: data.senderPhoto || (senderId === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png'),
         timestamp,
         type: data.type || (data.imageUrl ? 'image' : 'message'),
