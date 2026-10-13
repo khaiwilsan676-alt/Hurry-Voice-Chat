@@ -191,7 +191,8 @@ private fun WalletNativePage(onBack: () -> Unit, initialTab: Int) {
 
                 // ─── Banner ───
                 Box(Modifier.fillMaxWidth().then(if (tab == 1) Modifier.padding(horizontal = 8.dp) else Modifier)) {
-                    AsyncImage(RAW_WALLET + banner, null, Modifier.fillMaxWidth(),
+                    AsyncImage(RAW_WALLET + banner, null,
+                        Modifier.fillMaxWidth().then(if (tab == 0) Modifier.widthIn(min = 360.dp) else Modifier),
                         contentScale = ContentScale.Fit)
                     Column(Modifier.padding(start = 34.dp, top = 34.dp)) {
                         Text(if (tab == 1) "My Diamonds" else "My Coins",
