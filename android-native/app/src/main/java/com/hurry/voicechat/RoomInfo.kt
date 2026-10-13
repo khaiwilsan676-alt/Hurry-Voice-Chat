@@ -15,6 +15,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.border
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -49,31 +53,30 @@ fun RoomInfo(
                 .clip(RoundedCornerShape(topStart=15.dp,topEnd=15.dp))
                 .background(Color(0xEB000000))
         ) {
-            Box(Modifier.fillMaxWidth().padding(start=16.dp,end=16.dp,top=16.dp,bottom=8.dp)) {
-                if (!isRoomOwner) {
-                    Icon(Icons.Default.Warning, contentDescription="Report room", tint=Color.Black,
-                        modifier=Modifier.align(Alignment.CenterStart).size(22.dp))
-                }
-                Text("Room info", modifier=Modifier.fillMaxWidth(),
-                    textAlign=TextAlign.Center, fontSize=14.sp, fontWeight=FontWeight.SemiBold,
-                    color=Color.White)
-            }
-
-            Row(Modifier.fillMaxWidth().padding(horizontal=16.dp)) {
+            Row(
+                Modifier.fillMaxWidth().padding(start=16.dp,end=16.dp,top=16.dp,bottom=8.dp),
+                horizontalArrangement=Arrangement.spacedBy(12.dp)
+            ) {
                 listOf("Room info","Members").forEachIndexed { index, label ->
                     Column(
-                        Modifier.weight(1f).clickable { tab=index }.padding(top=4.dp),
+                        Modifier.weight(1f).clickable { tab=index }.padding(vertical=4.dp),
                         horizontalAlignment=Alignment.CenterHorizontally
                     ) {
-                        Text(label, modifier=Modifier.padding(vertical=11.dp),
+                        Text(label,
                             fontSize=14.sp, fontWeight=FontWeight.SemiBold,
                             color=if(tab==index) Color.White else Color.White.copy(alpha=.50f))
-                        Box(Modifier.fillMaxWidth().height(2.dp)
-                            .background(Color.Transparent))
+                        if (tab==index) {
+                            Canvas(Modifier.padding(top=2.dp).size(width=20.dp,height=6.dp)) {
+                                val path = Path().apply {
+                                    moveTo(size.width * .05f, size.height * .17f)
+                                    quadraticTo(size.width * .5f, size.height * 1.15f, size.width * .95f, size.height * .17f)
+                                }
+                                drawPath(path,Color.White,style=Stroke(width=1.5.dp.toPx()))
+                            }
+                        }
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().height(1.dp).background(Color.Transparent))
 
             if (tab==0) {
                 Column(
@@ -84,11 +87,11 @@ fun RoomInfo(
                         AsyncImage(
                             model=roomData.roomDp.ifBlank { "/default-avatar.png" },
                             contentDescription="Room",
-                            modifier=Modifier.size(80.dp).clip(RoundedCornerShape(6.dp)),
+                            modifier=Modifier.size(80.dp).clip(RoundedCornerShape(6.dp)).border(1.dp,Color.White.copy(alpha=.15f),RoundedCornerShape(6.dp)),
                             contentScale=ContentScale.Crop
                         )
                         Column(Modifier.padding(start=8.dp)) {
-                            Text(roomData.roomName.ifBlank{"Room"},fontSize=15.sp,
+                            Text(roomData.roomName.ifBlank{"Room"},fontSize=14.sp,
                                 fontWeight=FontWeight.SemiBold,color=Color.White)
                             Row(verticalAlignment=Alignment.CenterVertically) {
                                 Text("ID: "+roomData.roomId,fontSize=10.sp,color=Color.White.copy(alpha=.60f))
@@ -107,7 +110,7 @@ fun RoomInfo(
                     }
                     Column {
                         Text("Announcement:",fontSize=12.sp,fontWeight=FontWeight.Medium,color=Color(0xFF9CA3AF))
-                        Text(roomData.roomAnnouncement.ifBlank{"—"},Modifier.padding(top=4.dp),
+                        Text(roomData.roomAnnouncement.ifBlank{"—"},Modifier.padding(top=2.dp),
                             fontSize=12.sp,color=Color.White.copy(alpha=.90f))
                     }
                 }
