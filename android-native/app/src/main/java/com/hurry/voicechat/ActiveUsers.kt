@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +55,7 @@ fun ActiveUsers(
       Row(Modifier.weight(1f).padding(start=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
        Text(currentUser.name.ifBlank{"Owner"},fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=Color.White,maxLines=1)
        androidx.compose.material3.Icon(
-        imageVector=androidx.compose.material.icons.Icons.Filled.Home,
+        imageVector=Icons.Filled.Home,
         contentDescription="Room owner",
         modifier=Modifier.size(14.dp),
         tint=Color.White
