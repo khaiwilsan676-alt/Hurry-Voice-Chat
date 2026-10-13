@@ -159,6 +159,25 @@ fun RoomPage(
 
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+        Row(
+            modifier=Modifier.align(Alignment.TopStart).padding(top=38.dp,start=2.dp)
+                .clip(RoundedCornerShape(topEnd=10.dp,bottomEnd=10.dp))
+                .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
+                .clickable{showInfo=true}
+                .padding(start=10.dp,end=12.dp,top=5.dp,bottom=5.dp),
+            verticalAlignment=Alignment.CenterVertically,
+            horizontalArrangement=Arrangement.spacedBy(5.dp)
+        ){
+            GreenColorRemovalImage(
+                imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
+                contentDescription="Room trophy",
+                modifier=Modifier.size(18.dp),
+                contentScale=ContentScale.Fit,
+                threshold=0.5f
+            )
+            Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
+            Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.size(13.dp))
+        }
         Column(Modifier.fillMaxSize()){
             Row(Modifier.fillMaxWidth().padding(top=28.dp,start=6.dp,end=6.dp),verticalAlignment=Alignment.CenterVertically){
                 AsyncImage(model=roomImage,contentDescription="Room profile",modifier=Modifier.size(34.dp).clip(RoundedCornerShape(6.dp)).clickable{showInfo=true},contentScale=ContentScale.Crop)
@@ -448,8 +467,7 @@ fun RoomPage(
 }
 @Composable private fun GameSheetItem(image:String,label:String,onClick:()->Unit){
     Column(Modifier.width(84.dp).clickable(onClick=onClick),horizontalAlignment=Alignment.CenterHorizontally){
-        if(label=="Room task") GreenColorRemovalImage(imageUrl=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit,threshold=0.45f)
-        else AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
+        AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
         Spacer(Modifier.height(5.dp))
         Text(label,color=Color.White,fontSize=10.sp,maxLines=1)
     }
