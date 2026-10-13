@@ -106,20 +106,29 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
             ) {
                 nativeStoreTabs.forEach { tab ->
                     val active = activeTab == tab.id
-                    Column(
+                    Box(
                         Modifier.width(63.dp).height(80.dp).clip(RoundedCornerShape(6.dp))
-                            .background(if (active) Color(0xFF203D9C) else Color(0x33000000))
+                            .background(if (active) Color.Transparent else Color(0x33000000))
                             .clickable { activeTab = tab.id },
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        contentAlignment = Alignment.Center
                     ) {
-                        AsyncImage(
-                            model = StoreAssetBase + tab.icon,
-                            contentDescription = tab.label,
-                            modifier = Modifier.size(40.dp)
-                        )
-                        Spacer(Modifier.height(3.dp))
-                        Text(tab.label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                        if (active) {
+                            AsyncImage(
+                                model = StoreAssetBase + "IMG_20260913_090226.png",
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = coil3.compose.ContentScale.Fit
+                            )
+                        }
+                        Column(
+                            Modifier.fillMaxSize().padding(top = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            AsyncImage(model = StoreAssetBase + tab.icon, contentDescription = tab.label, modifier = Modifier.size(40.dp))
+                            Spacer(Modifier.height(3.dp))
+                            Text(tab.label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+                        }
                     }
                 }
             }
