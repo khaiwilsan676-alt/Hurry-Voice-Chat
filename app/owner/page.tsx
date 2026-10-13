@@ -2023,8 +2023,8 @@ export default function StaffPanel() {
                   onChange={(e) => setOfficialSender(e.target.value as any)}
                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
-                  <option value="hurry_team_official">Hurry Team (ID: hurry_team_official)</option>
-                  <option value="hurry_system_official">Hurry System (ID: hurry_system_official)</option>
+                  <option value="hurry_team_official">Zyora Team (ID: hurry_team_official)</option>
+                  <option value="hurry_system_official">Zyora System (ID: hurry_system_official)</option>
                 </select>
               </div>
 
@@ -2096,7 +2096,7 @@ export default function StaffPanel() {
 
                       setOfficialSending(true);
 
-                      const senderName = officialSender === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System';
+                      const senderName = officialSender === 'hurry_team_official' ? 'Zyora Team' : 'Zyora System';
                       const senderPhoto = officialSender === 'hurry_team_official' ? '/logo.png' : '/file_00000000a66881f8aa9e15d2fe2b9a0c.png';
 
                       const payload = {
@@ -2147,7 +2147,7 @@ export default function StaffPanel() {
                     <div key={item.id} className="flex items-center gap-4 px-3 py-2.5 border-b border-slate-100 text-xs">
                       <span className="w-10 font-bold text-slate-500">{idx + 1}</span>
                       <span className="flex-1 font-bold text-slate-800">
-                        {item.senderName || (item.senderId === 'hurry_team_official' ? 'Hurry Team' : 'Hurry System')}
+                        {item.senderName || (item.senderId === 'hurry_team_official' ? 'Zyora Team' : 'Zyora System')}
                       </span>
                       <span className="w-48 text-right text-slate-400 font-medium">
                         {item.timestamp ? new Date(item.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
