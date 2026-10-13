@@ -5,7 +5,7 @@ import StatusBarController from './StatusBarController'
 import BackButtonController from './BackButtonController'
 
 export const metadata: Metadata = {
-  title: 'Hurry',
+  title: 'Zyora',
 
   description:
     'Hurry – connect with friends, join voice chat rooms, share moments, and discover new people.',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 
   openGraph: {
-    title: 'Hurry',
+    title: 'Zyora',
     description:
       'Join Zyora, connect with friends, and discover new people.',
     url: 'https://hurry-voice-chat.vercel.app/HurryOfficial',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
         url: 'https://hurry-voice-chat.vercel.app/logo.png',
         width: 550,
         height: 550,
-        alt: 'Hurry',
+        alt: 'Zyora',
       },
     ],
     locale: 'en_US',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-    title: 'Hurry',
+    title: 'Zyora',
     description:
       'Join Zyora, connect with friends, and discover new people.',
     images: ['https://hurry-voice-chat.vercel.app/logo.png'],
@@ -73,7 +73,7 @@ export default function RootLayout({
 
         <meta
           name="apple-mobile-web-app-title"
-          content="Hurry"
+          content="Zyora"
         />
 
         <meta
