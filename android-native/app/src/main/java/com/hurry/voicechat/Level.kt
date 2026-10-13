@@ -171,7 +171,7 @@ fun Level(onBack: () -> Unit = {}) {
     val profilePainter = rememberAsyncImagePainter(model = levelAsset("file_000000007044820ea729df406d1dc320.png"))
     val profileIntrinsic = profilePainter.intrinsicSize
     val profileAspect = if (profileIntrinsic.width.isFinite() && profileIntrinsic.height.isFinite() && profileIntrinsic.width > 0f && profileIntrinsic.height > 0f) profileIntrinsic.width / profileIntrinsic.height else 3.25f
-    val profileFrameWidth = LocalConfiguration.current.screenWidthDp.dp + 8.dp
+    val profileFrameWidth = LocalConfiguration.current.screenWidthDp.dp
     val profileFrameHeight = profileFrameWidth / profileAspect
     val displayName = userName ?: userUid.take(8).ifBlank { "Guest" }
     var showUpgrade by remember { mutableStateOf(false) }
@@ -204,8 +204,8 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height((profileFrameHeight - 40.dp).coerceAtLeast(1.dp))) {
-                    Box(Modifier.requiredWidth(profileFrameWidth).height(profileFrameHeight).offset(x = (-20).dp, y = (-40).dp)) {
+                Box(Modifier.fillMaxWidth().height((profileFrameHeight - 48.dp).coerceAtLeast(1.dp))) {
+                    Box(Modifier.width(profileFrameWidth).height(profileFrameHeight).offset(x = 0.dp, y = (-40).dp)) {
                         Image(
                             painter = profilePainter,
                             contentDescription = "Top Card Frame",
@@ -244,7 +244,7 @@ fun Level(onBack: () -> Unit = {}) {
                     }
                 }
 
-                Box(Modifier.fillMaxWidth().height(45.dp).padding(horizontal = 16.dp)) {
+                Box(Modifier.fillMaxWidth().height(38.dp).padding(horizontal = 16.dp)) {
                     LevelAsset("file_000000006688821197edc482e295d3fd.png", Modifier.align(Alignment.TopStart).offset(x = (-0).dp, y = (-14).dp).height(28.dp).width(54.dp))
                     Row(Modifier.align(Alignment.CenterStart).offset(y = (-16).dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -256,7 +256,7 @@ fun Level(onBack: () -> Unit = {}) {
                         Spacer(Modifier.width(8.dp))
                         Text("Update level to ${currentTier.range}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                     }
-                    LevelAsset(currentTier.rightGraphic, Modifier.align(Alignment.CenterEnd).offset(y = (-20).dp).padding(end = 0.dp).size(100.dp))
+                    LevelAsset(currentTier.rightGraphic, Modifier.align(Alignment.CenterEnd).offset(y = (-18).dp, x = 6.dp).size(124.dp))
                 }
             }
 
