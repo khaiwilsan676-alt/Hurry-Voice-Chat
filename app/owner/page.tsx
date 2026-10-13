@@ -14,7 +14,7 @@ import { apiUrl } from "@/src/lib/api";
 // VALID LOGIN CREDENTIALS
 // ==============================================================
 const VALID_CREDENTIALS = {
-  accountName: 'Hurry Owner',
+  accountName: 'Zyora Owner',
   password: 'Hurry.in-owner & ceo',
   secretKey: '18 July 2026'
 };
@@ -1037,7 +1037,7 @@ export default function StaffPanel() {
 
         <div className="p-6 pb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-white text-[19px] font-extrabold tracking-wide drop-shadow-md">Hurry</h1>
+            <h1 className="text-white text-[19px] font-extrabold tracking-wide drop-shadow-md">Zyora</h1>
             <p className="text-[10px] text-gray-300 font-bold tracking-widest mt-0.5">STAFF CONTROL PANEL</p>
           </div>
           <button onClick={() => setIsSidebarOpen(false)} className="text-gray-400 hover:text-white">
