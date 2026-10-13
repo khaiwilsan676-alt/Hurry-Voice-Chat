@@ -243,13 +243,26 @@ fun RoomPage(
             }
         }
         // Real Hurry room's right-side image stack (banner, room task and games).
+        var sideBannerIndex by remember { mutableIntStateOf(0) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                kotlinx.coroutines.delay(3000)
+                sideBannerIndex = (sideBannerIndex + 1) % 2
+            }
+        }
         Column(
-            modifier=Modifier.align(Alignment.BottomEnd).padding(end=10.dp, bottom=104.dp),
+            modifier=Modifier.align(Alignment.BottomEnd)
+                .padding(end=10.dp, bottom=78.dp)
+                .heightIn(max=330.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement=Arrangement.spacedBy(2.dp)
         ) {
             AsyncImage(
-                model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg",
+                model=if(sideBannerIndex==0)
+                    "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg"
+                else
+                    "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339681679~2.jpg",
                 contentDescription="Room side banner",
                 modifier=Modifier.size(width=60.dp,height=84.dp).clip(RoundedCornerShape(8.dp)),
                 contentScale=ContentScale.Crop
