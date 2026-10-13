@@ -182,8 +182,9 @@ fun GiftPicker(
                             "mic" -> visibleSeats.map{it.accountId}
                             else -> selectedTargets.toList()
                         }.filter(String::isNotBlank).distinct()
+                        onSend?.invoke(cost)
                         if(selectedGift.video!=null && tab!="Lucky") playingVideo=selectedGift.video
-                        else { onSend?.invoke(cost);onClose() }
+                        else onClose()
                     },enabled=selectedGift!=null,colors=ButtonDefaults.buttonColors(containerColor=Color(0xFF2563EB),disabledContainerColor=Color(0xFF2563EB).copy(alpha=.5f)),contentPadding=PaddingValues(horizontal=22.dp,vertical=6.dp),shape=RoundedCornerShape(topStart=0.dp,bottomStart=0.dp,topEnd=50.dp,bottomEnd=50.dp)) {
                         Text("Send",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Color.White)
                     }
