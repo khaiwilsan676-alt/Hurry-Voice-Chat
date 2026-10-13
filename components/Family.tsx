@@ -257,6 +257,75 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
   </div>
 );
 
+// ⭐ INSUFFICIENT BALANCE MODAL
+const InsufficientBalanceModal = ({ onClose, onRecharge }: { onClose: () => void, onRecharge: () => void }) => (
+  <div 
+    className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center px-6"
+    onClick={onClose}
+  >
+    <div 
+      className="bg-white w-full max-w-sm rounded-2xl p-6 flex flex-col items-center shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="#EF4444" strokeWidth="2" />
+          <path d="M12 7V13" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="12" cy="17" r="1.2" fill="#EF4444" />
+        </svg>
+      </div>
+      <h3 className="text-black font-bold text-lg mb-2 text-center">Insufficient Balance</h3>
+      <p className="text-gray-500 text-sm text-center mb-6 leading-relaxed">
+        You don't have enough coins to create a family. You need <span className="font-bold text-black">10,000,000 coins</span>. Please recharge your wallet to continue.
+      </p>
+      <div className="flex flex-row gap-3 w-full">
+        <button
+          onClick={onClose}
+          className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-bold text-sm active:scale-95 transition-transform"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onRecharge}
+          className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] text-white font-bold text-sm active:scale-95 transition-transform shadow-lg"
+        >
+          Recharge
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// ⭐ RECHARGE SUCCESS MODAL
+const RechargeSuccessModal = ({ onClose }: { onClose: () => void }) => (
+  <div 
+    className="fixed inset-0 bg-black/60 z-[200] flex items-center justify-center px-6"
+    onClick={onClose}
+  >
+    <div 
+      className="bg-white w-full max-w-sm rounded-2xl p-6 flex flex-col items-center shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="#22C55E" strokeWidth="2" />
+          <path d="M8 12.5L11 15.5L16 9.5" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      <h3 className="text-black font-bold text-lg mb-2 text-center">Recharge Successful!</h3>
+      <p className="text-gray-500 text-sm text-center mb-6 leading-relaxed">
+        Your wallet has been recharged successfully. You can now create your family.
+      </p>
+      <button
+        onClick={onClose}
+        className="w-full py-3 rounded-xl bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] text-white font-bold text-sm active:scale-95 transition-transform shadow-lg"
+      >
+        Continue
+      </button>
+    </div>
+  </div>
+);
+
 export default function Family({ onBack }: FamilyProps) {
   const [members, setMembers] = useState<FamilyMember[]>([])
   const [showAddMember, setShowAddMember] = useState(false)
@@ -285,6 +354,16 @@ export default function Family({ onBack }: FamilyProps) {
   // ⭐ FAMILY RULES SHEET STATE
   const [showRulesSheet, setShowRulesSheet] = useState(false)
 
+  // ⭐ NEW: Family Created Flag (to show family in main page after creation)
+  const [familyCreated, setFamilyCreated] = useState(false)
+
+  // ⭐ NEW: Insufficient Balance / Recharge Modal States
+  const [showInsufficientBalance, setShowInsufficientBalance] = useState(false)
+  const [showRechargeSuccess, setShowRechargeSuccess] = useState(false)
+
+  // Constants
+  const FAMILY_CREATION_COST = 10000000 // 10,000,000 coins
+
   useEffect(() => {
     const savedMembers = localStorage.getItem('familyMembers')
     if (savedMembers) {
@@ -300,11 +379,15 @@ export default function Family({ onBack }: FamilyProps) {
     const savedFamilyAnnouncement = localStorage.getItem('familyAnnouncement')
     const savedFamilyImage = localStorage.getItem('familyImage')
     const savedApplyMode = localStorage.getItem('applyMode')
+    const savedFamilyCreated = localStorage.getItem('familyCreated')
+    const savedUserCoins = localStorage.getItem('userCoins')
     
     if (savedFamilyName) setFamilyName(savedFamilyName)
     if (savedFamilyAnnouncement) setFamilyAnnouncement(savedFamilyAnnouncement)
     if (savedFamilyImage) setFamilyImage(savedFamilyImage)
     if (savedApplyMode) setApplyModeState(savedApplyMode as 'free' | 'admin')
+    if (savedFamilyCreated === 'true') setFamilyCreated(true)
+    if (savedUserCoins) setUserCoins(parseInt(savedUserCoins, 10))
 
     const timer = setInterval(() => {
       const now = new Date()
@@ -341,25 +424,41 @@ export default function Family({ onBack }: FamilyProps) {
     }
   }
 
+  const handleRecharge = () => {
+    // Simulate recharge: add enough coins to cover the cost
+    const newBalance = userCoins + FAMILY_CREATION_COST
+    setUserCoins(newBalance)
+    localStorage.setItem('userCoins', newBalance.toString())
+    setShowInsufficientBalance(false)
+    setShowRechargeSuccess(true)
+  }
+
   const handleCreate = () => {
     if (!familyName.trim()) {
       alert("Please enter a Family Name.")
       return
     }
-    if (userCoins < 10000000) {
-      alert("You need 10,000,000 coins to create a family.")
+    if (userCoins < FAMILY_CREATION_COST) {
+      // Show insufficient balance modal instead of alert
+      setShowInsufficientBalance(true)
       return
     }
     
+    // Deduct coins from wallet
+    const newBalance = userCoins - FAMILY_CREATION_COST
+    setUserCoins(newBalance)
+    localStorage.setItem('userCoins', newBalance.toString())
+    
+    // Save family details
     localStorage.setItem('familyName', familyName)
     localStorage.setItem('familyAnnouncement', familyAnnouncement)
     if (familyImage) localStorage.setItem('familyImage', familyImage)
     localStorage.setItem('applyMode', applyModeState)
+    localStorage.setItem('familyCreated', 'true')
     
-    const newBalance = userCoins - 10000000
-    setUserCoins(newBalance)
+    setFamilyCreated(true)
     alert("Family created successfully!")
-    setCurrentView('topRankings')
+    setCurrentView('main')
   }
 
   // ==========================================
@@ -779,6 +878,21 @@ export default function Family({ onBack }: FamilyProps) {
             </div>
           </div>
         )}
+
+        {/* ⭐ Insufficient Balance Modal */}
+        {showInsufficientBalance && (
+          <InsufficientBalanceModal
+            onClose={() => setShowInsufficientBalance(false)}
+            onRecharge={handleRecharge}
+          />
+        )}
+
+        {/* ⭐ Recharge Success Modal */}
+        {showRechargeSuccess && (
+          <RechargeSuccessModal
+            onClose={() => setShowRechargeSuccess(false)}
+          />
+        )}
       </div>
     )
   }
@@ -827,6 +941,27 @@ export default function Family({ onBack }: FamilyProps) {
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
         </div>
+
+        {/* ⭐ FAMILY CREATED BANNER (shows after creation) */}
+        {familyCreated && (
+          <div className="mx-4 mt-2 p-4 bg-gradient-to-r from-[#3B0C06] to-[#5C1A06] border-2 border-[#FFD700] rounded-xl flex items-center gap-3 shadow-[0_0_20px_rgba(255,215,0,0.3)] relative z-30">
+            <div className="w-14 h-14 rounded-lg overflow-hidden border-2 border-[#FFD700] flex-shrink-0 bg-[#1a0d06]">
+              {familyImage ? (
+                <img src={familyImage} alt="Family" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-2xl">🏠</div>
+              )}
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-[#FFD700] text-xs font-bold tracking-wide">FAMILY CREATED</span>
+              <span className="text-white font-black text-lg truncate">{familyName || 'My Family'}</span>
+              <span className="text-[#FDE68A] text-xs truncate opacity-90">{familyAnnouncement || 'No announcement'}</span>
+            </div>
+            <div className="flex-shrink-0">
+              <span className="text-[#FFD700] text-2xl">✓</span>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col w-full mt-2 relative">
           <div className="flex justify-center w-full relative z-20 -mt-16">
@@ -904,16 +1039,24 @@ export default function Family({ onBack }: FamilyProps) {
             className="w-full h-auto block pointer-events-auto" 
           />
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <button 
-              onClick={() => setCurrentView('create')}
-              className="cursor-pointer active:scale-95 transition-transform w-[50%] max-w-[200px] pointer-events-auto"
-            >
-              <img 
-                src="/file_0000000056508230808da89fb794a97f.png" 
-                alt="Create Family" 
-                className="w-full h-auto object-contain drop-shadow-xl" 
-              />
-            </button>
+            {!familyCreated ? (
+              <button 
+                onClick={() => setCurrentView('create')}
+                className="cursor-pointer active:scale-95 transition-transform w-[50%] max-w-[200px] pointer-events-auto"
+              >
+                <img 
+                  src="/file_0000000056508230808da89fb794a97f.png" 
+                  alt="Create Family" 
+                  className="w-full h-auto object-contain drop-shadow-xl" 
+                />
+              </button>
+            ) : (
+              <div className="pointer-events-auto bg-gradient-to-r from-[#00C9A7] to-[#00B4D8] rounded-full px-6 py-3 shadow-lg">
+                <span className="text-white font-bold text-sm tracking-wide whitespace-nowrap">
+                  ✓ Family Created — {familyName || 'My Family'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
