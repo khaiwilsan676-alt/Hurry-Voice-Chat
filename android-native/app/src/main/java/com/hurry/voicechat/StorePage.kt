@@ -180,7 +180,7 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                                 model = StoreAssetBase + item.image,
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = coil3.compose.ContentScale.Crop
+                                contentScale = ContentScale.Crop
                             )
                             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .20f)))
                         }
