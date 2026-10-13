@@ -1013,9 +1013,9 @@ export default function HomePage({ onLogout }: HomePageProps) {
         DISABLE_VIDEO_BACKGROUND: true,
         HIDE_INVITE_MORE_HEADER: true,
         MOBILE_APP_PROMO: false,
-        APP_NAME: 'Hurry',
-        NATIVE_APP_NAME: 'Hurry',
-        PROVIDER_NAME: 'Hurry'
+        APP_NAME: 'Zyora',
+        NATIVE_APP_NAME: 'Zyora',
+        PROVIDER_NAME: 'Zyora'
       }
     }
 
