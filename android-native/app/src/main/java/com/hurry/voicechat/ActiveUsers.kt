@@ -53,7 +53,7 @@ fun ActiveUsers(
       Row(Modifier.weight(1f).padding(start=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
        Text(currentUser.name.ifBlank{"Owner"},fontSize=12.sp,fontWeight=FontWeight.SemiBold,color=Color.White,maxLines=1)
        androidx.compose.material3.Icon(
-        imageVector=androidx.compose.material.icons.Icons.Outlined.Home,
+        imageVector=androidx.compose.material.icons.Icons.Filled.Home,
         contentDescription="Room owner",
         modifier=Modifier.size(14.dp),
         tint=Color.White
