@@ -298,7 +298,7 @@ fun RoomPage(
             }
             Column(Modifier.fillMaxWidth().padding(start=10.dp,top=8.dp,end=82.dp,bottom=4.dp)) {
                 Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
-                    Text("Official announcement: Welcome to Hurry Any Content Realted to porn,Froud,Fake Official will Ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                    Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
                     if(announcement.isNotBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Divider(color=Color.White.copy(alpha=.10f),thickness=1.dp)
