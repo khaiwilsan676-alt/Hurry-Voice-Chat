@@ -150,6 +150,7 @@ fun HomeScreen(
     onPopular: () -> Unit = {},
     onLeaderboard: (String) -> Unit = {},
     onInviteFriends: () -> Unit = {},
+    onSearch: () -> Unit = {},
     mineSelected: Boolean = false
 ) {
     val mine = mineSelected
@@ -282,7 +283,7 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                HurrySearchIcon()
+                Box(Modifier.clickable { onSearch() }) { HurrySearchIcon() }
                 Spacer(Modifier.width(10.dp))
                 HurryHouseIcon()
                 Spacer(Modifier.width(2.dp))
