@@ -69,6 +69,9 @@ fun RoomPage(
     var showGift by remember{mutableStateOf(false)}
     var showEmoji by remember{mutableStateOf(false)}
     var showGames by remember{mutableStateOf(false)}
+    var showRoomTask by remember{mutableStateOf(false)}
+    var showWildParty by remember{mutableStateOf(false)}
+    var showFruitParty by remember{mutableStateOf(false)}
     var showMusic by remember{mutableStateOf(false)}
     var input by remember{mutableStateOf("")}
     var announcement by remember{mutableStateOf("")}
@@ -239,7 +242,7 @@ fun RoomPage(
             AsyncImage(
                 model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
                 contentDescription="Room task",
-                modifier=Modifier.size(63.dp).clickable { showGames=true },
+                modifier=Modifier.size(63.dp).clickable { showRoomTask=true },
                 contentScale=ContentScale.Fit
             )
             AsyncImage(
@@ -292,7 +295,15 @@ fun RoomPage(
             currentUserImage=currentUser.image,
             roomUsers=activeRoomUsers
         )
-        if(showGames) GamesSheet{showGames=false}
+        if(showGames) GamesSheet(
+            onClose={showGames=false},
+            onWildParty={showGames=false;showWildParty=true},
+            onFruitParty={showGames=false;showFruitParty=true},
+            onRoomTask={showGames=false;showRoomTask=true}
+        )
+        if(showRoomTask) Roomtask(onBack={showRoomTask=false})
+        if(showWildParty) Wildparty(onClose={showWildParty=false},onMinimize={showWildParty=false})
+        if(showFruitParty) Fruitparty(onClose={showFruitParty=false},onMinimize={showFruitParty=false})
         if(showMusic) MusicSheet{showMusic=false}
         if(showEmoji) EmojiSheet({showEmoji=false}){input+=it;showEmoji=false}
         if(showSeatSheet && selectedSeat>0) {
@@ -416,8 +427,30 @@ fun RoomPage(
     Text("Select a gift",color=Color.White.copy(.7f),modifier=Modifier.padding(12.dp))
 }
 
-@Composable private fun GamesSheet(onClose:()->Unit)=SimpleSheet("Games",onClose){
-    listOf("Wild Party","Fruit Party","Room task","Store").forEach{Text(it,color=Color.White,fontSize=15.sp,modifier=Modifier.padding(10.dp))}
+@Composable private fun GamesSheet(onClose:()->Unit,onWildParty:()->Unit,onFruitParty:()->Unit,onRoomTask:()->Unit){
+    val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
+        Surface(Modifier.fillMaxWidth().clickable(enabled=false){},color=Color(0xFF24212A),shape=RoundedCornerShape(topStart=18.dp,topEnd=18.dp)){
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start=18.dp,end=18.dp,top=12.dp,bottom=20.dp)){
+                Box(Modifier.align(Alignment.CenterHorizontally).width(38.dp).height(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.45f)))
+                Spacer(Modifier.height(14.dp))
+                Text("Games",color=Color.White,fontSize=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
+                Spacer(Modifier.height(18.dp))
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceAround,verticalAlignment=Alignment.Top){
+                    GameSheetItem(raw+"file_000000009d808211b8ffb7c2183b4ef5.png","Wild party",onWildParty)
+                    GameSheetItem(raw+"file_00000000c9e08211ab3e8c4d511b7965.png","Fruit party",onFruitParty)
+                    GameSheetItem(raw+"IMG-20260902-WA0066.jpg","Room task",onRoomTask)
+                }
+            }
+        }
+    }
+}
+@Composable private fun GameSheetItem(image:String,label:String,onClick:()->Unit){
+    Column(Modifier.width(84.dp).clickable(onClick=onClick),horizontalAlignment=Alignment.CenterHorizontally){
+        AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
+        Spacer(Modifier.height(5.dp))
+        Text(label,color=Color.White,fontSize=10.sp,maxLines=1)
+    }
 }
 
 @Composable private fun MusicSheet(onClose:()->Unit){
