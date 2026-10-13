@@ -76,7 +76,7 @@ private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKe
                             if (diff > 30 && g > 60) pixels[i] = p and 0x00ffffff
                             else if (diff > 10 && g > 50) {
                                 val factor = (diff - 10) / 20f
-                                val na = kotlin.math.roundToInt(a * (1f - factor)).coerceIn(0, 255)
+                                val na = (a * (1f - factor)).roundToInt().coerceIn(0, 255)
                                 pixels[i] = (na shl 24) or (r shl 16) or (maxRB shl 8) or b
                             }
                         } else {
