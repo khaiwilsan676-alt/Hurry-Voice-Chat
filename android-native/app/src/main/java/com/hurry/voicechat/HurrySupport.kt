@@ -79,7 +79,7 @@ fun HurrySupport(onBack: () -> Unit) {
                 SupportMessage(prefix + "🏠 Apna Room Kaise Banayein:\n\n📌 Step 1: Homepage par jayein.\n📌 Step 2: Top me Mine tab par tap karein.\n📌 Step 3: + Icon Card par click karein.\n📌 Step 4: Room me enter karke apne hisab se customize karein.", true)
             listOf("abuse", "gali", "गाली", "complain", "report", "शिकायत", "bad word", "ban", "harass").any { msg.contains(it) } ->
                 SupportMessage("⚠️ Complaint & Report Kaise Karein:\n\n📌 Step 1: Help & Feedback section me jayein.\n📌 Step 2: Clear video ya screenshot proof upload karein.\n📌 Step 3: Official Team ko complaint submit karein.\n\n🚫 Rules & Warning:\nKripya khud abusive language use na karein. Agar dono side se gali di gayi ho, toh dono IDs ban ho sakti hain.", true)
-            listOf("what is zyora", "hurry app", "app kya", "about zyora").any { msg.contains(it) } ->
+            listOf("what is zyora", "zyora app", "app kya", "about zyora").any { msg.contains(it) } ->
                 SupportMessage("🌟 About Zyora App:\n\nZyora ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n✨ Key Features:\n• Live Audio Party Rooms\n• Interactive Mini Games\n• Family Creation System\n• Social Dating & Chatting", true)
             listOf("official", "admin", "contact", "officer", "owner", "team", "अधिकारी", "मालिक").any { msg.contains(it) } ->
                 SupportMessage("👑 Zyora Official Team Details:\n\n• Zyora_IN\n  🆔 ID: 100002\n\n• Paras\n  🆔 ID: 100003\n\nSeller Registration, Payment issues ya Serious Complaints ke liye Official Team se contact karein.", true)
