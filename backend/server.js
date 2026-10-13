@@ -1941,7 +1941,7 @@ io.on("connection", (socket) => {
     }
 
     const isTeam = rawSenderId === "hurry_team_official";
-    const senderName = isTeam ? "Hurry Team" : "Hurry System";
+    const senderName = isTeam ? "Zyora Team" : "Zyora System";
     const senderPhoto = isTeam ? "/logo.png" : "/file_00000000a66881f8aa9e15d2fe2b9a0c.png";
 
     const messageId = String(data.id || `official_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`);
