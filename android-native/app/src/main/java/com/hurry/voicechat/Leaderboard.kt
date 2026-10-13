@@ -148,7 +148,7 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                             Text("Data Periods",color=Color(0xFFE7B865),fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                             Text("Daily: finalized every day at 5:30+GMT. Weekly: every Monday at 5:30+GMT. Monthly: on the first day of each month at 5:30+GMT.",color=Color.White)
                             Text("Users who violate platform rules are ineligible. The platform reserves the right to make the final decision.",color=Color.White)
-                            Text("Regard Zyora team",color=Color(0xFFE7B865),modifier=Modifier.align(Alignment.End))
+                            Text("Regards, Zyora Team",color=Color(0xFFE7B865),modifier=Modifier.align(Alignment.End))
                         }
                     }
                 }
