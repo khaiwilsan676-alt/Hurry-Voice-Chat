@@ -88,7 +88,7 @@ export default function HurryOfficial() {
               <div className="flex items-center gap-5 mb-4">
                 <Image
                   src="/logo.png"
-                  alt="Hurry App"
+                  alt="Zyora App"
                   width={80}
                   height={80}
                   className="h-20 w-20 object-contain rounded-3xl shadow-[0_0_40px_rgba(37,99,235,0.4)]"
