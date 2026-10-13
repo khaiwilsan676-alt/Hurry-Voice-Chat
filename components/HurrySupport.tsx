@@ -408,7 +408,7 @@ export default function HurrySupport({ onBack }: HurrySupportProps) {
 
     // WHAT IS HURRY APP
     if (msg.includes("hawa kya") || msg.includes("what is hawa") || msg.includes("about hawa") ||
-        msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is hurry") || msg.includes("hurry app")) {
+        msg.includes("hawa app") || msg.includes("app kya") || msg.includes("what is zyora") || msg.includes("hurry app")) {
       return {
         text: "🌟 About Zyora App:\n\n" +
                "Zyora ek Social Dating & Live Party Platform hai jahan aap naye dosto se mil sakte hain, party rooms join kar sakte hain aur games khel sakte hain.\n\n" +
