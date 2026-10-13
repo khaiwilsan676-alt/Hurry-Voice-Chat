@@ -316,7 +316,7 @@ const LoginForm = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
-                placeholder="Hurry Owner"
+                placeholder="Zyora Owner"
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 caret-slate-900 focus:outline-none focus:border-indigo-500 focus:bg-white transition-colors"
               />
             </div>
@@ -1142,7 +1142,7 @@ export default function StaffPanel() {
                     type="text"
                     value={searchQuery}
                     onChange={handleSearchQueryChange}
-                    placeholder="Search by real name, email, Hurry ID, username..."
+                    placeholder="Search by real name, email, Zyora ID, username..."
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-400 font-medium text-slate-900 placeholder:text-slate-400 caret-slate-900"
                   />
                 </div>
