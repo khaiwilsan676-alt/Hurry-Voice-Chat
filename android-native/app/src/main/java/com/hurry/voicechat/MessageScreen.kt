@@ -42,7 +42,7 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
             Modifier.fillMaxWidth().background(
                 Brush.verticalGradient(
                     0.0f to Color(0xFF3B82F6),
-                    0.65f to Color(0xFFDBEAFE),
+                    0.65f to Color(0xFFBFDBFE),
                     1.0f to Color(0xFFFFFFFF)
                 )
             ).statusBarsPadding().padding(top = 11.dp)
