@@ -1,6 +1,12 @@
 package com.hurry.voicechat
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import io.socket.client.IO
+import io.socket.client.Socket
+import io.socket.emitter.Emitter
+import org.json.JSONObject
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -109,6 +115,79 @@ fun NativeChatScreen(
     var showEmojiPicker by remember { mutableStateOf(false) }
     var replyText by remember { mutableStateOf<String?>(null) }
     val messages = remember { mutableStateListOf<Pair<Boolean, String>>() }
+
+    // Receive owner-panel Zyora Team/System broadcasts live and load the saved history.
+    DisposableEffect(name) {
+        val officialId = when (name) {
+            "Zyora Team" -> "hurry_team_official"
+            "Zyora System" -> "hurry_system_official"
+            else -> null
+        }
+        if (officialId == null) return@DisposableEffect onDispose { }
+
+        val mainHandler = Handler(Looper.getMainLooper())
+        val officialSocket: Socket = IO.socket(
+            "https://hurry-voice-chat-lz75.onrender.com",
+            IO.Options.builder()
+                .setTransports(arrayOf("websocket"))
+                .setReconnection(true)
+                .setReconnectionAttempts(Int.MAX_VALUE)
+                .setReconnectionDelay(1000)
+                .setReconnectionDelayMax(5000)
+                .build()
+        )
+
+        val appendOfficial: (JSONObject) -> Unit = { payload ->
+            val senderId = payload.optString("senderId")
+            if (senderId == officialId) {
+                val messageText = payload.optString("text").ifBlank {
+                    if (payload.optString("type") == "image") "📷 Image" else ""
+                }
+                if (messageText.isNotBlank()) {
+                    mainHandler.post {
+                        val isDuplicate = messages.any { !it.first && it.second == messageText }
+                        if (!isDuplicate) messages.add(false to messageText)
+                    }
+                }
+            }
+        }
+
+        val liveListener = Emitter.Listener { args ->
+            (args.firstOrNull() as? JSONObject)?.let(appendOfficial)
+        }
+        val historyListener = Emitter.Listener { args ->
+            val payload = args.firstOrNull() as? JSONObject ?: return@Listener
+            val history = payload.optJSONArray("messages") ?: return@Listener
+            val items = mutableListOf<Pair<Long, String>>()
+            for (index in 0 until history.length()) {
+                val message = history.optJSONObject(index) ?: continue
+                if (message.optString("senderId") != officialId) continue
+                val value = message.optString("text").ifBlank {
+                    if (message.optString("type") == "image") "📷 Image" else ""
+                }
+                if (value.isNotBlank()) items.add(message.optLong("timestamp") to value)
+            }
+            mainHandler.post {
+                items.sortedBy { it.first }.forEach { (_, value) ->
+                    if (messages.none { !it.first && it.second == value }) messages.add(false to value)
+                }
+            }
+        }
+
+        officialSocket.on("official_broadcast_message", liveListener)
+        officialSocket.on("official_message_history_response", historyListener)
+        officialSocket.on(Socket.EVENT_CONNECT) {
+            officialSocket.emit("official_message_history_request")
+        }
+        officialSocket.connect()
+
+        onDispose {
+            officialSocket.off("official_broadcast_message", liveListener)
+            officialSocket.off("official_message_history_response", historyListener)
+            officialSocket.disconnect()
+            officialSocket.close()
+        }
+    }
 
     Box(Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
         if (isOfficial) {
