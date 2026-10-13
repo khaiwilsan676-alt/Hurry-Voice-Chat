@@ -553,6 +553,11 @@ app.put("/api/rooms", async (req, res) => {
       { upsert: true }
     );
 
+    if (redis) {
+      try { await redis.del("rooms:list:v1"); }
+      catch (cacheError) { console.warn("Room Redis cache invalidation skipped:", cacheError.message); }
+    }
+
     return res.json({
       success: true,
       room: roomData
