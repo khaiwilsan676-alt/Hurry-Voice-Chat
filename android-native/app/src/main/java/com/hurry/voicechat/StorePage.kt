@@ -166,47 +166,71 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                     val theme = item.tab == "Theme"
                     val owned = ownedIds.contains(item.id)
                     val equipped = equippedIds.contains(item.id)
-                    Column(
+                    Box(
                         Modifier.fillMaxWidth().then(if (theme) Modifier.height(200.dp) else Modifier.wrapContentHeight())
-                            .clip(RoundedCornerShape(5.dp)).background(Color.White).padding(5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(Color.White)
                     ) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Try", color = if (theme) Color.White else StoreBlue, fontSize = 11.sp, modifier = Modifier
-                                .clip(CircleShape).then(if (theme) Modifier.background(Color(0x33FFFFFF)) else Modifier)
-                                .clickable { selectedItem = item }.then(Modifier.padding(horizontal = 10.dp, vertical = 3.dp)))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("◷", color = if (theme) Color.White else Color.Gray, fontSize = 12.sp)
-                                Spacer(Modifier.width(3.dp))
-                                Text(item.duration, color = if (theme) Color.White else Color.Gray, fontSize = 11.sp)
+                        if (theme) {
+                            AsyncImage(
+                                model = StoreAssetBase + item.image,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = coil3.compose.ContentScale.Crop
+                            )
+                            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .20f)))
+                        }
+                        Column(
+                            Modifier.fillMaxWidth().padding(5.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(
+                                    "Try",
+                                    color = if (theme) Color.White else StoreBlue,
+                                    fontSize = 11.sp,
+                                    modifier = Modifier
+                                        .clip(CircleShape)
+                                        .then(if (theme) Modifier.background(Color(0x33FFFFFF)).border(1.dp, Color.White, CircleShape) else Modifier.border(1.dp, StoreBlue, CircleShape))
+                                        .clickable { selectedItem = item }
+                                        .padding(horizontal = 10.dp, vertical = 3.dp)
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("◷", color = if (theme) Color.White else Color.Gray, fontSize = 12.sp)
+                                    Spacer(Modifier.width(3.dp))
+                                    Text(item.duration, color = if (theme) Color.White else Color.Gray, fontSize = 11.sp)
+                                }
                             }
-                        }
-                        val mediaModifier = if (theme) Modifier.fillMaxWidth().weight(1f).padding(vertical = 2.dp)
-                            else Modifier.fillMaxWidth().height(if (item.tab == "Vehicle" || item.tab == "Avatar Frame") 120.dp else 80.dp)
-                        if (item.image.endsWith(".mp4", ignoreCase = true)) {
-                            StoreVideoPreview(StoreAssetBase + item.image, mediaModifier)
-                        } else {
-                            AsyncImage(model = StoreAssetBase + item.image, contentDescription = item.name, modifier = mediaModifier)
-                        }
-                        Text("★".repeat(item.stars) + "☆".repeat(5 - item.stars), color = Color(0xFFFFC928), fontSize = 16.sp, lineHeight = 18.sp)
-                        Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                            AsyncImage(model = StoreAssetBase + "file_00000000e56882119c217d508b6733dc.png", contentDescription = "Coins", modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("%,d".format(item.price), color = if (theme) Color.White else Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
-                        }
-                        Row(Modifier.fillMaxWidth().height(30.dp).clip(CircleShape).background(StoreBlue)) {
-                            Box(Modifier.weight(1f).fillMaxHeight().background(Color.White).clickable { sendItem = item }, contentAlignment = Alignment.Center) {
-                                Text("Send", color = StoreBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            if (!theme) {
+                                val mediaModifier = Modifier.fillMaxWidth().height(if (item.tab == "Vehicle" || item.tab == "Avatar Frame") 120.dp else 80.dp)
+                                if (item.image.endsWith(".mp4", ignoreCase = true)) {
+                                    StoreVideoPreview(StoreAssetBase + item.image, mediaModifier)
+                                } else {
+                                    AsyncImage(model = StoreAssetBase + item.image, contentDescription = item.name, modifier = mediaModifier)
+                                }
+                            } else {
+                                Spacer(Modifier.weight(1f).fillMaxWidth().height(80.dp))
                             }
-                            Box(Modifier.weight(1f).fillMaxHeight().clickable {
-                                if (owned) {
-                                    if (equipped) equippedIds.remove(item.id) else {
-                                        equippedIds.removeAll { id -> nativeStoreItems.find { it.id == id }?.tab == item.tab }
-                                        equippedIds.add(item.id)
-                                    }
-                                } else selectedItem = item
-                            }, contentAlignment = Alignment.Center) {
-                                Text(if (owned) if (equipped) "Using" else "Use" else "Buy", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text("★".repeat(item.stars) + "☆".repeat(5 - item.stars), color = Color(0xFFFFC928), fontSize = 16.sp, lineHeight = 18.sp)
+                            Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                                AsyncImage(model = StoreAssetBase + "file_00000000e56882119c217d508b6733dc.png", contentDescription = "Coins", modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("%,d".format(item.price), color = if (theme) Color.White else Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                            }
+                            Row(Modifier.fillMaxWidth().height(30.dp).clip(CircleShape).border(1.dp, StoreBlue, CircleShape).background(Color.White)) {
+                                Box(Modifier.weight(1f).fillMaxHeight().clickable { sendItem = item }, contentAlignment = Alignment.Center) {
+                                    Text("Send", color = StoreBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                                Box(Modifier.weight(1f).fillMaxHeight().clip(CircleShape).background(StoreBlue).clickable {
+                                    if (owned) {
+                                        if (equipped) equippedIds.remove(item.id) else {
+                                            equippedIds.removeAll { id -> nativeStoreItems.find { it.id == id }?.tab == item.tab }
+                                            equippedIds.add(item.id)
+                                        }
+                                    } else selectedItem = item
+                                }, contentAlignment = Alignment.Center) {
+                                    Text(if (owned) if (equipped) "Using" else "Use" else "Buy", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
                     }
