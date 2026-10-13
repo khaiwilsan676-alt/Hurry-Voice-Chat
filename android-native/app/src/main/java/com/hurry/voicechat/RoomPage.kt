@@ -282,7 +282,16 @@ fun RoomPage(
             onCopyUserId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id }
         )
         if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
-        if(showGift) GiftSheet{showGift=false}
+        if(showGift) GiftPicker(
+            open=true,
+            onClose={showGift=false},
+            seats=seats.toList(),
+            roomId=roomId,
+            currentUserAccountId=accountId,
+            currentUserName=currentUser.name,
+            currentUserImage=currentUser.image,
+            roomUsers=activeRoomUsers
+        )
         if(showGames) GamesSheet{showGames=false}
         if(showMusic) MusicSheet{showMusic=false}
         if(showEmoji) EmojiSheet({showEmoji=false}){input+=it;showEmoji=false}
