@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ChevronUp
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Close
@@ -167,7 +167,7 @@ fun GiftPicker(
                     Box {
                         Row(Modifier.clickable { showMultipliers=!showMultipliers }.padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
                             Text("${multiplier}×",fontSize=12.sp,fontWeight=FontWeight.Bold,color=Color.White)
-                            Icon(Icons.Default.ChevronUp,null,tint=Color.White,modifier=Modifier.size(13.dp))
+                            Icon(Icons.Default.KeyboardArrowUp,null,tint=Color.White,modifier=Modifier.size(13.dp))
                         }
                         DropdownMenu(expanded=showMultipliers,onDismissRequest={showMultipliers=false}) {
                             listOf(1,10,299,599,999).forEach { value -> DropdownMenuItem(text={Text("${value}×")},onClick={multiplier=value;showMultipliers=false}) }
