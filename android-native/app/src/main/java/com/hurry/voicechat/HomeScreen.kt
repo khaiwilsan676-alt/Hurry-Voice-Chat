@@ -167,6 +167,7 @@ fun HomeScreen(
     val dao = remember {
         runCatching { HurryDatabase.get(context).roomDao() }.getOrNull()
     }
+    val roomSyncPrefs = remember { context.getSharedPreferences("native_room_sync", Context.MODE_PRIVATE) }
 
     var rooms by remember { mutableStateOf(NativeRoomMemoryCache.rooms) }
     var selectedCountry by remember { mutableStateOf("all") }
@@ -197,33 +198,43 @@ fun HomeScreen(
 
         val now = System.currentTimeMillis()
         if (!NativeRoomMemoryCache.refreshInFlight &&
-            (NativeRoomMemoryCache.lastRefreshAt == 0L || now - NativeRoomMemoryCache.lastRefreshAt >= 60_000L)
+            (NativeRoomMemoryCache.lastRefreshAt == 0L || now - NativeRoomMemoryCache.lastRefreshAt >= 30_000L)
         ) {
             NativeRoomMemoryCache.refreshInFlight = true
             try {
-                val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
+                // First sync fetches all cards; later syncs request only rooms changed since the last server sync.
+                val since = roomSyncPrefs.getLong("last_server_updated_at", 0L)
+                val update = runCatching { HurryApi.roomsUpdatedSince(since) }.getOrNull()
                 NativeRoomMemoryCache.lastRefreshAt = System.currentTimeMillis()
-                if (fresh.isNotEmpty()) {
-                    NativeRoomMemoryCache.rooms = fresh
-                    rooms = fresh
-                    if (dao != null) {
-                        runCatching {
-                            withContext(Dispatchers.IO) {
-                                dao.clearAll()
-                                dao.insertAll(
-                                    fresh.map {
-                                        RoomEntity(
-                                            id = it.id,
-                                            name = it.name,
-                                            country = it.country,
-                                            image = it.image,
-                                            accountId = it.accountId,
-                                            createdAt = System.currentTimeMillis()
-                                        )
-                                    }
-                                )
+                if (update != null) {
+                    val fresh = update.rooms
+                    val previous = NativeRoomMemoryCache.rooms ?: rooms ?: emptyList()
+                    val merged = if (since == 0L) fresh else (fresh + previous).distinctBy { it.id }
+                    if (fresh.isNotEmpty() || since == 0L) {
+                        NativeRoomMemoryCache.rooms = merged
+                        rooms = merged
+                        if (dao != null) {
+                            runCatching {
+                                withContext(Dispatchers.IO) {
+                                    dao.clearAll()
+                                    dao.insertAll(
+                                        merged.map {
+                                            RoomEntity(
+                                                id = it.id,
+                                                name = it.name,
+                                                country = it.country,
+                                                image = it.image,
+                                                accountId = it.accountId,
+                                                createdAt = System.currentTimeMillis()
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
+                    }
+                    if (update.serverTime > 0L) {
+                        roomSyncPrefs.edit().putLong("last_server_updated_at", update.serverTime).apply()
                     }
                 } else if (rooms == null) {
                     rooms = emptyList()
