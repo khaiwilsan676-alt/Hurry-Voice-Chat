@@ -166,7 +166,8 @@ private fun HurryLaunchScreen() {
 @Composable
 private fun HurryNativeRoot() {
     val context = LocalContext.current
-    val authPrefs = remember { context.getSharedPreferences("hurry_auth", MODE_PRIVATE) }
+    val roomCreateScope = rememberCoroutineScope()
+    val authPrefs = remember { context.getSharedPreferences("hurry_auth", android.content.Context.MODE_PRIVATE) }
     val userId = remember { authPrefs.getString("uid", "").orEmpty() }
     var mineCreatedRoom by remember {
         mutableStateOf(
