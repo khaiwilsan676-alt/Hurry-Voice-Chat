@@ -275,6 +275,9 @@ export default function Family({ onBack }: FamilyProps) {
   // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
 
+  // ⭐ NEW: FAMILY FRAME MODAL STATE (TOP1 / TOP2)
+  const [activeFamilyFrameModal, setActiveFamilyFrameModal] = useState<{src: string, label: string} | null>(null)
+
   // NEW STATES FOR CREATE PAGE
   const [familyName, setFamilyName] = useState('')
   const [familyAnnouncement, setFamilyAnnouncement] = useState('')
@@ -495,7 +498,12 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              {/* ⭐ MODIFIED: TOP 1 FAMILY FRAME */}
+              <GreenVideoRewardItem 
+                title="Frames *7 days" 
+                videoSrc="/gemini_generated_video_0d259062.mp4" 
+                onClick={() => setActiveFamilyFrameModal({src: '/gemini_generated_video_0d259062.mp4', label: 'TOP1 family'})} 
+              />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -521,7 +529,12 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              {/* ⭐ MODIFIED: TOP 2 FAMILY FRAME */}
+              <GreenVideoRewardItem 
+                title="Frames *7 days" 
+                videoSrc="/gemini_generated_video_0d259062.mp4" 
+                onClick={() => setActiveFamilyFrameModal({src: '/gemini_generated_video_0d259062.mp4', label: 'TOP2 family'})} 
+              />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -644,6 +657,41 @@ export default function Family({ onBack }: FamilyProps) {
                 />
               </div>
             )}
+          </div>
+        )}
+
+        {/* ⭐ NEW: FAMILY FRAME MODAL (TOP1 / TOP2) — LABEL ABOVE, STARS BELOW */}
+        {activeFamilyFrameModal && (
+          <div 
+            className="fixed inset-0 w-full h-full bg-transparent z-[60] flex cursor-pointer flex-col items-center justify-center"
+            onClick={() => setActiveFamilyFrameModal(null)}
+          >
+            <div className="text-white font-black text-2xl tracking-widest drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-3">
+              {activeFamilyFrameModal.label}
+            </div>
+
+            <video 
+              src={activeFamilyFrameModal.src} 
+              autoPlay 
+              loop
+              playsInline
+              muted
+              disablePictureInPicture
+              disableRemotePlayback
+              className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl pointer-events-none" 
+              style={{
+                backgroundColor: 'transparent',
+                filter: 'url(#remove-green)'
+              }} 
+            />
+
+            <div className="flex gap-1 mt-3 pointer-events-none">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="w-6 h-6 text-[#FFD700] fill-current drop-shadow-md" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
           </div>
         )}
 
