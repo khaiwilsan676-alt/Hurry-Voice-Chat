@@ -2002,12 +2002,14 @@ io.on("connection", (socket) => {
     io.emit("official_broadcast_message", payload);
   });
 
-  socket.on("official_message_history_request", async () => {
+  socket.on("official_message_history_request", async (request = {}) => {
     try {
       if (db) {
+        const sinceTimestamp = Math.max(0, Number(request?.sinceTimestamp) || 0);
+        const filter = sinceTimestamp > 0 ? { timestamp: { $gt: sinceTimestamp } } : {};
         const messages = await db
           .collection("officialMessages")
-          .find({})
+          .find(filter)
           .sort({ timestamp: 1 })
           .limit(500)
           .toArray();
