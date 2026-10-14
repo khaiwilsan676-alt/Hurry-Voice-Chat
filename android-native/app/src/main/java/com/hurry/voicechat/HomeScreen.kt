@@ -306,7 +306,7 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Box(Modifier.clickable { onSearch() }) { HurrySearchIcon() }
+                Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { HurrySearchIcon() }
                 Spacer(Modifier.width(10.dp))
                 Box(Modifier.clickable { onCreateMineRoom() }) {
                     HurryHouseIcon()
