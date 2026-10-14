@@ -52,7 +52,6 @@ const VideoRewardItem = ({
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Force pause and show first frame
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -95,7 +94,6 @@ const GreenVideoRewardItem = ({ title, videoSrc, onClick }: { title: string, vid
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Force pause and show first frame
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
@@ -247,7 +245,6 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
         <p>9. Any benefits or relationships formed within the family are the result of voluntary actions taken by the members themselves and have no connection to Hurry.</p>
       </div>
 
-      {/* ⭐ Regards, Zyora Team */}
       <div className="flex justify-end pt-2 pb-1">
         <span className="text-black/60 text-xs font-semibold italic tracking-wide">
           Regards, Zyora Team
@@ -272,20 +269,17 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos
   const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
 
-  // ⭐ NEW: FAMILY FRAME MODAL STATE (TOP1 / TOP2)
+  // ⭐ FAMILY FRAME MODAL STATE (TOP1 / TOP2)
   const [activeFamilyFrameModal, setActiveFamilyFrameModal] = useState<{src: string, label: string} | null>(null)
 
-  // NEW STATES FOR CREATE PAGE
   const [familyName, setFamilyName] = useState('')
   const [familyAnnouncement, setFamilyAnnouncement] = useState('')
   const [familyImage, setFamilyImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [userCoins, setUserCoins] = useState(0)
 
-  // ⭐ FAMILY RULES SHEET STATE
   const [showRulesSheet, setShowRulesSheet] = useState(false)
 
   useEffect(() => {
@@ -332,7 +326,6 @@ export default function Family({ onBack }: FamilyProps) {
     return () => clearInterval(timer)
   }, [])
 
-  // ---- CREATE LOGIC ----
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -420,7 +413,6 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
-          {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button
             type="button"
             onClick={() => setShowRulesSheet(true)}
@@ -498,7 +490,6 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* ⭐ MODIFIED: TOP 1 FAMILY FRAME */}
               <GreenVideoRewardItem 
                 title="Frames *7 days" 
                 videoSrc="/gemini_generated_video_0d259062.mp4" 
@@ -529,7 +520,6 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* ⭐ MODIFIED: TOP 2 FAMILY FRAME */}
               <GreenVideoRewardItem 
                 title="Frames *7 days" 
                 videoSrc="/gemini_generated_video_0d259062.mp4" 
@@ -660,13 +650,13 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         )}
 
-        {/* ⭐ NEW: FAMILY FRAME MODAL (TOP1 / TOP2) — LABEL ABOVE, STARS BELOW */}
+        {/* ⭐ FAMILY FRAME MODAL (TOP1 / TOP2) — LABEL & STARS BILKUL PAAS */}
         {activeFamilyFrameModal && (
           <div 
             className="fixed inset-0 w-full h-full bg-transparent z-[60] flex cursor-pointer flex-col items-center justify-center"
             onClick={() => setActiveFamilyFrameModal(null)}
           >
-            <div className="text-white font-black text-2xl tracking-widest drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-3">
+            <div className="text-white font-black text-2xl tracking-widest drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] mb-1">
               {activeFamilyFrameModal.label}
             </div>
 
@@ -685,7 +675,7 @@ export default function Family({ onBack }: FamilyProps) {
               }} 
             />
 
-            <div className="flex gap-1 mt-3 pointer-events-none">
+            <div className="flex gap-1 mt-1 pointer-events-none">
               {[...Array(5)].map((_, i) => (
                 <svg key={i} className="w-6 h-6 text-[#FFD700] fill-current drop-shadow-md" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -730,7 +720,6 @@ export default function Family({ onBack }: FamilyProps) {
           <button onClick={() => setCurrentView('main')} className="p-2 cursor-pointer relative z-30 active:scale-95 transition-transform">
             <ArrowLeft size={28} className="text-black" />
           </button>
-          {/* ⭐ Title aur right side ka sab kuch remove kar diya */}
         </div>
 
         <div className="flex-1 w-full pb-36">
@@ -870,7 +859,6 @@ export default function Family({ onBack }: FamilyProps) {
             <ArrowLeft size={28} className="text-white drop-shadow-md" />
           </button>
           
-          {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
             <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
           </button>
@@ -943,7 +931,6 @@ export default function Family({ onBack }: FamilyProps) {
         })}
       </div>
 
-      {/* Edge to edge bottom bar with overlap create button */}
       <div className="fixed -bottom-6 left-0 w-full z-40 pointer-events-none">
         <div className="relative w-full">
           <img 
@@ -966,7 +953,6 @@ export default function Family({ onBack }: FamilyProps) {
         </div>
       </div>
 
-      {/* ⭐ FAMILY RULES SHEET (MAIN PAGE) */}
       {showRulesSheet && <FamilyRulesSheet onClose={() => setShowRulesSheet(false)} />}
     </div>
   )
