@@ -32,6 +32,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.AnnotatedString
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -115,6 +118,17 @@ fun RoomPage(
     var showFruitParty by remember{mutableStateOf(false)}
     var showMusic by remember{mutableStateOf(false)}
     var input by remember{mutableStateOf("")}
+    val chatFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(showChat) {
+        if (showChat) {
+            kotlinx.coroutines.delay(120)
+            runCatching { chatFocusRequester.requestFocus() }
+            keyboardController?.show()
+        } else {
+            keyboardController?.hide()
+        }
+    }
     var announcement by remember{mutableStateOf("")}
     var selectedSeat by remember{mutableIntStateOf(0)}
     var showSeatSheet by remember{mutableStateOf(false)}
@@ -319,9 +333,9 @@ fun RoomPage(
                     }
                 } else NativeMessage(message)
             }}
-            if(showChat) Row(Modifier.fillMaxWidth().navigationBarsPadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Image,null,tint=Color(0xFF737373),modifier=Modifier.size(25.dp))}
-                androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
+            if(showChat) Row(Modifier.fillMaxWidth().imePadding().navigationBarsPadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(25.dp))}
+                androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).focusRequester(chatFocusRequester).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
                 IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(25.dp))}
             }
             Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=6.dp).height(40.dp),verticalAlignment=Alignment.CenterVertically){
