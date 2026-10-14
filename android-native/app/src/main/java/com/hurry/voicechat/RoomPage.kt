@@ -601,9 +601,32 @@ fun RoomPage(
 }
 
 @Composable private fun NativeMessage(m:NativeRoomMessage){
-    Row(Modifier.fillMaxWidth().padding(vertical=2.dp),verticalAlignment=Alignment.CenterVertically){
-        AsyncImage(model=m.senderImage,contentDescription=null,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-        Column(Modifier.padding(start=6.dp)){Text(m.sender,color=Color.White.copy(.7f),fontSize=11.sp);Text(m.text,color=Color.White,fontSize=13.sp)}
+    Row(
+        Modifier.fillMaxWidth().padding(vertical=0.dp),
+        verticalAlignment=Alignment.Top,
+        horizontalArrangement=Arrangement.Start
+    ){
+        AsyncImage(
+            model=m.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},
+            contentDescription=m.sender,
+            modifier=Modifier.padding(top=2.dp).size(26.dp).clip(CircleShape),
+            contentScale=ContentScale.Crop
+        )
+        Column(
+            Modifier.padding(start=8.dp).fillMaxWidth(.75f),
+            verticalArrangement=Arrangement.spacedBy(2.dp)
+        ){
+            Text(m.sender,color=Color.White.copy(alpha=.9f),fontSize=11.sp,lineHeight=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+            Box(
+                Modifier.align(Alignment.Start)
+                    .clip(RoundedCornerShape(topStart=2.dp,topEnd=12.dp,bottomStart=12.dp,bottomEnd=12.dp))
+                    .background(Color.Black.copy(alpha=.30f))
+                    .border(0.5.dp,Color.White.copy(alpha=.08f),RoundedCornerShape(topStart=2.dp,topEnd=12.dp,bottomStart=12.dp,bottomEnd=12.dp))
+                    .padding(horizontal=8.dp,vertical=6.dp)
+            ){
+                Text(m.text,color=Color.White,fontSize=13.sp,lineHeight=16.sp,softWrap=true)
+            }
+        }
     }
 }
 
