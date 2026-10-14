@@ -38,6 +38,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
@@ -252,6 +253,31 @@ private fun HurryNativeRoot() {
                                             .putString("mine_room_account_id", it.accountId)
                                             .apply()
                                         mineCreatedRoom = it
+                                        roomCreateScope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                runCatching {
+                                                    val payload = JSONObject()
+                                                        .put("roomId", it.id)
+                                                        .put("id", it.id)
+                                                        .put("roomName", it.name)
+                                                        .put("roomDp", it.image)
+                                                        .put("country", it.country)
+                                                        .put("roomAdmin", it.accountId)
+                                                        .put("message", it.name + "'s Room Notice")
+                                                        .put("theme", "default")
+                                                    val connection = (URL("https://hurry-voice-chat-lz75.onrender.com/api/rooms").openConnection() as HttpURLConnection).apply {
+                                                        requestMethod = "PUT"
+                                                        connectTimeout = 10000
+                                                        readTimeout = 10000
+                                                        doOutput = true
+                                                        setRequestProperty("Content-Type", "application/json")
+                                                    }
+                                                    connection.outputStream.use { output -> output.write(payload.toString().toByteArray(Charsets.UTF_8)) }
+                                                    runCatching { connection.inputStream.close() }
+                                                    connection.disconnect()
+                                                }
+                                            }
+                                        }
                                     }
                                     openedRoom = room
                                 },
