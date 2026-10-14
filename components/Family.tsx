@@ -19,11 +19,8 @@ interface FamilyProps {
 }
 
 // Helper Component for Reward Items
-const RewardItem = ({ title, onClick }: { title: string, onClick?: () => void }) => (
-  <div 
-    className={`flex flex-col items-center w-[28%] ${onClick ? 'cursor-pointer active:scale-95 transition-transform' : ''}`}
-    onClick={onClick}
-  >
+const RewardItem = ({ title }: { title: string }) => (
+  <div className="flex flex-col items-center w-[28%]">
     <div className="w-full aspect-square bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] relative">
       {/* Andar ki image hata di hai */}
     </div>
@@ -490,7 +487,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196572-background (1).mp4" onClick={() => setActiveVideoModal({src: '/1000196572-background (1).mp4', type: 'black'})} />
-              <RewardItem title="Top1 Tag *7 days" onClick={() => setActiveVideoModal({src: '/1000196572-background (1).mp4', type: 'black'})} />
+              <RewardItem title="Top1 Tag *7 days" />
               <VehicleRewardItem 
                 title="Vehicle *7 days" 
                 imageSrc="/IMG_20260918_141104.jpg" 
@@ -499,7 +496,7 @@ export default function Family({ onBack }: FamilyProps) {
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
-              <RewardItem title="Family Frame *7 d" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
               <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0043.jpg" />
@@ -516,7 +513,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196573-background (1).mp4" onClick={() => setActiveVideoModal({src: '/1000196573-background (1).mp4', type: 'black'})} />
-              <RewardItem title="Top2 Tag *7 days" onClick={() => setActiveVideoModal({src: '/1000196573-background (1).mp4', type: 'black'})} />
+              <RewardItem title="Top2 Tag *7 days" />
               <VehicleRewardItem 
                 title="Vehicle *7 days" 
                 imageSrc="/IMG_20260919_010054.jpg" 
@@ -525,7 +522,7 @@ export default function Family({ onBack }: FamilyProps) {
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
-              <RewardItem title="Family Frame *7 d" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
               <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0045.jpg" />
@@ -542,7 +539,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-6 flex flex-col gap-6 shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <VideoRewardItem title="Medal *7 days" videoSrc="/1000196574-background (1).mp4" blendScreen={false} onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black-noblend'})} />
-              <RewardItem title="Top3 Tag *7 days" onClick={() => setActiveVideoModal({src: '/1000196574-background (1).mp4', type: 'black-noblend'})} />
+              <RewardItem title="Top3 Tag *7 days" />
               <MixedImageRewardItem 
                 title="Vehicle *7 days" 
                 imageSrc="/IMG_20260919_222412.jpg" 
@@ -551,7 +548,7 @@ export default function Family({ onBack }: FamilyProps) {
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
               <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend'})} />
-              <RewardItem title="Family Frame *7 d" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend'})} />
+              <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
               <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" />
@@ -567,7 +564,7 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
-              <RewardItem title="Medal *3 days" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              <RewardItem title="Medal *3 days" />
               <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
               <MixedImageRewardItem 
                 title="Vehicle *3 days" 
@@ -584,9 +581,6 @@ export default function Family({ onBack }: FamilyProps) {
             className="fixed inset-0 w-full h-full bg-transparent z-50 flex cursor-pointer"
             onClick={() => setActiveVideoModal(null)}
           >
-            {/* ⭐ BACKGROUND BLUR OVERLAY (HALKA BLUR - BACKGROUND DIKHEGA) */}
-            <div className="absolute inset-0 backdrop-blur-[2px] bg-black/10" />
-
             {activeVideoModal.type === 'vehicle' ? (
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
