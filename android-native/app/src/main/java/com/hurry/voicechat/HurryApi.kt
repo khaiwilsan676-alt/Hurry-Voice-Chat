@@ -14,7 +14,7 @@ data class RoomSyncResult(val rooms: List<HurryRoom>, val serverTime: Long)
 object HurryApi {
     suspend fun roomsUpdatedSince(sinceUpdatedAt: Long): RoomSyncResult? = withContext(Dispatchers.IO) {
         runCatching {
-            val endpoint = "$API_BASE/api/rooms" + if (sinceUpdatedAt > 0L) "?sinceUpdatedAt=$sinceUpdatedAt" else ""
+            val endpoint = "$API_BASE/api/rooms?sinceUpdatedAt=$sinceUpdatedAt"
             val c = URL(endpoint).openConnection() as HttpURLConnection
             c.requestMethod = "GET"
             c.connectTimeout = 12000
