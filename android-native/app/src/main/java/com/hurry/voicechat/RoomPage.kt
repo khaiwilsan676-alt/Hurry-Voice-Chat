@@ -209,6 +209,7 @@ fun RoomPage(
                 }
             }
         }
+        var joinMessageSent = false
         val connectListener = Emitter.Listener {
             val joinPayload = JSONObject()
                 .put("roomId",roomId)
@@ -218,6 +219,32 @@ fun RoomPage(
                 .put("name",currentUser.name)
                 .put("dp",currentUser.image)
             roomSocket.emit("room_join",joinPayload)
+            if (!joinMessageSent && accountId != "guest") {
+                joinMessageSent = true
+                val joinCreatedAt = System.currentTimeMillis()
+                val joinId = "$accountId-$joinCreatedAt"
+                val joinName = currentUser.name.ifBlank { "User" }
+                val joinImage = currentUser.image.ifBlank { "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png" }
+                val joinMessage = JSONObject()
+                    .put("id",joinId)
+                    .put("roomId",roomId)
+                    .put("senderId",accountId)
+                    .put("senderAccountId",accountId)
+                    .put("senderName",joinName)
+                    .put("senderAvatar",joinImage)
+                    .put("text","Enter the Room")
+                    .put("type","join")
+                    .put("createdAt",joinCreatedAt)
+                val nativeJoin = NativeRoomMessage(joinId,"Enter the Room",joinName,joinImage,accountId,joinCreatedAt,"join")
+                mainHandler.post {
+                    if (messages.none { it.id == joinId }) messages.add(nativeJoin)
+                    if (entryToasts.none { it.id == joinId }) {
+                        entryToasts.add(NativeEntryToast(joinId,joinName,joinImage))
+                        mainHandler.postDelayed({ entryToasts.removeAll { it.id == joinId } },4000)
+                    }
+                }
+                roomSocket.emit("room_message",joinMessage)
+            }
             roomSocket.emit("room_presence_request",JSONObject().put("roomId",roomId))
             roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
         }
