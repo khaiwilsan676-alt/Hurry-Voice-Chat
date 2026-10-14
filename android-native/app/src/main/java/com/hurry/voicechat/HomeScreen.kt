@@ -638,7 +638,7 @@ private fun HurryCategoryCard(
         )
         Text(
             text = label.uppercase(),
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             fontSize = 11.sp,
             fontWeight = FontWeight.Black,
@@ -653,7 +653,7 @@ private fun HurryCategoryCard(
             AsyncImage(
                 model = CARD_FRAME,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight().offset(y = (-3).dp),
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
                 contentScale = ContentScale.FillWidth
             )
             Row(
@@ -661,7 +661,7 @@ private fun HurryCategoryCard(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(.68f)
                     .height(30.dp)
-                    .offset(y = (-4).dp),
+                    .offset(y = (-1).dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
