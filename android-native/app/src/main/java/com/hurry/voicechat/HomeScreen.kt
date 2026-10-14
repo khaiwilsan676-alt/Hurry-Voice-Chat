@@ -158,6 +158,8 @@ fun HomeScreen(
     onLeaderboard: (String) -> Unit = {},
     onInviteFriends: () -> Unit = {},
     onSearch: () -> Unit = {},
+    onCreateMineRoom: () -> Unit = {},
+    mineCreatedRoom: HurryRoom? = null,
     mineSelected: Boolean = false
 ) {
     val mine = mineSelected
@@ -233,7 +235,7 @@ fun HomeScreen(
     }
 
     if (mine) {
-        MineNativePage(onBack = onPopular)
+        MineNativePage(onBack = onPopular, createdRoom = mineCreatedRoom, onCreateRoom = onCreateMineRoom)
         return
     }
 
