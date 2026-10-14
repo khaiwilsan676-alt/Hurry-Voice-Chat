@@ -38,11 +38,9 @@ fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
 @Composable
 fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier.size(30.dp)) {
-        val w = size.width
-        val h = size.height
         val s = size.minDimension / 36f
-        val c = if (active) HurryBlue else Color(0xFF1D1D1F)
-        val p = Path().apply {
+        val outline = if (active) HurryBlue else Color(0xFF1D1D1F)
+        val bubble = Path().apply {
             moveTo(6f*s, 10.5f*s)
             cubicTo(6f*s, 7f*s, 8.3f*s, 5f*s, 12.2f*s, 5f*s)
             lineTo(23.8f*s, 5f*s)
@@ -56,15 +54,18 @@ fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
             cubicTo(8.3f*s, 22f*s, 6f*s, 20f*s, 6f*s, 16.5f*s)
             close()
         }
-        drawPath(p, c, style = Stroke(width = 2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
-        val detail = if (active) HurryBlue else Color(0xFF1D1D1F)
+        if (active) {
+            drawPath(bubble, HurryBlue)
+        } else {
+            drawPath(bubble, outline, style = Stroke(width = 2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        }
         drawPath(
             Path().apply {
                 moveTo(12f*s, 14.5f*s)
                 cubicTo(13.5f*s, 12.5f*s, 15.5f*s, 14.5f*s, 19.5f*s, 12.5f*s)
                 cubicTo(21.5f*s, 14.5f*s, 24f*s, 14.5f*s, 24f*s, 14.5f*s)
             },
-            detail,
+            if (active) Color.White else outline,
             style = Stroke(width = 1.8f*s, cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
     }
