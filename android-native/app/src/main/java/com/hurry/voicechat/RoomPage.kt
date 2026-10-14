@@ -238,7 +238,7 @@ fun RoomPage(
             GreenColorRemovalImage(
                 imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
                 contentDescription="Room trophy",
-                modifier=Modifier.size(18.dp),
+                modifier=Modifier.size(20.dp),
                 contentScale=ContentScale.Fit,
                 threshold=0.5f
             )
