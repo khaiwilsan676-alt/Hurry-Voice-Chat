@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
 @Composable
-fun MineNativePage(onBack: () -> Unit) {
+fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateRoom: () -> Unit = {}) {
     var recent by remember { mutableStateOf(false) }
     val card = Modifier.fillMaxWidth().height(112.dp)
     LazyColumn(
@@ -54,15 +54,19 @@ fun MineNativePage(onBack: () -> Unit) {
             Spacer(Modifier.height(6.dp))
             Box(card.padding(horizontal = 12.dp).clip(RoundedCornerShape(6.dp)).background(
                 Brush.linearGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2)))
-            )) {
+            ).clickable { onCreateRoom() }) {
                 Row(Modifier.fillMaxSize().padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(56.dp).background(Color.White.copy(alpha=.2f), RoundedCornerShape(50)), contentAlignment=Alignment.Center) {
-                        Text("+", color=Color.White, fontSize=32.sp)
+                    Box(Modifier.size(56.dp).clip(RoundedCornerShape(50)).background(Color.White.copy(alpha=.2f)), contentAlignment=Alignment.Center) {
+                        if (createdRoom == null) {
+                            Text("+", color=Color.White, fontSize=32.sp)
+                        } else {
+                            AsyncImage(model=createdRoom.image, contentDescription=null, modifier=Modifier.fillMaxSize().clip(RoundedCornerShape(50)))
+                        }
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
-                        Text("Embark Your Zyora Journey!", color=Color.White, fontSize=16.sp, maxLines=1, softWrap=false)
-                        Text("Tap to create your room", color=Color.White.copy(alpha=.8f), fontSize=14.sp)
+                        Text(createdRoom?.name ?: "Embark Your Zyora Journey!", color=Color.White, fontSize=16.sp, maxLines=1, softWrap=false)
+                        Text(if (createdRoom == null) "Tap to create your room" else "Tap to enter your room", color=Color.White.copy(alpha=.8f), fontSize=14.sp)
                     }
                 }
             }
