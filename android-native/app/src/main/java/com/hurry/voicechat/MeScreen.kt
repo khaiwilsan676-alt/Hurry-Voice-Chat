@@ -58,7 +58,7 @@ fun MeScreen(onOpen: (String) -> Unit = {}, onPublicProfile: (RoomProfileUser) -
                         listOf(Color(0xFF2563EB), Color(0xFFEFF6FF), Color(0xFFF1F1F1)),
                         startY = 0f, endY = 620f
                     )
-                ).padding(top = 40.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                ).padding(top = 36.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
                     Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
