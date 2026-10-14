@@ -505,8 +505,8 @@ fun RoomPage(
 }
 
 @Composable private fun RoomFooterButton(onClick:()->Unit,description:String,icon:Int){
-    Box(Modifier.size(36.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
-        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(when(description){"Say Hi Chat"->25.dp;"Microphone"->26.dp;"Emoji"->23.dp;"Message Box Menu"->24.dp;"Apps Menu"->23.dp;else->21.dp}))
+    Box(Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
+        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(when(description){"Say Hi Chat"->26.dp;"Microphone"->27.dp;"Emoji"->24.dp;"Message Box Menu"->25.dp;"Apps Menu"->24.dp;else->22.dp}))
     }
 }
 
