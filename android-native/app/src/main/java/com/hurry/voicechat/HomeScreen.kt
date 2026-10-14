@@ -653,7 +653,7 @@ private fun HurryCategoryCard(
             AsyncImage(
                 model = CARD_FRAME,
                 contentDescription = null,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                modifier = Modifier.fillMaxWidth().wrapContentHeight().offset(y = (-3).dp),
                 contentScale = ContentScale.FillWidth
             )
             Row(
@@ -661,7 +661,7 @@ private fun HurryCategoryCard(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth(.68f)
                     .height(30.dp)
-                    .offset(y = (-1).dp),
+                    .offset(y = (-4).dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
