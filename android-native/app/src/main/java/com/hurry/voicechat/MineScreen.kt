@@ -51,7 +51,7 @@ fun MineNativePage(onBack: () -> Unit) {
             }
         }
         item {
-            Spacer(Modifier.height(5.dp))
+            Spacer(Modifier.height(10.dp))
             Box(card.padding(horizontal = 12.dp).clip(RoundedCornerShape(6.dp)).background(
                 Brush.linearGradient(listOf(Color(0xFF667EEA), Color(0xFF764BA2)))
             )) {
@@ -61,7 +61,6 @@ fun MineNativePage(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.width(16.dp))
                     Column {
-                        Text("Embark Your Zaho Journey!", color=Color.White, fontSize=20.sp, maxLines=1, softWrap=false)
                         Text("Tap to create your room", color=Color.White.copy(alpha=.8f), fontSize=14.sp)
                     }
                 }
