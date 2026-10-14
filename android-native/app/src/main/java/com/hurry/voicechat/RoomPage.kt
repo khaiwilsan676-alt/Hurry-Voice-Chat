@@ -292,7 +292,7 @@ fun RoomPage(
                 }
             }
 
-            Column(Modifier.fillMaxWidth().padding(start=10.dp,top=8.dp,end=82.dp,bottom=4.dp)) {
+            Column(Modifier.fillMaxWidth().padding(start=10.dp,top=16.dp,end=82.dp,bottom=4.dp)) {
                 Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
                     Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
                     if(announcement.isNotBlank()) {
@@ -388,7 +388,7 @@ fun RoomPage(
         ) {
             entryToasts.toList().forEach { toast ->
                 Row(
-                    Modifier.widthIn(min=230.dp).clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=50.dp,bottomEnd=50.dp))
+                    Modifier.widthIn(min=230.dp).clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
                         .background(Brush.horizontalGradient(listOf(Color(0xF52563EB),Color(0xF52563EB),Color.Transparent)))
                         .padding(start=6.dp,end=48.dp,top=4.dp,bottom=4.dp),
                     verticalAlignment=Alignment.CenterVertically,
