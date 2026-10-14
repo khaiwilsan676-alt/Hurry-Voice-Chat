@@ -39,7 +39,7 @@ fun HurryHomeIcon(active: Boolean, modifier: Modifier = Modifier) {
 fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
     Canvas(modifier.size(30.dp)) {
         val s = size.minDimension / 36f
-        val outline = if (active) HurryBlue else Color(0xFF1D1D1F)
+        val outline = Color(0xFF1D1D1F)
         val bubble = Path().apply {
             moveTo(6f*s, 10.5f*s)
             cubicTo(6f*s, 7f*s, 8.3f*s, 5f*s, 12.2f*s, 5f*s)
