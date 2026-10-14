@@ -638,7 +638,7 @@ private fun HurryCategoryCard(
         )
         Text(
             text = label.uppercase(),
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             fontSize = 11.sp,
             fontWeight = FontWeight.Black,
