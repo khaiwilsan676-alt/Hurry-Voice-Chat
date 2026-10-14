@@ -246,7 +246,7 @@ fun HomeScreen(
     }
 
     if (mine) {
-        MineNativePage(onBack = onPopular, createdRoom = mineCreatedRoom, onCreateRoom = onCreateMineRoom)
+        MineNativePage(onBack = onPopular, createdRoom = mineCreatedRoom, onCreateRoom = onCreateMineRoom, onSearch = onSearch)
         return
     }
 
