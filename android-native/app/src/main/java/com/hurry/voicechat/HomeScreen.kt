@@ -308,7 +308,9 @@ fun HomeScreen(
                 Spacer(Modifier.weight(1f))
                 Box(Modifier.clickable { onSearch() }) { HurrySearchIcon() }
                 Spacer(Modifier.width(10.dp))
-                HurryHouseIcon()
+                Box(Modifier.clickable { onCreateMineRoom() }) {
+                    HurryHouseIcon()
+                }
                 Spacer(Modifier.width(2.dp))
             }
         }
