@@ -101,6 +101,7 @@ fun RoomPage(
     var speaker by remember{mutableStateOf(true)}
     var locked by remember{mutableStateOf(false)}
     var showChat by remember{mutableStateOf(false)}
+    var showMessageSheet by remember{mutableStateOf(false)}
     var showMenu by remember{mutableStateOf(false)}
     var showExitMenu by remember{mutableStateOf(false)}
     var showInfo by remember{mutableStateOf(false)}
@@ -334,7 +335,7 @@ fun RoomPage(
                     GreenRemovedCupImage(url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",modifier=Modifier.size(46.dp).clickable{showGift=true})
                 }
                 Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp,Alignment.End)){
-                    RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
+                    RoomFooterButton(onClick={showMessageSheet=true},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
                     RoomFooterButton(onClick={showMenu=true},description="Apps Menu",icon=R.drawable.ic_hurry_apps)
                 }
             }
@@ -474,6 +475,19 @@ fun RoomPage(
         }
         if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true && !showSeatSheet) {
             MemberSheet(seats.first{it.number==selectedSeat}){selectedSeat=0}
+        }
+        if(showMessageSheet) {
+            val screenHeight = LocalConfiguration.current.screenHeightDp
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{showMessageSheet=false},contentAlignment=Alignment.BottomCenter) {
+                Surface(
+                    modifier=Modifier.fillMaxWidth().height((screenHeight * .60f).dp).clickable(enabled=false) {},
+                    color=Color.White,
+                    shape=RoundedCornerShape(topStart=15.dp,topEnd=15.dp),
+                    shadowElevation=16.dp
+                ) {
+                    MessageScreen(onChat={ _, _, _ -> showMessageSheet=false })
+                }
+            }
         }
     }
 }
