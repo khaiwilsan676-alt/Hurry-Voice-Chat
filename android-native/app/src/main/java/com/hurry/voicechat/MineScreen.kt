@@ -74,7 +74,7 @@ fun MineNativePage(onBack: () -> Unit) {
         }
         item {
             Column(Modifier.fillMaxWidth().padding(top=24.dp), horizontalAlignment=Alignment.CenterHorizontally) {
-                AsyncImage("https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000047308211a02722299d1fda2e.png", null, Modifier.size(160.dp))
+                AsyncImage("https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000047308211a02722299d1fda2e.png", null, Modifier.size(120.dp))
                 Text("No data", color=Color(0xFF9CA3AF), fontSize=14.sp)
             }
         }
