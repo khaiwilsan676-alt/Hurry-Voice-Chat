@@ -42,7 +42,7 @@ import java.net.URL
 private const val HURRY_FIREBASE_API_KEY = "AIzaSyBNTxdeuqc3F7R4eyjmwdQqQ2YWv9-9yv4"
 private const val HURRY_API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
 private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20260804_011114_027_bsl.mp4"
-private const val HURRY_LOGO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/logo.png"
+private const val HURRY_LOGO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/image_20261014_125545-iss-logo-ko-dekh-yr-iski-body-position-dekh-or-han-right-wale-hand-lion-ke-fol.jpg"
 
 @Composable
 fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
