@@ -255,7 +255,7 @@ fun RoomPage(
                         Text(roomCountryFlag(roomOwner.country),color=Color.White,fontSize=12.sp,maxLines=1)
                         if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) Box(Modifier.size(22.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{followed=!followed;onFollowToggle(roomId,followed)},contentAlignment=Alignment.Center){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(14.dp))}
                     }
-                    Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1)
+                    Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1,modifier=Modifier.offset(y=(-2).dp))
                 }
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
                     Row(
