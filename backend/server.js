@@ -530,6 +530,7 @@ app.put("/api/rooms", async (req, res) => {
       message: data.message || data.announcement || "",
       theme: data.theme || "default",
       micMode: data.micMode !== undefined ? Number(data.micMode) : 15,
+      micMode: data.micMode !== undefined ? Number(data.micMode) : 15,
       isLocked: Boolean(data.isLocked),
       roomPassword: data.roomPassword || null,
       updatedAt: Date.now()
@@ -1184,7 +1185,7 @@ io.on("connection", (socket) => {
     }
   );
 
-  socket.on("coin_transfer", ({ roomId, senderId, recipientIds, amount, giftName, giftImage, giftType, transferId, luckyGift, senderName, senderImage, recipientName, recipientImage, multiplier } = {}) => {
+  socket.on("coin_transfer", async ({ roomId, senderId, recipientIds, amount, giftName, giftImage, giftType, transferId, luckyGift, senderName, senderImage, recipientName, recipientImage, multiplier } = {}) => {
     const room = String(roomId || "");
     const sender = String(senderId || "");
     const value = Number(amount);
@@ -1310,7 +1311,31 @@ io.on("connection", (socket) => {
       timestamp: Date.now(),
     };
 
+
+    if (db) {
+      try {
+        const wallets = db.collection("wallets");
+        // Deduct coins from sender
+        await wallets.updateOne(
+          { accountId: sender },
+          { $inc: { coins: -(value * validRecipients.length) }, $setOnInsert: { diamonds: 0 } },
+          { upsert: true }
+        );
+        // Add diamonds to receivers
+        for (const recipientId of validRecipients) {
+          await wallets.updateOne(
+            { accountId: recipientId },
+            { $inc: { diamonds: diamondAmount }, $setOnInsert: { coins: 0 } },
+            { upsert: true }
+          );
+        }
+      } catch (err) {
+        console.error("Failed to update wallet in DB", err);
+      }
+    }
+
     // Deliver the same transfer to the room. Each client credits only when its
+
     // own accountId/userId is one of the selected recipientIds.
     io.to(`room:${room}`).emit("coin_transfer_received", transferPayload);
   });

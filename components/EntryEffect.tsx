@@ -188,16 +188,6 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center overflow-hidden">
-      <svg style={{ width: 0, height: 0, position: 'absolute' }} aria-hidden="true">
-        <filter id="remove-green" colorInterpolationFilters="sRGB">
-          <feColorMatrix type="matrix" values="
-            1 0 0 0 0
-            0 1 0 0 0
-            0 0 1 0 0
-            1.5 -2.5 1.5 1 0
-          " />
-        </filter>
-      </svg>
       <video
         ref={videoRef}
         src={src}
@@ -210,7 +200,7 @@ export default function EntryEffect({ vehicleUrl, userName, onComplete }: EntryE
         preload="auto"
         aria-hidden="true"
         className={`max-w-[100vw] max-h-[100vh] w-auto h-auto object-contain pointer-events-none transition-opacity duration-75 mix-blend-screen ${visible ? "opacity-100" : "opacity-0"}`}
-        style={{ filter: 'url(#remove-green)' }}
+
       />
     </div>
   );
