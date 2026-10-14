@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.layout.Row
@@ -163,6 +164,20 @@ private fun HurryLaunchScreen() {
 }
 @Composable
 private fun HurryNativeRoot() {
+    val context = LocalContext.current
+    val authPrefs = remember { context.getSharedPreferences("hurry_auth", MODE_PRIVATE) }
+    val userId = remember { authPrefs.getString("uid", "").orEmpty() }
+    var mineCreatedRoom by remember {
+        mutableStateOf(
+            if (authPrefs.getBoolean("mine_room_created", false)) HurryRoom(
+                id = authPrefs.getString("mine_room_id", userId).orEmpty(),
+                name = authPrefs.getString("mine_room_name", "Room").orEmpty(),
+                image = authPrefs.getString("mine_room_image", "").orEmpty(),
+                country = authPrefs.getString("mine_room_country", "🇮🇳").orEmpty(),
+                accountId = authPrefs.getString("mine_room_account_id", userId).orEmpty()
+            ) else null
+        )
+    }
     var tab by remember { mutableStateOf(HurryTab.HOME) }
     var homeMine by remember { mutableStateOf(false) }
     var openedRoom by remember { mutableStateOf<HurryRoom?>(null) }
@@ -198,7 +213,7 @@ private fun HurryNativeRoot() {
                         image = openedRoom!!.image,
                         country = openedRoom!!.country
                     ),
-                    currentUser = RoomPageCurrentUser(),
+                    currentUser = RoomPageCurrentUser(id = userId, uid = userId, accountId = authPrefs.getString("accountId", userId).orEmpty(), name = authPrefs.getString("name", "User").orEmpty(), image = authPrefs.getString("image", "").orEmpty()),
                     onBack = { openedRoom = null },
                     onClose = { openedRoom = null }
                 )
@@ -220,6 +235,27 @@ private fun HurryNativeRoot() {
                                 onLeaderboard = { openedLeaderboard = it },
                                 onInviteFriends = { openedInvite = true },
                                 onSearch = { openedSearch = true },
+                                onCreateMineRoom = {
+                                    val room = mineCreatedRoom ?: HurryRoom(
+                                        id = userId.ifBlank { "mine-room" },
+                                        name = "Room",
+                                        image = authPrefs.getString("image", "").orEmpty().ifBlank { "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png" },
+                                        country = authPrefs.getString("country", "🇮🇳").orEmpty(),
+                                        accountId = authPrefs.getString("accountId", userId).orEmpty().ifBlank { userId }
+                                    ).also {
+                                        authPrefs.edit()
+                                            .putBoolean("mine_room_created", true)
+                                            .putString("mine_room_id", it.id)
+                                            .putString("mine_room_name", it.name)
+                                            .putString("mine_room_image", it.image)
+                                            .putString("mine_room_country", it.country)
+                                            .putString("mine_room_account_id", it.accountId)
+                                            .apply()
+                                        mineCreatedRoom = it
+                                    }
+                                    openedRoom = room
+                                },
+                                mineCreatedRoom = mineCreatedRoom,
                                 mineSelected = homeMine
                             )
                             HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
