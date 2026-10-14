@@ -44,6 +44,7 @@ private const val HURRY_API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
 private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20260804_011114_027_bsl.mp4"
 private const val HURRY_LOGO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/image_20261014_125545-iss-logo-ko-dekh-yr-iski-body-position-dekh-or-han-right-wale-hand-lion-ke-fol.jpg"
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
     val context = LocalContext.current
