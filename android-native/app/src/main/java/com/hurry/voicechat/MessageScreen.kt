@@ -209,7 +209,7 @@ fun NativeChatScreen(
             Row(
                 Modifier.fillMaxWidth()
                     .background(Brush.verticalGradient(listOf(Color(0xFF3B82F6), Color(0xFFF0F2F5))))
-                    .padding(top = (4f * LocalConfiguration.current.screenHeightDp / 100f).dp, start = 8.dp, end = 8.dp, bottom = 12.dp),
+                    .padding(top = (5f * LocalConfiguration.current.screenHeightDp / 100f).dp, start = 8.dp, end = 8.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
@@ -285,7 +285,7 @@ fun NativeChatScreen(
                                     RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp)
                                 else
                                     RoundedCornerShape(18.dp, 18.dp, 18.dp, 4.dp),
-                                shadowElevation = if (mine) 0.dp else 1.dp
+                                shadowElevation = 0.dp
                             ) {
                                 Column(Modifier.widthIn(max = 290.dp).padding(horizontal = 13.dp, vertical = 9.dp)) {
                                     if (replyText != null && mine) {
