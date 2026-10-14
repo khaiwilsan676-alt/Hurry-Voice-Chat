@@ -72,15 +72,15 @@ fun SearchPage(onBack:()->Unit={},onOpenProfile:(RoomProfileUser)->Unit={}) {
    searching=false
   }
  }
- Column(Modifier.fillMaxSize().background(Color(0xFFFAFAFC))) {
-  Row(Modifier.fillMaxWidth().background(Color.White).statusBarsPadding().padding(start=8.dp,end=14.dp,top=7.dp,bottom=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+ Column(Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
+  Row(Modifier.fillMaxWidth().background(Color(0xFFF0F2F5)).statusBarsPadding().padding(start=8.dp,end=14.dp,top=7.dp,bottom=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
    IconButton(onClick=onBack,modifier=Modifier.size(40.dp)){Icon(Icons.AutoMirrored.Filled.ArrowBack,contentDescription="Back",tint=Color(0xFF2D2D2D))}
-   Row(Modifier.weight(1f).clip(CircleShape).background(Brush.horizontalGradient(listOf(Color(0xFFEFF0F2),Color(0xFFEAF2FF)))).padding(horizontal=12.dp),verticalAlignment=Alignment.CenterVertically) {
-    TextField(query,{query=it},modifier=Modifier.weight(1f),placeholder={Text("Search by ID or name...",fontSize=13.sp,color=Color(0xFF9CA3AF))},singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(fontSize=14.sp,fontWeight=FontWeight.SemiBold,color=Color(0xFF1F2937)),colors=TextFieldDefaults.colors(focusedContainerColor=Color.Transparent,unfocusedContainerColor=Color.Transparent,focusedIndicatorColor=Color.Transparent,unfocusedIndicatorColor=Color.Transparent,cursorColor=Color(0xFF2563EB)))
+   Row(Modifier.weight(1f).clip(CircleShape).background(Color(0xFFE5E7EB)).padding(horizontal=8.dp),verticalAlignment=Alignment.CenterVertically) {
+    TextField(query,{query=it},modifier=Modifier.weight(1f).height(42.dp),placeholder={Text("Search by ID or name...",fontSize=13.sp,color=Color(0xFF9CA3AF))},singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(fontSize=14.sp,fontWeight=FontWeight.SemiBold,color=Color(0xFF1F2937)),colors=TextFieldDefaults.colors(focusedContainerColor=Color.Transparent,unfocusedContainerColor=Color.Transparent,focusedIndicatorColor=Color.Transparent,unfocusedIndicatorColor=Color.Transparent,cursorColor=Color(0xFF2563EB)))
    }
    Box(Modifier.size(42.dp).clip(CircleShape).background(Brush.linearGradient(listOf(Color(0xFF3B82F6),Color(0xFF4F46E5)))).clickable{search()},contentAlignment=Alignment.Center){Icon(Icons.Default.Search,contentDescription="Search",tint=Color.White,modifier=Modifier.size(21.dp))}
   }
-  Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal=16.dp)) {
+  Row(Modifier.fillMaxWidth().background(Color(0xFFF0F2F5)).padding(horizontal=16.dp)) {
    listOf("User","Room").forEach { label -> Column(Modifier.width(88.dp).clickable{tab=label}.padding(vertical=12.dp),horizontalAlignment=Alignment.CenterHorizontally) {
     Text(label,fontSize=14.sp,fontWeight=FontWeight.Bold,color=if(tab==label)Color(0xFF2563EB) else Color(0xFF9CA3AF))
     Spacer(Modifier.height(9.dp)); Box(Modifier.fillMaxWidth().height(2.dp).clip(RoundedCornerShape(2.dp)).background(if(tab==label)Color(0xFF2563EB) else Color.Transparent))
