@@ -426,6 +426,7 @@ app.get("/api/rooms", async (req, res) => {
     }
 
     const roomId = req.query.roomId;
+    const sinceUpdatedAt = Math.max(0, Number(req.query.sinceUpdatedAt) || 0);
     if (roomId) {
       const room = await db.collection("rooms").findOne({
         $or: [
@@ -452,7 +453,8 @@ app.get("/api/rooms", async (req, res) => {
     // Redis keeps the frequently requested room-card payload warm; MongoDB
     // remains the source of truth and Redis failures never block the API.
     const roomCacheKey = "rooms:list:v1";
-    if (redis) {
+    // Incremental requests bypass the full-list Redis cache.
+    if (sinceUpdatedAt === 0 && redis) {
       try {
         const cachedRooms = await redis.get(roomCacheKey);
         if (cachedRooms) {
@@ -467,8 +469,9 @@ app.get("/api/rooms", async (req, res) => {
       }
     }
 
+    const roomFilter = sinceUpdatedAt > 0 ? { updatedAt: { $gt: sinceUpdatedAt } } : {};
     const rooms = await db.collection("rooms")
-      .find({})
+      .find(roomFilter)
       .sort({ updatedAt: -1, createdAt: -1 })
       .limit(100)
       .toArray();
@@ -490,7 +493,7 @@ app.get("/api/rooms", async (req, res) => {
       catch (cacheError) { console.warn("Room Redis cache write skipped:", cacheError.message); }
     }
     res.set("Cache-Control", "public, max-age=15, stale-while-revalidate=30");
-    return res.json({ rooms: safeRooms });
+    return res.json({ rooms: safeRooms, serverTime: Date.now() });
   } catch (error) {
     console.error("GET /api/rooms error:", error);
     return res.status(500).json({ error: "Failed to fetch rooms" });
