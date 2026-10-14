@@ -48,24 +48,24 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
         )
     }
 
-    Column(Modifier.fillMaxSize().background(Color.White)) {
+    Column(Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
         Box(
             Modifier.fillMaxWidth().background(
                 Brush.verticalGradient(
                     0.0f to Color(0xFF3B82F6),
                     0.65f to Color(0xFFE5E7EB),
-                    1.0f to Color(0xFFFFFFFF)
+                    1.0f to Color(0xFFF0F2F5)
                 )
-            ).statusBarsPadding().padding(top = 11.dp)
+            ).statusBarsPadding().padding(top = 6.dp)
         ) {
             Text(
                 "Message",
-                Modifier.padding(start = 16.dp, top = 16.dp, bottom = 12.dp),
+                Modifier.padding(start = 16.dp, top = 12.dp, bottom = 10.dp),
                 color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
             )
         }
 
-        LazyColumn(Modifier.fillMaxSize().background(Color.White).padding(bottom = 8.dp)) {
+        LazyColumn(Modifier.fillMaxSize().background(Color(0xFFF0F2F5)).padding(bottom = 8.dp)) {
             items(chats) { chat ->
                 MessageRow(chat) { onChat(chat.uid, chat.name, chat.image) }
             }
