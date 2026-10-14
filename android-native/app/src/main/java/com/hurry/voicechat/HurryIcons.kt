@@ -56,9 +56,9 @@ fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
         }
         if (active) {
             drawPath(bubble, HurryBlue)
-        } else {
-            drawPath(bubble, outline, style = Stroke(width = 2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
         }
+        // Keep the same black outline in both states; only the bubble fill turns blue.
+        drawPath(bubble, outline, style = Stroke(width = 2.4f*s, cap = StrokeCap.Round, join = StrokeJoin.Round))
         drawPath(
             Path().apply {
                 moveTo(12f*s, 14.5f*s)
