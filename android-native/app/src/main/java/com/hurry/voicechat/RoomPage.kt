@@ -229,13 +229,11 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         Row(
-            modifier=Modifier.align(Alignment.TopStart).padding(top=38.dp,start=2.dp)
-                .clip(RoundedCornerShape(topEnd=10.dp,bottomEnd=10.dp))
+            modifier=Modifier.align(Alignment.TopStart).padding(top=64.dp,start=0.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
                 .clickable{showInfo=true}
-                .padding(start=10.dp,end=12.dp,top=5.dp,bottom=5.dp),
-            verticalAlignment=Alignment.CenterVertically,
-            horizontalArrangement=Arrangement.spacedBy(5.dp)
+                .padding(start=12.dp,end=12.dp,top=4.dp,bottom=4.dp),
+            verticalAlignment=Alignment.CenterVertically
         ){
             GreenColorRemovalImage(
                 imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
@@ -244,8 +242,9 @@ fun RoomPage(
                 contentScale=ContentScale.Fit,
                 threshold=0.5f
             )
-            Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
-            Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.size(13.dp))
+            Spacer(Modifier.width(6.dp))
+            Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing=0.1.sp)
+            Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.padding(start=4.dp).size(10.dp))
         }
         Column(Modifier.fillMaxSize()){
             Row(Modifier.fillMaxWidth().padding(top=28.dp,start=6.dp,end=6.dp),verticalAlignment=Alignment.CenterVertically){
@@ -331,8 +330,8 @@ fun RoomPage(
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                 }
-                Box(Modifier.size(47.dp),contentAlignment=Alignment.Center){
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(47.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
+                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(40.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                 }
                 Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp,Alignment.End)){
                     RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
