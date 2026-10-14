@@ -331,7 +331,7 @@ fun RoomPage(
                     if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                 }
                 Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(40.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                    GreenRemovedCupImage(url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",modifier=Modifier.size(40.dp).clickable{showGift=true})
                 }
                 Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp,Alignment.End)){
                     RoomFooterButton(onClick={showChat=!showChat},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
@@ -368,12 +368,9 @@ fun RoomPage(
                 Box(Modifier.size(6.dp).clip(CircleShape).background(Color.White))
                 Box(Modifier.size(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.4f)))
             }
-            GreenColorRemovalImage(
-                imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
-                contentDescription="Room task",
-                modifier=Modifier.size(63.dp).clickable { showRoomTask=true },
-                contentScale=ContentScale.Fit,
-                threshold=0.45f
+            GreenRemovedCupImage(
+                url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
+                modifier=Modifier.size(63.dp).clickable { showRoomTask=true }
             )
             AsyncImage(
                 model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000002a8c81fab8232bebeeeb45cc.png",
