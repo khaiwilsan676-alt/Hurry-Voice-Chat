@@ -8,6 +8,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -54,6 +55,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
     var showGoogleSetupMessage by remember { mutableStateOf(false) }
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().background(Color(0xFF111827))) {
         val backgroundPlayer = remember(context) {
@@ -88,7 +90,26 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
             }
         )
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (page == "welcome") .30f else .40f)))
-        if (page == "welcome") {
+        if (showPrivacyPolicy) {
+            Column(
+                Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(horizontal = 22.dp),
+                horizontalAlignment = Alignment.Start
+            ) {
+                Row(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("‹", color = Color(0xFF374151), fontSize = 38.sp, modifier = Modifier.clickable { showPrivacyPolicy = false }.padding(horizontal = 8.dp))
+                    Text("Privacy Policy", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                }
+                Text("Privacy Policy", color = Color(0xFF111827), fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                Text("Last updated: October 14, 2026", color = Color(0xFF6B7280), fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp, bottom = 22.dp))
+                PrivacySection("1. Information We Collect", "We collect information you provide directly to us, including your name, email address, and profile information when you create an account. We also collect information about your use of our services.")
+                PrivacySection("2. How We Use Your Information", "We use the information we collect to provide, maintain, and improve our services, to communicate with you, and to develop new features.")
+                PrivacySection("3. Information Sharing", "We do not sell your personal information. We may share information when necessary to provide our services, comply with legal obligations, or protect users and our service.")
+                PrivacySection("4. Data Security", "We take reasonable measures to protect information associated with your account. No method of electronic storage or transmission is completely secure.")
+                PrivacySection("5. Your Choices", "You may update your account information and contact us regarding privacy-related requests.")
+                PrivacySection("6. Changes to This Policy", "We may update this Privacy Policy from time to time. Changes will be reflected on this page.")
+                Spacer(Modifier.height(30.dp))
+            }
+        } else if (page == "welcome") {
             Column(Modifier.fillMaxSize().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.weight(1f))
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -114,12 +135,27 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB), contentColor = Color.White)
                 ) {
-                    Text("♙", fontSize = 21.sp)
+                    AccountLoginIcon(Modifier.size(22.dp))
                     Spacer(Modifier.width(10.dp))
-                    Text("Login with Account", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Account", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(24.dp))
-                Text("Login means you agree to the Terms of Service, Privacy Policy", color = Color.White.copy(alpha = .85f), fontSize = 12.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(bottom = 18.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 18.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Login means you agree to the ", color = Color.White.copy(alpha = .85f), fontSize = 12.sp)
+                    Text("Terms of Service", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                    Text(", ", color = Color.White.copy(alpha = .85f), fontSize = 12.sp)
+                    Text(
+                        "Privacy Policy",
+                        color = Color(0xFF93C5FD),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable { showPrivacyPolicy = true }
+                    )
+                }
             }
         } else {
             Column(
@@ -303,4 +339,38 @@ private fun authErrorText(raw: String): String = when {
     raw.contains("TOO_MANY_ATTEMPTS_TRY_LATER") -> "Too many attempts. Please try again later."
     raw.contains("OPERATION_NOT_ALLOWED") -> "Email/password sign-in is not enabled for this Firebase project."
     else -> raw
+}
+
+ 
+@Composable
+private fun AccountLoginIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = size.minDimension * .095f)
+        val centerX = size.width / 2f
+        val headRadius = size.minDimension * .19f
+        drawCircle(
+            color = Color.White,
+            radius = headRadius,
+            center = androidx.compose.ui.geometry.Offset(centerX, size.height * .31f),
+            style = stroke
+        )
+        drawArc(
+            color = Color.White,
+            startAngle = 180f,
+            sweepAngle = 180f,
+            useCenter = false,
+            topLeft = androidx.compose.ui.geometry.Offset(size.width * .16f, size.height * .43f),
+            size = androidx.compose.ui.geometry.Size(size.width * .68f, size.height * .50f),
+            style = stroke
+        )
+    }
+}
+
+@Composable
+private fun PrivacySection(title: String, body: String) {
+    Column(Modifier.fillMaxWidth().padding(bottom = 22.dp)) {
+        Text(title, color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(8.dp))
+        Text(body, color = Color(0xFF374151), fontSize = 14.sp, lineHeight = 21.sp)
+    }
 }
