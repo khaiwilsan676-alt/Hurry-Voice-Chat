@@ -114,9 +114,54 @@ fun NativeChatScreen(
     var showOptions by remember { mutableStateOf(false) }
     var showEmojiPicker by remember { mutableStateOf(false) }
     var replyText by remember { mutableStateOf<String?>(null) }
-    val messages = remember { mutableStateListOf<Pair<Boolean, String>>() }
+    val officialIdForCache = when (name) {
+        "Zyora Team" -> "hurry_team_official"
+        "Zyora System" -> "hurry_system_official"
+        else -> null
+    }
+    val cacheKey = "official_chat_cache_${officialIdForCache ?: name}"
+    val messages = remember(name) {
+        mutableStateListOf<Pair<Boolean, String>>().apply {
+            if (officialIdForCache != null) {
+                val cached = prefs.getString(cacheKey, "[]") ?: "[]"
+                runCatching {
+                    val array = org.json.JSONArray(cached)
+                    for (index in 0 until array.length()) {
+                        val entry = array.optJSONObject(index) ?: continue
+                        val value = entry.optString("text")
+                        if (value.isNotBlank()) add(false to value)
+                    }
+                }
+            }
+        }
+    }
 
-    // Receive owner-panel Zyora Team/System broadcasts live and load the saved history.
+    // Persist each official message locally; cached history renders immediately on reopen.
+    fun cacheOfficialMessage(payload: JSONObject, officialId: String) {
+        if (payload.optString("senderId") != officialId) return
+        val value = payload.optString("text").ifBlank {
+            if (payload.optString("type") == "image") "📷 Image" else ""
+        }
+        if (value.isBlank()) return
+        val timestamp = payload.optLong("timestamp", System.currentTimeMillis())
+        val id = payload.optString("id", payload.optString("messageId", ""))
+        val cached = runCatching { org.json.JSONArray(prefs.getString(cacheKey, "[]") ?: "[]") }.getOrDefault(org.json.JSONArray())
+        val duplicate = (0 until cached.length()).any { index ->
+            val entry = cached.optJSONObject(index) ?: return@any false
+            val oldId = entry.optString("id", "")
+            if (id.isNotBlank() && oldId.isNotBlank()) id == oldId
+            else entry.optLong("timestamp") == timestamp && entry.optString("text") == value
+        }
+        if (!duplicate) {
+            cached.put(JSONObject().put("id", id).put("timestamp", timestamp).put("text", value))
+            prefs.edit().putString(cacheKey, cached.toString())
+                .putLong("${cacheKey}_last_timestamp", maxOf(prefs.getLong("${cacheKey}_last_timestamp", 0L), timestamp))
+                .apply()
+            messages.add(false to value)
+        }
+    }
+
+    // Receive owner-panel Zyora Team/System broadcasts live; request only messages newer than local cache.
     DisposableEffect(name) {
         val officialId = when (name) {
             "Zyora Team" -> "hurry_team_official"
@@ -138,18 +183,7 @@ fun NativeChatScreen(
         )
 
         val appendOfficial: (JSONObject) -> Unit = { payload ->
-            val senderId = payload.optString("senderId")
-            if (senderId == officialId) {
-                val messageText = payload.optString("text").ifBlank {
-                    if (payload.optString("type") == "image") "📷 Image" else ""
-                }
-                if (messageText.isNotBlank()) {
-                    mainHandler.post {
-                        val isDuplicate = messages.any { !it.first && it.second == messageText }
-                        if (!isDuplicate) messages.add(false to messageText)
-                    }
-                }
-            }
+            mainHandler.post { cacheOfficialMessage(payload, officialId) }
         }
 
         val liveListener = Emitter.Listener { args ->
@@ -158,26 +192,24 @@ fun NativeChatScreen(
         val historyListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject ?: return@Listener
             val history = payload.optJSONArray("messages") ?: return@Listener
-            val items = mutableListOf<Pair<Long, String>>()
+            val items = mutableListOf<JSONObject>()
             for (index in 0 until history.length()) {
                 val message = history.optJSONObject(index) ?: continue
-                if (message.optString("senderId") != officialId) continue
-                val value = message.optString("text").ifBlank {
-                    if (message.optString("type") == "image") "📷 Image" else ""
-                }
-                if (value.isNotBlank()) items.add(message.optLong("timestamp") to value)
+                if (message.optString("senderId") == officialId) items.add(message)
             }
             mainHandler.post {
-                items.sortedBy { it.first }.forEach { (_, value) ->
-                    if (messages.none { !it.first && it.second == value }) messages.add(false to value)
-                }
+                items.sortedBy { it.optLong("timestamp") }.forEach { cacheOfficialMessage(it, officialId) }
             }
         }
 
         officialSocket.on("official_broadcast_message", liveListener)
         officialSocket.on("official_message_history_response", historyListener)
         officialSocket.on(Socket.EVENT_CONNECT) {
-            officialSocket.emit("official_message_history_request")
+            val lastTimestamp = prefs.getLong("${cacheKey}_last_timestamp", 0L)
+            officialSocket.emit(
+                "official_message_history_request",
+                JSONObject().put("sinceTimestamp", lastTimestamp)
+            )
         }
         officialSocket.connect()
 
