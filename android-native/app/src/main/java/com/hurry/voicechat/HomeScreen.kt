@@ -318,8 +318,8 @@ fun HomeScreen(
                 }
                 Spacer(Modifier.weight(1f))
                 Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { HurrySearchIcon() }
-                Spacer(Modifier.width(10.dp))
-                Box(Modifier.clickable { onCreateMineRoom() }) {
+                Spacer(Modifier.width(5.dp))
+                Box(Modifier.offset(x = 3.dp).clickable { onCreateMineRoom() }) {
                     HurryHouseIcon()
                 }
                 Spacer(Modifier.width(2.dp))
@@ -608,7 +608,7 @@ fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
         model = RAW + "file_000000009aac81faa8564416680aba4e.png",
         contentDescription = null,
-        modifier = Modifier.size(64.dp),
+        modifier = Modifier.size(68.dp),
         contentScale = ContentScale.Fit
     )
 }
