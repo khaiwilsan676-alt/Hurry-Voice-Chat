@@ -237,12 +237,15 @@ private fun HurryNativeRoot() {
                                 onInviteFriends = { openedInvite = true },
                                 onSearch = { openedSearch = true },
                                 onCreateMineRoom = {
+                                    // A room is keyed to the user's stable account ID, not to each tap.
+                                    // Once saved locally, every tap only reopens this same room.
+                                    val stableOwnerId = authPrefs.getString("accountId", userId).orEmpty().ifBlank { userId }
                                     val room = mineCreatedRoom ?: HurryRoom(
-                                        id = userId.ifBlank { "mine-room" },
+                                        id = stableOwnerId.ifBlank { "mine-room" },
                                         name = "Room",
                                         image = authPrefs.getString("image", "").orEmpty().ifBlank { "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png" },
                                         country = authPrefs.getString("country", "🇮🇳").orEmpty(),
-                                        accountId = authPrefs.getString("accountId", userId).orEmpty().ifBlank { userId }
+                                        accountId = stableOwnerId.ifBlank { userId }
                                     ).also {
                                         authPrefs.edit()
                                             .putBoolean("mine_room_created", true)
@@ -257,9 +260,12 @@ private fun HurryNativeRoot() {
                                             withContext(Dispatchers.IO) {
                                                 runCatching {
                                                     val payload = JSONObject()
+                                                        .put("accountId", it.accountId)
                                                         .put("roomId", it.id)
                                                         .put("id", it.id)
+                                                        .put("name", it.name)
                                                         .put("roomName", it.name)
+                                                        .put("dp", it.image)
                                                         .put("roomDp", it.image)
                                                         .put("country", it.country)
                                                         .put("roomAdmin", it.accountId)
