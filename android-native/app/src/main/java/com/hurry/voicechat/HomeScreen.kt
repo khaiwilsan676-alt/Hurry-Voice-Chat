@@ -288,7 +288,7 @@ fun HomeScreen(
                 .padding(top = 2.dp, start = 12.dp, end = 12.dp, bottom = 0.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
