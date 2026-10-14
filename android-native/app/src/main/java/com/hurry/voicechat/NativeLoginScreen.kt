@@ -124,9 +124,9 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF222222))
                 ) {
-                    Text("G", color = Color(0xFF4285F4), fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(12.dp))
-                    Text("Continue with Google", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    GoogleLoginIcon(Modifier.size(22.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("Google", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(14.dp))
                 Button(
@@ -226,12 +226,32 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
             }
         }
         if (showGoogleSetupMessage) {
-            AlertDialog(
+            ModalBottomSheet(
                 onDismissRequest = { showGoogleSetupMessage = false },
-                title = { Text("Google sign-in") },
-                text = { Text("Native Google sign-in needs the Android OAuth client configuration. Email login and sign-up are available here.") },
-                confirmButton = { TextButton(onClick = { showGoogleSetupMessage = false }) { Text("OK") } }
-            )
+                containerColor = Color.White,
+                contentColor = Color(0xFF111827),
+                dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFFD1D5DB)) }
+            ) {
+                Column(
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp).padding(bottom = 28.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    GoogleLoginIcon(Modifier.size(38.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Text("Google", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        "Google sign-in is not configured for this Android app yet.",
+                        fontSize = 14.sp,
+                        color = Color(0xFF6B7280),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(20.dp))
+                    TextButton(onClick = { showGoogleSetupMessage = false }) {
+                        Text("Close", color = Color(0xFF2563EB), fontSize = 15.sp)
+                    }
+                }
+            }
         }
     }
 }
@@ -372,5 +392,27 @@ private fun PrivacySection(title: String, body: String) {
         Text(title, color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(8.dp))
         Text(body, color = Color(0xFF374151), fontSize = 14.sp, lineHeight = 21.sp)
+    }
+}
+
+
+@Composable
+private fun GoogleLoginIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val strokeWidth = size.minDimension * 0.16f
+        val inset = strokeWidth / 2f
+        val arcSize = androidx.compose.ui.geometry.Size(size.width - strokeWidth, size.height - strokeWidth)
+        val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Butt)
+        drawArc(Color(0xFF4285F4), -45f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFF34A853), 45f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFFFBBC05), 135f, 90f, false, topLeft, arcSize, style = stroke)
+        drawArc(Color(0xFFEA4335), 225f, 90f, false, topLeft, arcSize, style = stroke)
+        drawLine(
+            color = Color(0xFF4285F4),
+            start = androidx.compose.ui.geometry.Offset(size.width * 0.53f, size.height * 0.50f),
+            end = androidx.compose.ui.geometry.Offset(size.width * 0.96f, size.height * 0.50f),
+            strokeWidth = strokeWidth
+        )
     }
 }
