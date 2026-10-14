@@ -1,8 +1,12 @@
 package com.hurry.voicechat
 
 import android.provider.Settings
-import android.widget.VideoView
 import android.net.Uri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -52,20 +56,36 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
     var showGoogleSetupMessage by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize().background(Color(0xFF111827))) {
+        val backgroundPlayer = remember(context) {
+            ExoPlayer.Builder(context).build().apply {
+                setMediaItem(MediaItem.fromUri(Uri.parse(HURRY_VIDEO)))
+                repeatMode = Player.REPEAT_MODE_ONE
+                volume = 0f
+                playWhenReady = true
+                prepare()
+            }
+        }
+        DisposableEffect(backgroundPlayer) {
+            onDispose { backgroundPlayer.release() }
+        }
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                VideoView(ctx).apply {
-                    setVideoURI(Uri.parse(HURRY_VIDEO))
-                    setOnPreparedListener { player ->
-                        player.isLooping = true
-                        player.setVolume(0f, 0f)
-                        start()
-                    }
-                    setOnErrorListener { _, _, _ -> true }
+                PlayerView(ctx).apply {
+                    player = backgroundPlayer
+                    useController = false
+                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                    setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    isClickable = false
+                    isFocusable = false
                 }
             },
-            update = { view -> if (!view.isPlaying && view.currentPosition == 0) view.start() }
+            update = { view ->
+                if (view.player !== backgroundPlayer) view.player = backgroundPlayer
+                if (backgroundPlayer.playbackState == Player.STATE_IDLE) backgroundPlayer.prepare()
+                if (!backgroundPlayer.isPlaying) backgroundPlayer.play()
+            }
         )
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (page == "welcome") .30f else .40f)))
         if (page == "welcome") {
