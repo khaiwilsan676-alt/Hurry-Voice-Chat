@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
 @Composable
-fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateRoom: () -> Unit = {}) {
+fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateRoom: () -> Unit = {}, onSearch: () -> Unit = {}) {
     var recent by remember { mutableStateOf(false) }
     val card = Modifier.fillMaxWidth().height(112.dp)
     LazyColumn(
@@ -44,7 +44,15 @@ fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateR
                         }
                     }
                     Spacer(Modifier.weight(1f))
-                    HurrySearchIcon()
+                    Box(
+                        modifier = Modifier.size(40.dp).clickable(
+                            indication = null,
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                        ) { onSearch() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        HurrySearchIcon()
+                    }
                     Spacer(Modifier.width(10.dp))
                     HurryHouseIcon()
                 }
