@@ -9,10 +9,13 @@ import java.net.URL
 
 private const val API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
 
+data class RoomSyncResult(val rooms: List<HurryRoom>, val serverTime: Long)
+
 object HurryApi {
-    suspend fun rooms(): List<HurryRoom> = withContext(Dispatchers.IO) {
+    suspend fun roomsUpdatedSince(sinceUpdatedAt: Long): RoomSyncResult? = withContext(Dispatchers.IO) {
         runCatching {
-            val c = URL("$API_BASE/api/rooms").openConnection() as HttpURLConnection
+            val endpoint = "$API_BASE/api/rooms" + if (sinceUpdatedAt > 0L) "?sinceUpdatedAt=$sinceUpdatedAt" else ""
+            val c = URL(endpoint).openConnection() as HttpURLConnection
             c.requestMethod = "GET"
             c.connectTimeout = 12000
             c.readTimeout = 12000
@@ -20,7 +23,7 @@ object HurryApi {
             c.disconnect()
             val root = JSONObject(body)
             val array = root.optJSONArray("rooms") ?: JSONArray()
-            buildList {
+            val parsedRooms = buildList {
                 for (i in 0 until array.length()) {
                     val o = array.optJSONObject(i) ?: continue
                     val id = o.optString("accountId", o.optString("roomId", o.optString("id")))
@@ -36,6 +39,7 @@ object HurryApi {
                     )
                 }
             }
-        }.getOrDefault(emptyList())
+            RoomSyncResult(parsedRooms, root.optLong("serverTime", 0L))
+        }.getOrNull()
     }
 }
