@@ -426,6 +426,7 @@ app.get("/api/rooms", async (req, res) => {
     }
 
     const roomId = req.query.roomId;
+    const hasIncrementalSyncParam = req.query.sinceUpdatedAt !== undefined;
     const sinceUpdatedAt = Math.max(0, Number(req.query.sinceUpdatedAt) || 0);
     if (roomId) {
       const room = await db.collection("rooms").findOne({
@@ -454,7 +455,7 @@ app.get("/api/rooms", async (req, res) => {
     // remains the source of truth and Redis failures never block the API.
     const roomCacheKey = "rooms:list:v1";
     // Incremental requests bypass the full-list Redis cache.
-    if (sinceUpdatedAt === 0 && redis) {
+    if (!hasIncrementalSyncParam && redis) {
       try {
         const cachedRooms = await redis.get(roomCacheKey);
         if (cachedRooms) {
@@ -488,7 +489,7 @@ app.get("/api/rooms", async (req, res) => {
       return safeRoom;
     });
 
-    if (redis) {
+    if (!hasIncrementalSyncParam && redis) {
       try { await redis.set(roomCacheKey, JSON.stringify(safeRooms), { ex: 30 }); }
       catch (cacheError) { console.warn("Room Redis cache write skipped:", cacheError.message); }
     }
