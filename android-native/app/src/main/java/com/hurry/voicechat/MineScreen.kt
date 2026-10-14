@@ -45,11 +45,10 @@ fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateR
                     }
                     Spacer(Modifier.weight(1f))
                     Box(
-                        modifier = Modifier.size(40.dp).clickable(
+                        modifier = Modifier.clickable(
                             indication = null,
                             interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                        ) { onSearch() },
-                        contentAlignment = Alignment.Center
+                        ) { onSearch() }
                     ) {
                         HurrySearchIcon()
                     }
