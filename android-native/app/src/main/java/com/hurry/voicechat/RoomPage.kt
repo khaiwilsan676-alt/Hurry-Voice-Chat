@@ -318,8 +318,16 @@ fun RoomPage(
                     }
                 }
             }
-            Spacer(Modifier.weight(1f))
-            if(messages.isNotEmpty()) LazyColumn(Modifier.fillMaxWidth().height(150.dp).padding(horizontal=10.dp)){items(messages,key={it.id}){message ->
+            val chatListState = androidx.compose.foundation.lazy.rememberLazyListState()
+            LaunchedEffect(messages.size) {
+                if (messages.isNotEmpty()) chatListState.animateScrollToItem(messages.lastIndex)
+            }
+            LazyColumn(
+                state=chatListState,
+                modifier=Modifier.fillMaxWidth().weight(1f).padding(horizontal=10.dp),
+                contentPadding=PaddingValues(bottom=2.dp),
+                verticalArrangement=Arrangement.spacedBy(2.dp)
+            ){items(messages,key={it.id}){message ->
                 if(message.type=="join") {
                     Row(Modifier.fillMaxWidth().padding(vertical=3.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha=.20f)).padding(horizontal=10.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
                         AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
