@@ -279,7 +279,7 @@ fun RoomPage(
             }
             Column(
                 Modifier.fillMaxWidth().padding(horizontal=5.dp).padding(top=48.dp, bottom=8.dp),
-                verticalArrangement=Arrangement.spacedBy(7.dp)
+                verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
@@ -514,7 +514,7 @@ fun RoomPage(
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Column(
         horizontalAlignment=Alignment.CenterHorizontally,
-        modifier=Modifier.width(66.dp).clickable(onClick=onClick)
+        modifier=Modifier.width(56.dp).clickable(onClick=onClick)
     ){
         Box(Modifier.size(56.dp),contentAlignment=Alignment.Center){
             // Match the original RoomPage.tsx seat bubble SVG: thin gradient ring,
@@ -535,7 +535,7 @@ fun RoomPage(
                 val radius=size.minDimension*225f/512f
                 val center=Offset(size.width/2f,size.height/2f)
                 drawCircle(
-                    color=if(blue) Color(0xFF55C6F3).copy(alpha=.10f) else Color(0xFF9CA3AF).copy(alpha=.10f),
+                    color=if(blue) Color(0xFF55C6F3).copy(alpha=.25f) else Color(0xFF9CA3AF).copy(alpha=.25f),
                     radius=radius+size.minDimension*7.5f/512f,
                     center=center,
                     style=Stroke(width=size.minDimension*15f/512f)
