@@ -65,7 +65,7 @@ fun HurryMessageIcon(active: Boolean, modifier: Modifier = Modifier) {
                 cubicTo(13.5f*s, 12.5f*s, 15.5f*s, 14.5f*s, 19.5f*s, 12.5f*s)
                 cubicTo(21.5f*s, 14.5f*s, 24f*s, 14.5f*s, 24f*s, 14.5f*s)
             },
-            if (active) Color.White else outline,
+            outline,
             style = Stroke(width = 1.8f*s, cap = StrokeCap.Round, join = StrokeJoin.Round)
         )
     }
