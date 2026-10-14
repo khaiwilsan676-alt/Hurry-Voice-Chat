@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
             var showLaunch by remember { mutableStateOf(true) }
             var authenticated by remember {
                 mutableStateOf(
-                    getSharedPreferences("hurry_auth", MODE_PRIVATE)
+                    getSharedPreferences("hurry_auth", android.content.Context.MODE_PRIVATE)
                         .getString("uid", null).isNullOrBlank().not()
                 )
             }
