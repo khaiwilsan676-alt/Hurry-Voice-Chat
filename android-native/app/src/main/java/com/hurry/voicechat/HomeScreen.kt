@@ -285,7 +285,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .background(MePageTopGradient)
                 .statusBarsPadding()
-                .padding(top = 1.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                .padding(top = 2.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
