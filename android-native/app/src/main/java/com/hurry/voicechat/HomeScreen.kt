@@ -593,7 +593,7 @@ fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
         model = RAW + "file_000000009aac81faa8564416680aba4e.png",
         contentDescription = null,
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(56.dp),
         contentScale = ContentScale.Fit
     )
 }
