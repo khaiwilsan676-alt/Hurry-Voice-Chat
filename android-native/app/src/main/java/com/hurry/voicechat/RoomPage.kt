@@ -277,7 +277,7 @@ fun RoomPage(
                 }
             }
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=4.dp).padding(top=0.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=4.dp).padding(top=4.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
