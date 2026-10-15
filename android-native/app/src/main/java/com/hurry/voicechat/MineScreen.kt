@@ -78,9 +78,14 @@ fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateR
                 }
             }
             Row(Modifier.padding(horizontal = 12.dp).padding(top=12.dp), horizontalArrangement=Arrangement.spacedBy(16.dp)) {
-                Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
-                Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF),
-                    modifier=Modifier.clickable { recent=true })
+                Column(Modifier.clickable { recent=false }, horizontalAlignment=Alignment.Start) {
+                    Text("Following", fontSize=14.sp, color=if(!recent) Color(0xFF111827) else Color(0xFF9CA3AF))
+                    if (!recent) Box(Modifier.padding(top=2.dp).width(48.dp).height(2.dp).clip(RoundedCornerShape(2.dp)).background(Color(0xFF111827)))
+                }
+                Column(Modifier.clickable { recent=true }, horizontalAlignment=Alignment.Start) {
+                    Text("Recent", fontSize=14.sp, color=if(recent) Color(0xFF111827) else Color(0xFF9CA3AF))
+                    if (recent) Box(Modifier.padding(top=2.dp).width(38.dp).height(2.dp).clip(RoundedCornerShape(2.dp)).background(Color(0xFF111827)))
+                }
             }
         }
         item {
