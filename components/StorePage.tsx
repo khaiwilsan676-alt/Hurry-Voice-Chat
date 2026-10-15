@@ -1183,7 +1183,7 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ NEW: Chat Bubble Try Modal — CENTERED & COMPACT ============ */}
+      {/* ============ NEW: Chat Bubble Try Modal — AB GIFT JAISA FULL CHAT DIKHEGA ============ */}
       {tryChatBubbleItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -1202,6 +1202,18 @@ export default function StorePage({
               <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
+            {/* Full Chat Bubble Preview — Gift jaisa full size */}
+            <div className="relative w-full aspect-square max-w-[200px] mb-6 flex items-center justify-center">
+              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200">
+                <Image
+                  src={tryChatBubbleItem.image}
+                  alt={tryChatBubbleItem.name}
+                  fill
+                  className="object-contain p-2"
+                />
+              </div>
+            </div>
+
             {/* Coin Section */}
             <div className="flex flex-col items-center justify-center mb-6">
               {/* Current Price */}
@@ -1210,7 +1222,7 @@ export default function StorePage({
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                 </div>
                 <span className="text-[38px] font-extrabold text-black tracking-tight leading-none">
-                  250000
+                  {tryChatBubbleItem.price.replace(/,/g, '')}
                 </span>
               </div>
               {/* Old Price */}
@@ -1219,7 +1231,7 @@ export default function StorePage({
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                 </div>
                 <span className="text-[18px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
-                  550000
+                  {String(parseInt(tryChatBubbleItem.price.replace(/,/g, ''), 10) * 2)}
                 </span>
               </div>
             </div>
@@ -1262,8 +1274,8 @@ export default function StorePage({
             {/* Title */}
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* Item Image with Duration Badge — chota kiya gaya hai */}
-            <div className="relative w-[100px] h-[100px] mb-3">
+            {/* Item Image with Duration Badge — Full size restored */}
+            <div className="relative w-[140px] h-[140px] mb-3">
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
                 {giftItem.image.endsWith('.mp4') ? (
                   <WebGLVideoAvatar src={giftItem.image} />
