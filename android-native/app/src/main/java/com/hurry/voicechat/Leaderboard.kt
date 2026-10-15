@@ -1,4 +1,6 @@
 package com.hurry.voicechat
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +20,47 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.URL
+import java.util.concurrent.ConcurrentHashMap
+
+private object LeaderboardChromaCache {
+    val images = ConcurrentHashMap<String, ImageBitmap>()
+}
+@Composable
+private fun LeaderboardChromaImage(url: String, contentDescription: String?, modifier: Modifier, contentScale: ContentScale = ContentScale.Fit) {
+    var bitmap by remember(url) { mutableStateOf(LeaderboardChromaCache.images[url]) }
+    LaunchedEffect(url) {
+        if (bitmap == null) {
+            bitmap = withContext(Dispatchers.IO) {
+                runCatching {
+                    LeaderboardChromaCache.images[url] ?: run {
+                        val source = URL(url).openStream().use { BitmapFactory.decodeStream(it) }
+                        if (source == null) null else {
+                            val result = source.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+                            for (y in 0 until result.height) for (x in 0 until result.width) {
+                                val pixel = result.getPixel(x, y)
+                                val red = android.graphics.Color.red(pixel)
+                                val green = android.graphics.Color.green(pixel)
+                                val blue = android.graphics.Color.blue(pixel)
+                                if (green > 50 && green > red * 1.15 && green > blue * 1.15) {
+                                    result.setPixel(x, y, android.graphics.Color.TRANSPARENT)
+                                }
+                            }
+                            source.recycle()
+                            result.asImageBitmap().also { LeaderboardChromaCache.images[url] = it }
+                        }
+                    }
+                }.getOrNull()
+            }
+        }
+    }
+    bitmap?.let { Image(bitmap=it, contentDescription=contentDescription, modifier=modifier, contentScale=contentScale) }
+}
 
 @Composable
 fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
@@ -123,15 +165,15 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
             LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=90.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
                 item {
                     Column(Modifier.fillMaxWidth().padding(top=18.dp,bottom=24.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-                        AsyncImage(model=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(podiumTopWidth).height(150.dp),contentScale=ContentScale.Fit)
+                        LeaderboardChromaImage(url=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(podiumTopWidth).height(150.dp),contentScale=ContentScale.Fit)
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                            AsyncImage(model=raw+"1787994751636~2.jpg",contentDescription="Rank 2 frame",modifier=Modifier.width(podiumSideWidth).height(130.dp),contentScale=ContentScale.Fit)
-                            AsyncImage(model=raw+"1787994761762~2.jpg",contentDescription="Rank 3 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
+                            LeaderboardChromaImage(url=raw+"1787994751636~2.jpg",contentDescription="Rank 2 frame",modifier=Modifier.width(podiumSideWidth).height(130.dp),contentScale=ContentScale.Fit)
+                            LeaderboardChromaImage(url=raw+"1787994761762~2.jpg",contentDescription="Rank 3 frame",modifier=Modifier.width(160.dp).height(130.dp),contentScale=ContentScale.Fit)
                         }
                     }
                 }
                 items(47) { i -> Box(Modifier.fillMaxWidth().height(80.dp)) {
-                    AsyncImage(model=raw+"1787992320047~2.jpg",contentDescription="Rank ${i+4} frame",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
+                    LeaderboardChromaImage(url=raw+"1787992320047~2.jpg",contentDescription="Rank ${i+4} frame",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
                     Text("${i+4}",color=Color.White,fontSize=18.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterStart).padding(start=40.dp))
                 }}
             }
