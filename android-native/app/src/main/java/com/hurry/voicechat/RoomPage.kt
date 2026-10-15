@@ -1,5 +1,6 @@
 package com.hurry.voicechat
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
@@ -434,16 +435,23 @@ fun RoomPage(
             verticalArrangement=Arrangement.spacedBy(4.dp)
         ) {
             entryToasts.toList().forEach { toast ->
-                Row(
-                    Modifier.widthIn(min=230.dp).clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
-                        .background(Brush.horizontalGradient(listOf(Color(0xF52563EB),Color(0xF52563EB),Color.Transparent)))
-                        .padding(start=6.dp,end=48.dp,top=4.dp,bottom=4.dp),
-                    verticalAlignment=Alignment.CenterVertically,
-                    horizontalArrangement=Arrangement.spacedBy(8.dp)
-                ) {
-                    AsyncImage(model=toast.image.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=toast.name,modifier=Modifier.size(24.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-                    Text(toast.name,color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,modifier=Modifier.widthIn(max=95.dp))
-                    Text("Enter the Room",color=Color.White,fontSize=11.sp,maxLines=1)
+                key(toast.id) {
+                    AnimatedVisibility(
+                        visible=true,
+                        enter=slideInHorizontally(initialOffsetX={ fullWidth -> fullWidth }) + fadeIn()
+                    ) {
+                        Row(
+                            Modifier.clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
+                                .background(Brush.horizontalGradient(listOf(Color(0xF52563EB),Color(0xF52563EB),Color.Transparent)))
+                                .padding(start=6.dp,end=10.dp,top=4.dp,bottom=4.dp),
+                            verticalAlignment=Alignment.CenterVertically,
+                            horizontalArrangement=Arrangement.spacedBy(6.dp)
+                        ) {
+                            AsyncImage(model=toast.image.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=toast.name,modifier=Modifier.size(24.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+                            Text(toast.name,color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,modifier=Modifier.widthIn(max=95.dp))
+                            Text("Enter the Room",color=Color.White,fontSize=11.sp,maxLines=1)
+                        }
+                    }
                 }
             }
         }
