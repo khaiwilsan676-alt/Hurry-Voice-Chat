@@ -347,7 +347,7 @@ fun RoomPage(
                                 roomName.take(12).let { if (roomName.length > 12) "$it..." else it },
                                 color = Color.White,
                                 fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.offset(y = 2.dp)
