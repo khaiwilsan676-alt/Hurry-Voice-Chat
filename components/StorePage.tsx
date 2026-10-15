@@ -1250,14 +1250,14 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — BOTTOM SHEET with TOP 30Vh + INPUT BAR WITH SEARCH ICON + SEND BUTTON ============ */}
+      {/* ============ Gift (Send) Modal — CENTERED with TOP 30Vh WHITE SHEET + INPUT BAR WITH SEARCH ICON + SEND BUTTON ============ */}
       {giftItem && (
         <div
-          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setGiftItem(null)}
         >
           <div
-            className="w-full max-w-md bg-white rounded-t-[24px] relative flex flex-col items-center shadow-2xl"
+            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center shadow-2xl overflow-hidden"
             style={{ height: '30vh' }}
             onClick={(e) => e.stopPropagation()}
           >
