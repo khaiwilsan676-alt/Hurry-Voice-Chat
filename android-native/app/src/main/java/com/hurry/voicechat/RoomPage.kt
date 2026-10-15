@@ -51,6 +51,7 @@ import io.socket.emitter.Emitter
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
@@ -122,6 +123,18 @@ fun RoomPage(
     var input by remember{mutableStateOf("")}
     val chatFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+    var keyboardShownForChat by remember { mutableStateOf(false) }
+    LaunchedEffect(showChat, imeVisible) {
+        if (!showChat) {
+            keyboardShownForChat = false
+        } else if (imeVisible) {
+            keyboardShownForChat = true
+        } else if (keyboardShownForChat) {
+            showChat = false
+            keyboardShownForChat = false
+        }
+    }
     LaunchedEffect(showChat) {
         if (showChat) {
             kotlinx.coroutines.delay(120)
@@ -370,7 +383,7 @@ fun RoomPage(
                     }
                 } else NativeMessage(message)
             }}
-            if(showChat) Row(Modifier.fillMaxWidth().imePadding().navigationBarsPadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+            if(showChat) Row(Modifier.fillMaxWidth().imePadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                 IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(25.dp))}
                 androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).focusRequester(chatFocusRequester).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
                 IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(25.dp))}
