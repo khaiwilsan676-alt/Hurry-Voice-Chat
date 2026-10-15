@@ -16,6 +16,7 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
   const [showClaim, setShowClaim] = useState(false)
   const [showRules, setShowRules] = useState(false)
 
+  // Original text (Yahi rehne dena tha)
   const rules = [
     'Click and select the Amount to be send in the lucky packet',
     'Select the Number of the user who can open',
@@ -191,8 +192,10 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
             onClick={() => setShowRules(false)}
           />
 
-          <div className="relative w-full max-w-[440px] mx-auto h-[30vh] bg-black rounded-t-3xl flex flex-col animate-in slide-in-from-bottom duration-300">
-            <div className="relative w-full flex items-center justify-center pt-4 pb-3 shrink-0">
+          <div className="relative w-full max-w-[440px] mx-auto bg-[#FFE8CC] rounded-t-3xl flex flex-col animate-in slide-in-from-bottom duration-300 overflow-hidden">
+            
+            {/* Top Header with Back Arrow and Lucky Packet tab */}
+            <div className="relative w-full flex items-center justify-center pt-6 pb-2 shrink-0 bg-[#F13E58]">
               <button
                 onClick={() => setShowRules(false)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center active:scale-95 transition"
@@ -214,15 +217,23 @@ export default function LuckyBag({ onClose }: LuckyBagProps) {
                 </svg>
               </button>
 
-              <h2 className="text-white font-bold text-[17px]">Rules</h2>
+              {/* Lucky Packet Tab */}
+              <div className="relative px-8 py-1.5 bg-gradient-to-b from-[#FFF3D6] to-[#FADB9A] rounded-b-xl shadow-sm">
+                <h2 className="text-[#C47A3A] font-bold text-[16px] tracking-wide">Lucky Packet</h2>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 pb-5">
-              <ul className="space-y-3">
+            {/* Content Area */}
+            <div className="flex-1 bg-[#FFE8CC] px-5 pb-8 pt-4">
+              {/* Rule Title */}
+              <h3 className="text-[#C47A3A] font-bold text-[15px] text-center mb-5">- Rule -</h3>
+              
+              {/* Rules List */}
+              <ul className="space-y-4">
                 {rules.map((rule, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <span className="text-[#FE3C68] text-[14px] mt-[2px]">•</span>
-                    <span className="text-white/90 text-[13.5px] leading-snug">
+                  <li key={idx} className="flex items-start gap-3">
+                    <span className="text-[#C47A3A] text-[15px] font-medium mt-[1px]">{idx + 1}.</span>
+                    <span className="text-[#C47A3A] text-[14px] leading-relaxed font-medium">
                       {rule}
                     </span>
                   </li>
