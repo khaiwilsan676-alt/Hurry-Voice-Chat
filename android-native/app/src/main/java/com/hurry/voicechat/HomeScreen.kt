@@ -279,9 +279,7 @@ fun HomeScreen(
             Modifier
                 .fillMaxWidth()
                 .background(MePageTopGradient)
-                // Yahan maine -16.dp kar diya hai top safe area aur chota karne ke liye
                 .padding(top = (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() - 16.dp).coerceAtLeast(0.dp))
-                // Right padding 'end = 0.dp' kardi taaki image ekdum right chipke
                 .padding(top = 0.dp, start = 12.dp, end = 0.dp, bottom = 0.dp)
         ) {
             Row(
@@ -299,7 +297,7 @@ fun HomeScreen(
                             "Popular",
                             fontSize = 21.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1E1E1E) // Using Color(0xFF1E1E1E) as fallback for HurryText
+                            color = Color(0xFF1E1E1E)
                         )
                     }
                     Box(
@@ -312,20 +310,17 @@ fun HomeScreen(
                             "Mine",
                             fontSize = 21.sp,
                             fontWeight = FontWeight.Normal,
-                            color = Color(0xFF6B7280) // Using Color(0xFF6B7280) as fallback for HurryMuted
+                            color = Color(0xFF6B7280)
                         )
                     }
                 }
                 Spacer(Modifier.weight(1f))
                 
-                // --- YAHAN CHANGE KIYA HAI ---
-                // Search aur Image (House) ko ek sath Row mein daal kar negative spacing di hai (-15.dp) taaki gap kam ho
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((4.dp) 
+                    horizontalArrangement = Arrangement.spacedBy((-15).dp) 
                 ) {
                     Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { 
-                        // Note: Ensure HurrySearchIcon() is defined elsewhere in your project
                         HurrySearchIcon() 
                     }
                     
@@ -333,7 +328,6 @@ fun HomeScreen(
                         HurryHouseIcon()
                     }
                 }
-                // Right side extra space hata diya
             }
         }
         // ═══════════ END FIXED TOP HEADER ═══════════
@@ -343,125 +337,125 @@ fun HomeScreen(
             LazyColumn(
                 state = listState,
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 12.dp)
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-            item {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF5F5F5))
-                        .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
-                ) {
-                    Box(
+                item {
+                    Column(
                         Modifier
                             .fillMaxWidth()
-                            .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
-                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFFF5F5F5))
+                            .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                     ) {
-                        HorizontalPager(
-                            state = pager,
-                            modifier = Modifier.fillMaxSize(),
-                            userScrollEnabled = true,
-                            pageSpacing = 0.dp
-                        ) { page ->
-                            AsyncImage(
-                                model = banners[page],
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize().clickable { onInviteFriends() },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                        Row(
+                        Box(
                             Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 5.dp),
-                            horizontalArrangement = Arrangement.Center
+                                .fillMaxWidth()
+                                .height((13.5f * LocalConfiguration.current.screenHeightDp / 100f).dp)
+                                .clip(RoundedCornerShape(6.dp))
                         ) {
-                            repeat(banners.size) { i ->
-                                Box(
-                                    Modifier
-                                        .padding(horizontal = 1.5.dp)
-                                        .size(5.dp)
-                                        .clip(RoundedCornerShape(50))
-                                        .background(
-                                            if (i == pager.currentPage) Color.White
-                                            else Color.White.copy(alpha = 0.75f)
-                                        )
+                            HorizontalPager(
+                                state = pager,
+                                modifier = Modifier.fillMaxSize(),
+                                userScrollEnabled = true,
+                                pageSpacing = 0.dp
+                            ) { page ->
+                                AsyncImage(
+                                    model = banners[page],
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize().clickable { onInviteFriends() },
+                                    contentScale = ContentScale.Crop
                                 )
+                            }
+                            Row(
+                                Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 5.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                repeat(banners.size) { i ->
+                                    Box(
+                                        Modifier
+                                            .padding(horizontal = 1.5.dp)
+                                            .size(5.dp)
+                                            .clip(RoundedCornerShape(50))
+                                            .background(
+                                                if (i == pager.currentPage) Color.White
+                                                else Color.White.copy(alpha = 0.75f)
+                                            )
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .graphicsLayer { translationY = -4.dp.toPx() },
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f)) { onLeaderboard("honour") }
-                    HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f)) { onLeaderboard("charm") }
-                    HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f)) { onLeaderboard("room") }
-                }
-            }
-
-            item {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFF5F5F5))
-                ) {
-                    CountryPillRow(
-                        selected = selectedCountry,
-                        onSelect = { selectedCountry = it }
-                    )
-                }
-            }
-
-            if (rooms == null) {
                 item {
-                    Box(
-                        Modifier.fillMaxWidth().height(180.dp),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
+                            .graphicsLayer { translationY = -4.dp.toPx() },
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF2563EB), strokeWidth = 2.dp)
+                        HurryCategoryCard("Honour", HONOUR_BG, Modifier.weight(1f)) { onLeaderboard("honour") }
+                        HurryCategoryCard("Charm",  CHARM_BG,  Modifier.weight(1f)) { onLeaderboard("charm") }
+                        HurryCategoryCard("Room",   ROOM_BG,   Modifier.weight(1f)) { onLeaderboard("room") }
                     }
                 }
-            } else if (filteredRooms.isEmpty()) {
+
                 item {
                     Box(
-                        Modifier.fillMaxWidth().height(120.dp),
-                        contentAlignment = Alignment.Center
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF5F5F5))
                     ) {
-                        Text(
-                            "No rooms in this country",
-                            fontSize = 14.sp,
-                            color = Color(0xFF6B7280)
+                        CountryPillRow(
+                            selected = selectedCountry,
+                            onSelect = { selectedCountry = it }
                         )
                     }
                 }
-            } else {
-                val roomRows = filteredRooms.chunked(2)
-                items(
-                    items = roomRows,
-                    key = { row -> row.first().id }
-                ) { row ->
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        row.forEach { room ->
-                            RoomListCard(room, onRoom, Modifier.weight(1f))
+
+                if (rooms == null) {
+                    item {
+                        Box(
+                            Modifier.fillMaxWidth().height(180.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color(0xFF2563EB), strokeWidth = 2.dp)
                         }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                } else if (filteredRooms.isEmpty()) {
+                    item {
+                        Box(
+                            Modifier.fillMaxWidth().height(120.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "No rooms in this country",
+                                fontSize = 14.sp,
+                                color = Color(0xFF6B7280)
+                            )
+                        }
+                    }
+                } else {
+                    val roomRows = filteredRooms.chunked(2)
+                    items(
+                        items = roomRows,
+                        key = { row -> row.first().id }
+                    ) { row ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            row.forEach { room ->
+                                RoomListCard(room, onRoom, Modifier.weight(1f))
+                            }
+                            if (row.size == 1) Spacer(Modifier.weight(1f))
+                        }
                     }
                 }
-            }
             }
             if (countrySticky) {
                 Box(
@@ -476,6 +470,19 @@ fun HomeScreen(
                     )
                 }
             }
+
+            // BOTTOM LEFT DECORATION IMAGE
+            AsyncImage(
+                model = RAW + "IMG_20260916_002115.png",
+                contentDescription = "Left Corner Decoration",
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 75.dp) 
+                    .size(70.dp)
+                    .graphicsLayer { scaleX = -1f } 
+                    .clickable { },
+                contentScale = ContentScale.Fit
+            )
         }
     }
 }
@@ -621,7 +628,7 @@ fun HurryHouseIcon(selected: Boolean = false) {
 }
 
 // ═══════════════════════════════════════════════════════
-// CATEGORY CARD
+// CATEGORY CARD (UPDATED TO OVERLAP FRAME ON TOP OF LOGOS)
 // ═══════════════════════════════════════════════════════
 @Composable
 private fun HurryCategoryCard(
@@ -657,17 +664,10 @@ private fun HurryCategoryCard(
                 .fillMaxWidth()
                 .padding(start = 3.dp, end = 3.dp, bottom = 2.dp)
         ) {
-            AsyncImage(
-                model = CARD_FRAME,
-                contentDescription = null,
-                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-                contentScale = ContentScale.FillWidth
-            )
+            // 1. Logos Ab Pehle aayenge (Taaki Ye Niche Rahein)
             Row(
                 Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(.68f)
-                    .height(30.dp)
+                    .matchParentSize() // Frame ke exactly andar fit hone ke liye
                     .offset(y = (-1).dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -693,6 +693,14 @@ private fun HurryCategoryCard(
                     contentScale = ContentScale.Crop
                 )
             }
+
+            // 2. Frame Ab Baad me Aayega (Taaki Ye Logos ke Upar overlap ho)
+            AsyncImage(
+                model = CARD_FRAME,
+                contentDescription = null,
+                modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                contentScale = ContentScale.FillWidth
+            )
         }
     }
 }
