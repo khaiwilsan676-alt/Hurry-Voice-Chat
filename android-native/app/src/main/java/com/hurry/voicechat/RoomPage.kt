@@ -103,6 +103,7 @@ fun RoomPage(
     var roomImage by remember{mutableStateOf(roomOwner.image)}
     var followed by remember{mutableStateOf(false)}
     var speaker by remember{mutableStateOf(true)}
+    var publicMsgOff by remember{mutableStateOf(false)}
     var locked by remember{mutableStateOf(false)}
     var showChat by remember{mutableStateOf(false)}
     var showMessageSheet by remember{mutableStateOf(false)}
@@ -460,16 +461,19 @@ fun RoomPage(
             onExit={showExitMenu=false;onClose()},
             onDismiss={showExitMenu=false}
         )
-        if(showMenu) RoomMenu(
-            owner=accountId==roomOwner.accountId.ifBlank{roomOwner.id},
+        if(showMenu) Fourgride(
             onClose={showMenu=false},
-            onSettings={showMenu=false;showSettings=true},
             onClearChat={
                 messages.clear()
                 roomSocketRef.value?.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",accountId).put("timestamp",System.currentTimeMillis()))
                 showMenu=false
             },
-            onLeave={showMenu=false;onClose()}
+            publicMsgOff=publicMsgOff,
+            onTogglePublicMsg={publicMsgOff=!publicMsgOff},
+            speaker=speaker,
+            onToggleSpeaker={speaker=!speaker},
+            onMusicPlay=null,
+            onOpenStore=null
         )
         val activeRoomUsers = backendRoomUsers.toList()
         val roomFollowers = seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != roomOwner.accountId && it.accountId != roomOwner.id }
