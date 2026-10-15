@@ -322,7 +322,7 @@ fun HomeScreen(
                 // Search aur Image (House) ko ek sath Row mein daal kar negative spacing di hai (-15.dp) taaki gap kam ho
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((-15).dp) 
+                    horizontalArrangement = Arrangement.spacedBy((4.dp) 
                 ) {
                     Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { 
                         // Note: Ensure HurrySearchIcon() is defined elsewhere in your project
