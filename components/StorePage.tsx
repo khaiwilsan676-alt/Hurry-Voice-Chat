@@ -1249,21 +1249,21 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — FIXED: Full Chat + Compact Center ============ */}
+      {/* ============ NEW: Gift (Send) Modal — EXACT SCREENSHOT DESIGN ============ */}
       {giftItem && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setGiftItem(null)}
         >
           <div
-            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-6 pb-5 px-5 shadow-2xl"
+            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-8 pb-6 px-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Title */}
-            <h2 className="text-[20px] font-bold text-black mb-4">gift</h2>
+            <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* Item Image with Duration Badge */}
-            <div className="relative w-[120px] h-[120px] mb-3">
+            {/* Item Image with Duration Badge — chota kiya gaya hai */}
+            <div className="relative w-[100px] h-[100px] mb-3">
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
                 {giftItem.image.endsWith('.mp4') ? (
                   <WebGLVideoAvatar src={giftItem.image} />
@@ -1285,19 +1285,19 @@ export default function StorePage({
             </div>
 
             {/* "Send To" Label */}
-            <div className="text-[15px] font-medium text-gray-400 mb-3">Send To</div>
+            <div className="text-[16px] font-medium text-gray-400 mb-4">Send To</div>
 
             {/* Recipient ID Input */}
             <input
               type="text"
               placeholder="Enter Recipient's ID"
-              className="w-full h-[50px] rounded-full bg-[#f3f4f6] text-[15px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-4 focus:ring-2 focus:ring-[#00c88c]/40"
+              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-[16px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-5 focus:ring-2 focus:ring-[#00c88c]/40"
             />
 
             {/* Search Button */}
             <button
               type="button"
-              className="w-full h-[50px] rounded-full bg-[#f3f4f6] text-white text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
             >
               Search
             </button>
