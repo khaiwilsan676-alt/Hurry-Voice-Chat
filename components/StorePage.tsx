@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ArrowLeft, Clock, Search } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 import { deductCoinsFromDB } from "./Wallet";
 
 interface StoreItem {
@@ -1250,100 +1250,63 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — BOTTOM SHEET WITH SEARCH ICON IN INPUT ============ */}
+      {/* ============ Gift (Send) Modal — BOTTOM SHEET with TOP 30Vh + INPUT BAR WITH SEARCH ICON + SEND BUTTON ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50"
           onClick={() => setGiftItem(null)}
         >
           <div
-            className="w-full max-w-md bg-white rounded-t-[28px] relative flex flex-col items-center pt-6 pb-10 px-5 shadow-2xl"
-            style={{ height: '30vh', minHeight: '280px' }}
+            className="w-full max-w-md bg-white rounded-t-[24px] relative flex flex-col items-center shadow-2xl"
+            style={{ height: '30vh' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Input Bar with Search Icon inside */}
-            <div className="w-full mb-5">
-              <div className="relative w-full">
-                <Search
-                  size={20}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-                  strokeWidth={2.5}
-                />
+            {/* Drag handle */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-300 rounded-full" />
+
+            {/* Title */}
+            <h2 className="text-[18px] font-bold text-black mt-5 mb-3">Gift</h2>
+
+            {/* Input Bar with Search Icon */}
+            <div className="w-full px-4 mb-3">
+              <div className="relative w-full h-[52px] rounded-full bg-[#f3f4f6] flex items-center px-4">
                 <input
                   type="text"
                   placeholder="Enter Recipient's ID"
-                  className="w-full h-[50px] rounded-full bg-[#f3f4f6] text-[15px] pl-12 pr-5 outline-none border-none text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-[#1d4ed8]/30 transition-all"
+                  className="flex-1 h-full bg-transparent text-[15px] outline-none border-none text-gray-700 placeholder-gray-400"
                 />
+                <button
+                  type="button"
+                  className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="Search"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
               </div>
             </div>
 
-            {/* Gift Item Preview — smaller, centered */}
-            <div className="relative w-[100px] h-[100px] mb-3">
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                {giftItem.tab === "Avatar Frame" ? (
-                  <div className="relative w-full h-full flex items-center justify-center bg-gray-200">
-                    <div className="relative w-[65px] h-[65px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
-                      {userPhoto ? (
-                        <img
-                          src={userPhoto}
-                          alt="User"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            const next = e.currentTarget.nextElementSibling as HTMLElement | null;
-                            if (next) next.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
-                      <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[24px] font-bold ${userPhoto ? 'hidden' : ''}`}>
-                        {avatarLetter}
-                      </div>
-                    </div>
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      {giftItem.tryVideo ? (
-                        <WebGLVideoAvatar src={giftItem.tryVideo} />
-                      ) : giftItem.image.endsWith('.mp4') ? (
-                        <WebGLVideoAvatar src={giftItem.image} />
-                      ) : (
-                        <WebGLImageAvatar src={giftItem.image} />
-                      )}
-                    </div>
-                  </div>
-                ) : giftItem.tab === "Chat Bubble" ? (
-                  <div className="w-full h-full bg-white flex items-center justify-center p-1">
-                    <Image
-                      src={giftItem.image}
-                      alt={giftItem.name}
-                      fill
-                      className="object-contain p-1"
-                    />
-                  </div>
-                ) : giftItem.image.endsWith('.mp4') ? (
-                  <WebGLVideoAvatar src={giftItem.image} />
-                ) : giftItem.tab === "Vehicle" ? (
-                  <WebGLImageAvatar src={giftItem.image} />
-                ) : (
-                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
-                )}
-              </div>
-
-              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[11px] font-bold px-1.5 py-[1px] rounded-md shadow-md">
-                {giftItem.duration}
-              </div>
+            {/* Send Button */}
+            <div className="w-full px-4 mt-auto pb-4">
+              <button
+                type="button"
+                className="w-full h-[52px] rounded-full bg-[#00c88c] text-white text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] shadow-md"
+              >
+                Send
+              </button>
             </div>
-
-            <div className="flex items-center justify-center gap-0.5 mb-1">
-              {renderStars(giftItem.stars)}
-            </div>
-
-            <div className="text-[13px] font-medium text-gray-400 mb-3">Send To</div>
-
-            <button
-              type="button"
-              className="w-full max-w-[280px] h-[46px] rounded-full bg-[#1d4ed8] text-white text-[16px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 shadow-md"
-            >
-              Send
-            </button>
           </div>
         </div>
       )}
