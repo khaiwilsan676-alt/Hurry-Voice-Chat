@@ -1176,48 +1176,48 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ Chat Bubble Try Modal — FIXED ============ */}
+      {/* ============ Chat Bubble Try Modal — FIXED: NO BLACK BORDER + SMALLER CENTERED ============ */}
       {tryChatBubbleItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onClick={() => setTryChatBubbleItem(null)}
         >
           <div
-            className="w-full max-w-[280px] bg-white rounded-[24px] flex flex-col items-center pt-6 pb-5 px-5 shadow-2xl"
+            className="w-full max-w-[260px] bg-white rounded-[22px] flex flex-col items-center pt-5 pb-4 px-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="w-4 h-4 rounded-full border-[5px] border-gray-300 bg-white flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
               </div>
-              <span className="text-[17px] font-semibold text-gray-400 tracking-wide">3D</span>
+              <span className="text-[16px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
-            {/* Chat bubble preview — NO BLACK BOX, only the bubble image */}
-            <div className="relative w-[140px] h-[140px] mb-4 flex items-center justify-center">
+            {/* Chat bubble preview — NO BOX, NO BORDER, NO BACKGROUND */}
+            <div className="relative w-[120px] h-[120px] mb-3 flex items-center justify-center">
               <Image
                 src={tryChatBubbleItem.image}
                 alt={tryChatBubbleItem.name}
-                width={140}
-                height={140}
+                width={120}
+                height={120}
                 className="object-contain"
               />
             </div>
 
-            <div className="flex flex-col items-center justify-center mb-4">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+            <div className="flex flex-col items-center justify-center mb-3">
+              <div className="flex items-center justify-center gap-1.5 mb-0.5">
+                <div className="relative w-7 h-7 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                 </div>
-                <span className="text-[32px] font-extrabold text-black tracking-tight leading-none">
+                <span className="text-[28px] font-extrabold text-black tracking-tight leading-none">
                   {tryChatBubbleItem.price.replace(/,/g, '')}
                 </span>
               </div>
-              <div className="flex items-center justify-center gap-1.5 opacity-60">
-                <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+              <div className="flex items-center justify-center gap-1 opacity-60">
+                <div className="relative w-3.5 h-3.5 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                 </div>
-                <span className="text-[16px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
+                <span className="text-[14px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
                   {String(parseInt(tryChatBubbleItem.price.replace(/,/g, ''), 10) * 2)}
                 </span>
               </div>
@@ -1230,7 +1230,7 @@ export default function StorePage({
                 setTryChatBubbleItem(null);
               }}
               disabled={buying === tryChatBubbleItem.id}
-              className="w-full h-[46px] rounded-full bg-[#00c88c] text-white text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] disabled:opacity-50 disabled:cursor-not-allowed shadow-md mb-2.5"
+              className="w-full h-[42px] rounded-full bg-[#00c88c] text-white text-[16px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] disabled:opacity-50 disabled:cursor-not-allowed shadow-md mb-2"
             >
               Buy
             </button>
@@ -1238,7 +1238,7 @@ export default function StorePage({
             <button
               type="button"
               onClick={() => setTryChatBubbleItem(null)}
-              className="w-full h-[46px] rounded-full bg-[#f2f2f2] text-[#8a8a8a] text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+              className="w-full h-[42px] rounded-full bg-[#f2f2f2] text-[#8a8a8a] text-[16px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
             >
               Cancel
             </button>
