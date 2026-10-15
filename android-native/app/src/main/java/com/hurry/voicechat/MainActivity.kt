@@ -291,9 +291,9 @@ private fun HurryNativeRoot() {
                                 mineCreatedRoom = mineCreatedRoom,
                                 mineSelected = homeMine
                             )
-                            HurryTab.MESSAGE -> MessageScreen { uid, name, image ->
+                            HurryTab.MESSAGE -> MessageScreen(onChat = { uid, name, image ->
                                 openedChat = Triple(uid, name, image)
-                            }
+                            })
                             HurryTab.ME -> when (openedMePage) {
                                 null -> MeScreen(onOpen = { openedMePage = it }, onPublicProfile = { openedPublicProfile = it })
                                 "Coins" -> CoinsNativePage(onBack = { openedMePage = null })

@@ -1,0 +1,1 @@
+sed -i '294,297c\                            HurryTab.MESSAGE -> MessageScreen(onChat = { uid, name, image ->\n                                openedChat = Triple(uid, name, image)\n                            })' android-native/app/src/main/java/com/hurry/voicechat/MainActivity.kt
