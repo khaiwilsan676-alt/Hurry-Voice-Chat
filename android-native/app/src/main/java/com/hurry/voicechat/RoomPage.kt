@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,9 +38,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.AnnotatedString
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.asImageBitmap
@@ -56,20 +54,21 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
 @Composable
-private fun GreenRemovedCupImage(url:String, modifier:Modifier=Modifier) {
-    var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+fun TransparentGreenImage(url: String, modifier: Modifier = Modifier) {
+    var bitmap by remember(url) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    
     LaunchedEffect(url) {
         bitmap = withContext(Dispatchers.IO) {
             runCatching {
-                val source = URL(url).openStream().use { BitmapFactory.decodeStream(it) } ?: return@runCatching null
-                val result = source.copy(Bitmap.Config.ARGB_8888, true)
+                val source = java.net.URL(url).openStream().use { android.graphics.BitmapFactory.decodeStream(it) } ?: return@runCatching null
+                val result = source.copy(android.graphics.Bitmap.Config.ARGB_8888, true)
+                val hsv = FloatArray(3)
+                
                 for (y in 0 until result.height) {
                     for (x in 0 until result.width) {
                         val pixel = result.getPixel(x, y)
-                        val red = android.graphics.Color.red(pixel)
-                        val green = android.graphics.Color.green(pixel)
-                        val blue = android.graphics.Color.blue(pixel)
-                        if (green > red * 1.2 && green > blue * 1.2 && green > 70) {
+                        android.graphics.Color.colorToHSV(pixel, hsv)
+                        if (hsv[0] in 60f..165f && hsv[1] > 0.2f && hsv[2] > 0.2f) {
                             result.setPixel(x, y, android.graphics.Color.TRANSPARENT)
                         }
                     }
@@ -78,7 +77,15 @@ private fun GreenRemovedCupImage(url:String, modifier:Modifier=Modifier) {
             }.getOrNull()
         }
     }
-    bitmap?.let { Image(bitmap=it.asImageBitmap(),contentDescription="Cup",modifier=modifier,contentScale=ContentScale.Fit) }
+    
+    bitmap?.let { 
+        Image(
+            bitmap = it.asImageBitmap(), 
+            contentDescription = null, 
+            modifier = modifier, 
+            contentScale = ContentScale.Fit
+        ) 
+    }
 }
 
 data class RoomPageOwner(val id:String="",val uid:String="",val accountId:String="",val name:String="Room",val image:String="",val country:String="🇮🇳")
@@ -125,6 +132,7 @@ fun RoomPage(
     val keyboardController = LocalSoftwareKeyboardController.current
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     var keyboardShownForChat by remember { mutableStateOf(false) }
+    
     LaunchedEffect(showChat, imeVisible) {
         if (!showChat) {
             keyboardShownForChat = false
@@ -144,6 +152,7 @@ fun RoomPage(
             keyboardController?.hide()
         }
     }
+    
     var announcement by remember{mutableStateOf("")}
     var selectedSeat by remember{mutableIntStateOf(0)}
     var showSeatSheet by remember{mutableStateOf(false)}
@@ -157,6 +166,7 @@ fun RoomPage(
         val roomSocket = IO.socket("https://hurry-voice-chat-lz75.onrender.com")
         roomSocketRef.value=roomSocket
         val mainHandler = Handler(Looper.getMainLooper())
+        
         val presenceListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject
             if (payload != null && payload.optString("roomId") == roomId) {
@@ -174,6 +184,7 @@ fun RoomPage(
                 mainHandler.post { backendRoomUsers.clear(); backendRoomUsers.addAll(parsed) }
             }
         }
+        
         val messageListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject
             if (payload != null && payload.optString("roomId") == roomId) {
@@ -191,10 +202,12 @@ fun RoomPage(
                 }
             }
         }
+        
         val clearedListener = Emitter.Listener { args ->
             val payload=args.firstOrNull() as? JSONObject
             if(payload!=null && payload.optString("roomId")==roomId) mainHandler.post { messages.clear() }
         }
+        
         val seatListener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject
             if (payload != null && payload.optString("roomId") == roomId) {
@@ -227,6 +240,7 @@ fun RoomPage(
                 }
             }
         }
+        
         var joinMessageSent = false
         val connectListener = Emitter.Listener {
             val joinPayload = JSONObject()
@@ -237,6 +251,7 @@ fun RoomPage(
                 .put("name",currentUser.name)
                 .put("dp",currentUser.image)
             roomSocket.emit("room_join",joinPayload)
+            
             if (!joinMessageSent && accountId != "guest") {
                 joinMessageSent = true
                 val joinCreatedAt = System.currentTimeMillis()
@@ -266,12 +281,14 @@ fun RoomPage(
             roomSocket.emit("room_presence_request",JSONObject().put("roomId",roomId))
             roomSocket.emit("room_seats_request",JSONObject().put("roomId",roomId))
         }
+        
         roomSocket.on("room_presence",presenceListener)
         roomSocket.on("room_message",messageListener)
         roomSocket.on("room_chat_cleared",clearedListener)
         roomSocket.on("room_seats",seatListener)
         roomSocket.on(Socket.EVENT_CONNECT,connectListener)
         roomSocket.connect()
+        
         onDispose {
             roomSocket.emit("room_leave",JSONObject().put("roomId",roomId).put("userId",accountId).put("accountId",accountId))
             roomSocket.off("room_presence",presenceListener)
@@ -288,6 +305,7 @@ fun RoomPage(
 
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg",contentDescription="Room theme background",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+        
         Row(
             modifier=Modifier.align(Alignment.TopStart).padding(top=64.dp,start=0.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
@@ -295,49 +313,98 @@ fun RoomPage(
                 .padding(start=12.dp,end=12.dp,top=4.dp,bottom=4.dp),
             verticalAlignment=Alignment.CenterVertically
         ){
-            GreenColorRemovalImage(
-                imageUrl="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
-                contentDescription="Room trophy",
-                modifier=Modifier.size(20.dp),
-                contentScale=ContentScale.Fit,
-                threshold=0.5f
+            TransparentGreenImage(
+                url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
+                modifier=Modifier.size(20.dp)
             )
             Spacer(Modifier.width(6.dp))
             Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing=0.1.sp)
             Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.padding(start=4.dp).size(10.dp))
         }
+        
         Column(Modifier.fillMaxSize()){
-            Row(Modifier.fillMaxWidth().padding(top=28.dp,start=6.dp,end=6.dp),verticalAlignment=Alignment.CenterVertically){
-                AsyncImage(model=roomImage,contentDescription="Room profile",modifier=Modifier.size(34.dp).clip(RoundedCornerShape(6.dp)).clickable{showInfo=true},contentScale=ContentScale.Crop)
-                Column(Modifier.weight(1f).padding(start=6.dp)){
-                    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
-                        Text(roomName.take(12).let { if(roomName.length>12) it+"..." else it },color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis,modifier=Modifier.offset(y=2.dp))
-                        Text(roomCountryFlag(roomOwner.country),color=Color.White,fontSize=12.sp,maxLines=1,modifier=Modifier.offset(y=2.dp))
-                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) Box(Modifier.offset(y=2.dp).size(22.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{followed=!followed;onFollowToggle(roomId,followed)},contentAlignment=Alignment.Center){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(14.dp))}
+            
+            // ═══════════ UPDATED TOP HEADER (BIG ICONS & GAP) ═══════════
+            Row(Modifier.fillMaxWidth().padding(top=28.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){
+                
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .clickable { showInfo = true }
+                        .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = roomImage,
+                        contentDescription = "Room profile",
+                        modifier = Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Column(Modifier.padding(start = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                roomName.take(12).let { if (roomName.length > 12) "$it..." else it },
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.offset(y = 2.dp)
+                            )
+                            Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp, modifier = Modifier.offset(y = 2.dp))
+                            
+                            if (accountId != roomOwner.accountId.ifBlank { roomOwner.id }) {
+                                Box(
+                                    Modifier
+                                        .offset(y = 2.dp)
+                                        .size(20.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF3B82F6)) 
+                                        .clickable { followed = !followed; onFollowToggle(roomId, followed) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if(followed) Icons.Default.Check else Icons.Default.Add,
+                                        contentDescription = "Follow",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Text("ID:" + roomOwner.accountId.ifBlank { roomOwner.id.ifBlank { roomId } }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp, modifier = Modifier.offset(y = (-2).dp))
                     }
-                    Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1,modifier=Modifier.offset(y=(-2).dp))
                 }
-                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
+
+                Spacer(Modifier.weight(1f))
+
+                // Top Right Big Icons with increased gap
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                     Row(
-                        modifier=Modifier.height(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=6.dp),
+                        modifier=Modifier.height(38.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=12.dp),
                         verticalAlignment=Alignment.CenterVertically,
-                        horizontalArrangement=Arrangement.spacedBy(3.dp)
+                        horizontalArrangement=Arrangement.spacedBy(6.dp)
                     ){
-                        Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(19.dp))
-                        Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=10.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                        Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(18.dp))
+                        Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                     }
-                    if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) Box(
-                        Modifier.size(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showSettings=true},
-                        contentAlignment=Alignment.Center
-                    ){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(19.dp))}
+                    if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) {
+                        Box(
+                            Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showSettings=true},
+                            contentAlignment=Alignment.Center
+                        ){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(20.dp))}
+                    }
                     Box(
-                        Modifier.size(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showExitMenu=true},
+                        Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showExitMenu=true},
                         contentAlignment=Alignment.Center
-                    ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(19.dp))}
+                    ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(20.dp))}
                 }
             }
+            
+            // ═══════════ SEATS AREA ═══════════
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=4.dp).padding(top=14.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=4.dp).padding(top=48.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
@@ -363,83 +430,151 @@ fun RoomPage(
                     }
                 }
             }
+            
+            // ═══════════ UPDATED CHAT SCROLL AND GAP ═══════════
             val chatListState = androidx.compose.foundation.lazy.rememberLazyListState()
-            LaunchedEffect(messages.size) {
-                if (messages.isNotEmpty()) chatListState.animateScrollToItem(messages.lastIndex)
+            
+            // Auto scroll to bottom when new messages arrive or keyboard opens
+            LaunchedEffect(messages.size, imeVisible) {
+                if (messages.isNotEmpty()) {
+                    chatListState.animateScrollToItem(messages.lastIndex)
+                }
             }
+            
             LazyColumn(
                 state=chatListState,
                 modifier=Modifier.fillMaxWidth().weight(1f).padding(horizontal=10.dp),
-                contentPadding=PaddingValues(bottom=2.dp),
-                verticalArrangement=Arrangement.spacedBy(2.dp)
-            ){items(messages,key={it.id}){message ->
-                if(message.type=="join") {
-                    Row(Modifier.fillMaxWidth().padding(vertical=3.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha=.20f)).padding(horizontal=10.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
-                        AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-                        Column {
-                            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
-                                Text(message.sender,color=Color.White.copy(alpha=.95f),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
-                                androidx.compose.material3.Icon(imageVector=Icons.Filled.Home,contentDescription=null,modifier=Modifier.size(12.dp),tint=Color.White)
+                contentPadding=PaddingValues(bottom=8.dp),
+                verticalArrangement=Arrangement.spacedBy(8.dp) // GAP Increased to 8.dp
+            ){
+                items(messages,key={it.id}){message ->
+                    if(message.type=="join") {
+                        Row(Modifier.fillMaxWidth().padding(vertical=2.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha=.20f)).padding(horizontal=10.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+                            AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
+                            Column {
+                                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                                    Text(message.sender,color=Color.White.copy(alpha=.95f),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                    androidx.compose.material3.Icon(imageVector=Icons.Filled.Home,contentDescription=null,modifier=Modifier.size(12.dp),tint=Color.White)
+                                }
+                                Text("Enter the Room",color=Color.White.copy(alpha=.8f),fontSize=10.sp)
                             }
-                            Text("Enter the Room",color=Color.White.copy(alpha=.8f),fontSize=10.sp)
                         }
-                    }
-                } else NativeMessage(message)
-            }}
-            if(showChat) Row(Modifier.fillMaxWidth().imePadding().background(Color.White).padding(horizontal=10.dp,vertical=7.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
-                IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(34.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(25.dp))}
-                androidx.compose.foundation.text.BasicTextField(value=input,onValueChange={input=it},modifier=Modifier.weight(1f).focusRequester(chatFocusRequester).padding(vertical=9.dp),singleLine=true,textStyle=androidx.compose.ui.text.TextStyle(color=Color(0xFF262626),fontSize=13.sp),decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color(0xFF9CA3AF),fontSize=13.sp); innerTextField }})
-                IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(34.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(25.dp))}
+                    } else NativeMessage(message)
+                }
             }
-            Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=6.dp).height(40.dp),verticalAlignment=Alignment.CenterVertically){
-                Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
-                    RoomFooterButton(onClick={showChat=!showChat},description="Say Hi Chat",icon=R.drawable.ic_hurry_chat)
-                    val selfSeatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
-                    if(selfSeatIndex>=0) RoomFooterButton(onClick={seats[selfSeatIndex]=seats[selfSeatIndex].copy(muted=!seats[selfSeatIndex].muted)},description="Microphone",icon=if(seats[selfSeatIndex].muted) R.drawable.ic_hurry_mic_muted else R.drawable.ic_hurry_mic)
-                    if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
+            
+            // ═══════════ REAL APP LIKE CHAT INPUT AND FOOTER LOGIC ═══════════
+            if(showChat) {
+                // When Chat is open, Footer is hidden completely
+                Row(Modifier.fillMaxWidth().background(Color.White).imePadding().padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                    IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(38.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(26.dp))}
+                    androidx.compose.foundation.text.BasicTextField(
+                        value=input,
+                        onValueChange={input=it},
+                        modifier=Modifier.weight(1f).focusRequester(chatFocusRequester).padding(vertical=10.dp),
+                        singleLine=true,
+                        textStyle=androidx.compose.ui.text.TextStyle(color=Color.Black,fontSize=15.sp),
+                        cursorBrush=SolidColor(Color.Blue),
+                        decorationBox={innerTextField -> Box { if(input.isEmpty()) Text("Type a message...",color=Color.Gray,fontSize=15.sp); innerTextField() }}
+                    )
+                    IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(38.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(26.dp))}
                 }
-                Box(Modifier.size(40.dp),contentAlignment=Alignment.Center){
-                    AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(56.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
-                }
-                Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp,Alignment.End)){
-                    RoomFooterButton(onClick={showMessageSheet=true},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
-                    RoomFooterButton(onClick={showMenu=true},description="Apps Menu",icon=R.drawable.ic_hurry_apps)
+            } else {
+                // Regular Footer Menus
+                Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=6.dp).height(44.dp),verticalAlignment=Alignment.CenterVertically){
+                    Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
+                        RoomFooterButton(onClick={showChat=true},description="Say Hi Chat",icon=R.drawable.ic_hurry_chat)
+                        
+                        val selfSeatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
+                        if(selfSeatIndex>=0) {
+                            val seat = seats[selfSeatIndex]
+                            Box(
+                                Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f))
+                                .clickable{seats[selfSeatIndex]=seat.copy(muted=!seat.muted)},
+                                contentAlignment=Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (seat.muted) Icons.Default.MicOff else Icons.Default.Mic,
+                                    contentDescription = "Microphone",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                        if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
+                    }
+                    
+                    // ═══════════ BIGGER GIFT ICON ═══════════
+                    Box(Modifier.size(52.dp),contentAlignment=Alignment.Center){
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(68.dp).offset(y=(-4).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                    }
+                    
+                    Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
+                        RoomFooterButton(onClick={showMessageSheet=true},description="Message Box Menu",icon=R.drawable.ic_hurry_mail)
+                        RoomFooterButton(onClick={showMenu=true},description="Apps Menu",icon=R.drawable.ic_hurry_apps)
+                    }
                 }
             }
         }
-        // Real Hurry room's right-side image stack (banner, room task and games).
-        var sideBannerIndex by remember { mutableIntStateOf(0) }
-        LaunchedEffect(Unit) {
+        
+        // ═══════════ RIGHT SIDE BANNER & GAMES ═══════════
+        val sideBannerImages = listOf(
+            "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg",
+            "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339681679~2.jpg"
+        )
+        val sideBannerPager = androidx.compose.foundation.pager.rememberPagerState(pageCount = { sideBannerImages.size })
+        
+        LaunchedEffect(sideBannerPager.currentPage) {
             while (true) {
                 kotlinx.coroutines.delay(3000)
-                sideBannerIndex = (sideBannerIndex + 1) % 2
+                if (!sideBannerPager.isScrollInProgress) {
+                    sideBannerPager.animateScrollToPage((sideBannerPager.currentPage + 1) % sideBannerImages.size)
+                }
             }
         }
+
         Column(
             modifier=Modifier.align(Alignment.BottomEnd)
-                .padding(end=10.dp, bottom=78.dp)
+                .padding(end=10.dp, bottom=84.dp)
                 .heightIn(max=330.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement=Arrangement.spacedBy(2.dp)
         ) {
-            AsyncImage(
-                model=if(sideBannerIndex==0)
-                    "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg"
-                else
-                    "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339681679~2.jpg",
-                contentDescription="Room side banner",
-                modifier=Modifier.size(width=60.dp,height=84.dp).clip(RoundedCornerShape(8.dp)),
-                contentScale=ContentScale.Crop
-            )
-            Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
-                Box(Modifier.size(6.dp).clip(CircleShape).background(Color.White))
-                Box(Modifier.size(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.4f)))
+            Column(horizontalAlignment=Alignment.CenterHorizontally) {
+                androidx.compose.foundation.pager.HorizontalPager(
+                    state = sideBannerPager,
+                    modifier = Modifier.size(60.dp, 84.dp).clip(RoundedCornerShape(8.dp))
+                ) { page ->
+                    AsyncImage(
+                        model = sideBannerImages[page],
+                        contentDescription = "Room side banner",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                Row(
+                    horizontalArrangement=Arrangement.spacedBy(2.dp), 
+                    verticalAlignment=Alignment.CenterVertically, 
+                    modifier=Modifier.padding(top=4.dp)
+                ) {
+                    repeat(sideBannerImages.size) { i ->
+                        val isActive = sideBannerPager.currentPage == i
+                        Box(
+                            Modifier
+                                .size(if (isActive) 6.dp else 4.dp)
+                                .clip(CircleShape)
+                                .background(if (isActive) Color.White else Color.White.copy(alpha=.4f))
+                        )
+                    }
+                }
             }
-            GreenRemovedCupImage(
+            
+            TransparentGreenImage(
                 url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/IMG-20260902-WA0066.jpg",
                 modifier=Modifier.size(63.dp).clickable { showRoomTask=true }
             )
+            
             AsyncImage(
                 model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_000000002a8c81fab8232bebeeeb45cc.png",
                 contentDescription="Games",
@@ -447,6 +582,7 @@ fun RoomPage(
                 contentScale=ContentScale.Fit
             )
         }
+        
         Column(
             Modifier.align(Alignment.BottomStart).padding(bottom=LocalConfiguration.current.screenHeightDp.dp*0.33f,start=8.dp),
             verticalArrangement=Arrangement.spacedBy(4.dp)
@@ -472,6 +608,7 @@ fun RoomPage(
                 }
             }
         }
+        
         if(showExitMenu) RoomExitMenu(
             onKeep={showExitMenu=false;onKeepRoom(roomName,roomImage,roomId)},
             onExit={showExitMenu=false;onClose()},
@@ -491,9 +628,11 @@ fun RoomPage(
             onMusicPlay=null,
             onOpenStore=null
         )
+        
         val activeRoomUsers = backendRoomUsers.toList()
         val roomFollowers = seats.filter { it.occupied && it.accountId.isNotBlank() && it.accountId != roomOwner.accountId && it.accountId != roomOwner.id }
             .map { RoomInfoFollower(it.accountId,it.userName,it.userImage) }
+            
         if(showInfo) RoomInfo(
             isOpen=true,
             onClose={showInfo=false},
@@ -525,12 +664,13 @@ fun RoomPage(
             currentUserImage=currentUser.image,
             roomUsers=activeRoomUsers
         )
+        
         if(showGames) GamesSheet(
             onClose={showGames=false},
             onWildParty={showGames=false;showWildParty=true},
-            onFruitParty={showGames=false;showFruitParty=true},
-            onRoomTask={showGames=false;showRoomTask=true}
+            onFruitParty={showGames=false;showFruitParty=true}
         )
+        
         if(showRoomTask) Roomtask(onBack={showRoomTask=false})
         if(showWildParty) Wildparty(onClose={showWildParty=false},onMinimize={showWildParty=false})
         if(showFruitParty) Fruitparty(onClose={showFruitParty=false},onMinimize={showFruitParty=false})
@@ -562,6 +702,7 @@ fun RoomPage(
                 }
             }
         )
+        
         if(showSeatSheet && selectedSeat>0) {
             val seat=seats.firstOrNull{it.number==selectedSeat}
             if(seat!=null) SeatActionSheet(
@@ -579,16 +720,20 @@ fun RoomPage(
         if(selectedSeat>0 && seats.firstOrNull{it.number==selectedSeat}?.occupied==true && !showSeatSheet) {
             MemberSheet(seats.first{it.number==selectedSeat}){selectedSeat=0}
         }
+        
+        // ═══════════ MESSAGE SHEET PURE WHITE ═══════════
         if(showMessageSheet) {
             val screenHeight = LocalConfiguration.current.screenHeightDp
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{showMessageSheet=false},contentAlignment=Alignment.BottomCenter) {
                 Surface(
                     modifier=Modifier.fillMaxWidth().height((screenHeight * .60f).dp).clickable(enabled=false) {},
-                    color=Color.White,
+                    color=Color.White, // Explicitly pure white
                     shape=RoundedCornerShape(topStart=15.dp,topEnd=15.dp),
                     shadowElevation=16.dp
                 ) {
-                    MessageScreen(onChat={ _, _, _ -> showMessageSheet=false }, embeddedSheet=true, onBack={ showMessageSheet=false })
+                    Box(Modifier.fillMaxSize().background(Color.White)) { // Ensure complete pure white
+                        MessageScreen(onChat={ _, _, _ -> showMessageSheet=false }, embeddedSheet=true, onBack={ showMessageSheet=false })
+                    }
                 }
             }
         }
@@ -611,6 +756,7 @@ fun RoomPage(
         }
     }
 }
+
 @Composable private fun SeatSheetAction(label:String,enabled:Boolean=true,onClick:()->Unit){
     TextButton(onClick=onClick,enabled=enabled,modifier=Modifier.fillMaxWidth().height(44.dp),shape=RoundedCornerShape(10.dp)){
         Text(label,color=if(enabled)Color(0xFF171717) else Color.Gray,fontSize=14.sp)
@@ -618,8 +764,8 @@ fun RoomPage(
 }
 
 @Composable private fun RoomFooterButton(onClick:()->Unit,description:String,icon:Int){
-    Box(Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
-        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(when(description){"Say Hi Chat"->30.dp;"Microphone"->31.dp;"Emoji"->28.dp;"Message Box Menu"->29.dp;"Apps Menu"->28.dp;else->26.dp}))
+    Box(Modifier.size(42.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable(onClick=onClick),contentAlignment=Alignment.Center){
+        Image(painterResource(icon),contentDescription=description,modifier=Modifier.size(when(description){"Say Hi Chat"->30.dp;"Emoji"->26.dp;"Message Box Menu"->28.dp;"Apps Menu"->26.dp;else->26.dp}))
     }
 }
 
@@ -630,8 +776,6 @@ fun RoomPage(
         modifier=Modifier.width(56.dp).clickable(onClick=onClick)
     ){
         Box(Modifier.size(56.dp),contentAlignment=Alignment.Center){
-            // Match the original RoomPage.tsx seat bubble SVG: thin gradient ring,
-            // soft outer glow, and the two curved highlights.
             Canvas(Modifier.fillMaxSize()) {
                 val blue = !seat.locked
                 val ringBrush = Brush.linearGradient(
@@ -689,7 +833,11 @@ fun RoomPage(
                 modifier=Modifier.fillMaxSize(),
                 contentScale=ContentScale.Fit
             )
-            if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(15.dp))
+            if(seat.muted) {
+                Box(Modifier.align(Alignment.BottomEnd).clip(CircleShape).background(Color.Red).padding(2.dp)) {
+                    Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.size(12.dp))
+                }
+            }
         }
         Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
     }
@@ -697,29 +845,29 @@ fun RoomPage(
 
 @Composable private fun NativeMessage(m:NativeRoomMessage){
     Row(
-        Modifier.fillMaxWidth().padding(vertical=0.dp),
+        Modifier.fillMaxWidth().padding(vertical=2.dp),
         verticalAlignment=Alignment.Top,
         horizontalArrangement=Arrangement.Start
     ){
         AsyncImage(
             model=m.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},
             contentDescription=m.sender,
-            modifier=Modifier.padding(top=2.dp).size(26.dp).clip(CircleShape),
+            modifier=Modifier.padding(top=2.dp).size(28.dp).clip(CircleShape).border(1.dp, Color.White.copy(alpha=.1f), CircleShape),
             contentScale=ContentScale.Crop
         )
         Column(
             Modifier.padding(start=8.dp).fillMaxWidth(.75f),
             verticalArrangement=Arrangement.spacedBy(2.dp)
         ){
-            Text(m.sender,color=Color.White.copy(alpha=.9f),fontSize=11.sp,lineHeight=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
+            Text(m.sender,color=Color.White.copy(alpha=.9f),fontSize=12.sp,lineHeight=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,maxLines=1,overflow=TextOverflow.Ellipsis)
             Box(
                 Modifier.align(Alignment.Start)
                     .clip(RoundedCornerShape(topStart=2.dp,topEnd=12.dp,bottomStart=12.dp,bottomEnd=12.dp))
-                    .background(Color.Black.copy(alpha=.30f))
-                    .border(0.5.dp,Color.White.copy(alpha=.08f),RoundedCornerShape(topStart=2.dp,topEnd=12.dp,bottomStart=12.dp,bottomEnd=12.dp))
-                    .padding(horizontal=8.dp,vertical=6.dp)
+                    .background(Color.Black.copy(alpha=.40f))
+                    .border(0.5.dp,Color.White.copy(alpha=.15f),RoundedCornerShape(topStart=2.dp,topEnd=12.dp,bottomStart=12.dp,bottomEnd=12.dp))
+                    .padding(horizontal=10.dp,vertical=8.dp)
             ){
-                Text(m.text,color=Color.White,fontSize=13.sp,lineHeight=16.sp,softWrap=true)
+                Text(m.text,color=Color.White,fontSize=13.sp,lineHeight=18.sp,softWrap=true)
             }
         }
     }
@@ -746,6 +894,7 @@ fun RoomPage(
         }
     }
 }
+
 private val Int.percentHeight: androidx.compose.ui.unit.Dp
     @Composable get() = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * this / 100
 
@@ -780,29 +929,31 @@ private val Int.percentHeight: androidx.compose.ui.unit.Dp
     Text("Select a gift",color=Color.White.copy(.7f),modifier=Modifier.padding(12.dp))
 }
 
-@Composable private fun GamesSheet(onClose:()->Unit,onWildParty:()->Unit,onFruitParty:()->Unit,onRoomTask:()->Unit){
+@Composable private fun GamesSheet(onClose:()->Unit,onWildParty:()->Unit,onFruitParty:()->Unit){
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{onClose()},contentAlignment=Alignment.BottomCenter){
-        Surface(Modifier.fillMaxWidth().clickable(enabled=false){},color=Color(0xFF24212A),shape=RoundedCornerShape(topStart=18.dp,topEnd=18.dp)){
-            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start=18.dp,end=18.dp,top=12.dp,bottom=20.dp)){
-                Box(Modifier.align(Alignment.CenterHorizontally).width(38.dp).height(4.dp).clip(CircleShape).background(Color.White.copy(alpha=.45f)))
-                Spacer(Modifier.height(14.dp))
+        Surface(
+            Modifier.fillMaxWidth().clickable(enabled=false){},
+            color=Color.Black.copy(alpha=0.92f),
+            shape=RoundedCornerShape(topStart=15.dp,topEnd=15.dp)
+        ){
+            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start=16.dp,end=16.dp,top=12.dp,bottom=24.dp)){
                 Text("Games",color=Color.White,fontSize=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
-                Spacer(Modifier.height(18.dp))
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceAround,verticalAlignment=Alignment.Top){
-                    GameSheetItem(raw+"file_000000009d808211b8ffb7c2183b4ef5.png","Wild party",onWildParty)
-                    GameSheetItem(raw+"file_00000000c9e08211ab3e8c4d511b7965.png","Fruit party",onFruitParty)
-                    GameSheetItem(raw+"IMG-20260902-WA0066.jpg","Room task",onRoomTask)
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement=Arrangement.spacedBy(20.dp),verticalAlignment=Alignment.Top){
+                    Column(Modifier.clickable{onWildParty()}, horizontalAlignment=Alignment.CenterHorizontally){
+                        AsyncImage(model=raw+"file_000000009d808211b8ffb7c2183b4ef5.png",contentDescription="Wild party",modifier=Modifier.size(56.dp),contentScale=ContentScale.Fit)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Wild party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
+                    }
+                    Column(Modifier.clickable{onFruitParty()}, horizontalAlignment=Alignment.CenterHorizontally){
+                        AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(48.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit)
+                        Spacer(Modifier.height(8.dp))
+                        Text("Fruit party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
+                    }
                 }
             }
         }
-    }
-}
-@Composable private fun GameSheetItem(image:String,label:String,onClick:()->Unit){
-    Column(Modifier.width(84.dp).clickable(onClick=onClick),horizontalAlignment=Alignment.CenterHorizontally){
-        AsyncImage(model=image,contentDescription=label,modifier=Modifier.size(54.dp),contentScale=ContentScale.Fit)
-        Spacer(Modifier.height(5.dp))
-        Text(label,color=Color.White,fontSize=10.sp,maxLines=1)
     }
 }
 
@@ -828,7 +979,6 @@ private val Int.percentHeight: androidx.compose.ui.unit.Dp
         }
     }
 }
-
 
 private fun roomCountryFlag(country: String): String {
     val value = country.trim()
