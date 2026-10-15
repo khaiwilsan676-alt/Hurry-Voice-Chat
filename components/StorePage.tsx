@@ -1165,13 +1165,14 @@ export default function StorePage({
         );
       })()}
 
+      {/* ============ Chat Bubble Try Modal ============ */}
       {tryChatBubbleItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-transparent p-4"
           onClick={() => setTryChatBubbleItem(null)}
         >
           <div
-            className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl"
+            className="w-full max-w-[320px] rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-center gap-2 mb-6">
@@ -1223,7 +1224,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ UPDATED: Gift (Send) Modal — FULL CHAT VISIBLE & COMPACT ============ */}
+      {/* ============ Gift (Send) Modal ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1235,7 +1236,6 @@ export default function StorePage({
           >
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* FULL CHAT BUBBLE IMAGE — object-contain, natural aspect ratio, no crop */}
             <div className="relative w-[130px] mb-3">
               <div className="relative w-full flex items-center justify-center">
                 {giftItem.image.endsWith('.mp4') ? (
