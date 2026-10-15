@@ -1246,7 +1246,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — CLEAN FRAME (NO BLACK BOX) ============ */}
+      {/* ============ Gift (Send) Modal — FULLY CLEAN, NO BLACK BOX ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1258,12 +1258,12 @@ export default function StorePage({
           >
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* Item Display Area */}
+            {/* Item Display Area — CLEAN */}
             <div className="relative w-[140px] h-[140px] mb-3">
               {giftItem.tab === "Avatar Frame" ? (
-                /* Avatar Frame — CLEAN, NO BLACK BOX, NO BG */
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shadow-md">
+                  {/* Avatar — no bg box */}
+                  <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden flex items-center justify-center">
                     {userPhoto ? (
                       <img
                         src={userPhoto}
@@ -1280,6 +1280,7 @@ export default function StorePage({
                       {avatarLetter}
                     </div>
                   </div>
+                  {/* Frame overlay */}
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                     {giftItem.tryVideo ? (
                       <WebGLVideoAvatar src={giftItem.tryVideo} />
@@ -1292,12 +1293,7 @@ export default function StorePage({
                 </div>
               ) : giftItem.tab === "Chat Bubble" ? (
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <Image
-                    src={giftItem.image}
-                    alt={giftItem.name}
-                    fill
-                    className="object-contain"
-                  />
+                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
                 </div>
               ) : giftItem.image.endsWith('.mp4') ? (
                 <WebGLVideoAvatar src={giftItem.image} />
@@ -1307,8 +1303,8 @@ export default function StorePage({
                 <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
               )}
 
-              {/* 3D Badge — CHHOTA */}
-              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[10px] font-bold px-1.5 py-[1px] rounded-md shadow-md leading-tight">
+              {/* 3D Badge — chhota */}
+              <div className="absolute top-0 left-0 bg-[#ff7a3d] text-white text-[10px] font-bold px-1.5 py-[1px] rounded-md shadow-md leading-tight">
                 {giftItem.duration}
               </div>
             </div>
