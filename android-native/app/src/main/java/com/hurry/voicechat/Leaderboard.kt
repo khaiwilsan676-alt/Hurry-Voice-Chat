@@ -105,7 +105,7 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                 )
                 Spacer(Modifier.weight(1f))
                 Row(
-                    Modifier.fillMaxWidth(0.72f).height(26.dp)
+                    Modifier.fillMaxWidth(0.72f).height(30.dp)
                         .border(1.dp, Color(0xFFD4AF37), RoundedCornerShape(24.dp))
                         .background(Color(0xCC110A07), RoundedCornerShape(24.dp))
                         .padding(2.dp),
