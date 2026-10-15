@@ -571,7 +571,6 @@ export default function StorePage({
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
   const [tryChatBubbleItem, setTryChatBubbleItem] = useState<StoreItem | null>(null);
-  // NEW: State for the Gift (Send) modal
   const [giftItem, setGiftItem] = useState<StoreItem | null>(null);
 
   const [balance, setBalance] = useState<number>(0);
@@ -801,13 +800,11 @@ export default function StorePage({
     if (currentIndex === -1) return;
 
     if (distance > 0) {
-      // Swipe LEFT -> go next tab
       const nextIndex = currentIndex + 1;
       if (nextIndex < tabData.length) {
         setActiveTab(tabData[nextIndex].id);
       }
     } else {
-      // Swipe RIGHT -> go previous tab
       const prevIndex = currentIndex - 1;
       if (prevIndex >= 0) {
         setActiveTab(tabData[prevIndex].id);
@@ -914,7 +911,6 @@ export default function StorePage({
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
                 const isEquipped = equippedIds.has(item.id);
-                // SAME green-removal logic for Vehicle AND Frame images (matches video shader)
                 const shouldRemoveGreen = isVehicle || isAvatarFrame;
 
                 return (
@@ -1091,14 +1087,11 @@ export default function StorePage({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
             onClick={() => setTryCenterItem(null)}
           >
-            {/* Square card */}
             <div
               className="relative bg-white rounded-2xl w-[300px] h-[300px] max-w-[85vw] max-h-[85vw] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Avatar straddling top edge — half outside, half inside */}
               <div className="absolute left-1/2 -translate-x-1/2 -top-[55px] w-[110px] h-[110px]">
-                {/* Avatar circle */}
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow-md">
                   {userPhoto ? (
                     <img
@@ -1117,7 +1110,6 @@ export default function StorePage({
                   </div>
                 </div>
 
-                {/* Frame video/image overlay — same position, same size */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   {item.tryVideo ? (
                     <WebGLVideoAvatar src={item.tryVideo} />
@@ -1129,7 +1121,6 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Content inside square card, offset below avatar's lower half */}
               <div className="absolute inset-x-0 top-[70px] bottom-0 flex flex-col items-center px-4">
                 <div className="text-[17px] font-bold text-gray-900 text-center leading-tight">
                   {item.name}
@@ -1182,18 +1173,16 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ NEW: Chat Bubble Try Modal — AB GIFT JAISA FULL CHAT DIKHEGA ============ */}
+      {/* ============ Chat Bubble Try Modal ============ */}
       {tryChatBubbleItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onClick={() => setTryChatBubbleItem(null)}
         >
-          {/* Compact Centered Card */}
           <div
             className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 3D Selector Row */}
             <div className="flex items-center justify-center gap-2 mb-6">
               <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
                 <div className="w-2 h-2 rounded-full bg-gray-300"></div>
@@ -1201,7 +1190,6 @@ export default function StorePage({
               <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
-            {/* Full Chat Bubble Preview — Gift jaisa full size */}
             <div className="relative w-full aspect-square max-w-[200px] mb-6 flex items-center justify-center">
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200">
                 <Image
@@ -1213,9 +1201,7 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Coin Section */}
             <div className="flex flex-col items-center justify-center mb-6">
-              {/* Current Price */}
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
@@ -1224,7 +1210,6 @@ export default function StorePage({
                   {tryChatBubbleItem.price.replace(/,/g, '')}
                 </span>
               </div>
-              {/* Old Price */}
               <div className="flex items-center justify-center gap-1.5 opacity-60">
                 <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
@@ -1235,7 +1220,6 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Buy Button */}
             <button
               type="button"
               onClick={() => {
@@ -1248,7 +1232,6 @@ export default function StorePage({
               Buy
             </button>
 
-            {/* Cancel Button */}
             <button
               type="button"
               onClick={() => setTryChatBubbleItem(null)}
@@ -1260,7 +1243,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ NEW: Gift (Send) Modal — EXACT SCREENSHOT DESIGN ============ */}
+      {/* ============ Gift (Send) Modal — AVATAR + FRAME PROPERLY SHOWN ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1276,9 +1259,41 @@ export default function StorePage({
             {/* Item Image with Duration Badge — Full size restored */}
             <div className="relative w-[140px] h-[140px] mb-3">
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
-                {giftItem.image.endsWith('.mp4') ? (
+                {giftItem.tab === "Avatar Frame" ? (
+                  <div className="relative w-full h-full flex items-center justify-center bg-gray-200">
+                    {/* Avatar circle (behind the frame) */}
+                    <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
+                      {userPhoto ? (
+                        <img
+                          src={userPhoto}
+                          alt="User"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+                            if (next) next.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[32px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                        {avatarLetter}
+                      </div>
+                    </div>
+
+                    {/* Frame video/image overlay — same position, same size as avatar */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      {giftItem.tryVideo ? (
+                        <WebGLVideoAvatar src={giftItem.tryVideo} />
+                      ) : giftItem.image.endsWith('.mp4') ? (
+                        <WebGLVideoAvatar src={giftItem.image} />
+                      ) : (
+                        <WebGLImageAvatar src={giftItem.image} />
+                      )}
+                    </div>
+                  </div>
+                ) : giftItem.image.endsWith('.mp4') ? (
                   <WebGLVideoAvatar src={giftItem.image} />
-                ) : giftItem.tab === "Vehicle" || giftItem.tab === "Avatar Frame" ? (
+                ) : giftItem.tab === "Vehicle" ? (
                   <WebGLImageAvatar src={giftItem.image} />
                 ) : (
                   <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
