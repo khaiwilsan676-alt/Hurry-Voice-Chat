@@ -270,7 +270,7 @@ fun RoomPage(
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)){
-        AsyncImage(model=roomImage,contentDescription=null,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg",contentDescription="Room theme background",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         Row(
             modifier=Modifier.align(Alignment.TopStart).padding(top=64.dp,start=0.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
