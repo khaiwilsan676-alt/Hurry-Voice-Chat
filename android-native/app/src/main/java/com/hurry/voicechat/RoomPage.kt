@@ -203,6 +203,7 @@ fun RoomPage(
                 for (index in 0 until seatsJson.length()) {
                     val seat = seatsJson.optJSONObject(index) ?: continue
                     val user = seat.optJSONObject("user")
+                    val gif = seat.optJSONObject("gif")
                     parsed.add(NativeRoomSeat(
                         number=seat.optInt("number",index+1),
                         occupied=seat.optBoolean("isOccupied",user != null),
@@ -211,7 +212,9 @@ fun RoomPage(
                         speaking=seat.optBoolean("isSpeaking",false),
                         userName=if (user == null) "" else user.optString("name","User"),
                         userImage=if (user == null) "" else user.optString("image",user.optString("dp","")),
-                        accountId=if (user == null) "" else user.optString("accountId",user.optString("userId",""))
+                        accountId=if (user == null) "" else user.optString("accountId",user.optString("userId","")),
+                        gifSrc=gif?.optString("src","") ?: "",
+                        gifTimestamp=gif?.optLong("timestamp",0L) ?: 0L
                     ))
                 }
                 mainHandler.post {
@@ -538,7 +541,19 @@ fun RoomPage(
                 val seatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
                 if(seatIndex>=0){
                     val timestamp=System.currentTimeMillis()
-                    seats[seatIndex]=seats[seatIndex].copy(gifSrc=sticker.src,gifTimestamp=timestamp)
+                    val selected=seats[seatIndex]
+                    seats[seatIndex]=selected.copy(gifSrc=sticker.src,gifTimestamp=timestamp)
+                    roomSocketRef.value?.emit(
+                        "room_seat_action",
+                        JSONObject()
+                            .put("roomId",roomId)
+                            .put("userId",accountId)
+                            .put("action","emoji")
+                            .put("seatNumber",selected.number)
+                            .put("user",JSONObject().put("name",currentUser.name.ifBlank{"User"}).put("image",currentUser.image.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"}).put("accountId",accountId))
+                            .put("src",sticker.src)
+                            .put("timestamp",timestamp)
+                    )
                     Handler(Looper.getMainLooper()).postDelayed({
                         if(seats.getOrNull(seatIndex)?.gifTimestamp==timestamp){
                             seats[seatIndex]=seats[seatIndex].copy(gifSrc="",gifTimestamp=0L)
