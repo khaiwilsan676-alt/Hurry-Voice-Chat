@@ -293,7 +293,7 @@ fun HomeScreen(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { onPopular() }
-                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .padding(horizontal = 4.dp, vertical = 3.dp)
                     ) {
                         Text(
                             "Popular",
@@ -306,7 +306,7 @@ fun HomeScreen(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { onMine() }
-                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .padding(horizontal = 4.dp, vertical = 3.dp)
                     ) {
                         Text(
                             "Mine",
