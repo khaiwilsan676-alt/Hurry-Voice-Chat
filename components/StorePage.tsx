@@ -909,6 +909,7 @@ export default function StorePage({
                 const isTheme = item.tab === "Theme";
                 const isVehicle = item.tab === "Vehicle";
                 const isAvatarFrame = item.tab === "Avatar Frame";
+                const isChatBubble = item.tab === "Chat Bubble";
                 const isOwned = ownedIds.has(item.id);
                 const isEquipped = equippedIds.has(item.id);
                 const shouldRemoveGreen = isVehicle || isAvatarFrame;
@@ -934,7 +935,7 @@ export default function StorePage({
                           e.stopPropagation();
                           if (isTheme) {
                             setTryThemeItem(item);
-                          } else if (item.tab === "Chat Bubble") {
+                          } else if (isChatBubble) {
                             setTryChatBubbleItem(item);
                           } else {
                             setTryCenterItem(item);
@@ -1243,7 +1244,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — AVATAR + FRAME PROPERLY SHOWN ============ */}
+      {/* ============ Gift (Send) Modal — FULL CHAT BUBBLE & AVATAR+FRAME SUPPORT ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1253,15 +1254,15 @@ export default function StorePage({
             className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-8 pb-6 px-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Title */}
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* Item Image with Duration Badge — Full size restored */}
+            {/* Item Display Area */}
             <div className="relative w-[140px] h-[140px] mb-3">
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
+              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                
+                {/* Avatar Frame case — avatar ke upar frame overlay */}
                 {giftItem.tab === "Avatar Frame" ? (
                   <div className="relative w-full h-full flex items-center justify-center bg-gray-200">
-                    {/* Avatar circle (behind the frame) */}
                     <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
                       {userPhoto ? (
                         <img
@@ -1279,8 +1280,6 @@ export default function StorePage({
                         {avatarLetter}
                       </div>
                     </div>
-
-                    {/* Frame video/image overlay — same position, same size as avatar */}
                     <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                       {giftItem.tryVideo ? (
                         <WebGLVideoAvatar src={giftItem.tryVideo} />
@@ -1291,6 +1290,15 @@ export default function StorePage({
                       )}
                     </div>
                   </div>
+                ) : giftItem.tab === "Chat Bubble" ? (
+                  <div className="w-full h-full bg-white flex items-center justify-center p-1">
+                    <Image
+                      src={giftItem.image}
+                      alt={giftItem.name}
+                      fill
+                      className="object-contain p-1"
+                    />
+                  </div>
                 ) : giftItem.image.endsWith('.mp4') ? (
                   <WebGLVideoAvatar src={giftItem.image} />
                 ) : giftItem.tab === "Vehicle" ? (
@@ -1299,28 +1307,24 @@ export default function StorePage({
                   <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
                 )}
               </div>
-              {/* Duration Badge (top-left) */}
+
               <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[12px] font-bold px-2 py-[2px] rounded-md shadow-md">
                 {giftItem.duration}
               </div>
             </div>
 
-            {/* Stars */}
             <div className="flex items-center justify-center gap-0.5 mb-2">
               {renderStars(giftItem.stars)}
             </div>
 
-            {/* "Send To" Label */}
             <div className="text-[16px] font-medium text-gray-400 mb-4">Send To</div>
 
-            {/* Recipient ID Input */}
             <input
               type="text"
               placeholder="Enter Recipient's ID"
               className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-[16px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-5 focus:ring-2 focus:ring-[#00c88c]/40"
             />
 
-            {/* Search Button */}
             <button
               type="button"
               className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
