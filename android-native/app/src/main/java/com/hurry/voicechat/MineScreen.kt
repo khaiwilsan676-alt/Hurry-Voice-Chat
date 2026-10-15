@@ -29,10 +29,10 @@ fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateR
                 Modifier.fillMaxWidth().background(
                     Brush.verticalGradient(
                         0.0f to Color(0xFF2563EB),
-                        0.72f to Color(0xFFEFEFEF),
-                        1.0f to Color(0xFFF3F6FA)
+                        0.72f to Color(0xFFE5E7EB),
+                        1.0f to Color(0xFFF3F4F6)
                     )
-                ).statusBarsPadding().padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                ).statusBarsPadding().padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
             ) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
