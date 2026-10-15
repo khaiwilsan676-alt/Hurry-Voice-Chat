@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -20,43 +21,85 @@ import coil3.compose.AsyncImage
 fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateRoom: () -> Unit = {}, onSearch: () -> Unit = {}) {
     var recent by remember { mutableStateOf(false) }
     val card = Modifier.fillMaxWidth().height(112.dp)
+    
     LazyColumn(
         Modifier.fillMaxSize().background(Color(0xFFEFEFEF)),
         contentPadding = PaddingValues(bottom = 80.dp)
     ) {
+        // ═══════════ FIXED TOP HEADER ═══════════
         item {
             Column(
-                Modifier.fillMaxWidth().background(
-                    Brush.verticalGradient(
-                        0.0f to Color(0xFF2563EB),
-                        0.72f to Color(0xFFE5E7EB),
-                        1.0f to Color(0xFFF3F4F6)
+                Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            0.0f to Color(0xFF2563EB),
+                            0.97f to Color(0xFFEFF6FF),
+                            1.0f to Color(0xFFF9FAFB)
+                        )
                     )
-                ).statusBarsPadding().padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                    // Top Safe Area decrease kiya
+                    .padding(top = (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() - 16.dp).coerceAtLeast(0.dp))
+                    // Right padding 0.dp taaki corner me chipke
+                    .padding(top = 0.dp, start = 12.dp, end = 0.dp, bottom = 0.dp)
             ) {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box(Modifier.wrapContentSize().clickable { onBack() }) {
-                            Text("Popular", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Normal, color = HurryMuted)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { onBack() }
+                                .padding(horizontal = 4.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                "Popular",
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = HurryMuted
+                            )
                         }
-                        Box(Modifier.wrapContentSize().clickable { }) {
-                            Text("Mine", fontSize = 21.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = HurryText)
+                        Box(
+                            Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { }
+                                .padding(horizontal = 4.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                "Mine",
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = HurryText
+                            )
                         }
                     }
                     Spacer(Modifier.weight(1f))
-                    Box(
-                        modifier = Modifier.clickable(
-                            indication = null,
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-                        ) { onSearch() }
+                    
+                    // Gap bilkul HomeScreen jaisa (8.dp) kar diya hai
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp) 
                     ) {
-                        HurrySearchIcon()
+                        Box(
+                            modifier = Modifier.clickable(
+                                indication = null,
+                                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                            ) { onSearch() }
+                        ) {
+                            HurrySearchIcon()
+                        }
+                        
+                        Box(Modifier.clickable { onCreateRoom() }) {
+                            HurryHouseIcon()
+                        }
                     }
-                    Spacer(Modifier.width(10.dp))
-                    HurryHouseIcon()
                 }
             }
         }
+        // ═══════════ END FIXED TOP HEADER ═══════════
+
         item {
             Spacer(Modifier.height(6.dp))
             Box(card.padding(horizontal = 12.dp).clip(RoundedCornerShape(6.dp)).background(
