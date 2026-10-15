@@ -288,7 +288,7 @@ fun HomeScreen(
                 .padding(top = 2.dp, start = 12.dp, end = 12.dp, bottom = 0.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -318,8 +318,8 @@ fun HomeScreen(
                 }
                 Spacer(Modifier.weight(1f))
                 Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { HurrySearchIcon() }
-                Spacer(Modifier.width(5.dp))
-                Box(Modifier.offset(x = 3.dp).clickable { onCreateMineRoom() }) {
+                Spacer(Modifier.width(3.dp))
+                Box(Modifier.offset(x = 5.dp).clickable { onCreateMineRoom() }) {
                     HurryHouseIcon()
                 }
                 Spacer(Modifier.width(2.dp))
