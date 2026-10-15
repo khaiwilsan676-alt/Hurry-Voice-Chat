@@ -1165,7 +1165,6 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ UPDATED: Chat Bubble Try Modal — PREVIEW + STARS ABOVE BUY BUTTON ============ */}
       {tryChatBubbleItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
@@ -1175,24 +1174,6 @@ export default function StorePage({
             className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Chat Bubble Preview Image */}
-            <div className="relative w-[140px] mb-3">
-              <div className="relative w-full flex items-center justify-center">
-                <img
-                  src={tryChatBubbleItem.image}
-                  alt={tryChatBubbleItem.name}
-                  className="w-full h-auto object-contain"
-                  draggable={false}
-                />
-              </div>
-            </div>
-
-            {/* Stars below preview */}
-            <div className="flex items-center justify-center gap-0.5 mb-3">
-              {renderStars(tryChatBubbleItem.stars)}
-            </div>
-
-            {/* 3D Selector Row */}
             <div className="flex items-center justify-center gap-2 mb-6">
               <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
                 <div className="w-2 h-2 rounded-full bg-gray-300"></div>
@@ -1200,7 +1181,6 @@ export default function StorePage({
               <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
-            {/* Coin Section */}
             <div className="flex flex-col items-center justify-center mb-6">
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
@@ -1220,7 +1200,6 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Buy Button */}
             <button
               type="button"
               onClick={() => {
@@ -1233,7 +1212,6 @@ export default function StorePage({
               Buy
             </button>
 
-            {/* Cancel Button */}
             <button
               type="button"
               onClick={() => setTryChatBubbleItem(null)}
@@ -1245,7 +1223,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — EXACT SCREENSHOT DESIGN ============ */}
+      {/* ============ UPDATED: Gift (Send) Modal — FULL CHAT VISIBLE & COMPACT ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1257,6 +1235,7 @@ export default function StorePage({
           >
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
+            {/* FULL CHAT BUBBLE IMAGE — object-contain, natural aspect ratio, no crop */}
             <div className="relative w-[130px] mb-3">
               <div className="relative w-full flex items-center justify-center">
                 {giftItem.image.endsWith('.mp4') ? (
