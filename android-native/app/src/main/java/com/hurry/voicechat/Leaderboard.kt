@@ -178,19 +178,24 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                 }}
             }
             if (showRules) {
-                Box(Modifier.fillMaxSize().background(Color(0x99000000)).clickable { showRules=false },contentAlignment=Alignment.BottomCenter) {
-                    Column(Modifier.fillMaxWidth().fillMaxHeight(0.82f).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Color(0xFF1A0204)).padding(20.dp)) {
-                        Text("Rules",color=Color(0xFFE7B865),fontSize=20.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterHorizontally))
-                        Spacer(Modifier.height(20.dp))
-                        Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)) {
-                            Text("Contribution Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
-                            Text("Charm Leaderboard: ranking is determined by Coins received.",color=Color.White)
-                            Text("Room Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
-                            Divider(color=Color(0x4DD4AF37))
-                            Text("Data Periods",color=Color(0xFFE7B865),fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
-                            Text("Daily: finalized every day at 5:30+GMT. Weekly: every Monday at 5:30+GMT. Monthly: on the first day of each month at 5:30+GMT.",color=Color.White)
-                            Text("Users who violate platform rules are ineligible. The platform reserves the right to make the final decision.",color=Color.White)
-                            Text("Regards, Zyora Team",color=Color(0xFFE7B865),modifier=Modifier.align(Alignment.End))
+                androidx.compose.ui.window.Dialog(
+                    onDismissRequest = { showRules = false },
+                    properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Box(Modifier.fillMaxSize().background(Color(0x99000000)).clickable { showRules = false },contentAlignment=Alignment.BottomCenter) {
+                        Column(Modifier.fillMaxWidth().fillMaxHeight(0.82f).clip(RoundedCornerShape(topStart=16.dp,topEnd=16.dp)).background(Color(0xFF1A0204)).clickable { }.padding(20.dp)) {
+                            Text("Rules",color=Color(0xFFE7B865),fontSize=20.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterHorizontally))
+                            Spacer(Modifier.height(20.dp))
+                            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                                Text("Contribution Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
+                                Text("Charm Leaderboard: ranking is determined by Coins received.",color=Color.White)
+                                Text("Room Leaderboard: ranking is determined by Coins spent in the room.",color=Color.White)
+                                Divider(color=Color(0x4DD4AF37))
+                                Text("Data Periods",color=Color(0xFFE7B865),fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                                Text("Daily: finalized every day at 5:30+GMT. Weekly: every Monday at 5:30+GMT. Monthly: on the first day of each month at 5:30+GMT.",color=Color.White)
+                                Text("Users who violate platform rules are ineligible. The platform reserves the right to make the final decision.",color=Color.White)
+                                Text("Regards, Zyora Team",color=Color(0xFFE7B865),modifier=Modifier.align(Alignment.End))
+                            }
                         }
                     }
                 }
