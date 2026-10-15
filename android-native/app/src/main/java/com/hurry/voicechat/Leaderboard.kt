@@ -9,6 +9,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.lazy.LazyColumn
@@ -73,6 +74,10 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
         "room" -> "file_00000000619c822f8a1577f69e039527.png"
         else -> "file_00000000b83c81fa93d3e53e046c1b81.png"
     }
+    val context = LocalContext.current
+    val authPrefs = remember { context.getSharedPreferences("hurry_auth", android.content.Context.MODE_PRIVATE) }
+    val ownName = authPrefs.getString("name", authPrefs.getString("displayName", "You")).orEmpty().ifBlank { "You" }
+    val ownAvatar = authPrefs.getString("avatar", authPrefs.getString("image", "/default-avatar.png")).orEmpty().let { if (it.startsWith("http")) it else raw + it.removePrefix("/") }
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val podiumTopWidth = (screenWidthDp * 0.44f).coerceAtMost(180f).dp
@@ -162,7 +167,7 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                     )
                 }
             }
-            LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(bottom=90.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth(),contentPadding=PaddingValues(bottom=12.dp),verticalArrangement=Arrangement.spacedBy(0.dp)) {
                 item {
                     Column(Modifier.fillMaxWidth().padding(top=18.dp,bottom=24.dp),horizontalAlignment=Alignment.CenterHorizontally) {
                         LeaderboardChromaImage(url=raw+"1787994771034~2.jpg",contentDescription="Rank 1 frame",modifier=Modifier.width(podiumTopWidth).height(150.dp),contentScale=ContentScale.Fit)
@@ -176,6 +181,24 @@ fun Leaderboard(onBack:()->Unit={}, initialTab:String="honour") {
                     LeaderboardChromaImage(url=raw+"1787992320047~2.jpg",contentDescription="Rank ${i+4} frame",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.FillBounds)
                     Text("${i+4}",color=Color.White,fontSize=18.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,modifier=Modifier.align(Alignment.CenterStart).padding(start=40.dp))
                 }}
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).height(62.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF2A1714))
+                    .border(1.dp, Color(0x66D4AF37), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = ownAvatar,
+                    contentDescription = "Your avatar",
+                    modifier = Modifier.size(42.dp).clip(RoundedCornerShape(50)),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(ownName, color=Color.White, fontSize=14.sp, fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold, modifier=Modifier.weight(1f), maxLines=1)
+                Text("+100", color=Color(0xFFE7B865), fontSize=17.sp, fontWeight=androidx.compose.ui.text.font.FontWeight.Bold)
             }
             if (showRules) {
                 androidx.compose.ui.window.Dialog(
