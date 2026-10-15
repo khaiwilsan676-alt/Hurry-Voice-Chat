@@ -83,7 +83,7 @@ private fun GreenRemovedCupImage(url:String, modifier:Modifier=Modifier) {
 
 data class RoomPageOwner(val id:String="",val uid:String="",val accountId:String="",val name:String="Room",val image:String="",val country:String="🇮🇳")
 data class RoomPageCurrentUser(val id:String="",val uid:String="",val accountId:String="",val name:String="User",val image:String="")
-data class NativeRoomSeat(val number:Int,val occupied:Boolean=false,val locked:Boolean=false,val muted:Boolean=false,val speaking:Boolean=false,val userName:String="",val userImage:String="",val accountId:String="")
+data class NativeRoomSeat(val number:Int,val occupied:Boolean=false,val locked:Boolean=false,val muted:Boolean=false,val speaking:Boolean=false,val userName:String="",val userImage:String="",val accountId:String="",val gifSrc:String="",val gifTimestamp:Long=0L)
 data class NativeRoomMessage(val id:String,val text:String,val sender:String,val senderImage:String,val senderAccountId:String="",val timestamp:Long=System.currentTimeMillis(),val type:String="message")
 data class NativeEntryToast(val id:String,val name:String,val image:String)
 
@@ -532,7 +532,21 @@ fun RoomPage(
         if(showWildParty) Wildparty(onClose={showWildParty=false},onMinimize={showWildParty=false})
         if(showFruitParty) Fruitparty(onClose={showFruitParty=false},onMinimize={showFruitParty=false})
         if(showMusic) MusicSheet{showMusic=false}
-        if(showEmoji) EmojiSheet({showEmoji=false}){input+=it;showEmoji=false}
+        if(showEmoji) EmojiPicker(
+            onClose={showEmoji=false},
+            onSelectEmoji={ sticker ->
+                val seatIndex=seats.indexOfFirst{it.occupied && it.accountId==accountId}
+                if(seatIndex>=0){
+                    val timestamp=System.currentTimeMillis()
+                    seats[seatIndex]=seats[seatIndex].copy(gifSrc=sticker.src,gifTimestamp=timestamp)
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if(seats.getOrNull(seatIndex)?.gifTimestamp==timestamp){
+                            seats[seatIndex]=seats[seatIndex].copy(gifSrc="",gifTimestamp=0L)
+                        }
+                    },5000)
+                }
+            }
+        )
         if(showSeatSheet && selectedSeat>0) {
             val seat=seats.firstOrNull{it.number==selectedSeat}
             if(seat!=null) SeatActionSheet(
@@ -654,6 +668,12 @@ fun RoomPage(
                     AsyncImage(model=raw+"file_000000003e7482309b7f6e7f2a922160.png",contentDescription="Empty seat",modifier=Modifier.fillMaxSize(.65f),contentScale=ContentScale.Fit)
                 }
             }
+            if(seat.gifSrc.isNotBlank()) AsyncImage(
+                model=seat.gifSrc+"?t="+seat.gifTimestamp,
+                contentDescription="Emoji reaction",
+                modifier=Modifier.fillMaxSize(),
+                contentScale=ContentScale.Fit
+            )
             if(seat.muted) Icon(Icons.Default.MicOff,null,tint=Color.White,modifier=Modifier.align(Alignment.BottomEnd).size(15.dp))
         }
         Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
