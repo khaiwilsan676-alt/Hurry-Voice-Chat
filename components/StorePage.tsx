@@ -1078,7 +1078,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Frame Try Card — SQUARE, avatar half outside top ============ */}
+      {/* ============ Frame Try Card — FIXED AVATAR + FRAME OVERLAY ============ */}
       {tryCenterItem && tryCenterItem.tab === "Avatar Frame" && (() => {
         const item = tryCenterItem;
         const isOwned = ownedIds.has(item.id);
@@ -1092,26 +1092,31 @@ export default function StorePage({
               className="relative bg-white rounded-2xl w-[300px] h-[300px] max-w-[85vw] max-h-[85vw] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Avatar + Frame container — avatar half outside top */}
               <div className="absolute left-1/2 -translate-x-1/2 -top-[55px] w-[110px] h-[110px]">
-                <div className="relative w-full h-full rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow-md">
-                  {userPhoto ? (
-                    <img
-                      src={userPhoto}
-                      alt="User"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const next = e.currentTarget.nextElementSibling as HTMLElement | null;
-                        if (next) next.classList.remove('hidden');
-                      }}
-                    />
-                  ) : null}
-                  <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[40px] font-bold ${userPhoto ? 'hidden' : ''}`}>
-                    {avatarLetter}
+                {/* Avatar circle — SMALLER so frame fits properly */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow-md z-10">
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (next) next.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[32px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                      {avatarLetter}
+                    </div>
                   </div>
                 </div>
 
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                {/* Frame overlay — video/image, kept on top, NO pause */}
+                <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
                   {item.tryVideo ? (
                     <WebGLVideoAvatar src={item.tryVideo} />
                   ) : item.image.endsWith('.mp4') ? (
@@ -1122,6 +1127,7 @@ export default function StorePage({
                 </div>
               </div>
 
+              {/* Details below */}
               <div className="absolute inset-x-0 top-[70px] bottom-0 flex flex-col items-center px-4">
                 <div className="text-[17px] font-bold text-gray-900 text-center leading-tight">
                   {item.name}
