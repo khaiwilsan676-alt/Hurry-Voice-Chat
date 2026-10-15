@@ -103,6 +103,13 @@ abstract class HurryDatabase : RoomDatabase() {
     }
 }
 
+// Process-wide fast cache: survives HomeScreen being removed during tab changes.
+private object NativeRoomMemoryCache {
+    var rooms by mutableStateOf<List<HurryRoom>?>(null)
+    var lastRefreshAt: Long = 0L
+    var refreshInFlight: Boolean = false
+}
+
 // ═══════════════════════════════════════════════════════
 // COUNTRY PILL DATA
 // ═══════════════════════════════════════════════════════
@@ -150,6 +157,9 @@ fun HomeScreen(
     onPopular: () -> Unit = {},
     onLeaderboard: (String) -> Unit = {},
     onInviteFriends: () -> Unit = {},
+    onSearch: () -> Unit = {},
+    onCreateMineRoom: () -> Unit = {},
+    mineCreatedRoom: HurryRoom? = null,
     mineSelected: Boolean = false
 ) {
     val mine = mineSelected
@@ -157,61 +167,83 @@ fun HomeScreen(
     val dao = remember {
         runCatching { HurryDatabase.get(context).roomDao() }.getOrNull()
     }
+    val roomSyncPrefs = remember { context.getSharedPreferences("native_room_sync", Context.MODE_PRIVATE) }
 
-    var rooms by remember { mutableStateOf<List<HurryRoom>?>(null) }
+    var rooms by remember { mutableStateOf(NativeRoomMemoryCache.rooms) }
     var selectedCountry by remember { mutableStateOf("all") }
 
-    // Room cache is optional: a corrupt/old database must never close the app.
     LaunchedEffect(Unit) {
-        val cached = if (dao != null) {
-            runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
-        } else {
-            emptyList()
-        }
-
-        if (cached.isNotEmpty()) {
-            rooms = cached.map {
-                HurryRoom(
-                    id = it.id,
-                    name = it.name,
-                    country = it.country,
-                    image = it.image,
-                    accountId = it.accountId
-                )
-            }
-        }
-
-        // Server data remains the source of truth.
-        val fresh = runCatching { HurryApi.rooms() }.getOrDefault(emptyList())
-
-        if (fresh.isNotEmpty()) {
-            rooms = fresh
-            if (dao != null) {
-                runCatching {
-                    withContext(Dispatchers.IO) {
-                        dao.clearAll()
-                        dao.insertAll(
-                            fresh.map {
-                                RoomEntity(
-                                    id = it.id,
-                                    name = it.name,
-                                    country = it.country,
-                                    image = it.image,
-                                    accountId = it.accountId ?: "",
-                                    createdAt = System.currentTimeMillis()
-                                )
-                            }
-                        )
-                    }
+        if (NativeRoomMemoryCache.rooms == null) {
+            val cached = if (dao != null) {
+                runCatching { withContext(Dispatchers.IO) { dao.getAll() } }.getOrDefault(emptyList())
+            } else emptyList()
+            if (cached.isNotEmpty()) {
+                val cachedRooms = cached.map {
+                    HurryRoom(
+                        id = it.id,
+                        name = it.name,
+                        country = it.country,
+                        image = it.image,
+                        accountId = it.accountId
+                    )
                 }
+                NativeRoomMemoryCache.rooms = cachedRooms
+                rooms = cachedRooms
             }
-        } else if (rooms == null) {
-            rooms = emptyList()
+        } else {
+            rooms = NativeRoomMemoryCache.rooms
+        }
+
+        val now = System.currentTimeMillis()
+        if (!NativeRoomMemoryCache.refreshInFlight &&
+            (NativeRoomMemoryCache.lastRefreshAt == 0L || now - NativeRoomMemoryCache.lastRefreshAt >= 30_000L)
+        ) {
+            NativeRoomMemoryCache.refreshInFlight = true
+            try {
+                val since = roomSyncPrefs.getLong("last_server_updated_at", 0L)
+                val update = runCatching { HurryApi.roomsUpdatedSince(since) }.getOrNull()
+                NativeRoomMemoryCache.lastRefreshAt = System.currentTimeMillis()
+                if (update != null) {
+                    val fresh = update.rooms
+                    val previous = NativeRoomMemoryCache.rooms ?: rooms ?: emptyList()
+                    val merged = if (since == 0L) fresh else (fresh + previous).distinctBy { it.id }
+                    if (fresh.isNotEmpty() || since == 0L) {
+                        NativeRoomMemoryCache.rooms = merged
+                        rooms = merged
+                        if (dao != null) {
+                            runCatching {
+                                withContext(Dispatchers.IO) {
+                                    dao.clearAll()
+                                    dao.insertAll(
+                                        merged.map {
+                                            RoomEntity(
+                                                id = it.id,
+                                                name = it.name,
+                                                country = it.country,
+                                                image = it.image,
+                                                accountId = it.accountId,
+                                                createdAt = System.currentTimeMillis()
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (update.serverTime > 0L) {
+                        roomSyncPrefs.edit().putLong("last_server_updated_at", update.serverTime).apply()
+                    }
+                } else if (rooms == null) {
+                    rooms = emptyList()
+                }
+            } finally {
+                NativeRoomMemoryCache.refreshInFlight = false
+            }
         }
     }
 
     if (mine) {
-        MineNativePage(onBack = onPopular)
+        MineNativePage(onBack = onPopular, createdRoom = mineCreatedRoom, onCreateRoom = onCreateMineRoom, onSearch = onSearch)
         return
     }
 
@@ -224,7 +256,6 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val countrySticky by remember { derivedStateOf { listState.firstVisibleItemIndex >= 3 } }
 
-    // Auto-scroll — user drag ke time ruk jaata hai
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(5000)
@@ -234,7 +265,6 @@ fun HomeScreen(
         }
     }
 
-    // Country filter
     val filteredRooms = remember(rooms, selectedCountry) {
         val list = rooms ?: emptyList()
         if (selectedCountry == "all") list
@@ -249,43 +279,61 @@ fun HomeScreen(
             Modifier
                 .fillMaxWidth()
                 .background(MePageTopGradient)
-                .statusBarsPadding()
-                .padding(top = 3.dp, start = 12.dp, end = 12.dp, bottom = 2.dp)
+                // Yahan maine -16.dp kar diya hai top safe area aur chota karne ke liye
+                .padding(top = (WindowInsets.statusBars.asPaddingValues().calculateTopPadding() - 16.dp).coerceAtLeast(0.dp))
+                // Right padding 'end = 0.dp' kardi taaki image ekdum right chipke
+                .padding(top = 0.dp, start = 12.dp, end = 0.dp, bottom = 0.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { onPopular() }
-                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .padding(horizontal = 4.dp, vertical = 3.dp)
                     ) {
                         Text(
                             "Popular",
                             fontSize = 21.sp,
                             fontWeight = FontWeight.Bold,
-                            color = HurryText
+                            color = Color(0xFF1E1E1E) // Using Color(0xFF1E1E1E) as fallback for HurryText
                         )
                     }
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .clickable { onMine() }
-                            .padding(horizontal = 4.dp, vertical = 4.dp)
+                            .padding(horizontal = 4.dp, vertical = 3.dp)
                     ) {
                         Text(
                             "Mine",
                             fontSize = 21.sp,
                             fontWeight = FontWeight.Normal,
-                            color = HurryMuted
+                            color = Color(0xFF6B7280) // Using Color(0xFF6B7280) as fallback for HurryMuted
                         )
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                HurrySearchIcon()
-                Spacer(Modifier.width(10.dp))
-                HurryHouseIcon()
-                Spacer(Modifier.width(2.dp))
+                
+                // --- YAHAN CHANGE KIYA HAI ---
+                // Search aur Image (House) ko ek sath Row mein daal kar negative spacing di hai (-15.dp) taaki gap kam ho
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy((-15).dp) 
+                ) {
+                    Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { 
+                        // Note: Ensure HurrySearchIcon() is defined elsewhere in your project
+                        HurrySearchIcon() 
+                    }
+                    
+                    Box(Modifier.clickable { onCreateMineRoom() }) {
+                        HurryHouseIcon()
+                    }
+                }
+                // Right side extra space hata diya
             }
         }
         // ═══════════ END FIXED TOP HEADER ═══════════
@@ -297,17 +345,12 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 12.dp)
             ) {
-            // ───────── BANNER (SCROLLS) ─────────
             item {
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .background(
-                            androidx.compose.ui.graphics.Brush.verticalGradient(
-                                listOf(Color(0xFFEFF6FF), Color(0xFFF9FAFB))
-                            )
-                        )
-                        .padding(top = 6.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
+                        .background(Color(0xFFF5F5F5))
+                        .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                 ) {
                     Box(
                         Modifier
@@ -351,7 +394,6 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── CATEGORY CARDS (SCROLL) ─────────
             item {
                 Row(
                     modifier = Modifier
@@ -366,12 +408,11 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── COUNTRY PILLS (STICKY HEADER) ─────────
             item {
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF9FAFB))
+                        .background(Color(0xFFF5F5F5))
                 ) {
                     CountryPillRow(
                         selected = selectedCountry,
@@ -380,14 +421,13 @@ fun HomeScreen(
                 }
             }
 
-            // ───────── ROOMS GRID (SCROLL) ─────────
             if (rooms == null) {
                 item {
                     Box(
                         Modifier.fillMaxWidth().height(180.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        CircularProgressIndicator(color = HurryBlue, strokeWidth = 2.dp)
+                        CircularProgressIndicator(color = Color(0xFF2563EB), strokeWidth = 2.dp)
                     }
                 }
             } else if (filteredRooms.isEmpty()) {
@@ -412,8 +452,8 @@ fun HomeScreen(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         row.forEach { room ->
                             RoomListCard(room, onRoom, Modifier.weight(1f))
@@ -428,7 +468,7 @@ fun HomeScreen(
                     Modifier
                         .align(Alignment.TopCenter)
                         .fillMaxWidth()
-                        .background(Color(0xFFF9FAFB))
+                        .background(Color(0xFFF5F5F5))
                 ) {
                     CountryPillRow(
                         selected = selectedCountry,
@@ -465,7 +505,7 @@ private fun CountryPillRow(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(if (active) HurryBlue else Color.White)
+                    .background(if (active) Color(0xFF2563EB) else Color.White)
                     .clickable { onSelect(pill.value) }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -530,7 +570,7 @@ private fun RoomListCard(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFE5E7EB))   // placeholder
+                .background(Color(0xFFE5E7EB))
         ) {
             AsyncImage(
                 model = if (
@@ -556,7 +596,7 @@ private fun RoomListCard(
         ) {
             Text(countryFlag(room.country), fontSize = 16.sp, maxLines = 1)
             Text(
-                room.name.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && !it.equals("undefined", ignoreCase = true) } ?: "Hurry_User",
+                room.name.takeIf { it.isNotBlank() && !it.equals("null", ignoreCase = true) && !it.equals("undefined", ignoreCase = true) } ?: "Zyora_User",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF202124),
@@ -568,14 +608,14 @@ private fun RoomListCard(
 }
 
 // ═══════════════════════════════════════════════════════
-// HOUSE ICON (uses the provided real app asset)
+// HOUSE ICON 
 // ═══════════════════════════════════════════════════════
 @Composable
 fun HurryHouseIcon(selected: Boolean = false) {
     AsyncImage(
         model = RAW + "file_000000009aac81faa8564416680aba4e.png",
         contentDescription = null,
-        modifier = Modifier.size(32.dp),
+        modifier = Modifier.size(68.dp),
         contentScale = ContentScale.Fit
     )
 }
