@@ -570,6 +570,10 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
+  // NEW: State for the exact screenshot Chat Bubble try modal
+  const [tryChatBubbleItem, setTryChatBubbleItem] = useState<StoreItem | null>(null);
+  // NEW: State for the Gift (Send) modal
+  const [giftItem, setGiftItem] = useState<StoreItem | null>(null);
 
   const [balance, setBalance] = useState<number>(0);
   const [ownedIds, setOwnedIds] = useState<Set<string>>(
@@ -580,6 +584,10 @@ export default function StorePage({
 
   const [userPhoto, setUserPhoto] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
+
+  // SWIPE SUPPORT
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
 
   useEffect(() => {
     const readUser = () => {
@@ -773,6 +781,45 @@ export default function StorePage({
 
   const avatarLetter = (userName && userName.trim().charAt(0).toUpperCase()) || "U";
 
+  // ========== SWIPE HANDLERS ==========
+  const SWIPE_THRESHOLD = 60;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.targetTouches[0].clientX;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (Math.abs(distance) < SWIPE_THRESHOLD) return;
+
+    const currentIndex = tabData.findIndex((t) => t.id === activeTab);
+    if (currentIndex === -1) return;
+
+    if (distance > 0) {
+      // Swipe LEFT -> go next tab
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < tabData.length) {
+        setActiveTab(tabData[nextIndex].id);
+      }
+    } else {
+      // Swipe RIGHT -> go previous tab
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        setActiveTab(tabData[prevIndex].id);
+      }
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+  // ====================================
+
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
@@ -841,8 +888,13 @@ export default function StorePage({
           </div>
         </div>
 
-        {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto no-scrollbar w-full pb-10">
+        {/* Scrollable Body — SWIPE ENABLED HERE */}
+        <div
+          className="flex-1 overflow-y-auto no-scrollbar w-full pb-10"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {activeTab === "ID" ? (
             <div className="px-3 py-2 flex flex-col gap-3 h-full">
               <div className="bg-white rounded-2xl p-5 shadow-sm flex flex-col gap-4">
@@ -887,6 +939,8 @@ export default function StorePage({
                           e.stopPropagation();
                           if (isTheme) {
                             setTryThemeItem(item);
+                          } else if (item.tab === "Chat Bubble") {
+                            setTryChatBubbleItem(item);
                           } else {
                             setTryCenterItem(item);
                           }
@@ -935,7 +989,11 @@ export default function StorePage({
                     </div>
 
                     <div className="flex items-center w-full rounded-full border border-[#1d4ed8] overflow-hidden h-[30px] z-10 bg-white">
-                      <button type="button" className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50">
+                      <button
+                        type="button"
+                        onClick={() => setGiftItem(item)}
+                        className="flex-1 h-full bg-white text-[#1d4ed8] text-[12px] font-bold flex items-center justify-center transition-colors hover:bg-gray-50"
+                      >
                         Send
                       </button>
                       <button
@@ -999,18 +1057,16 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Theme Try Modal (RESTORED) ============ */}
+      {/* ============ Theme Try Modal — CROSS REMOVED, OUTSIDE TAP CLOSES ============ */}
       {tryThemeItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="relative w-full max-w-[260px] flex flex-col items-center mt-12">
-            <button
-              type="button"
-              onClick={() => setTryThemeItem(null)}
-              className="absolute -top-10 right-0 w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center text-lg font-bold hover:bg-white/40 z-20"
-            >
-              ✕
-            </button>
-
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setTryThemeItem(null)}
+        >
+          <div
+            className="relative w-full max-w-[260px] flex flex-col items-center mt-12"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="relative w-[230px] h-[480px] rounded-3xl border-[4px] border-yellow-300 overflow-hidden shadow-2xl bg-black">
               <Image src={tryThemeItem.image} alt={tryThemeItem.name} fill className="object-cover" />
             </div>
@@ -1126,6 +1182,128 @@ export default function StorePage({
           </div>
         );
       })()}
+
+      {/* ============ NEW: Chat Bubble Try Modal — CENTERED & COMPACT ============ */}
+      {tryChatBubbleItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setTryChatBubbleItem(null)}
+        >
+          {/* Compact Centered Card */}
+          <div
+            className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 3D Selector Row */}
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
+              </div>
+              <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
+            </div>
+
+            {/* Coin Section */}
+            <div className="flex flex-col items-center justify-center mb-6">
+              {/* Current Price */}
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+                <span className="text-[38px] font-extrabold text-black tracking-tight leading-none">
+                  250000
+                </span>
+              </div>
+              {/* Old Price */}
+              <div className="flex items-center justify-center gap-1.5 opacity-60">
+                <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
+                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                </div>
+                <span className="text-[18px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
+                  550000
+                </span>
+              </div>
+            </div>
+
+            {/* Buy Button */}
+            <button
+              type="button"
+              onClick={() => {
+                handleBuy(tryChatBubbleItem);
+                setTryChatBubbleItem(null);
+              }}
+              disabled={buying === tryChatBubbleItem.id}
+              className="w-full h-[50px] rounded-full bg-[#00c88c] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] disabled:opacity-50 disabled:cursor-not-allowed shadow-md mb-3"
+            >
+              Buy
+            </button>
+
+            {/* Cancel Button */}
+            <button
+              type="button"
+              onClick={() => setTryChatBubbleItem(null)}
+              className="w-full h-[50px] rounded-full bg-[#f2f2f2] text-[#8a8a8a] text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ============ NEW: Gift (Send) Modal — EXACT SCREENSHOT DESIGN ============ */}
+      {giftItem && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setGiftItem(null)}
+        >
+          <div
+            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-8 pb-6 px-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Title */}
+            <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
+
+            {/* Item Image with Duration Badge */}
+            <div className="relative w-[140px] h-[140px] mb-3">
+              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
+                {giftItem.image.endsWith('.mp4') ? (
+                  <WebGLVideoAvatar src={giftItem.image} />
+                ) : giftItem.tab === "Vehicle" || giftItem.tab === "Avatar Frame" ? (
+                  <WebGLImageAvatar src={giftItem.image} />
+                ) : (
+                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-cover" />
+                )}
+              </div>
+              {/* Duration Badge (top-left) */}
+              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[12px] font-bold px-2 py-[2px] rounded-md shadow-md">
+                {giftItem.duration}
+              </div>
+            </div>
+
+            {/* Stars */}
+            <div className="flex items-center justify-center gap-0.5 mb-2">
+              {renderStars(giftItem.stars)}
+            </div>
+
+            {/* "Send To" Label */}
+            <div className="text-[16px] font-medium text-gray-400 mb-4">Send To</div>
+
+            {/* Recipient ID Input */}
+            <input
+              type="text"
+              placeholder="Enter Recipient's ID"
+              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-[16px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-5 focus:ring-2 focus:ring-[#00c88c]/40"
+            />
+
+            {/* Search Button */}
+            <button
+              type="button"
+              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-   }
+}
