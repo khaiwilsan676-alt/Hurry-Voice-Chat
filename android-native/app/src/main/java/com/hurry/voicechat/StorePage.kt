@@ -77,6 +77,7 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
     var currentView by remember { mutableStateOf(if (initialView.equals("bag", true)) "bag" else "store") }
     var activeTab by remember { mutableStateOf("Vehicle") }
     var selectedItem by remember { mutableStateOf<NativeStoreItem?>(null) }
+    var tryItem by remember { mutableStateOf<NativeStoreItem?>(null) }
     var sendItem by remember { mutableStateOf<NativeStoreItem?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var balance by remember { mutableIntStateOf(82927) }
@@ -196,7 +197,7 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                                     modifier = Modifier
                                         .clip(CircleShape)
                                         .then(if (theme) Modifier.background(Color(0x33FFFFFF)).border(1.dp, Color.White, CircleShape) else Modifier.border(1.dp, StoreBlue, CircleShape))
-                                        .clickable { selectedItem = item }
+                                        .clickable { tryItem = item }
                                         .padding(horizontal = 10.dp, vertical = 3.dp)
                                 )
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -252,6 +253,46 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    if (tryItem != null) {
+        val item = tryItem!!
+        ModalBottomSheet(onDismissRequest = { tryItem = null }, containerColor = Color.White) {
+            Column(
+                Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Preview", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(14.dp))
+                Box(
+                    Modifier.fillMaxWidth().height(if (item.tab == "Theme") 300.dp else 240.dp)
+                        .clip(RoundedCornerShape(16.dp)).background(Color(0xFFF5F6F8)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val source = item.video ?: item.image
+                    if (source.endsWith(".mp4", ignoreCase = true)) {
+                        StoreVideoPreview(StoreAssetBase + source, Modifier.fillMaxSize())
+                    } else {
+                        AsyncImage(
+                            model = StoreAssetBase + source,
+                            contentDescription = item.name,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = if (item.tab == "Theme") ContentScale.Crop else ContentScale.Fit
+                        )
+                    }
+                }
+                Text(item.name, modifier = Modifier.padding(top = 12.dp), color = Color(0xFF111827), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("★".repeat(item.stars), modifier = Modifier.padding(top = 4.dp), color = Color(0xFFF59E0B), fontSize = 17.sp)
+                Row(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    OutlinedButton(onClick = { tryItem = null }, modifier = Modifier.weight(1f)) { Text("Close") }
+                    Button(
+                        onClick = { selectedItem = item; tryItem = null },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = StoreCyan, contentColor = Color.White)
+                    ) { Text("Buy", fontWeight = FontWeight.Bold) }
                 }
             }
         }
