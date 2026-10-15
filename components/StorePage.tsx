@@ -1165,100 +1165,115 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ Chat Bubble Try Modal — CENTERED & COMPACT ============ */}
+      {/* ============ Chat Bubble Try Modal — CENTERED CARD ============ */}
       {tryChatBubbleItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{
-            background: 'linear-gradient(135deg, #0a3d3d 0%, #0f5c4a 40%, #0a3d3d 100%)',
-          }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onClick={() => setTryChatBubbleItem(null)}
         >
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
-            <span className="text-[120px] font-black text-white/10 tracking-widest">
-              Zyora
-            </span>
-          </div>
-
-          <div className="absolute top-6 left-4 right-4 z-10">
-            <div className="bg-black/40 rounded-2xl px-4 py-3 text-center backdrop-blur-sm border border-white/10">
-              <p className="text-[13px] font-medium text-yellow-200/90 leading-snug">
-                Official announcement: Welcome to Zyora Any Content Realated to porn, Froud, Fake Official will Ban!
-              </p>
-            </div>
-          </div>
-
-          <div className="absolute top-[160px] left-6 flex items-start gap-2 z-10">
-            <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-white text-[18px] font-bold shadow-lg">
-              🐱
-            </div>
-            <div>
-              <div className="flex items-center gap-1 mb-1">
-                <span className="text-[13px] font-bold text-white/90">Zyora official</span>
-                <span className="text-[10px] text-white/40">✔</span>
-              </div>
-              <div className="bg-gradient-to-r from-purple-400/80 to-pink-400/80 rounded-2xl rounded-tl-sm px-3 py-2 shadow-lg">
-                <span className="text-[14px] font-semibold text-white drop-shadow-sm">
-                  Hello everyone
-                </span>
-              </div>
-            </div>
-          </div>
-
           <div
-            className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl relative z-20"
+            className="w-full max-w-[340px] rounded-[28px] overflow-hidden shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-              </div>
-              <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
-            </div>
-
-            <div className="flex flex-col items-center justify-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
-                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-                </div>
-                <span className="text-[36px] font-extrabold text-black tracking-tight leading-none">
-                  250000
-                </span>
-              </div>
-              <div className="flex items-center justify-center gap-1.5 opacity-60">
-                <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
-                  <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
-                </div>
-                <span className="text-[18px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
-                  550000
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                handleBuy(tryChatBubbleItem);
-                setTryChatBubbleItem(null);
+            {/* --- TOP HALF: GREEN BACKGROUND + CHAT --- */}
+            <div
+              className="relative w-full h-[340px] flex-shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #0a3d3d 0%, #0f5c4a 40%, #0a3d3d 100%)',
               }}
-              disabled={buying === tryChatBubbleItem.id}
-              className="w-full h-[50px] rounded-full bg-[#00c88c] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] disabled:opacity-50 disabled:cursor-not-allowed shadow-md mb-3"
             >
-              Buy
-            </button>
+              {/* Watermark */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+                <span className="text-[90px] font-black text-white/10 tracking-widest">
+                  Zyora
+                </span>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setTryChatBubbleItem(null)}
-              className="w-full h-[50px] rounded-full bg-[#f2f2f2] text-[#8a8a8a] text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
-            >
-              Cancel
-            </button>
+              {/* Official Announcement */}
+              <div className="absolute top-4 left-3 right-3 z-10">
+                <div className="bg-black/40 rounded-2xl px-3 py-2 text-center backdrop-blur-sm border border-white/10">
+                  <p className="text-[11px] font-medium text-yellow-200/90 leading-snug">
+                    Official announcement: Welcome to Zyora Any Content Realated to porn, Froud, Fake Official will Ban!
+                  </p>
+                </div>
+              </div>
+
+              {/* Chat Message */}
+              <div className="absolute top-[120px] left-4 flex items-start gap-2 z-10">
+                <div className="w-9 h-9 rounded-full bg-orange-400 flex items-center justify-center text-white text-[16px] font-bold shadow-lg">
+                  🐱
+                </div>
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-[12px] font-bold text-white/90">Zyora official</span>
+                    <span className="text-[9px] text-white/40">✔</span>
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-400/80 to-pink-400/80 rounded-2xl rounded-tl-sm px-3 py-2 shadow-lg">
+                    <span className="text-[13px] font-semibold text-white drop-shadow-sm">
+                      Hello everyone
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* --- BOTTOM HALF: WHITE PANEL --- */}
+            <div className="w-full bg-white flex flex-col items-center pt-5 pb-6 px-5">
+              {/* 3D Toggle */}
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="w-4 h-4 rounded-full border-[5px] border-gray-300 bg-white flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                </div>
+                <span className="text-[16px] font-semibold text-gray-400 tracking-wide">3D</span>
+              </div>
+
+              {/* Price Section */}
+              <div className="flex flex-col items-center justify-center mb-4">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+                    <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                  </div>
+                  <span className="text-[32px] font-extrabold text-black tracking-tight leading-none">
+                    250000
+                  </span>
+                </div>
+                <div className="flex items-center justify-center gap-1.5 opacity-60">
+                  <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
+                    <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
+                  </div>
+                  <span className="text-[16px] font-bold text-gray-400 line-through decoration-gray-400 decoration-2">
+                    550000
+                  </span>
+                </div>
+              </div>
+
+              {/* Buy Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleBuy(tryChatBubbleItem);
+                  setTryChatBubbleItem(null);
+                }}
+                disabled={buying === tryChatBubbleItem.id}
+                className="w-full h-[46px] rounded-full bg-[#00c88c] text-white text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-[#00b07a] disabled:opacity-50 disabled:cursor-not-allowed shadow-md mb-2"
+              >
+                Buy
+              </button>
+
+              {/* Cancel Button */}
+              <button
+                type="button"
+                onClick={() => setTryChatBubbleItem(null)}
+                className="w-full h-[46px] rounded-full bg-[#f2f2f2] text-[#8a8a8a] text-[17px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ============ UPDATED: Gift (Send) Modal — FULL CHAT VISIBLE & COMPACT ============ */}
+      {/* ============ Gift (Send) Modal ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1270,7 +1285,6 @@ export default function StorePage({
           >
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* FULL CHAT BUBBLE IMAGE — object-contain, no crop, no background */}
             <div className="relative w-[130px] h-[130px] mb-3">
               <div className="relative w-full h-full flex items-center justify-center">
                 {giftItem.image.endsWith('.mp4') ? (
@@ -1286,7 +1300,6 @@ export default function StorePage({
                   />
                 )}
               </div>
-              {/* Duration Badge (top-left) */}
               <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[12px] font-bold px-2 py-[2px] rounded-md shadow-md">
                 {giftItem.duration}
               </div>
