@@ -53,7 +53,7 @@ private fun inviteAsset(file: String) = INVITE_ASSET_BASE + file
 private enum class InviteKey { NONE, GREEN, WHITE }
 
 @Composable
-private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKey = InviteKey.NONE, scale: ContentScale = ContentScale.Fit) {
+private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKey = InviteKey.NONE, scale: ContentScale = ContentScale.Fit, alignment: Alignment = Alignment.Center) {
     var bitmap by remember(file, key) { mutableStateOf<Bitmap?>(null) }
     LaunchedEffect(file, key) {
         bitmap = withContext(Dispatchers.IO) {
@@ -103,7 +103,8 @@ private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKe
             bitmap = image.asImageBitmap(),
             contentDescription = file,
             modifier = modifier,
-            contentScale = scale
+            contentScale = scale,
+            alignment = alignment
         )
     } else {
         Box(modifier)
@@ -168,7 +169,8 @@ fun InviteFriends(onBack: (() -> Unit)? = null, onClose: (() -> Unit)? = null) {
                 "IMG-20260830-WA0076.jpg",
                 Modifier.fillMaxSize(),
                 key = InviteKey.GREEN,
-                scale = ContentScale.Crop
+                scale = ContentScale.Crop,
+                alignment = Alignment.TopCenter
             )
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent, inviteRed))))
         }
