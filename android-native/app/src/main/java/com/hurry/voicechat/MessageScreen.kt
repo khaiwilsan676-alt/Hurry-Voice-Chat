@@ -40,7 +40,7 @@ private const val RAW_MSG = "https://raw.githubusercontent.com/khaiwilsan676-alt
 private data class MessagePreview(val uid: String, val name: String, val image: String, val message: String, val time: String = "")
 
 @Composable
-fun MessageScreen(onChat: (String, String, String) -> Unit) {
+fun MessageScreen(onChat: (String, String, String) -> Unit, embeddedSheet: Boolean = false, onBack: () -> Unit = {}) {
     val chats = remember {
         listOf(
             MessagePreview("hurry_team_official", "Zyora Team", RAW_MSG + "logo.png", ""),
@@ -49,20 +49,29 @@ fun MessageScreen(onChat: (String, String, String) -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().background(Color(0xFFF0F2F5))) {
-        Box(
-            Modifier.fillMaxWidth().background(
-                Brush.verticalGradient(
-                    0.0f to Color(0xFF3B82F6),
-                    0.65f to Color(0xFFE5E7EB),
-                    1.0f to Color(0xFFF0F2F5)
+        if (embeddedSheet) {
+            Box(Modifier.fillMaxWidth().height(54.dp).background(Color.White)) {
+                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart).size(48.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF1F2937))
+                }
+                Text("Message", modifier = Modifier.align(Alignment.Center), color = Color(0xFF1F2937), fontSize = 19.sp, fontWeight = FontWeight.Bold)
+            }
+        } else {
+            Box(
+                Modifier.fillMaxWidth().background(
+                    Brush.verticalGradient(
+                        0.0f to Color(0xFF3B82F6),
+                        0.65f to Color(0xFFE5E7EB),
+                        1.0f to Color(0xFFF0F2F5)
+                    )
+                ).statusBarsPadding().padding(top = 4.dp)
+            ) {
+                Text(
+                    "Message",
+                    Modifier.padding(start = 16.dp, top = 12.dp, bottom = 10.dp),
+                    color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
                 )
-            ).statusBarsPadding().padding(top = 6.dp)
-        ) {
-            Text(
-                "Message",
-                Modifier.padding(start = 16.dp, top = 12.dp, bottom = 10.dp),
-                color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
-            )
+            }
         }
 
         LazyColumn(Modifier.fillMaxSize().background(Color(0xFFF0F2F5)).padding(bottom = 8.dp)) {
