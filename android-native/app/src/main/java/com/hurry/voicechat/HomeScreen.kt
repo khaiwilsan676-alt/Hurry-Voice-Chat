@@ -445,8 +445,8 @@ fun HomeScreen(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .padding(start = 12.dp, end = 12.dp, bottom = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            .padding(start = 12.dp, end = 12.dp, bottom = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         row.forEach { room ->
                             RoomListCard(room, onRoom, Modifier.weight(1f))
