@@ -285,6 +285,7 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .background(MePageTopGradient)
                 .statusBarsPadding()
+                .offset(y = (-2).dp)
                 .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 0.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
