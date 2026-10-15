@@ -570,7 +570,6 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
-  // NEW: State for the exact screenshot Chat Bubble try modal
   const [tryChatBubbleItem, setTryChatBubbleItem] = useState<StoreItem | null>(null);
   // NEW: State for the Gift (Send) modal
   const [giftItem, setGiftItem] = useState<StoreItem | null>(null);
@@ -1282,7 +1281,7 @@ export default function StorePage({
                 ) : giftItem.tab === "Vehicle" || giftItem.tab === "Avatar Frame" ? (
                   <WebGLImageAvatar src={giftItem.image} />
                 ) : (
-                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-cover" />
+                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
                 )}
               </div>
               {/* Duration Badge (top-left) */}
