@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, Search } from "lucide-react";
 import { deductCoinsFromDB } from "./Wallet";
 
 interface StoreItem {
@@ -1250,26 +1250,39 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal — FULL CHAT BUBBLE & AVATAR+FRAME SUPPORT ============ */}
+      {/* ============ Gift (Send) Modal — BOTTOM SHEET WITH SEARCH ICON IN INPUT ============ */}
       {giftItem && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50"
           onClick={() => setGiftItem(null)}
         >
           <div
-            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-8 pb-6 px-5 shadow-2xl"
+            className="w-full max-w-md bg-white rounded-t-[28px] relative flex flex-col items-center pt-6 pb-10 px-5 shadow-2xl"
+            style={{ height: '30vh', minHeight: '280px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
+            {/* Top Input Bar with Search Icon inside */}
+            <div className="w-full mb-5">
+              <div className="relative w-full">
+                <Search
+                  size={20}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  strokeWidth={2.5}
+                />
+                <input
+                  type="text"
+                  placeholder="Enter Recipient's ID"
+                  className="w-full h-[50px] rounded-full bg-[#f3f4f6] text-[15px] pl-12 pr-5 outline-none border-none text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-[#1d4ed8]/30 transition-all"
+                />
+              </div>
+            </div>
 
-            {/* Item Display Area */}
-            <div className="relative w-[140px] h-[140px] mb-3">
+            {/* Gift Item Preview — smaller, centered */}
+            <div className="relative w-[100px] h-[100px] mb-3">
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                
-                {/* Avatar Frame case — avatar ke upar frame overlay */}
                 {giftItem.tab === "Avatar Frame" ? (
                   <div className="relative w-full h-full flex items-center justify-center bg-gray-200">
-                    <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
+                    <div className="relative w-[65px] h-[65px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
                       {userPhoto ? (
                         <img
                           src={userPhoto}
@@ -1282,7 +1295,7 @@ export default function StorePage({
                           }}
                         />
                       ) : null}
-                      <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[32px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                      <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[24px] font-bold ${userPhoto ? 'hidden' : ''}`}>
                         {avatarLetter}
                       </div>
                     </div>
@@ -1314,28 +1327,22 @@ export default function StorePage({
                 )}
               </div>
 
-              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[12px] font-bold px-2 py-[2px] rounded-md shadow-md">
+              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[11px] font-bold px-1.5 py-[1px] rounded-md shadow-md">
                 {giftItem.duration}
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-0.5 mb-2">
+            <div className="flex items-center justify-center gap-0.5 mb-1">
               {renderStars(giftItem.stars)}
             </div>
 
-            <div className="text-[16px] font-medium text-gray-400 mb-4">Send To</div>
-
-            <input
-              type="text"
-              placeholder="Enter Recipient's ID"
-              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-[16px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-5 focus:ring-2 focus:ring-[#00c88c]/40"
-            />
+            <div className="text-[13px] font-medium text-gray-400 mb-3">Send To</div>
 
             <button
               type="button"
-              className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
+              className="w-full max-w-[280px] h-[46px] rounded-full bg-[#1d4ed8] text-white text-[16px] font-bold flex items-center justify-center transition-colors hover:bg-blue-800 shadow-md"
             >
-              Search
+              Send
             </button>
           </div>
         </div>
