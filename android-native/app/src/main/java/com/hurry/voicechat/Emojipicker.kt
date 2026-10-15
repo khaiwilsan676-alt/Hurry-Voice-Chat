@@ -1,5 +1,9 @@
 package com.hurry.voicechat
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
@@ -19,17 +23,42 @@ data class EmojiSticker(val id:String,val name:String,val src:String)
 fun EmojiPicker(onClose:()->Unit={},onSelectEmoji:(EmojiSticker)->Unit={}){
  var activeTab by remember{mutableStateOf("emojis")}
  val stickers=listOf(
-  EmojiSticker("laugh","Laugh","/512.gif"),EmojiSticker("sad","Sad","/512 (6).gif"),EmojiSticker("love","Sleep","/512 (3).gif"),EmojiSticker("thinking","Thinking","/512 (2).gif"),
-  EmojiSticker("party","Party","/512 (16).gif"),EmojiSticker("loving","Loving","/512 (15).gif"),EmojiSticker("smart","Smart","/512 (13).gif"),EmojiSticker("irritating","Irritating","/512 (12).gif"),
-  EmojiSticker("rolling","Rolling","/512 (10).gif"),EmojiSticker("unamused","Unamused","/512 (11).gif"),EmojiSticker("pleading","Pleading","/512 (4).gif"),EmojiSticker("hug","Hug","/512 (8).gif"),
-  EmojiSticker("kiss","Kiss-R","/512 (14).gif"),EmojiSticker("Angery"," Angery","/512 (1).gif")
+  EmojiSticker("laugh","Laugh","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512.gif"),EmojiSticker("sad","Sad","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(6).gif"),EmojiSticker("love","Sleep","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(3).gif"),EmojiSticker("thinking","Thinking","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(2).gif"),
+  EmojiSticker("party","Party","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(16).gif"),EmojiSticker("loving","Loving","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(15).gif"),EmojiSticker("smart","Smart","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(13).gif"),EmojiSticker("irritating","Irritating","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(12).gif"),
+  EmojiSticker("rolling","Rolling","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(10).gif"),EmojiSticker("unamused","Unamused","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(11).gif"),EmojiSticker("pleading","Pleading","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(4).gif"),EmojiSticker("hug","Hug","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(8).gif"),
+  EmojiSticker("kiss","Kiss-R","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(14).gif"),EmojiSticker("Angery"," Angery","https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/512%20(1).gif")
  )
  Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
   Box(Modifier.fillMaxSize().clickable(onClick=onClose))
-  Column(Modifier.fillMaxWidth().fillMaxHeight(.42f).background(Color(0xFF121212)).padding(horizontal=16.dp,vertical=12.dp)){
-   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center){Tab("Emojis",activeTab=="emojis"){activeTab="emojis"};Spacer(Modifier.width(32.dp));Tab("Premium",activeTab=="premium"){activeTab="premium"}}
-   if(activeTab=="emojis")LazyVerticalGrid(columns=GridCells.Fixed(4),contentPadding=PaddingValues(vertical=12.dp),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){items(stickers){s->Column(Modifier.fillMaxWidth().clickable{onSelectEmoji(s);onClose()},horizontalAlignment=Alignment.CenterHorizontally){AsyncImage(model=s.src,contentDescription=s.name,modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit);Text(s.name,fontSize=11.sp,color=Color.White.copy(alpha=.90f))}}}
-   else Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("Premium Emojis Coming Soon",color=Color.White.copy(alpha=.70f),fontSize=12.sp)}
+  Column(
+   Modifier.fillMaxWidth().fillMaxHeight(.42f)
+    .background(Color(0xFF121212))
+    .padding(horizontal=16.dp,vertical=12.dp)
+  ){
+   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically){
+    Tab("Emojis",activeTab=="emojis"){activeTab="emojis"}
+    Spacer(Modifier.width(32.dp))
+    Tab("Premium",activeTab=="premium"){activeTab="premium"}
+   }
+   if(activeTab=="emojis") LazyVerticalGrid(
+    columns=GridCells.Fixed(4),
+    modifier=Modifier.weight(1f),
+    contentPadding=PaddingValues(vertical=12.dp),
+    horizontalArrangement=Arrangement.spacedBy(8.dp),
+    verticalArrangement=Arrangement.spacedBy(16.dp)
+   ){
+    items(stickers){s->
+     Column(
+      Modifier.fillMaxWidth().clickable{onSelectEmoji(s);onClose()},
+      horizontalAlignment=Alignment.CenterHorizontally
+     ){
+      AsyncImage(model=s.src,contentDescription=s.name,modifier=Modifier.size(48.dp),contentScale=ContentScale.Fit)
+      Text(s.name.trim(),fontSize=11.sp,color=Color.White.copy(alpha=.90f),maxLines=1)
+     }
+    }
+   } else Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center){
+    Text("Premium Emojis Coming Soon",color=Color.White.copy(alpha=.70f),fontSize=12.sp)
+   }
   }
  }
 }
