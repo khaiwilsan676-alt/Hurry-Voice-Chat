@@ -588,7 +588,7 @@ fun RoomPage(
                     shape=RoundedCornerShape(topStart=15.dp,topEnd=15.dp),
                     shadowElevation=16.dp
                 ) {
-                    MessageScreen(onChat={ _, _, _ -> showMessageSheet=false })
+                    MessageScreen(onChat={ _, _, _ -> showMessageSheet=false }, embeddedSheet=true, onBack={ showMessageSheet=false })
                 }
             }
         }
