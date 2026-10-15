@@ -1246,7 +1246,7 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Gift (Send) Modal ============ */}
+      {/* ============ Gift (Send) Modal — CLEAN FRAME (NO BLACK BOX) ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
@@ -1258,57 +1258,57 @@ export default function StorePage({
           >
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
+            {/* Item Display Area */}
             <div className="relative w-[140px] h-[140px] mb-3">
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                
-                {giftItem.tab === "Avatar Frame" ? (
-                  <div className="relative w-full h-full flex items-center justify-center bg-gray-200">
-                    <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-400 flex items-center justify-center shadow-md">
-                      {userPhoto ? (
-                        <img
-                          src={userPhoto}
-                          alt="User"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            const next = e.currentTarget.nextElementSibling as HTMLElement | null;
-                            if (next) next.classList.remove('hidden');
-                          }}
-                        />
-                      ) : null}
-                      <div className={`w-full h-full flex items-center justify-center bg-gray-500 text-white text-[32px] font-bold ${userPhoto ? 'hidden' : ''}`}>
-                        {avatarLetter}
-                      </div>
-                    </div>
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                      {giftItem.tryVideo ? (
-                        <WebGLVideoAvatar src={giftItem.tryVideo} />
-                      ) : giftItem.image.endsWith('.mp4') ? (
-                        <WebGLVideoAvatar src={giftItem.image} />
-                      ) : (
-                        <WebGLImageAvatar src={giftItem.image} />
-                      )}
+              {giftItem.tab === "Avatar Frame" ? (
+                /* Avatar Frame — CLEAN, NO BLACK BOX, NO BG */
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="relative w-[90px] h-[90px] rounded-full overflow-hidden bg-gray-300 flex items-center justify-center shadow-md">
+                    {userPhoto ? (
+                      <img
+                        src={userPhoto}
+                        alt="User"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (next) next.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-full h-full flex items-center justify-center bg-gray-400 text-white text-[32px] font-bold ${userPhoto ? 'hidden' : ''}`}>
+                      {avatarLetter}
                     </div>
                   </div>
-                ) : giftItem.tab === "Chat Bubble" ? (
-                  <div className="w-full h-full bg-white flex items-center justify-center p-1">
-                    <Image
-                      src={giftItem.image}
-                      alt={giftItem.name}
-                      fill
-                      className="object-contain p-1"
-                    />
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    {giftItem.tryVideo ? (
+                      <WebGLVideoAvatar src={giftItem.tryVideo} />
+                    ) : giftItem.image.endsWith('.mp4') ? (
+                      <WebGLVideoAvatar src={giftItem.image} />
+                    ) : (
+                      <WebGLImageAvatar src={giftItem.image} />
+                    )}
                   </div>
-                ) : giftItem.image.endsWith('.mp4') ? (
-                  <WebGLVideoAvatar src={giftItem.image} />
-                ) : giftItem.tab === "Vehicle" ? (
-                  <WebGLImageAvatar src={giftItem.image} />
-                ) : (
-                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
-                )}
-              </div>
+                </div>
+              ) : giftItem.tab === "Chat Bubble" ? (
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <Image
+                    src={giftItem.image}
+                    alt={giftItem.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              ) : giftItem.image.endsWith('.mp4') ? (
+                <WebGLVideoAvatar src={giftItem.image} />
+              ) : giftItem.tab === "Vehicle" ? (
+                <WebGLImageAvatar src={giftItem.image} />
+              ) : (
+                <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
+              )}
 
-              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[12px] font-bold px-2 py-[2px] rounded-md shadow-md">
+              {/* 3D Badge — CHHOTA */}
+              <div className="absolute -top-1 -left-1 bg-[#ff7a3d] text-white text-[10px] font-bold px-1.5 py-[1px] rounded-md shadow-md leading-tight">
                 {giftItem.duration}
               </div>
             </div>
