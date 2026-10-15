@@ -30,11 +30,15 @@ fun EmojiPicker(onClose:()->Unit={},onSelectEmoji:(EmojiSticker)->Unit={}){
  )
  Box(Modifier.fillMaxSize(),contentAlignment=Alignment.BottomCenter){
   Box(Modifier.fillMaxSize().clickable(onClick=onClose))
-  Column(
-   Modifier.fillMaxWidth().fillMaxHeight(.42f)
-    .background(Color(0xFF121212))
-    .padding(horizontal=16.dp,vertical=12.dp)
-  ){
+  Box(Modifier.fillMaxWidth().fillMaxHeight(.42f)){
+   AsyncImage(
+    model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1787514857468~2.jpg",
+    contentDescription=null,
+    modifier=Modifier.fillMaxSize(),
+    contentScale=ContentScale.Crop
+   )
+   Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.25f)))
+   Column(Modifier.fillMaxSize().padding(horizontal=16.dp,vertical=12.dp)){
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically){
     Tab("Emojis",activeTab=="emojis"){activeTab="emojis"}
     Spacer(Modifier.width(32.dp))
@@ -58,6 +62,7 @@ fun EmojiPicker(onClose:()->Unit={},onSelectEmoji:(EmojiSticker)->Unit={}){
     }
    } else Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center){
     Text("Premium Emojis Coming Soon",color=Color.White.copy(alpha=.70f),fontSize=12.sp)
+   }
    }
   }
  }
