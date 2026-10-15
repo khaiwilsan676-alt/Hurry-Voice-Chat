@@ -340,6 +340,7 @@ fun HomeScreen(
                     Modifier
                         .fillMaxWidth()
                         .background(Color(0xFFF5F5F5))
+                        .offset(y = (-4).dp)
                         .padding(top = 0.dp, start = 12.dp, end = 12.dp, bottom = 4.dp)
                 ) {
                     Box(
