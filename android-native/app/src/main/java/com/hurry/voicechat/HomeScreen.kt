@@ -317,9 +317,9 @@ fun HomeScreen(
                     }
                 }
                 Spacer(Modifier.weight(1f))
-                Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { HurrySearchIcon() }
-                Spacer(Modifier.width(3.dp))
-                Box(Modifier.offset(x = 5.dp).clickable { onCreateMineRoom() }) {
+                Box(Modifier.offset(x = 2.dp).clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { HurrySearchIcon() }
+                Spacer(Modifier.width(1.dp))
+                Box(Modifier.offset(x = 7.dp).clickable { onCreateMineRoom() }) {
                     HurryHouseIcon()
                 }
                 Spacer(Modifier.width(2.dp))
