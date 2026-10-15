@@ -293,9 +293,9 @@ fun RoomPage(
                 AsyncImage(model=roomImage,contentDescription="Room profile",modifier=Modifier.size(34.dp).clip(RoundedCornerShape(6.dp)).clickable{showInfo=true},contentScale=ContentScale.Crop)
                 Column(Modifier.weight(1f).padding(start=6.dp)){
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)){
-                        Text(roomName.take(12).let { if(roomName.length>12) it+"..." else it },color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
-                        Text(roomCountryFlag(roomOwner.country),color=Color.White,fontSize=12.sp,maxLines=1)
-                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) Box(Modifier.size(22.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{followed=!followed;onFollowToggle(roomId,followed)},contentAlignment=Alignment.Center){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(14.dp))}
+                        Text(roomName.take(12).let { if(roomName.length>12) it+"..." else it },color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis,modifier=Modifier.offset(y=2.dp))
+                        Text(roomCountryFlag(roomOwner.country),color=Color.White,fontSize=12.sp,maxLines=1,modifier=Modifier.offset(y=2.dp))
+                        if(accountId!=roomOwner.accountId.ifBlank{roomOwner.id}) Box(Modifier.offset(y=2.dp).size(22.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{followed=!followed;onFollowToggle(roomId,followed)},contentAlignment=Alignment.Center){Image(painterResource(R.drawable.ic_hurry_heart),contentDescription="Follow",modifier=Modifier.size(14.dp))}
                     }
                     Text("ID:"+roomOwner.accountId.ifBlank{roomOwner.id.ifBlank{roomId}},color=Color.White,fontSize=10.sp,maxLines=1,modifier=Modifier.offset(y=(-2).dp))
                 }
