@@ -570,9 +570,7 @@ export default function StorePage({
   const [activeTab, setActiveTab] = useState("Vehicle");
   const [tryThemeItem, setTryThemeItem] = useState<StoreItem | null>(null);
   const [tryCenterItem, setTryCenterItem] = useState<StoreItem | null>(null);
-  // NEW: State for the exact screenshot Chat Bubble try modal
   const [tryChatBubbleItem, setTryChatBubbleItem] = useState<StoreItem | null>(null);
-  // NEW: State for the Gift (Send) modal
   const [giftItem, setGiftItem] = useState<StoreItem | null>(null);
 
   const [balance, setBalance] = useState<number>(0);
@@ -585,7 +583,6 @@ export default function StorePage({
   const [userPhoto, setUserPhoto] = useState<string>("");
   const [userName, setUserName] = useState<string>("");
 
-  // SWIPE SUPPORT
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
 
@@ -781,7 +778,6 @@ export default function StorePage({
 
   const avatarLetter = (userName && userName.trim().charAt(0).toUpperCase()) || "U";
 
-  // ========== SWIPE HANDLERS ==========
   const SWIPE_THRESHOLD = 60;
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -802,13 +798,11 @@ export default function StorePage({
     if (currentIndex === -1) return;
 
     if (distance > 0) {
-      // Swipe LEFT -> go next tab
       const nextIndex = currentIndex + 1;
       if (nextIndex < tabData.length) {
         setActiveTab(tabData[nextIndex].id);
       }
     } else {
-      // Swipe RIGHT -> go previous tab
       const prevIndex = currentIndex - 1;
       if (prevIndex >= 0) {
         setActiveTab(tabData[prevIndex].id);
@@ -818,13 +812,11 @@ export default function StorePage({
     touchStartX.current = null;
     touchEndX.current = null;
   };
-  // ====================================
 
   return (
     <div className="h-screen bg-[#f5f6f8] text-gray-800 select-none font-sans relative flex flex-col overflow-hidden">
       <div className="max-w-md mx-auto w-full h-full flex flex-col relative">
 
-        {/* Sticky Header */}
         <div
           className="sticky top-0 left-0 w-full z-40 bg-[#f5f6f8] flex flex-col"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 15px)' }}
@@ -888,7 +880,6 @@ export default function StorePage({
           </div>
         </div>
 
-        {/* Scrollable Body — SWIPE ENABLED HERE */}
         <div
           className="flex-1 overflow-y-auto no-scrollbar w-full pb-10"
           onTouchStart={handleTouchStart}
@@ -915,7 +906,6 @@ export default function StorePage({
                 const isAvatarFrame = item.tab === "Avatar Frame";
                 const isOwned = ownedIds.has(item.id);
                 const isEquipped = equippedIds.has(item.id);
-                // SAME green-removal logic for Vehicle AND Frame images (matches video shader)
                 const shouldRemoveGreen = isVehicle || isAvatarFrame;
 
                 return (
@@ -1031,7 +1021,6 @@ export default function StorePage({
         </div>
       </div>
 
-      {/* ============ Vehicle Try Modal (unchanged) ============ */}
       {tryCenterItem && tryCenterItem.tab !== "Avatar Frame" && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/10 p-0 cursor-pointer"
@@ -1057,7 +1046,6 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Theme Try Modal — CROSS REMOVED, OUTSIDE TAP CLOSES ============ */}
       {tryThemeItem && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
@@ -1082,7 +1070,6 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ Frame Try Card — SQUARE, avatar half outside top ============ */}
       {tryCenterItem && tryCenterItem.tab === "Avatar Frame" && (() => {
         const item = tryCenterItem;
         const isOwned = ownedIds.has(item.id);
@@ -1092,14 +1079,11 @@ export default function StorePage({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
             onClick={() => setTryCenterItem(null)}
           >
-            {/* Square card */}
             <div
               className="relative bg-white rounded-2xl w-[300px] h-[300px] max-w-[85vw] max-h-[85vw] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Avatar straddling top edge — half outside, half inside */}
               <div className="absolute left-1/2 -translate-x-1/2 -top-[55px] w-[110px] h-[110px]">
-                {/* Avatar circle */}
                 <div className="relative w-full h-full rounded-full overflow-hidden bg-gray-200 flex items-center justify-center shadow-md">
                   {userPhoto ? (
                     <img
@@ -1118,7 +1102,6 @@ export default function StorePage({
                   </div>
                 </div>
 
-                {/* Frame video/image overlay — same position, same size */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
                   {item.tryVideo ? (
                     <WebGLVideoAvatar src={item.tryVideo} />
@@ -1130,7 +1113,6 @@ export default function StorePage({
                 </div>
               </div>
 
-              {/* Content inside square card, offset below avatar's lower half */}
               <div className="absolute inset-x-0 top-[70px] bottom-0 flex flex-col items-center px-4">
                 <div className="text-[17px] font-bold text-gray-900 text-center leading-tight">
                   {item.name}
@@ -1183,18 +1165,50 @@ export default function StorePage({
         );
       })()}
 
-      {/* ============ NEW: Chat Bubble Try Modal — CENTERED & COMPACT ============ */}
+      {/* ============ Chat Bubble Try Modal — CENTERED & COMPACT ============ */}
       {tryChatBubbleItem && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{
+            background: 'linear-gradient(135deg, #0a3d3d 0%, #0f5c4a 40%, #0a3d3d 100%)',
+          }}
           onClick={() => setTryChatBubbleItem(null)}
         >
-          {/* Compact Centered Card */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+            <span className="text-[120px] font-black text-white/10 tracking-widest">
+              Zyora
+            </span>
+          </div>
+
+          <div className="absolute top-6 left-4 right-4 z-10">
+            <div className="bg-black/40 rounded-2xl px-4 py-3 text-center backdrop-blur-sm border border-white/10">
+              <p className="text-[13px] font-medium text-yellow-200/90 leading-snug">
+                Official announcement: Welcome to Zyora Any Content Realated to porn, Froud, Fake Official will Ban!
+              </p>
+            </div>
+          </div>
+
+          <div className="absolute top-[160px] left-6 flex items-start gap-2 z-10">
+            <div className="w-10 h-10 rounded-full bg-orange-400 flex items-center justify-center text-white text-[18px] font-bold shadow-lg">
+              🐱
+            </div>
+            <div>
+              <div className="flex items-center gap-1 mb-1">
+                <span className="text-[13px] font-bold text-white/90">Zyora official</span>
+                <span className="text-[10px] text-white/40">✔</span>
+              </div>
+              <div className="bg-gradient-to-r from-purple-400/80 to-pink-400/80 rounded-2xl rounded-tl-sm px-3 py-2 shadow-lg">
+                <span className="text-[14px] font-semibold text-white drop-shadow-sm">
+                  Hello everyone
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div
-            className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl"
+            className="w-full max-w-[320px] bg-white rounded-[28px] flex flex-col items-center pt-8 pb-6 px-6 shadow-2xl relative z-20"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* 3D Selector Row */}
             <div className="flex items-center justify-center gap-2 mb-6">
               <div className="w-5 h-5 rounded-full border-[6px] border-gray-300 bg-white flex items-center justify-center">
                 <div className="w-2 h-2 rounded-full bg-gray-300"></div>
@@ -1202,18 +1216,15 @@ export default function StorePage({
               <span className="text-[18px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
-            {/* Coin Section */}
             <div className="flex flex-col items-center justify-center mb-6">
-              {/* Current Price */}
               <div className="flex items-center justify-center gap-2 mb-2">
                 <div className="relative w-9 h-9 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
                 </div>
-                <span className="text-[38px] font-extrabold text-black tracking-tight leading-none">
+                <span className="text-[36px] font-extrabold text-black tracking-tight leading-none">
                   250000
                 </span>
               </div>
-              {/* Old Price */}
               <div className="flex items-center justify-center gap-1.5 opacity-60">
                 <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
                   <WebGLCoinIcon src="/file_00000000e56882119c217d508b6733dc.png" />
@@ -1224,7 +1235,6 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Buy Button */}
             <button
               type="button"
               onClick={() => {
@@ -1237,7 +1247,6 @@ export default function StorePage({
               Buy
             </button>
 
-            {/* Cancel Button */}
             <button
               type="button"
               onClick={() => setTryChatBubbleItem(null)}
@@ -1249,28 +1258,32 @@ export default function StorePage({
         </div>
       )}
 
-      {/* ============ NEW: Gift (Send) Modal — EXACT SCREENSHOT DESIGN ============ */}
+      {/* ============ UPDATED: Gift (Send) Modal — FULL CHAT VISIBLE & COMPACT ============ */}
       {giftItem && (
         <div
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setGiftItem(null)}
         >
           <div
-            className="w-full max-w-[330px] bg-white rounded-[24px] relative flex flex-col items-center pt-8 pb-6 px-5 shadow-2xl"
+            className="w-full max-w-[300px] bg-white rounded-[24px] relative flex flex-col items-center pt-7 pb-6 px-5 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Title */}
             <h2 className="text-[22px] font-bold text-black mb-5">gift</h2>
 
-            {/* Item Image with Duration Badge */}
-            <div className="relative w-[140px] h-[140px] mb-3">
-              <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gray-100">
+            {/* FULL CHAT BUBBLE IMAGE — object-contain, no crop, no background */}
+            <div className="relative w-[130px] h-[130px] mb-3">
+              <div className="relative w-full h-full flex items-center justify-center">
                 {giftItem.image.endsWith('.mp4') ? (
                   <WebGLVideoAvatar src={giftItem.image} />
                 ) : giftItem.tab === "Vehicle" || giftItem.tab === "Avatar Frame" ? (
                   <WebGLImageAvatar src={giftItem.image} />
                 ) : (
-                  <Image src={giftItem.image} alt={giftItem.name} fill className="object-cover" />
+                  <Image
+                    src={giftItem.image}
+                    alt={giftItem.name}
+                    fill
+                    className="object-contain"
+                  />
                 )}
               </div>
               {/* Duration Badge (top-left) */}
@@ -1279,22 +1292,18 @@ export default function StorePage({
               </div>
             </div>
 
-            {/* Stars */}
             <div className="flex items-center justify-center gap-0.5 mb-2">
               {renderStars(giftItem.stars)}
             </div>
 
-            {/* "Send To" Label */}
             <div className="text-[16px] font-medium text-gray-400 mb-4">Send To</div>
 
-            {/* Recipient ID Input */}
             <input
               type="text"
               placeholder="Enter Recipient's ID"
               className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-[16px] px-5 outline-none border-none text-gray-700 placeholder-gray-400 mb-5 focus:ring-2 focus:ring-[#00c88c]/40"
             />
 
-            {/* Search Button */}
             <button
               type="button"
               className="w-full h-[56px] rounded-full bg-[#f3f4f6] text-white text-[18px] font-bold flex items-center justify-center transition-colors hover:bg-gray-200"
