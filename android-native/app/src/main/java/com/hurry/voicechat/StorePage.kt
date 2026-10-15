@@ -221,18 +221,32 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                                 Spacer(Modifier.width(4.dp))
                                 Text("%,d".format(item.price), color = if (theme) Color.White else Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
                             }
-                            Row(Modifier.fillMaxWidth().height(30.dp).clip(CircleShape).border(1.dp, StoreBlue, CircleShape).background(Color.White)) {
-                                Box(Modifier.weight(1f).fillMaxHeight().clickable { sendItem = item }, contentAlignment = Alignment.Center) {
+                            Row(
+                                Modifier.fillMaxWidth().height(30.dp)
+                                    .clip(CircleShape)
+                                    .border(1.dp, StoreBlue, CircleShape)
+                                    .background(Color.White)
+                            ) {
+                                Box(
+                                    Modifier.weight(1f).fillMaxHeight()
+                                        .clickable { sendItem = item },
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text("Send", color = StoreBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
-                                Box(Modifier.weight(1f).fillMaxHeight().clip(CircleShape).background(StoreBlue).clickable {
-                                    if (owned) {
-                                        if (equipped) equippedIds.remove(item.id) else {
-                                            equippedIds.removeAll { id -> nativeStoreItems.find { it.id == id }?.tab == item.tab }
-                                            equippedIds.add(item.id)
-                                        }
-                                    } else selectedItem = item
-                                }, contentAlignment = Alignment.Center) {
+                                Box(
+                                    Modifier.weight(1f).fillMaxHeight()
+                                        .background(StoreBlue)
+                                        .clickable {
+                                            if (owned) {
+                                                if (equipped) equippedIds.remove(item.id) else {
+                                                    equippedIds.removeAll { id -> nativeStoreItems.find { it.id == id }?.tab == item.tab }
+                                                    equippedIds.add(item.id)
+                                                }
+                                            } else selectedItem = item
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
                                     Text(if (owned) if (equipped) "Using" else "Use" else "Buy", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
