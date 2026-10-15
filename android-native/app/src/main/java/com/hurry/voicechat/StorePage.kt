@@ -29,8 +29,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.net.Uri
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.widget.VideoView
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import coil3.compose.AsyncImage
+import java.net.URL
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 private val StoreBlue = Color(0xFF1D4ED8)
 private val StoreBg = Color(0xFFF5F6F8)
@@ -276,9 +285,9 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                     if (source.endsWith(".mp4", ignoreCase = true)) {
                         StoreVideoPreview(StoreAssetBase + source, Modifier.fillMaxSize())
                     } else {
-                        AsyncImage(
-                            model = StoreAssetBase + source,
-                            contentDescription = item.name,
+                        StoreChromaImage(
+                            url = StoreAssetBase + source,
+                            description = item.name,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = if (item.tab == "Theme") ContentScale.Crop else ContentScale.Fit
                         )
@@ -373,6 +382,52 @@ fun StorePage(onBack: () -> Unit = {}, initialView: String = "store") {
                 }
                 Spacer(Modifier.height(18.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun StoreChromaImage(
+    url: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit
+) {
+    var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(url) {
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching {
+                val original = URL(url).openStream().use { BitmapFactory.decodeStream(it) }
+                if (original == null) null else {
+                    val pixels = IntArray(original.width * original.height)
+                    original.getPixels(pixels, 0, original.width, 0, 0, original.width, original.height)
+                    for (i in pixels.indices) {
+                        val color = pixels[i]
+                        val a = (color ushr 24) and 0xFF
+                        val r = (color ushr 16) and 0xFF
+                        val g = (color ushr 8) and 0xFF
+                        val b = color and 0xFF
+                        val base = max(r, b)
+                        val greenExcess = g - base
+                        if (g > 70 && greenExcess > 18) {
+                            val strength = ((greenExcess - 18f) / 72f).coerceIn(0f, 1f)
+                            val smooth = strength * strength * (3f - 2f * strength)
+                            val alpha = (a * (1f - smooth)).roundToInt().coerceIn(0, 255)
+                            val cleanGreen = minOf(g, base + 12)
+                            pixels[i] = (alpha shl 24) or (r shl 16) or (cleanGreen shl 8) or b
+                        }
+                    }
+                    Bitmap.createBitmap(pixels, original.width, original.height, Bitmap.Config.ARGB_8888)
+                }
+            }.getOrNull()
+        }
+    }
+    val imageBitmap = bitmap
+    if (imageBitmap != null) {
+        Image(bitmap = imageBitmap.asImageBitmap(), contentDescription = description, modifier = modifier, contentScale = contentScale)
+    } else {
+        Box(modifier, contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = StoreBlue)
         }
     }
 }
