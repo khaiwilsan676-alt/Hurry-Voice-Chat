@@ -11,17 +11,17 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const [selectedTime, setSelectedTime] = useState('');
   const [showRules, setShowRules] = useState(false);
 
-  // New state for Details Sheet
+  // Details Sheet ke liye state
   const [showDetails, setShowDetails] = useState(false);
 
-  // New states for the Select People sheet
+  // Select People sheet ke liye states
   const [showSelectPeople, setShowSelectPeople] = useState(false);
   const [peopleSheetColor, setPeopleSheetColor] = useState<'blue' | 'pink'>('blue');
 
   const modes = ['Votes', 'Coins', 'Earning'];
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
-  // Dummy data for History section matching the screenshot
+  // History ka dummy data screenshot ke hisaab se
   const historyData = [
     { date: '2024-06-16 07:15:21', desc: 'Battle Bonus', amount: '+2' },
     { date: '2024-06-15 01:51:34', desc: 'Battle Bonus', amount: '+2239' },
@@ -66,7 +66,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        {/* Details Button - Opens the new Sheet */}
+        {/* Details Button - Isse sheet niche se open hogi */}
         <button 
           onClick={() => setShowDetails(true)}
           className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors"
@@ -78,7 +78,6 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Select People */}
       <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
       <div className="flex justify-between gap-2 mb-3">
-        {/* Blue + Button */}
         <button 
           onClick={() => {
             setPeopleSheetColor('blue');
@@ -91,7 +90,6 @@ export default function PkScreen({ onClose }: PkScreenProps) {
           </div>
         </button>
         
-        {/* Pink + Button */}
         <button 
           onClick={() => {
             setPeopleSheetColor('pink');
@@ -237,7 +235,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* ================= DETAILS SHEET (New) ================= */}
+      {/* ================= DETAILS SHEET (Niche se khulegi) ================= */}
       {showDetails && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -245,7 +243,6 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            // Same styling as Rules Sheet, but with slightly more padding on top for the header
             className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
           >
             {/* Header with Back Button */}
