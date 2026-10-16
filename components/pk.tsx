@@ -147,16 +147,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
           >
-            {/* Handle */}
-            <div className="w-10 h-1 bg-[#35295e] rounded-full mx-auto mb-3" />
+            {/* Handle removed from here */}
 
-            {/* Title */}
+            {/* Title (centered, same as now) */}
             <div className="mb-4">
               <h2 className="text-base font-bold text-white text-center">Rules</h2>
             </div>
 
-            {/* Content */}
-            <div className="space-y-4 text-[#E0D8FF] text-center">
+            {/* Content — left aligned (like before), text unchanged */}
+            <div className="space-y-4 text-[#E0D8FF]">
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Vote Mode</h3>
                 <p className="text-xs leading-relaxed text-[#A098C0]">
