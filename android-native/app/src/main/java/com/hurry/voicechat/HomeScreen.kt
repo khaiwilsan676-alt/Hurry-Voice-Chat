@@ -1,4 +1,4 @@
-Package com.hurry.voicechat
+package com.hurry.voicechat
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -35,11 +35,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-
-// ─── Room DB (IndexedDB equivalent) — same file ───
 import androidx.room.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
 
 // ═══════════════════════════════════════════════════════
 // CONSTANTS
