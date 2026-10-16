@@ -50,13 +50,13 @@ export default function PkScreen({ onClose }: PkScreenProps) {
 
       {/* Select People */}
       <h3 className="text-[#A098C0] font-semibold text-[11px] mb-1.5">Select People</h3>
-      <div className="flex justify-between gap-2 mb-2">
-        <button className="w-20 h-12 bg-[#1a3b9e] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+      <div className="flex justify-center gap-2 mb-2">
+        <button className="w-24 h-12 bg-[#1a3b9e] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
           <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-lg font-light leading-none text-white pb-0.5">+</span>
           </div>
         </button>
-        <button className="w-20 h-12 bg-[#a81666] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+        <button className="w-24 h-12 bg-[#a81666] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
           <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-lg font-light leading-none text-white pb-0.5">+</span>
           </div>
@@ -86,9 +86,9 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Time — mt-auto pushes this + confirm to bottom, no gap between them */}
+      {/* Time */}
       <h3 className="text-[#A098C0] font-semibold text-[11px] mb-1.5 mt-auto">Time</h3>
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 mb-3">
         {times.map((time) => (
           <button
             key={time}
@@ -104,7 +104,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button — no gap above, sits right under time grid */}
+      {/* Confirm Button */}
       <button
         onClick={onClose}
         className="w-full bg-[#1b5a7a] py-2 rounded-full text-[#A0B0C0] font-bold text-xs opacity-70 hover:opacity-100 transition-opacity"
