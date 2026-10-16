@@ -14,103 +14,115 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0520] text-white p-4 overflow-y-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-5 mt-2">
+    <div className="flex flex-col h-screen w-full bg-[#0B0420] text-white p-3 overflow-hidden font-sans">
+      {/* Header - Fixed Height */}
+      <div className="flex justify-between items-center mb-3 mt-1 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-yellow-400 rounded-full flex justify-center items-center">
-            <span className="text-sm">🥊</span>
+          <div className="w-[34px] h-[34px] bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex justify-center items-center shadow-md">
+            <span className="text-sm drop-shadow-sm">🥊</span>
           </div>
-          <h2 className="text-xl font-bold">Battle</h2>
+          <h2 className="text-[22px] font-semibold tracking-wide">Battle</h2>
         </div>
-        <button className="w-6 h-6 rounded-full border border-white flex justify-center items-center text-sm font-bold hover:bg-white/10 transition-colors">
+        <button className="w-[26px] h-[26px] rounded-full border-[1.5px] border-white flex justify-center items-center text-[14px] font-bold hover:bg-white/10 transition-colors">
           ?
         </button>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-[#1b1240] rounded-xl p-4 flex justify-between items-center mb-6 border border-[#2a1e5c]">
+      {/* Profile Card - Fixed Height */}
+      <div className="bg-[#1C1342] rounded-[16px] p-3 flex justify-between items-center mb-4 border border-[#2C2060] shrink-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <img
-            src="https://via.placeholder.com/50"
-            alt="Avatar"
-            className="w-12 h-12 rounded-full object-cover"
-          />
+          <div className="w-[46px] h-[46px] rounded-full overflow-hidden bg-gray-600 border border-gray-500">
+            <img
+              src="https://i.pravatar.cc/150?img=11"
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div>
-            <h3 className="font-semibold text-base mb-1">A a r a v 💙</h3>
-            <p className="text-[#A098C0] text-xs">
-              Today's earning <span className="text-xs">🪙</span> 0
+            <h3 className="font-medium text-[15px] mb-0.5 tracking-wide">A α r α v 💙</h3>
+            <p className="text-[#9D93C6] text-[12px] font-medium flex items-center gap-1">
+              Today's earning <span className="text-[13px]">🪙</span> 0
             </p>
           </div>
         </div>
-        <button className="bg-[#35295e] py-1.5 px-3 rounded-xl text-xs hover:bg-[#4a3882] transition-colors">
+        <button className="bg-[#372A63] py-[6px] px-[14px] rounded-[14px] text-[12px] font-medium hover:bg-[#46357D] transition-colors">
           Details &gt;
         </button>
       </div>
 
-      {/* Select People */}
-      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Select People</h3>
-      <div className="flex justify-between gap-4 mb-6">
-        <button className="flex-1 aspect-[1.2] bg-[#1a3b9e] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-3xl font-light leading-none text-white pb-1">+</span>
-          </div>
-        </button>
-        <button className="flex-1 aspect-[1.2] bg-[#a81666] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-3xl font-light leading-none text-white pb-1">+</span>
-          </div>
-        </button>
-      </div>
-
-      {/* Mode */}
-      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Mode</h3>
-      <div className="flex gap-2 mb-6">
-        {modes.map((mode) => (
-          <button
-            key={mode}
-            onClick={() => setSelectedMode(mode)}
-            className={`relative flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${
-              selectedMode === mode
-                ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
-                : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
-            }`}
-          >
-            {mode}
-            {mode === 'Earning' && (
-              <div className="absolute -top-2 -right-1 bg-orange-500 w-5 h-5 rounded-full flex justify-center items-center text-[10px]">
-                🔥
-              </div>
-            )}
+      {/* Select People - Flex Grow to fill space */}
+      <div className="flex flex-col mb-4 shrink-0">
+        <h3 className="text-[#9D93C6] font-medium text-[14px] mb-2 pl-1">Select People</h3>
+        <div className="flex justify-between gap-3 h-[110px]">
+          {/* Blue Box */}
+          <button className="flex-1 bg-gradient-to-br from-[#1238B8] to-[#1D4BE8] rounded-[16px] flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 shadow-lg">
+            <div className="w-[52px] h-[52px] rounded-full bg-[#4B6EEB] flex justify-center items-center shadow-inner">
+              <span className="text-[32px] font-light leading-none text-white pb-1">+</span>
+            </div>
           </button>
-        ))}
-      </div>
-
-      {/* Time */}
-      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Time</h3>
-      <div className="grid grid-cols-3 gap-3 mb-8">
-        {times.map((time) => (
-          <button
-            key={time}
-            onClick={() => setSelectedTime(time)}
-            className={`py-3 rounded-lg text-sm font-medium transition-colors ${
-              selectedTime === time
-                ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
-                : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
-            }`}
-          >
-            {time}
+          {/* Pink Box */}
+          <button className="flex-1 bg-gradient-to-br from-[#B2166A] to-[#D61E80] rounded-[16px] flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 shadow-lg">
+            <div className="w-[52px] h-[52px] rounded-full bg-[#D85B9E] flex justify-center items-center shadow-inner">
+              <span className="text-[32px] font-light leading-none text-white pb-1">+</span>
+            </div>
           </button>
-        ))}
+        </div>
       </div>
 
-      {/* Confirm Button */}
-      <button 
-        onClick={onClose}
-        className="w-full bg-[#1b5a7a] py-4 rounded-full text-[#A0B0C0] font-bold text-lg opacity-70 hover:opacity-100 transition-opacity mt-auto mb-4"
-      >
-        Confirm
-      </button>
+      {/* Mode - Fixed Height */}
+      <div className="mb-4 shrink-0">
+        <h3 className="text-[#9D93C6] font-medium text-[14px] mb-2 pl-1">Mode</h3>
+        <div className="flex gap-2">
+          {modes.map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setSelectedMode(mode)}
+              className={`relative flex-1 py-[10px] rounded-[12px] text-[13px] font-medium transition-all duration-200 ${
+                selectedMode === mode
+                  ? 'bg-[#4B388B] text-white shadow-[0_0_10px_rgba(124,92,230,0.3)]'
+                  : 'bg-[#2D2158] text-[#D0C6F5] hover:bg-[#382A6B]'
+              }`}
+            >
+              {mode}
+              {mode === 'Earning' && (
+                <div className="absolute -top-2 -right-1.5 bg-gradient-to-r from-orange-500 to-red-500 w-[22px] h-[22px] rounded-full flex justify-center items-center text-[11px] shadow-md border-2 border-[#0B0420]">
+                  🔥
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Time - Grid Fixed */}
+      <div className="mb-4 shrink-0">
+        <h3 className="text-[#9D93C6] font-medium text-[14px] mb-2 pl-1">Time</h3>
+        <div className="grid grid-cols-3 gap-2.5">
+          {times.map((time) => (
+            <button
+              key={time}
+              onClick={() => setSelectedTime(time)}
+              className={`py-[10px] rounded-[12px] text-[13px] font-medium transition-all duration-200 ${
+                selectedTime === time
+                  ? 'bg-[#4B388B] text-white shadow-[0_0_10px_rgba(124,92,230,0.3)]'
+                  : 'bg-[#2D2158] text-[#D0C6F5] hover:bg-[#382A6B]'
+              }`}
+            >
+              {time}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Confirm Button - Push to bottom */}
+      <div className="mt-auto pb-2 shrink-0">
+        <button 
+          onClick={onClose}
+          className="w-full bg-[#1D5C7A] py-[16px] rounded-full text-[#8FA8BF] font-bold text-[16px] tracking-wide transition-all hover:bg-[#236e93] hover:text-white active:scale-[0.98]"
+        >
+          Confirm
+        </button>
+      </div>
     </div>
   );
 }
