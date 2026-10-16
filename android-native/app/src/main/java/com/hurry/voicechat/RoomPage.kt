@@ -171,7 +171,7 @@ fun RoomPage(
     var keyboardShownForChat by remember { mutableStateOf(false) }
     
     var showOfficialAnnouncement by remember { mutableStateOf(true) }
-    var clearedBy by remember { mutableStateOf("") } // Jisse clear kiya uska naam store karne ke liye
+    var clearedBy by remember { mutableStateOf("") }
     
     LaunchedEffect(showChat, imeVisible) {
         if (!showChat) {
@@ -377,7 +377,7 @@ fun RoomPage(
                 
                 Row(
                     modifier = Modifier
-                        .height(38.dp) 
+                        .height(44.dp) 
                         .clip(RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
                         .background(Color.Black.copy(alpha = 0.3f))
                         .clickable { showInfo = true }
@@ -387,7 +387,7 @@ fun RoomPage(
                     AsyncImage(
                         model = roomImage,
                         contentDescription = "Room profile",
-                        modifier = Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),
+                        modifier = Modifier.size(44.dp).clip(RoundedCornerShape(8.dp)), 
                         contentScale = ContentScale.Crop
                     )
                     Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.Center) {
@@ -483,7 +483,6 @@ fun RoomPage(
                 contentPadding=PaddingValues(bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(8.dp)
             ){
-                // ═══════════ CONDITIONAL RENDERING ANNOUNCEMENT OR CLEAR CHAT SYSTEM CARD ═══════════
                 if (showOfficialAnnouncement) {
                     item {
                         Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
@@ -497,13 +496,13 @@ fun RoomPage(
                         Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
                             Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    SystemBellIcon(modifier = Modifier.size(16.dp))
+                                    SystemBellIcon(modifier = Modifier.size(24.dp)) 
                                     Text("System", color = Color.Gray, fontSize = 12.sp)
                                 }
                                 Spacer(Modifier.height(4.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(clearedBy, color = Color(0xFFE2C67D), fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
-                                    Text(" Cleared Chat messages", color = Color(0xFFE2C67D), fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                                    Text(" Cleared Chat messages", color = Color.White, fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium) 
                                 }
                             }
                         }
@@ -583,7 +582,8 @@ fun RoomPage(
                     }
                     
                     Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
-                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(105.dp).offset(y=(-8).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                        // Yahan size 125.dp kar diya gaya hai bina kisi offset ke
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(125.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                     }
                     
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
