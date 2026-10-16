@@ -53,7 +53,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        <button className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors">
+        {/* Yahan Details button ka size halka sa bada kiya hai (text-[10px] aur py-1 px-2.5) */}
+        <button className="bg-white/10 py-1 px-2.5 rounded-md text-[10px] hover:bg-white/20 transition-colors">
           Details &gt;
         </button>
       </div>
@@ -112,8 +113,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 mt-auto">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
+      <div className="grid grid-cols-3 gap-2 mb-2">
         {times.map((time) => (
           <button
             key={time}
@@ -132,7 +133,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Confirm Button */}
       <button
         onClick={onClose}
-        className="w-full mt-3 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full mt-1 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
@@ -145,18 +146,19 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-[#0a0520] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
+            // Yahan Rules sheet ka background gradient change kiya hai (image ke jesa)
+            className="w-full max-w-md bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
           >
             {/* Handle */}
             <div className="w-10 h-1 bg-[#35295e] rounded-full mx-auto mb-3" />
 
             {/* Title */}
             <div className="mb-4">
-              <h2 className="text-base font-bold text-white">Rules</h2>
+              <h2 className="text-base font-bold text-white text-center">Rules</h2>
             </div>
 
             {/* Content */}
-            <div className="space-y-4 text-[#E0D8FF]">
+            <div className="space-y-4 text-[#E0D8FF] text-center">
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Vote Mode</h3>
                 <p className="text-xs leading-relaxed text-[#A098C0]">
@@ -166,7 +168,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
 
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Coin Mode</h3>
-                <ol className="text-xs leading-relaxed text-[#A098C0] space-y-1.5 list-decimal list-inside">
+                <ol className="text-xs leading-relaxed text-[#A098C0] space-y-1.5 list-decimal list-inside inline-block text-left">
                   <li>
                     The person who receives the most coins (as gifts) wins. 1 coin
                     equals 1 point.
@@ -182,7 +184,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* Select People Sheet (Size reduced to show the + icons) */}
+      {/* Select People Sheet */}
       {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -190,18 +192,17 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            // Yahan height h-[45vh] kar di hai taaki peeche wale + buttons dikhein
-            className={`w-full max-w-md h-[45vh] px-4 pt-5 pb-4 overflow-y-auto transition-colors duration-300 ${
+            className={`w-full max-w-md h-[28vh] px-3 pt-3 pb-2 overflow-y-auto transition-colors duration-300 ${
               peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
           >
             {/* Title */}
-            <h2 className="text-xl font-bold text-white text-center mb-5">Select people</h2>
+            <h2 className="text-base font-bold text-white text-center mb-2">Select people</h2>
 
             {/* Grid of People */}
-            <div className="grid grid-cols-5 gap-y-5 gap-x-2 justify-items-center">
+            <div className="grid grid-cols-5 gap-y-2 gap-x-1 justify-items-center">
               {/* First Slot - Current User Avatar */}
-              <div className="w-12 h-12 rounded-full overflow-hidden">
+              <div className="w-9 h-9 rounded-full overflow-hidden">
                 <img
                   src="https://via.placeholder.com/50"
                   alt="Avatar"
@@ -213,11 +214,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
               {Array.from({ length: 9 }).map((_, i) => (
                 <button
                   key={i}
-                  className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
+                  className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
                   {/* Sofa/Chair Icon matching the screenshot */}
                   <svg 
-                    className="w-6 h-6 text-white/70" 
+                    className="w-4 h-4 text-white/70" 
                     fill="currentColor" 
                     viewBox="0 0 24 24"
                   >
