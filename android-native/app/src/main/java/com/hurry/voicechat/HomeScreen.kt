@@ -1,4 +1,4 @@
-package com.hurry.voicechat
+Package com.hurry.voicechat
 
 import android.content.Context
 import androidx.compose.foundation.background
@@ -318,7 +318,7 @@ fun HomeScreen(
                 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy((-15).dp) 
+                    horizontalArrangement = Arrangement.spacedBy(4.dp) // Yahan fix kar diya, ekdum Popular/Mine jaisa same gap (4.dp)
                 ) {
                     Box(Modifier.clickable(indication = null, interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }) { onSearch() }) { 
                         HurrySearchIcon() 
@@ -471,15 +471,14 @@ fun HomeScreen(
                 }
             }
 
-            // BOTTOM LEFT DECORATION IMAGE
+            // BOTTOM RIGHT DECORATION IMAGE
             AsyncImage(
                 model = RAW + "IMG_20260916_002115.png",
-                contentDescription = "Left Corner Decoration",
+                contentDescription = "Right Corner Decoration",
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = 75.dp) 
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 75.dp) 
                     .size(70.dp)
-                    .graphicsLayer { scaleX = -1f } 
                     .clickable { },
                 contentScale = ContentScale.Fit
             )
