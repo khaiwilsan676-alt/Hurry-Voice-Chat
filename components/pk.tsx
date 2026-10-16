@@ -10,19 +10,13 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const [selectedMode, setSelectedMode] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [showRules, setShowRules] = useState(false);
-  
-  // Naya state "Select People" sheet ke liye
-  const [showSelectSheet, setShowSelectSheet] = useState(false);
-  const [sheetTheme, setSheetTheme] = useState<'blue' | 'pink'>('blue');
+
+  // New states for the Select People sheet
+  const [showSelectPeople, setShowSelectPeople] = useState(false);
+  const [peopleSheetColor, setPeopleSheetColor] = useState<'blue' | 'pink'>('blue');
 
   const modes = ['Votes', 'Coins', 'Earning'];
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
-
-  // Function to open sheet with specific color
-  const openSelectSheet = (theme: 'blue' | 'pink') => {
-    setSheetTheme(theme);
-    setShowSelectSheet(true);
-  };
 
   return (
     // Main background gradient (same as before)
@@ -67,9 +61,12 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Select People */}
       <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
       <div className="flex justify-between gap-2 mb-3">
-        {/* Blue Button - onClick added */}
+        {/* Blue + Button */}
         <button 
-          onClick={() => openSelectSheet('blue')}
+          onClick={() => {
+            setPeopleSheetColor('blue');
+            setShowSelectPeople(true);
+          }}
           className="flex-1 h-20 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
@@ -77,9 +74,12 @@ export default function PkScreen({ onClose }: PkScreenProps) {
           </div>
         </button>
         
-        {/* Pink Button - onClick added */}
+        {/* Pink + Button */}
         <button 
-          onClick={() => openSelectSheet('pink')}
+          onClick={() => {
+            setPeopleSheetColor('pink');
+            setShowSelectPeople(true);
+          }}
           className="flex-1 h-20 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
@@ -137,7 +137,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         Confirm
       </button>
 
-      {/* Rules Sheet (Bilkul same rakha hai) */}
+      {/* Rules Sheet */}
       {showRules && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -182,49 +182,53 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* NEW: Select People Bottom Sheet (Niche se aane wali sheet) */}
-      {showSelectSheet && (
+      {/* Select People Sheet (Updated for size, position & style) */}
+      {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
-          onClick={() => setShowSelectSheet(false)}
+          onClick={() => setShowSelectPeople(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`w-full max-w-md rounded-t-[2rem] px-4 pt-8 pb-6 h-[55vh] flex flex-col transition-colors duration-300 ${
-              sheetTheme === 'blue' ? 'bg-[#1240c9]' : 'bg-[#b80f6a]'
+            // Yahan size h-[60vh] kiya hai, top corners flat kiye hain, aur color dynamic rakha hai
+            className={`w-full max-w-md h-[60vh] px-5 pt-8 pb-6 overflow-y-auto transition-colors duration-300 ${
+              peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
           >
             {/* Title */}
-            <h2 className="text-white text-2xl font-semibold text-center mb-8 tracking-wide">
-              Select people
-            </h2>
+            <h2 className="text-2xl font-bold text-white text-center mb-8">Select people</h2>
 
-            {/* Grid of People (2 rows, 5 columns) */}
-            <div className="grid grid-cols-5 gap-y-6 gap-x-2 place-items-center overflow-y-auto w-full px-2">
-              {/* First Item: User Avatar */}
-              <div className="w-14 h-14 rounded-full overflow-hidden border border-white/20 shadow-sm">
+            {/* Grid of People */}
+            <div className="grid grid-cols-5 gap-y-8 gap-x-3 justify-items-center">
+              {/* First Slot - Current User Avatar */}
+              <div className="w-14 h-14 rounded-full overflow-hidden">
                 <img
                   src="https://via.placeholder.com/50"
-                  alt="User"
+                  alt="Avatar"
                   className="w-full h-full object-cover"
                 />
               </div>
 
-              {/* 9 Empty Placeholders */}
-              {Array.from({ length: 9 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shadow-inner"
+              {/* 9 Empty Slots */}
+              {Array.from({ length: 9 }).map((_, i) => (
+                <button
+                  key={i}
+                  className="w-14 h-14 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
-                  {/* Couch/Sofa Icon from your image */}
-                  <span className="text-xl opacity-80">🛋️</span>
-                </div>
+                  {/* Sofa/Chair Icon matching the screenshot */}
+                  <svg 
+                    className="w-7 h-7 text-white/70" 
+                    fill="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M4 10v7h3v-7H4zm13 0v7h3v-7h-3zm-9-4v11h8V6H8zm-3 6h2V8c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v4h2c1.1 0 2 .9 2 2v7c0 .6-.4 1-1 1h-1c-.6 0-1-.4-1-1v-3H7v3c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1v-7c0-1.1.9-2 2-2z" />
+                  </svg>
+                </button>
               ))}
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
