@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import LuckyBag from './luckybag';
+import PkScreen from './pk'; // <-- Added PK import
 
 interface FourgrideProps {
   onClose: () => void;
@@ -97,6 +98,7 @@ export default function Fourgride({
 
   const [showMusicSheet, setShowMusicSheet] = useState(false);
   const [showLuckyBag, setShowLuckyBag] = useState(false);
+  const [showPk, setShowPk] = useState(false); // <-- Added state for PK Battle
 
   const [musicFiles, setMusicFiles] = useState<{ id: string; name: string; url: string }[]>([]);
   const [durations, setDurations] = useState<Record<string, number>>({});
@@ -253,7 +255,6 @@ export default function Fourgride({
     if (onMusicPlay) {
       onMusicPlay({ id, name, url });
     }
-    // ❌ Sheet close NAHI hoga play pe — abhi bhi khuli rahegi
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -288,7 +289,6 @@ export default function Fourgride({
     }
   };
 
-  // Back button: close BOTH Music sheet AND Fourgride
   const handleCloseMusicSheet = () => {
     setShowMusicSheet(false);
     onClose();
@@ -306,8 +306,28 @@ export default function Fourgride({
         />
       )}
 
+      {/* ---------- PK Battle 50vh Sheet ---------- */}
+      {/* Added this block to render PK Screen in 50vh */}
+      {showPk && (
+        <div className="fixed inset-0 z-[60] flex items-end justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black/50" 
+            onClick={() => { setShowPk(false); onClose(); }} 
+          />
+          {/* 50vh Container */}
+          <div
+            className="relative w-full max-w-md h-[50vh] bg-[#0a0520] rounded-t-[14px] shadow-2xl animate-slide-up overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <PkScreen onClose={() => { setShowPk(false); onClose(); }} />
+          </div>
+        </div>
+      )}
+
       {/* ---------- Main Tools Sheet (Fourgride) ---------- */}
-      {!showLuckyBag && !showMusicSheet && (
+      {/* Hidden if LuckyBag, MusicSheet, OR PkScreen is active */}
+      {!showLuckyBag && !showMusicSheet && !showPk && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           {/* Backdrop */}
           <div className="absolute inset-0 " onClick={onClose} />
@@ -453,8 +473,9 @@ export default function Fourgride({
                 </div>
 
                 <div className="flex flex-col items-center">
+                  {/* Added logic to trigger PkScreen */}
                   <button
-                    onClick={() => console.log('PK Battle')}
+                    onClick={(e) => { e.stopPropagation(); setShowPk(true); }}
                     className="transition-transform hover:scale-105"
                   >
                     <img src="/IMG_20260814_110802.png" alt="Pk Battle" className="w-12 h-12 object-contain" />
@@ -579,4 +600,4 @@ export default function Fourgride({
       `}</style>
     </>
   );
-  }
+}
