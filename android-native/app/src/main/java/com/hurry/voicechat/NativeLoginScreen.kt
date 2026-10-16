@@ -8,26 +8,34 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -42,7 +50,8 @@ import java.net.URL
 private const val HURRY_FIREBASE_API_KEY = "AIzaSyBNTxdeuqc3F7R4eyjmwdQqQ2YWv9-9yv4"
 private const val HURRY_API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
 private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20260804_011114_027_bsl.mp4"
-private const val HURRY_LOGO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/image_20261014_125545-iss-logo-ko-dekh-yr-iski-body-position-dekh-or-han-right-wale-hand-lion-ke-fol.jpg"
+// Old logo removed, updated to local asset path
+private const val HURRY_LOGO = "file:///android_asset/logo.png"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,6 +100,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
             }
         )
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (page == "welcome") .30f else .40f)))
+        
         if (showPrivacyPolicy) {
             Column(
                 Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(horizontal = 22.dp),
@@ -115,7 +125,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                 Spacer(Modifier.weight(1f))
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(model = HURRY_LOGO, contentDescription = "Hurry", modifier = Modifier.size(80.dp).clip(RoundedCornerShape(18.dp)))
-                    Text("Zaho", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                    Text("Zyora", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.weight(1.2f))
                 Button(
@@ -125,7 +135,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF222222))
                 ) {
-                    GoogleLoginIcon(Modifier.size(22.dp))
+                    GoogleLoginIcon(Modifier.size(24.dp))
                     Spacer(Modifier.width(10.dp))
                     Text("Google", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -136,38 +146,58 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB), contentColor = Color.White)
                 ) {
-                    AccountLoginIcon(Modifier.size(22.dp))
+                    AccountLoginIcon(Modifier.size(24.dp))
                     Spacer(Modifier.width(10.dp))
                     Text("Account", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 18.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Login means you agree to the ", color = Color.White.copy(alpha = .85f), fontSize = 12.sp)
-                    Text("Terms of Service", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    Text(", ", color = Color.White.copy(alpha = .85f), fontSize = 12.sp)
-                    Text(
-                        "Privacy Policy",
-                        color = Color(0xFF93C5FD),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { showPrivacyPolicy = true }
-                    )
-                }
+                
+                Text(
+                    text = buildAnnotatedString {
+                        append("Login means you agree to the ")
+                        withStyle(SpanStyle(color = Color.White, fontWeight = FontWeight.Medium)) { append("Terms of Service") }
+                        append(" & ")
+                        withStyle(SpanStyle(color = Color(0xFF93C5FD), fontWeight = FontWeight.Medium)) { append("Privacy Policy") }
+                    },
+                    color = Color.White.copy(alpha = 0.85f),
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 18.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { showPrivacyPolicy = true },
+                    textAlign = TextAlign.Center
+                )
             }
         } else {
             Column(
-                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
+                Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("‹", color = Color.White, fontSize = 38.sp, modifier = Modifier.clickable {
-                        page = if (page == "signup") "login" else "welcome"
-                        email = ""; password = ""; error = ""
-                    }.padding(horizontal = 8.dp))
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) {
+                                page = if (page == "signup") "login" else "welcome"
+                                email = ""
+                                password = ""
+                                error = ""
+                            }
+                    )
                 }
                 Spacer(Modifier.height(18.dp))
                 AsyncImage(model = HURRY_LOGO, contentDescription = "Hurry", modifier = Modifier.size(64.dp).clip(RoundedCornerShape(16.dp)))
@@ -362,31 +392,6 @@ private fun authErrorText(raw: String): String = when {
     else -> raw
 }
 
- 
-@Composable
-private fun AccountLoginIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier) {
-        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = size.minDimension * .095f)
-        val centerX = size.width / 2f
-        val headRadius = size.minDimension * .19f
-        drawCircle(
-            color = Color.White,
-            radius = headRadius,
-            center = androidx.compose.ui.geometry.Offset(centerX, size.height * .31f),
-            style = stroke
-        )
-        drawArc(
-            color = Color.White,
-            startAngle = 180f,
-            sweepAngle = 180f,
-            useCenter = false,
-            topLeft = androidx.compose.ui.geometry.Offset(size.width * .16f, size.height * .43f),
-            size = androidx.compose.ui.geometry.Size(size.width * .68f, size.height * .50f),
-            style = stroke
-        )
-    }
-}
-
 @Composable
 private fun PrivacySection(title: String, body: String) {
     Column(Modifier.fillMaxWidth().padding(bottom = 22.dp)) {
@@ -396,24 +401,80 @@ private fun PrivacySection(title: String, body: String) {
     }
 }
 
-
 @Composable
 private fun GoogleLoginIcon(modifier: Modifier = Modifier) {
-    Canvas(modifier) {
-        val strokeWidth = size.minDimension * 0.16f
-        val inset = strokeWidth / 2f
-        val arcSize = androidx.compose.ui.geometry.Size(size.width - strokeWidth, size.height - strokeWidth)
-        val topLeft = androidx.compose.ui.geometry.Offset(inset, inset)
-        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = strokeWidth, cap = androidx.compose.ui.graphics.StrokeCap.Butt)
-        drawArc(Color(0xFF4285F4), -45f, 90f, false, topLeft, arcSize, style = stroke)
-        drawArc(Color(0xFF34A853), 45f, 90f, false, topLeft, arcSize, style = stroke)
-        drawArc(Color(0xFFFBBC05), 135f, 90f, false, topLeft, arcSize, style = stroke)
-        drawArc(Color(0xFFEA4335), 225f, 90f, false, topLeft, arcSize, style = stroke)
-        drawLine(
-            color = Color(0xFF4285F4),
-            start = androidx.compose.ui.geometry.Offset(size.width * 0.53f, size.height * 0.50f),
-            end = androidx.compose.ui.geometry.Offset(size.width * 0.96f, size.height * 0.50f),
-            strokeWidth = strokeWidth
-        )
+    val googleIcon = remember {
+        ImageVector.Builder(
+            name = "Google", defaultWidth = 48.dp, defaultHeight = 48.dp, viewportWidth = 48f, viewportHeight = 48f
+        ).path(fill = SolidColor(Color(0xFF4285F4))) {
+            moveTo(43.6f, 24.5f)
+            curveToRelative(0f, -1.6f, -0.1f, -3.1f, -0.4f, -4.5f)
+            horizontalLineTo(24f)
+            verticalLineToRelative(8.5f)
+            horizontalLineToRelative(11f)
+            arcToRelative(9.4f, 9.4f, 0f, false, true, -4.1f, 6.2f)
+            verticalLineToRelative(5.5f)
+            horizontalLineToRelative(6.7f)
+            curveToRelative(3.9f, -3.6f, 6f, -9f, 6f, -15.7f)
+            close()
+        }.path(fill = SolidColor(Color(0xFF34A853))) {
+            moveTo(24f, 44f)
+            curveToRelative(5.5f, 0f, 10.1f, -1.8f, 13.5f, -4.8f)
+            lineToRelative(-6.7f, -5.5f)
+            curveToRelative(-1.8f, 1.2f, -4f, 2f, -6.8f, 2f)
+            curveToRelative(-5.2f, 0f, -9.6f, -3.5f, -11.2f, -8.2f)
+            horizontalLineTo(5.9f)
+            verticalLineToRelative(5.7f)
+            arcTo(20f, 20f, 0f, false, false, 24f, 44f)
+            close()
+        }.path(fill = SolidColor(Color(0xFFFBBC05))) {
+            moveTo(12.8f, 27.5f)
+            arcToRelative(12f, 12f, 0f, false, true, 0f, -7f)
+            verticalLineTo(14.8f)
+            horizontalLineTo(5.9f)
+            arcToRelative(20f, 20f, 0f, false, false, 0f, 18.4f)
+            close()
+        }.path(fill = SolidColor(Color(0xFFEA4335))) {
+            moveTo(24f, 12.3f)
+            curveToRelative(3f, 0f, 5.7f, 1f, 7.8f, 3.1f)
+            lineToRelative(5.9f, -5.9f)
+            curveTo(34.1f, 6.2f, 29.5f, 4f, 24f, 4f)
+            arcTo(20f, 20f, 0f, false, false, 5.9f, 14.8f)
+            lineToRelative(6.9f, 5.7f)
+            curveToRelative(1.6f, -4.7f, 6f, -8.2f, 11.2f, -8.2f)
+            close()
+        }.build()
     }
+    Icon(imageVector = googleIcon, contentDescription = "Google Logo", modifier = modifier, tint = Color.Unspecified)
+}
+
+@Composable
+private fun AccountLoginIcon(modifier: Modifier = Modifier) {
+    val accountIcon = remember {
+        ImageVector.Builder(
+            name = "Account", defaultWidth = 48.dp, defaultHeight = 48.dp, viewportWidth = 48f, viewportHeight = 48f
+        ).path(
+            fill = SolidColor(Color(0xFFFFFFFF)),
+            stroke = SolidColor(Color(0xFF202124)),
+            strokeLineWidth = 2f
+        ) {
+            moveTo(24f, 2f)
+            arcToRelative(22f, 22f, 0f, true, true, 0f, 44f)
+            arcToRelative(22f, 22f, 0f, true, true, 0f, -44f)
+            close()
+        }.path(fill = SolidColor(Color(0xFF202124))) {
+            moveTo(24f, 10f)
+            arcToRelative(7f, 7f, 0f, true, true, 0f, 14f)
+            arcToRelative(7f, 7f, 0f, true, true, 0f, -14f)
+            close()
+        }.path(fill = SolidColor(Color(0xFF202124))) {
+            moveTo(10f, 38f)
+            curveTo(10f, 29f, 15.5f, 25f, 24f, 25f)
+            curveTo(32.5f, 25f, 38f, 29f, 38f, 38f)
+            curveTo(34f, 42f, 29f, 44f, 24f, 44f)
+            curveTo(19f, 44f, 14f, 42f, 10f, 38f)
+            close()
+        }.build()
+    }
+    Icon(imageVector = accountIcon, contentDescription = "Account Logo", modifier = modifier, tint = Color.Unspecified)
 }
