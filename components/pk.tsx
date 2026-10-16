@@ -16,7 +16,6 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const [peopleSheetColor, setPeopleSheetColor] = useState<'blue' | 'pink'>('blue');
   const [mounted, setMounted] = useState(false);
 
-  // Ye check karta hai ki component browser me mount ho chuka hai (Next.js SSR ke liye zaroori hai)
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -68,7 +67,6 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        {/* Details Button */}
         <button 
           type="button"
           onClick={() => setShowDetails(true)}
@@ -160,7 +158,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         Confirm
       </button>
 
-      {/* ================= SABHI SHEETS PORTAL KE THROUGH (TAKI OVERFLOW SE NA FASE) ================= */}
+      {/* ================= SABHI SHEETS PORTAL KE THROUGH ================= */}
       {mounted && createPortal(
         <>
           {/* Rules Sheet */}
@@ -225,7 +223,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet (Niche se khulegi) */}
+          {/* Details Sheet (Rules Sheet ke same size me - max-h-[75%] + scroll) */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -233,7 +231,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto scroll-smooth"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-5">
@@ -309,7 +307,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
         </>,
-        document.body // Direct body me render hoga, isliye overflow-hidden se nahi fasega
+        document.body
       )}
     </div>
   );
