@@ -169,7 +169,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
+                className="w-full max-w-md h-[75vh] bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 overflow-y-auto"
               >
                 <div className="mb-4">
                   <h2 className="text-base font-bold text-white text-center">Rules</h2>
@@ -223,7 +223,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet (Rules Sheet ke same size me - max-h-[75%] + scroll) */}
+          {/* Details Sheet — Ab Rules Sheet ke EXACT same size (75vh fixed) me */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -231,7 +231,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto scroll-smooth"
+                className="w-full max-w-md h-[75vh] bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 overflow-y-auto"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-5">
