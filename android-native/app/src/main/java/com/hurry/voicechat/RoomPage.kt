@@ -681,7 +681,24 @@ fun RoomPage(
             onOpenProfile={ user -> seats.firstOrNull{it.accountId==user.accountId}?.let{selectedSeat=it.number};showActiveUsers=false },
             onCopyUserId={ id -> clipboard.setText(AnnotatedString(id));copiedId=id }
         )
-        if(showSettings) RoomSettings(roomName,announcement,locked,{roomName=it},{announcement=it},{locked=it},{showSettings=false}){onKeepRoom(roomName,roomImage,roomId);showSettings=false}
+        if(showSettings) RoomSettingPage(
+            initial = RoomSettingsDataNative(
+                roomName = roomName,
+                roomDp = roomImage,
+                announcement = announcement,
+                isLocked = locked
+            ),
+            roomOwnerId = roomId,
+            currentUserId = accountId,
+            onBack = { showSettings = false },
+            onSave = { saved ->
+                roomName = saved.roomName
+                roomImage = saved.roomDp
+                announcement = saved.announcement
+                locked = saved.isLocked
+                showSettings = false
+            }
+        )
         if(showGift) GiftPicker(
             open=true,
             onClose={showGift=false},
