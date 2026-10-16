@@ -306,33 +306,38 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg",contentDescription="Room theme background",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         
+        // ═══════════ USER PILL (CUP CARD) ═══════════
         Row(
-            modifier=Modifier.align(Alignment.TopStart).padding(top=64.dp,start=0.dp)
+            modifier=Modifier.align(Alignment.TopStart).padding(top=70.dp,start=0.dp)
+                .height(22.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
                 .clickable{showInfo=true}
-                .padding(start=12.dp,end=12.dp,top=4.dp,bottom=4.dp),
+                .padding(start=12.dp,end=12.dp),
             verticalAlignment=Alignment.CenterVertically
         ){
             TransparentGreenImage(
                 url="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788258883971~2.jpg",
-                modifier=Modifier.size(20.dp)
+                modifier=Modifier.size(16.dp)
             )
             Spacer(Modifier.width(6.dp))
-            Text("0",color=Color(0xFFEEF3A3),fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing=0.1.sp)
+            Text("0",color=Color(0xFFEEF3A3),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing=0.1.sp)
             Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.padding(start=4.dp).size(10.dp))
         }
-        
-        Column(Modifier.fillMaxSize()){
+
+        // ═══════════ IME PADDING APPLIED HERE TO PREVENT KEYBOARD OVERLAP ═══════════
+        Column(Modifier.fillMaxSize().imePadding()){
             
-            // ═══════════ UPDATED TOP HEADER (BIG ICONS & GAP) ═══════════
-            Row(Modifier.fillMaxWidth().padding(top=28.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){
+            // ═══════════ TOP HEADER (ONLY ROOM CARD & ICONS) ═══════════
+            Row(Modifier.fillMaxWidth().padding(top=28.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
                 
+                // Room Card with exact DP height (38.dp)
                 Row(
                     modifier = Modifier
+                        .height(38.dp) 
                         .clip(RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
                         .background(Color.Black.copy(alpha = 0.3f))
                         .clickable { showInfo = true }
-                        .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
+                        .padding(start = 4.dp, end = 16.dp), 
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AsyncImage(
@@ -341,7 +346,7 @@ fun RoomPage(
                         modifier = Modifier.size(38.dp).clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
-                    Column(Modifier.padding(start = 8.dp)) {
+                    Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.Center) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
                                 roomName.take(12).let { if (roomName.length > 12) "$it..." else it },
@@ -349,15 +354,13 @@ fun RoomPage(
                                 fontSize = 13.sp,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.offset(y = 2.dp)
+                                overflow = TextOverflow.Ellipsis
                             )
-                            Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp, modifier = Modifier.offset(y = 2.dp))
+                            Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp)
                             
                             if (accountId != roomOwner.accountId.ifBlank { roomOwner.id }) {
                                 Box(
                                     Modifier
-                                        .offset(y = 2.dp)
                                         .size(20.dp)
                                         .clip(CircleShape)
                                         .background(Color(0xFF3B82F6)) 
@@ -373,18 +376,18 @@ fun RoomPage(
                                 }
                             }
                         }
-                        Text("ID:" + roomOwner.accountId.ifBlank { roomOwner.id.ifBlank { roomId } }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp, modifier = Modifier.offset(y = (-2).dp))
+                        Text("ID:" + roomOwner.accountId.ifBlank { roomOwner.id.ifBlank { roomId } }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp)
                     }
                 }
 
                 Spacer(Modifier.weight(1f))
 
-                // Top Right Big Icons with increased gap
-                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                // Top Right Big Icons with exact 4.dp gap matching bottom
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                     Row(
                         modifier=Modifier.height(38.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=12.dp),
                         verticalAlignment=Alignment.CenterVertically,
-                        horizontalArrangement=Arrangement.spacedBy(6.dp)
+                        horizontalArrangement=Arrangement.spacedBy(4.dp) 
                     ){
                         Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(18.dp))
                         Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
@@ -404,11 +407,11 @@ fun RoomPage(
             
             // ═══════════ SEATS AREA ═══════════
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=4.dp).padding(top=48.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=38.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceEvenly) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.SpaceBetween) {
                         rowSeats.forEach { seat ->
                             NativeSeat(seat, roomOwner.accountId.ifBlank{roomOwner.id}) {
                                 selectedSeat = seat.number
@@ -419,54 +422,68 @@ fun RoomPage(
                 }
             }
 
-            Column(Modifier.fillMaxWidth().padding(start=10.dp,top=16.dp,end=82.dp,bottom=4.dp)) {
-                Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
-                    Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
-                    if(announcement.isNotBlank()) {
-                        Spacer(Modifier.height(8.dp))
-                        Divider(color=Color.White.copy(alpha=.10f),thickness=1.dp)
-                        Spacer(Modifier.height(7.dp))
-                        Text("ANNOUNCEMENT: $announcement",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
-                    }
-                }
-            }
-            
-            // ═══════════ UPDATED CHAT SCROLL AND GAP ═══════════
             val chatListState = androidx.compose.foundation.lazy.rememberLazyListState()
             
-            // Auto scroll to bottom when new messages arrive or keyboard opens
             LaunchedEffect(messages.size, imeVisible) {
                 if (messages.isNotEmpty()) {
                     chatListState.animateScrollToItem(messages.lastIndex)
                 }
             }
             
+            // ═══════════ MESSAGES & SCROLLING ANNOUNCEMENTS ═══════════
             LazyColumn(
                 state=chatListState,
                 modifier=Modifier.fillMaxWidth().weight(1f).padding(horizontal=10.dp),
                 contentPadding=PaddingValues(bottom=8.dp),
-                verticalArrangement=Arrangement.spacedBy(8.dp) // GAP Increased to 8.dp
+                verticalArrangement=Arrangement.spacedBy(8.dp)
             ){
+                // Official Announcement inside chat list (will scroll)
+                item {
+                    Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
+                        Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
+                            Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                        }
+                    }
+                }
+                
+                // User Announcement inside chat list (Separate Card, will scroll)
+                if(announcement.isNotBlank()) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(start=4.dp, end=82.dp, bottom=2.dp)) {
+                            Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
+                                Text("ANNOUNCEMENT: $announcement",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                            }
+                        }
+                    }
+                }
+
                 items(messages,key={it.id}){message ->
                     if(message.type=="join") {
-                        Row(Modifier.fillMaxWidth().padding(vertical=2.dp).clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha=.20f)).padding(horizontal=10.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)){
+                        Row(
+                            Modifier.padding(vertical=2.dp)
+                                .wrapContentWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.Black.copy(alpha=.30f))
+                                .padding(horizontal=10.dp,vertical=6.dp),
+                            verticalAlignment=Alignment.CenterVertically,
+                            horizontalArrangement=Arrangement.spacedBy(8.dp)
+                        ){
                             AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
                             Column {
                                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                                     Text(message.sender,color=Color.White.copy(alpha=.95f),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                                     androidx.compose.material3.Icon(imageVector=Icons.Filled.Home,contentDescription=null,modifier=Modifier.size(12.dp),tint=Color.White)
                                 }
-                                Text("Enter the Room",color=Color.White.copy(alpha=.8f),fontSize=10.sp)
+                                Text("Enter the Room",color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
                             }
                         }
                     } else NativeMessage(message)
                 }
             }
             
-            // ═══════════ REAL APP LIKE CHAT INPUT AND FOOTER LOGIC ═══════════
             if(showChat) {
-                // When Chat is open, Footer is hidden completely
-                Row(Modifier.fillMaxWidth().background(Color.White).imePadding().padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                // ImePadding is removed here because parent column handles it automatically now
+                Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                     IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(38.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(26.dp))}
                     androidx.compose.foundation.text.BasicTextField(
                         value=input,
@@ -480,7 +497,6 @@ fun RoomPage(
                     IconButton(onClick={if(input.isNotBlank()){messages.add(NativeRoomMessage(System.currentTimeMillis().toString(),input,currentUser.name,currentUser.image,accountId));input=""}},modifier=Modifier.size(38.dp)){Icon(Icons.Default.Send,null,tint=Color(0xFF3B82F6),modifier=Modifier.size(26.dp))}
                 }
             } else {
-                // Regular Footer Menus
                 Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal=8.dp, vertical=6.dp).height(44.dp),verticalAlignment=Alignment.CenterVertically){
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                         RoomFooterButton(onClick={showChat=true},description="Say Hi Chat",icon=R.drawable.ic_hurry_chat)
@@ -497,16 +513,16 @@ fun RoomPage(
                                     imageVector = if (seat.muted) Icons.Default.MicOff else Icons.Default.Mic,
                                     contentDescription = "Microphone",
                                     tint = Color.White,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(28.dp) // ═══════════ INCREASED MIC SIZE ═══════════
                                 )
                             }
                         }
                         if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                     }
                     
-                    // ═══════════ BIGGER GIFT ICON ═══════════
-                    Box(Modifier.size(52.dp),contentAlignment=Alignment.Center){
-                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(68.dp).offset(y=(-4).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                    // ═══════════ INCREASED GIFT ICON SIZE ═══════════
+                    Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(86.dp).offset(y=(-4).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                     }
                     
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
@@ -517,25 +533,26 @@ fun RoomPage(
             }
         }
         
-        // ═══════════ RIGHT SIDE BANNER & GAMES ═══════════
         val sideBannerImages = listOf(
             "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339540059~2.jpg",
             "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1788339681679~2.jpg"
         )
         val sideBannerPager = androidx.compose.foundation.pager.rememberPagerState(pageCount = { sideBannerImages.size })
         
-        LaunchedEffect(sideBannerPager.currentPage) {
+        LaunchedEffect(Unit) {
             while (true) {
                 kotlinx.coroutines.delay(3000)
                 if (!sideBannerPager.isScrollInProgress) {
-                    sideBannerPager.animateScrollToPage((sideBannerPager.currentPage + 1) % sideBannerImages.size)
+                    val nextPage = (sideBannerPager.currentPage + 1) % sideBannerImages.size
+                    sideBannerPager.animateScrollToPage(nextPage)
                 }
             }
         }
 
+        // ═══════════ RIGHT SIDE IMAGES MOVED DOWN (Reduced bottom padding) ═══════════
         Column(
             modifier=Modifier.align(Alignment.BottomEnd)
-                .padding(end=10.dp, bottom=84.dp)
+                .padding(end=10.dp, bottom=74.dp) // Bottom padding reduced from 84.dp to 50.dp
                 .heightIn(max=330.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment=Alignment.CenterHorizontally,
@@ -591,7 +608,8 @@ fun RoomPage(
                 key(toast.id) {
                     AnimatedVisibility(
                         visible=true,
-                        enter=slideInHorizontally(initialOffsetX={ fullWidth -> fullWidth }) + fadeIn()
+                        // ═══════════ SLIDE FROM RIGHT FIX (initialOffsetX = 2000 makes it come from right off-screen) ═══════════
+                        enter=slideInHorizontally(initialOffsetX={ 2000 }) + fadeIn()
                     ) {
                         Row(
                             Modifier.clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
@@ -721,17 +739,16 @@ fun RoomPage(
             MemberSheet(seats.first{it.number==selectedSeat}){selectedSeat=0}
         }
         
-        // ═══════════ MESSAGE SHEET PURE WHITE ═══════════
         if(showMessageSheet) {
             val screenHeight = LocalConfiguration.current.screenHeightDp
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha=.30f)).clickable{showMessageSheet=false},contentAlignment=Alignment.BottomCenter) {
                 Surface(
                     modifier=Modifier.fillMaxWidth().height((screenHeight * .60f).dp).clickable(enabled=false) {},
-                    color=Color.White, // Explicitly pure white
+                    color=Color.White, 
                     shape=RoundedCornerShape(topStart=15.dp,topEnd=15.dp),
                     shadowElevation=16.dp
                 ) {
-                    Box(Modifier.fillMaxSize().background(Color.White)) { // Ensure complete pure white
+                    Box(Modifier.fillMaxSize().background(Color.White)) { 
                         MessageScreen(onChat={ _, _, _ -> showMessageSheet=false }, embeddedSheet=true, onBack={ showMessageSheet=false })
                     }
                 }
@@ -773,9 +790,9 @@ fun RoomPage(
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Column(
         horizontalAlignment=Alignment.CenterHorizontally,
-        modifier=Modifier.width(56.dp).clickable(onClick=onClick)
+        modifier=Modifier.width(62.dp).clickable(onClick=onClick) 
     ){
-        Box(Modifier.size(56.dp),contentAlignment=Alignment.Center){
+        Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){ 
             Canvas(Modifier.fillMaxSize()) {
                 val blue = !seat.locked
                 val ringBrush = Brush.linearGradient(
@@ -839,7 +856,7 @@ fun RoomPage(
                 }
             }
         }
-        Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=9.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+        Text(if(seat.occupied)seat.userName else seat.number.toString(),color=Color.White.copy(.9f),fontSize=11.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
     }
 }
 
