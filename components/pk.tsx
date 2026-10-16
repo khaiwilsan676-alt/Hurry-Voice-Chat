@@ -67,26 +67,26 @@ export default function PkScreen({ onClose }: PkScreenProps) {
           </button>
         </div>
 
-        {/* Select People - + Buttons (Thode bade kiye) */}
+        {/* Select People - + Buttons (Wapas Chota Kar Diya) */}
         <h3 className="text-[#A098C0] font-semibold text-sm mb-2">Select People</h3>
         <div className="flex justify-between gap-3 mb-5">
           {/* Blue Button */}
           <button 
             onClick={() => openSheet('blue')}
-            className="flex-1 h-14 bg-[#1a3b9e] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
+            className="flex-1 h-10 bg-[#1a3b9e] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
           >
-            <div className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center">
-              <span className="text-2xl font-light leading-none text-white pb-1">+</span>
+            <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
+              <span className="text-xl font-light leading-none text-white pb-0.5">+</span>
             </div>
           </button>
           
           {/* Pink Button */}
           <button 
             onClick={() => openSheet('pink')}
-            className="flex-1 h-14 bg-[#a81666] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
+            className="flex-1 h-10 bg-[#a81666] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
           >
-            <div className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center">
-              <span className="text-2xl font-light leading-none text-white pb-1">+</span>
+            <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
+              <span className="text-xl font-light leading-none text-white pb-0.5">+</span>
             </div>
           </button>
         </div>
@@ -151,7 +151,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             className={`w-full max-w-md rounded-t-3xl p-5 pb-6 animate-slide-up ${
               sheetType === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
-            style={{ maxHeight: '90vh' }} // Ensures it doesn't overflow
+            style={{ maxHeight: '90vh' }}
           >
             {/* Header with Close */}
             <div className="flex justify-between items-center mb-4">
