@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ExperimentalGraphicsApi
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -45,6 +46,7 @@ private const val RAW_MSG = "https://raw.githubusercontent.com/khaiwilsan676-alt
 private data class MessagePreview(val uid: String, val name: String, val image: String, val message: String, val time: String = "")
 
 // Yeh function tumhare SVG ko Compose Icon mein convert karne ke liye hai
+@OptIn(ExperimentalGraphicsApi::class)
 @Composable
 fun rememberVerifiedChatIcon(): ImageVector {
     return remember {
