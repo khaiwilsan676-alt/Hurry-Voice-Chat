@@ -27,6 +27,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
@@ -38,6 +43,46 @@ import coil3.compose.AsyncImage
 private const val RAW_MSG = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
 
 private data class MessagePreview(val uid: String, val name: String, val image: String, val message: String, val time: String = "")
+
+// Yeh function tumhare SVG ko Compose Icon mein convert karne ke liye hai
+@Composable
+fun rememberVerifiedChatIcon(): ImageVector {
+    return remember {
+        ImageVector.Builder(
+            name = "VerifiedChat",
+            defaultWidth = 48.dp,
+            defaultHeight = 48.dp,
+            viewportWidth = 48f,
+            viewportHeight = 48f
+        ).apply {
+            path(
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 3.5f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            ) {
+                moveTo(24f, 5f)
+                curveTo(13.5f, 5f, 5f, 13.5f, 5f, 24f)
+                curveTo(5f, 34.5f, 13.5f, 43f, 24f, 43f)
+                lineTo(38f, 43f)
+                lineTo(38f, 35.5f)
+                curveTo(38f, 33.5f, 43f, 29f, 43f, 24f)
+                curveTo(43f, 13.5f, 34.5f, 5f, 24f, 5f)
+                close()
+            }
+            path(
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 4f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round
+            ) {
+                moveTo(15.5f, 23.5f)
+                lineTo(22f, 29.5f)
+                lineTo(33f, 18f)
+            }
+        }.build()
+    }
+}
 
 @Composable
 fun MessageScreen(onChat: (String, String, String) -> Unit, embeddedSheet: Boolean = false, onBack: () -> Unit = {}) {
@@ -61,15 +106,28 @@ fun MessageScreen(onChat: (String, String, String) -> Unit, embeddedSheet: Boole
                 Modifier.fillMaxWidth().background(
                     Brush.verticalGradient(
                         0.0f to Color(0xFF3B82F6),
-                        0.65f to Color(0xFFE5E7EB),
+                        0.3f to Color(0xFF3B82F6), // Blue color thora aur increase kiya yahan
+                        0.75f to Color(0xFFE5E7EB),
                         1.0f to Color(0xFFF0F2F5)
                     )
-                ).statusBarsPadding().padding(top = 4.dp)
+                ).statusBarsPadding().padding(top = 12.dp, bottom = 12.dp)
             ) {
+                // Heading ko ekdam Middle mein set kiya
                 Text(
                     "Message",
-                    Modifier.padding(start = 16.dp, top = 12.dp, bottom = 10.dp),
+                    Modifier.align(Alignment.Center),
                     color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold
+                )
+                
+                // Right side corner mein custom SVG icon add kiya
+                Icon(
+                    imageVector = rememberVerifiedChatIcon(),
+                    contentDescription = "Custom Icon",
+                    tint = Color.Unspecified,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp)
+                        .size(30.dp)
                 )
             }
         }
