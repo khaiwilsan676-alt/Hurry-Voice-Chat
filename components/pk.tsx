@@ -225,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — full left-right */}
+          {/* Details Sheet — full width left-right */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] bg-black/60"
@@ -233,7 +233,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-0 left-0 right-0 w-full bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-2.5 pt-2 pb-3 max-h-[60%] overflow-y-auto"
+                className="fixed bottom-0 left-0 right-0 w-screen bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-2.5 pt-2 pb-3 max-h-[60%] overflow-y-auto"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-1.5">
