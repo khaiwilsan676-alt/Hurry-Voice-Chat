@@ -1,16 +1,12 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-} from 'react-native';
+'use client';
 
-const PkScreen = () => {
+import React, { useState } from 'react';
+
+interface PkScreenProps {
+  onClose?: () => void;
+}
+
+export default function PkScreen({ onClose }: PkScreenProps) {
   const [selectedMode, setSelectedMode] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
 
@@ -18,309 +14,103 @@ const PkScreen = () => {
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.battleIconContainer}>
-              <Text style={styles.battleIconText}>🥊</Text>
-            </View>
-            <Text style={styles.headerTitle}>Battle</Text>
-          </View>
-          <TouchableOpacity style={styles.helpButton}>
-            <Text style={styles.helpButtonText}>?</Text>
-          </TouchableOpacity>
-        </View>
+    <div className="flex flex-col h-full bg-[#0a0520] text-white p-4 overflow-y-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-5 mt-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-yellow-400 rounded-full flex justify-center items-center">
+            <span className="text-sm">🥊</span>
+          </div>
+          <h2 className="text-xl font-bold">Battle</h2>
+        </div>
+        <button className="w-6 h-6 rounded-full border border-white flex justify-center items-center text-sm font-bold hover:bg-white/10 transition-colors">
+          ?
+        </button>
+      </div>
 
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileInfo}>
-            <Image
-              source={{ uri: 'https://via.placeholder.com/50' }} // Replace with actual avatar
-              style={styles.avatar}
-            />
-            <View>
-              <Text style={styles.userName}>A a r a v 💙</Text>
-              <Text style={styles.earnings}>
-                Today's earning <Text style={styles.coinIcon}>🪙</Text> 0
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.detailsButton}>
-            <Text style={styles.detailsText}>Details &gt;</Text>
-          </TouchableOpacity>
-        </View>
+      {/* Profile Card */}
+      <div className="bg-[#1b1240] rounded-xl p-4 flex justify-between items-center mb-6 border border-[#2a1e5c]">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://via.placeholder.com/50"
+            alt="Avatar"
+            className="w-12 h-12 rounded-full object-cover"
+          />
+          <div>
+            <h3 className="font-semibold text-base mb-1">A a r a v 💙</h3>
+            <p className="text-[#A098C0] text-xs">
+              Today's earning <span className="text-xs">🪙</span> 0
+            </p>
+          </div>
+        </div>
+        <button className="bg-[#35295e] py-1.5 px-3 rounded-xl text-xs hover:bg-[#4a3882] transition-colors">
+          Details &gt;
+        </button>
+      </div>
 
-        {/* Select People */}
-        <Text style={styles.sectionTitle}>Select People</Text>
-        <View style={styles.selectPeopleContainer}>
-          <TouchableOpacity style={[styles.selectBox, styles.blueBox]}>
-            <View style={styles.plusCircle}>
-              <Text style={styles.plusText}>+</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.selectBox, styles.pinkBox]}>
-            <View style={styles.plusCirclePink}>
-              <Text style={styles.plusText}>+</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+      {/* Select People */}
+      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Select People</h3>
+      <div className="flex justify-between gap-4 mb-6">
+        <button className="flex-1 aspect-[1.2] bg-[#1a3b9e] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-3xl font-light leading-none text-white pb-1">+</span>
+          </div>
+        </button>
+        <button className="flex-1 aspect-[1.2] bg-[#a81666] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-3xl font-light leading-none text-white pb-1">+</span>
+          </div>
+        </button>
+      </div>
 
-        {/* Mode */}
-        <Text style={styles.sectionTitle}>Mode</Text>
-        <View style={styles.rowContainer}>
-          {modes.map((mode) => (
-            <TouchableOpacity
-              key={mode}
-              style={[
-                styles.optionButton,
-                selectedMode === mode && styles.selectedOptionButton,
-              ]}
-              onPress={() => setSelectedMode(mode)}>
-              <Text style={styles.optionText}>{mode}</Text>
-              {mode === 'Earning' && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>🔥</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* Mode */}
+      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Mode</h3>
+      <div className="flex gap-2 mb-6">
+        {modes.map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setSelectedMode(mode)}
+            className={`relative flex-1 py-3 rounded-lg text-sm font-medium transition-colors ${
+              selectedMode === mode
+                ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
+                : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
+            }`}
+          >
+            {mode}
+            {mode === 'Earning' && (
+              <div className="absolute -top-2 -right-1 bg-orange-500 w-5 h-5 rounded-full flex justify-center items-center text-[10px]">
+                🔥
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
 
-        {/* Time */}
-        <Text style={styles.sectionTitle}>Time</Text>
-        <View style={styles.gridContainer}>
-          {times.map((time) => (
-            <TouchableOpacity
-              key={time}
-              style={[
-                styles.gridButton,
-                selectedTime === time && styles.selectedOptionButton,
-              ]}
-              onPress={() => setSelectedTime(time)}>
-              <Text style={styles.optionText}>{time}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* Time */}
+      <h3 className="text-[#A098C0] font-semibold text-base mb-3">Time</h3>
+      <div className="grid grid-cols-3 gap-3 mb-8">
+        {times.map((time) => (
+          <button
+            key={time}
+            onClick={() => setSelectedTime(time)}
+            className={`py-3 rounded-lg text-sm font-medium transition-colors ${
+              selectedTime === time
+                ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
+                : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
+            }`}
+          >
+            {time}
+          </button>
+        ))}
+      </div>
 
-        {/* Confirm Button */}
-        <TouchableOpacity style={styles.confirmButton}>
-          <Text style={styles.confirmButtonText}>Confirm</Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-    </SafeAreaView>
+      {/* Confirm Button */}
+      <button 
+        onClick={onClose}
+        className="w-full bg-[#1b5a7a] py-4 rounded-full text-[#A0B0C0] font-bold text-lg opacity-70 hover:opacity-100 transition-opacity mt-auto mb-4"
+      >
+        Confirm
+      </button>
+    </div>
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0a0520', // Deep dark blue/purple background
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 10,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  battleIconContainer: {
-    width: 32,
-    height: 32,
-    backgroundColor: '#FFD700',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  battleIconText: {
-    fontSize: 16,
-  },
-  headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  helpButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  helpButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  profileCard: {
-    backgroundColor: '#1b1240', // Darker purple card
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#2a1e5c',
-  },
-  profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 12,
-  },
-  userName: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  earnings: {
-    color: '#A098C0',
-    fontSize: 12,
-  },
-  coinIcon: {
-    fontSize: 12,
-  },
-  detailsButton: {
-    backgroundColor: '#35295e',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-  detailsText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-  },
-  sectionTitle: {
-    color: '#A098C0',
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  selectPeopleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  selectBox: {
-    width: '48%',
-    aspectRatio: 1.2,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  blueBox: {
-    backgroundColor: '#1a3b9e',
-  },
-  pinkBox: {
-    backgroundColor: '#a81666',
-  },
-  plusCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  plusCirclePink: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  plusText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '300',
-    lineHeight: 32,
-  },
-  rowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  optionButton: {
-    flex: 1,
-    backgroundColor: '#35295e',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginHorizontal: 4,
-    alignItems: 'center',
-    position: 'relative',
-  },
-  selectedOptionButton: {
-    backgroundColor: '#4a3882', // Highlight selected option slightly
-    borderColor: '#7c5ce6',
-    borderWidth: 1,
-  },
-  optionText: {
-    color: '#E0D8FF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  badge: {
-    position: 'absolute',
-    top: -8,
-    right: -4,
-    backgroundColor: '#FF8C00',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 10,
-  },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 40,
-  },
-  gridButton: {
-    width: '31%',
-    backgroundColor: '#35295e',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  confirmButton: {
-    backgroundColor: '#1b5a7a', // Teal/blue color matching image
-    paddingVertical: 16,
-    borderRadius: 24,
-    alignItems: 'center',
-    opacity: 0.7, // Slightly faded to represent a disabled or default state as in image
-  },
-  confirmButtonText: {
-    color: '#A0B0C0',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
-
-export default PkScreen;
+}
