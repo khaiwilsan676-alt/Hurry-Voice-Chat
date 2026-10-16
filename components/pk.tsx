@@ -11,6 +11,9 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const [selectedTime, setSelectedTime] = useState('');
   const [showRules, setShowRules] = useState(false);
 
+  // New state for Details Sheet
+  const [showDetails, setShowDetails] = useState(false);
+
   // New states for the Select People sheet
   const [showSelectPeople, setShowSelectPeople] = useState(false);
   const [peopleSheetColor, setPeopleSheetColor] = useState<'blue' | 'pink'>('blue');
@@ -18,8 +21,18 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const modes = ['Votes', 'Coins', 'Earning'];
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
+  // Dummy data for History section matching the screenshot
+  const historyData = [
+    { date: '2024-06-16 07:15:21', desc: 'Battle Bonus', amount: '+2' },
+    { date: '2024-06-15 01:51:34', desc: 'Battle Bonus', amount: '+2239' },
+    { date: '2024-05-11 01:27:59', desc: 'Battle Bonus', amount: '+27' },
+    { date: '2022-11-20 15:04:30', desc: 'Battle Bonus', amount: '+130' },
+    { date: '2022-09-07 05:18:39', desc: 'Battle Bonus', amount: '+12' },
+    { date: '2022-06-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
+  ];
+
   return (
-    // Main background gradient (same as before)
+    // Main background gradient
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
@@ -53,7 +66,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        <button className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors">
+        {/* Details Button - Opens the new Sheet */}
+        <button 
+          onClick={() => setShowDetails(true)}
+          className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors"
+        >
           Details &gt;
         </button>
       </div>
@@ -129,7 +146,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button — just below Time */}
+      {/* Confirm Button */}
       <button
         onClick={onClose}
         className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
@@ -147,12 +164,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
           >
-            {/* Title (centered, same as now) */}
             <div className="mb-4">
               <h2 className="text-base font-bold text-white text-center">Rules</h2>
             </div>
 
-            {/* Content — left aligned (like before), text unchanged */}
             <div className="space-y-4 text-left text-[#E0D8FF]">
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Vote Mode</h3>
@@ -179,7 +194,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* Select People Sheet (Rules sheet ke style me, thoda chota size) */}
+      {/* Select People Sheet */}
       {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -191,15 +206,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
               peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
           >
-            {/* Handle */}
             <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-3" />
-
-            {/* Title */}
             <h2 className="text-base font-bold text-white text-center mb-4">Select people</h2>
 
-            {/* Grid of People */}
             <div className="grid grid-cols-5 gap-y-2 gap-x-1 justify-items-center">
-              {/* First Slot - Current User Avatar */}
               <div className="w-9 h-9 rounded-full overflow-hidden">
                 <img
                   src="https://via.placeholder.com/50"
@@ -208,13 +218,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 />
               </div>
 
-              {/* 9 Empty Slots */}
               {Array.from({ length: 9 }).map((_, i) => (
                 <button
                   key={i}
                   className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
-                  {/* Sofa/Chair Icon matching the screenshot */}
                   <svg 
                     className="w-4 h-4 text-white/70" 
                     fill="currentColor" 
@@ -225,6 +233,99 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= DETAILS SHEET (New) ================= */}
+      {showDetails && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+          onClick={() => setShowDetails(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            // Same styling as Rules Sheet, but with slightly more padding on top for the header
+            className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
+          >
+            {/* Header with Back Button */}
+            <div className="relative flex items-center justify-center mb-5">
+              <button 
+                onClick={() => setShowDetails(false)}
+                className="absolute left-0 text-white/80 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="text-base font-bold text-white text-center">Details</h2>
+            </div>
+
+            {/* Today's Earning Section */}
+            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 mb-5">
+              <h3 className="text-center text-white/70 text-[11px] mb-3">Today's earning</h3>
+              
+              <div className="flex justify-between items-center text-center">
+                {/* PK Column */}
+                <div className="flex-1 flex flex-col items-center border-r border-white/10">
+                  <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                    <span className="text-pink-500">PK</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-sm">$</span>
+                    <span className="font-bold text-sm">0</span>
+                  </div>
+                  <span className="text-[9px] text-white/50">This month: 0</span>
+                </div>
+
+                {/* Battle Column */}
+                <div className="flex-1 flex flex-col items-center border-r border-white/10">
+                  <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                    <span className="text-yellow-500">⚔️</span>
+                    <span>Battle</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-sm">🪙</span>
+                    <span className="font-bold text-sm">0</span>
+                  </div>
+                  <span className="text-[9px] text-white/50">This month: 0</span>
+                </div>
+
+                {/* Calculator Column */}
+                <div className="flex-1 flex flex-col items-center">
+                  <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                    <span className="text-orange-400">🧮</span>
+                    <span>Calculator</span>
+                  </div>
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-yellow-400 text-sm">🪙</span>
+                    <span className="font-bold text-sm">0</span>
+                  </div>
+                  <span className="text-[9px] text-white/50">This month: 0</span>
+                </div>
+              </div>
+            </div>
+
+            {/* History Section */}
+            <div>
+              <h3 className="text-white/80 font-semibold text-sm mb-3">History</h3>
+              
+              <div className="flex flex-col">
+                {historyData.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className="flex justify-between items-center py-3 border-b border-white/5 last:border-0"
+                  >
+                    <span className="text-[10px] text-white/50 w-[40%]">{item.date}</span>
+                    <span className="text-[11px] flex-1 text-white/90">{item.desc}</span>
+                    <span className="text-[11px] font-medium text-yellow-400 text-right">
+                      🪙 {item.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
           </div>
         </div>
       )}
