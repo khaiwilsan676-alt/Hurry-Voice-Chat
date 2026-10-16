@@ -19,7 +19,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
   return (
-    // Main background gradient
+    // Main background gradient (same as before)
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
@@ -53,8 +53,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        {/* Details button thoda bada kiya gaya hai */}
-        <button className="bg-white/10 py-1 px-2.5 rounded-md text-[10px] hover:bg-white/20 transition-colors">
+        <button className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors">
           Details &gt;
         </button>
       </div>
@@ -113,8 +112,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-2">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 mt-auto">Time</h3>
+      <div className="grid grid-cols-3 gap-2 mb-4">
         {times.map((time) => (
           <button
             key={time}
@@ -130,10 +129,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button (Time ke just niche) */}
+      {/* Confirm Button */}
       <button
         onClick={onClose}
-        className="w-full mt-1 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full mt-3 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
@@ -146,8 +145,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            // Rules sheet ka naya gradient color aur text-center
-            className="w-full max-w-md bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
+            className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
           >
             {/* Handle */}
             <div className="w-10 h-1 bg-[#35295e] rounded-full mx-auto mb-3" />
@@ -168,7 +166,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
 
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Coin Mode</h3>
-                <ol className="text-xs leading-relaxed text-[#A098C0] space-y-1.5 list-decimal list-inside inline-block text-left">
+                <ol className="text-xs leading-relaxed text-[#A098C0] space-y-1.5 list-decimal list-inside">
                   <li>
                     The person who receives the most coins (as gifts) wins. 1 coin
                     equals 1 point.
@@ -184,7 +182,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* Select People Sheet (Choti height, no rounded top, blue/pink dynamic color) */}
+      {/* Select People Sheet (Rules sheet ke style me, thoda chota size) */}
       {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -192,12 +190,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className={`w-full max-w-md h-[28vh] px-3 pt-3 pb-2 overflow-y-auto transition-colors duration-300 ${
+            className={`w-full max-w-md rounded-t-2xl px-4 pt-3 pb-6 max-h-[55%] overflow-y-auto transition-colors duration-300 ${
               peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
           >
+            {/* Handle */}
+            <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-3" />
+
             {/* Title */}
-            <h2 className="text-base font-bold text-white text-center mb-2">Select people</h2>
+            <h2 className="text-base font-bold text-white text-center mb-4">Select people</h2>
 
             {/* Grid of People */}
             <div className="grid grid-cols-5 gap-y-2 gap-x-1 justify-items-center">
@@ -216,7 +217,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                   key={i}
                   className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
-                  {/* Sofa/Chair Icon */}
+                  {/* Sofa/Chair Icon matching the screenshot */}
                   <svg 
                     className="w-4 h-4 text-white/70" 
                     fill="currentColor" 
