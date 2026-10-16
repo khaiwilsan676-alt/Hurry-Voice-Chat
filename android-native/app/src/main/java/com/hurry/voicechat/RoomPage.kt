@@ -51,7 +51,7 @@ import org.json.JSONObject
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.basicMarquee // Added for marquee scrolling effect
+import androidx.compose.foundation.basicMarquee 
 import coil3.compose.AsyncImage
 
 @Composable
@@ -134,6 +134,9 @@ fun RoomPage(
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     var keyboardShownForChat by remember { mutableStateOf(false) }
     
+    // Official Announcement Visibility State
+    var showOfficialAnnouncement by remember { mutableStateOf(true) }
+    
     LaunchedEffect(showChat, imeVisible) {
         if (!showChat) {
             keyboardShownForChat = false
@@ -206,7 +209,7 @@ fun RoomPage(
         
         val clearedListener = Emitter.Listener { args ->
             val payload=args.firstOrNull() as? JSONObject
-            if(payload!=null && payload.optString("roomId")==roomId) mainHandler.post { messages.clear() }
+            if(payload!=null && payload.optString("roomId")==roomId) mainHandler.post { messages.clear(); showOfficialAnnouncement = false }
         }
         
         val seatListener = Emitter.Listener { args ->
@@ -307,9 +310,10 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg",contentDescription="Room theme background",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         
-        // ═══════════ USER PILL (CUP CARD) ═══════════
+        // ═══════════ USER PILL (CUP CARD) - MOVED BELOW DP CARD ═══════════
+        // Top Padding set to 84.dp so it falls perfectly under the Top Header (which ends at 78.dp)
         Row(
-            modifier=Modifier.align(Alignment.TopStart).padding(top=70.dp,start=0.dp) // Added some top space as requested but leaving the pill placement
+            modifier=Modifier.align(Alignment.TopStart).padding(top=84.dp,start=4.dp) 
                 .height(22.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
                 .clickable{showInfo=true}
@@ -325,14 +329,12 @@ fun RoomPage(
             Icon(Icons.Default.ChevronRight,null,tint=Color(0xFFEEF3A3),modifier=Modifier.padding(start=4.dp).size(10.dp))
         }
 
-        // ═══════════ IME PADDING APPLIED HERE TO PREVENT KEYBOARD OVERLAP ═══════════
         Column(Modifier.fillMaxSize().imePadding()){
             
-            // ═══════════ TOP HEADER (ONLY ROOM CARD & ICONS) ═══════════
-            // Increased top padding from 28.dp to 48.dp to provide safe area / top space as requested
-            Row(Modifier.fillMaxWidth().padding(top=48.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
+            // ═══════════ TOP HEADER ═══════════
+            Row(Modifier.fillMaxWidth().padding(top=40.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
                 
-                // Room Card with exact DP height (38.dp)
+                // ═══════════ HEIGHT REVERTED TO 38.DP ═══════════
                 Row(
                     modifier = Modifier
                         .height(38.dp) 
@@ -350,23 +352,17 @@ fun RoomPage(
                     )
                     Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.Center) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            // ═══════════ UPDATED ROOM NAME LOGIC (8 words / scrolling) ═══════════
                             val words = roomName.split(Regex("\\s+"))
-                            val displayRoomName = if (words.size > 8) {
-                                // If more than 8 words, show it and apply basicMarquee to auto-scroll
-                                roomName
-                            } else {
-                                // Otherwise just show the name
-                                roomName
-                            }
+                            val displayRoomName = roomName
+                            
                             Text(
                                 text = displayRoomName,
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 maxLines = 1,
-                                modifier = if (words.size > 8) Modifier.basicMarquee().widthIn(max = 100.dp) else Modifier.widthIn(max = 100.dp),
-                                overflow = if (words.size > 8) TextOverflow.Clip else TextOverflow.Ellipsis
+                                modifier = if (words.size > 7) Modifier.basicMarquee().widthIn(max = 100.dp) else Modifier.widthIn(max = 100.dp),
+                                overflow = if (words.size > 7) TextOverflow.Clip else TextOverflow.Ellipsis
                             )
                             
                             Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp)
@@ -395,8 +391,6 @@ fun RoomPage(
 
                 Spacer(Modifier.weight(1f))
 
-                // Top Right Big Icons with exact 4.dp gap matching bottom
-                // ═══════════ USER PILL ICON HEIGHT DECREASED from 38.dp to 32.dp ═══════════
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                     Row(
                         modifier=Modifier.height(32.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=12.dp),
@@ -419,10 +413,8 @@ fun RoomPage(
                 }
             }
             
-            // ═══════════ SEATS AREA (Added top space requested) ═══════════
-            // Increased top padding from 38.dp to 48.dp
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=48.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=40.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
@@ -445,23 +437,23 @@ fun RoomPage(
                 }
             }
             
-            // ═══════════ MESSAGES & SCROLLING ANNOUNCEMENTS ═══════════
             LazyColumn(
                 state=chatListState,
                 modifier=Modifier.fillMaxWidth().weight(1f).padding(horizontal=10.dp),
                 contentPadding=PaddingValues(bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(8.dp)
             ){
-                // Official Announcement inside chat list (will scroll)
-                item {
-                    Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
-                        Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
-                            Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                // ═══════════ OFFICIAL ANNOUNCEMENT CONTROLLED BY STATE ═══════════
+                if (showOfficialAnnouncement) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
+                            Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
+                                Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                            }
                         }
                     }
                 }
                 
-                // User Announcement inside chat list (Separate Card, will scroll)
                 if(announcement.isNotBlank()) {
                     item {
                         Column(Modifier.fillMaxWidth().padding(start=4.dp, end=82.dp, bottom=2.dp)) {
@@ -474,30 +466,30 @@ fun RoomPage(
 
                 items(messages,key={it.id}){message ->
                     if(message.type=="join") {
-                        Row(
+                        // ═══════════ ENTER THE ROOM TEXT PLACED BELOW AVATAR ═══════════
+                        Column(
                             Modifier.padding(vertical=2.dp)
                                 .wrapContentWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Color.Black.copy(alpha=.30f))
-                                .padding(horizontal=10.dp,vertical=6.dp),
-                            verticalAlignment=Alignment.CenterVertically,
-                            horizontalArrangement=Arrangement.spacedBy(8.dp)
+                                .padding(horizontal=12.dp,vertical=8.dp),
+                            horizontalAlignment=Alignment.Start,
+                            verticalArrangement=Arrangement.spacedBy(4.dp)
                         ){
-                            AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(26.dp).clip(CircleShape),contentScale=ContentScale.Crop)
-                            Column {
+                            Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                                AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(24.dp).clip(CircleShape),contentScale=ContentScale.Crop)
                                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                                     Text(message.sender,color=Color.White.copy(alpha=.95f),fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                                     androidx.compose.material3.Icon(imageVector=Icons.Filled.Home,contentDescription=null,modifier=Modifier.size(12.dp),tint=Color.White)
                                 }
-                                Text("Enter the Room",color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
                             }
+                            Text("Enter the Room",color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium, modifier=Modifier.padding(start=2.dp))
                         }
                     } else NativeMessage(message)
                 }
             }
             
             if(showChat) {
-                // ImePadding is removed here because parent column handles it automatically now
                 Row(Modifier.fillMaxWidth().background(Color.White).padding(horizontal=10.dp,vertical=8.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                     IconButton(onClick={showEmoji=!showEmoji},modifier=Modifier.size(38.dp)){Image(painterResource(R.drawable.ic_hurry_chat_image),contentDescription="Attach image",modifier=Modifier.size(26.dp))}
                     androidx.compose.foundation.text.BasicTextField(
@@ -528,14 +520,13 @@ fun RoomPage(
                                     imageVector = if (seat.muted) Icons.Default.MicOff else Icons.Default.Mic,
                                     contentDescription = "Microphone",
                                     tint = Color.White,
-                                    modifier = Modifier.size(28.dp) // ═══════════ INCREASED MIC SIZE ═══════════
+                                    modifier = Modifier.size(28.dp)
                                 )
                             }
                         }
                         if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                     }
                     
-                    // ═══════════ INCREASED GIFT ICON SIZE ═══════════
                     Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
                         AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(86.dp).offset(y=(-4).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                     }
@@ -564,10 +555,9 @@ fun RoomPage(
             }
         }
 
-        // ═══════════ RIGHT SIDE IMAGES MOVED DOWN (Reduced bottom padding) ═══════════
         Column(
             modifier=Modifier.align(Alignment.BottomEnd)
-                .padding(end=10.dp, bottom=74.dp) // Bottom padding reduced from 84.dp to 50.dp
+                .padding(end=10.dp, bottom=74.dp) 
                 .heightIn(max=330.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment=Alignment.CenterHorizontally,
@@ -623,8 +613,11 @@ fun RoomPage(
                 key(toast.id) {
                     AnimatedVisibility(
                         visible=true,
-                        // ═══════════ SLIDE FROM RIGHT FIX (initialOffsetX = 2000 makes it come from right off-screen) ═══════════
-                        enter=slideInHorizontally(initialOffsetX={ 2000 }) + fadeIn()
+                        // ═══════════ PROPER RIGHT TO LEFT SLIDE ANIMATION ═══════════
+                        enter=slideInHorizontally(
+                            initialOffsetX={ 1500 }, 
+                            animationSpec = tween(durationMillis = 700, easing = LinearOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(700))
                     ) {
                         Row(
                             Modifier.clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
@@ -651,6 +644,8 @@ fun RoomPage(
             onClose={showMenu=false},
             onClearChat={
                 messages.clear()
+                // ═══════════ CLEAR CHAT PE ANNOUNCEMENT BHI CLEAR HOGA ═══════════
+                showOfficialAnnouncement = false 
                 roomSocketRef.value?.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",accountId).put("timestamp",System.currentTimeMillis()))
                 showMenu=false
             },
@@ -909,7 +904,6 @@ fun RoomPage(
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Box(Modifier.fillMaxSize().background(Color.Transparent).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
         Column(
-            // ═══════════ EXIT/KEEP MENU HEIGHT INCREASED from 26% to 32% ═══════════
             modifier=Modifier.fillMaxWidth().height(32.percentHeight).background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent))).clickable(enabled=false){},
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement=Arrangement.Center
@@ -980,7 +974,6 @@ private val Int.percentHeight: androidx.compose.ui.unit.Dp
                         Text("Wild party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
                     }
                     Column(Modifier.clickable{onFruitParty()}, horizontalAlignment=Alignment.CenterHorizontally){
-                        // ═══════════ FRUIT PARTY LOGO SIZE INCREASED from 48.dp to 58.dp ═══════════
                         AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(58.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit)
                         Spacer(Modifier.height(8.dp))
                         Text("Fruit party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
