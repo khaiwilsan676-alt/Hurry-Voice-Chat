@@ -67,26 +67,26 @@ export default function PkScreen({ onClose }: PkScreenProps) {
           </button>
         </div>
 
-        {/* Select People - + Buttons (Chota kar diya) */}
+        {/* Select People - + Buttons (Thode bade kiye) */}
         <h3 className="text-[#A098C0] font-semibold text-sm mb-2">Select People</h3>
         <div className="flex justify-between gap-3 mb-5">
           {/* Blue Button */}
           <button 
             onClick={() => openSheet('blue')}
-            className="flex-1 h-10 bg-[#1a3b9e] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
+            className="flex-1 h-14 bg-[#1a3b9e] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
           >
-            <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
-              <span className="text-xl font-light leading-none text-white pb-0.5">+</span>
+            <div className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center">
+              <span className="text-2xl font-light leading-none text-white pb-1">+</span>
             </div>
           </button>
           
           {/* Pink Button */}
           <button 
             onClick={() => openSheet('pink')}
-            className="flex-1 h-10 bg-[#a81666] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
+            className="flex-1 h-14 bg-[#a81666] rounded-2xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95"
           >
-            <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
-              <span className="text-xl font-light leading-none text-white pb-0.5">+</span>
+            <div className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center">
+              <span className="text-2xl font-light leading-none text-white pb-1">+</span>
             </div>
           </button>
         </div>
@@ -146,14 +146,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* --- BOTTOM SHEET OVERLAY --- */}
       {isSheetOpen && (
         <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm transition-opacity">
-          {/* Sheet Content */}
+          {/* Sheet Content - No Scroll Full */}
           <div 
-            className={`w-full max-w-md rounded-t-3xl p-5 pb-8 animate-slide-up ${
+            className={`w-full max-w-md rounded-t-3xl p-5 pb-6 animate-slide-up ${
               sheetType === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
+            style={{ maxHeight: '90vh' }} // Ensures it doesn't overflow
           >
             {/* Header with Close */}
-            <div className="flex justify-between items-center mb-5">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-white text-center w-full">Select people</h2>
               <button 
                 onClick={closeSheet}
@@ -164,7 +165,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
 
             {/* 5x2 Grid for People */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-2 mb-4">
               {/* Row 1 */}
               <div className="flex justify-center">
                 <img 
@@ -190,6 +191,60 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 </div>
               ))}
             </div>
+
+            {/* Mode Buttons inside Sheet */}
+            <div className="mb-3">
+              <h3 className="text-white/80 text-xs font-semibold mb-2">Mode</h3>
+              <div className="flex gap-2">
+                {modes.map((mode) => (
+                  <button
+                    key={`sheet-mode-${mode}`}
+                    onClick={() => setSelectedMode(mode)}
+                    className={`relative flex-1 py-1.5 rounded-md text-[11px] font-medium transition-colors ${
+                      selectedMode === mode
+                        ? 'bg-white/30 border border-white text-white'
+                        : 'bg-white/10 border border-transparent text-white/80 hover:bg-white/20'
+                    }`}
+                  >
+                    {mode}
+                    {mode === 'Earning' && (
+                      <div className="absolute -top-1.5 -right-1 bg-orange-500 w-3.5 h-3.5 rounded-full flex justify-center items-center text-[8px]">
+                        🔥
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Time Buttons inside Sheet */}
+            <div className="mb-4">
+              <h3 className="text-white/80 text-xs font-semibold mb-2">Time</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {times.map((time) => (
+                  <button
+                    key={`sheet-time-${time}`}
+                    onClick={() => setSelectedTime(time)}
+                    className={`py-1.5 rounded-md text-[11px] font-medium transition-colors ${
+                      selectedTime === time
+                        ? 'bg-white/30 border border-white text-white'
+                        : 'bg-white/10 border border-transparent text-white/80 hover:bg-white/20'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Confirm Button inside Sheet */}
+            <button 
+              onClick={closeSheet}
+              className="w-full bg-white/20 py-2.5 rounded-full text-white font-bold text-sm hover:bg-white/30 transition-colors"
+            >
+              Confirm
+            </button>
+
           </div>
         </div>
       )}
