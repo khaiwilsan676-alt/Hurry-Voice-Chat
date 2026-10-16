@@ -48,29 +48,29 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </button>
       </div>
 
-      {/* Select People */}
+      {/* Select People - Image ke hisaab se full width aur bada kiya */}
       <h3 className="text-[#A098C0] font-semibold text-[11px] mb-1.5">Select People</h3>
-      <div className="flex justify-center gap-2 mb-2">
-        <button className="w-24 h-12 bg-[#1a3b9e] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
-          <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-lg font-light leading-none text-white pb-0.5">+</span>
+      <div className="flex justify-between gap-2 mb-3">
+        <button className="flex-1 h-20 bg-[#1a3b9e] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+          <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
-        <button className="w-24 h-12 bg-[#a81666] rounded-lg flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
-          <div className="w-7 h-7 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-lg font-light leading-none text-white pb-0.5">+</span>
+        <button className="flex-1 h-20 bg-[#a81666] rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95">
+          <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
       </div>
 
-      {/* Mode */}
+      {/* Mode - Same size as image */}
       <h3 className="text-[#A098C0] font-semibold text-[11px] mb-1.5">Mode</h3>
-      <div className="flex gap-1.5 mb-2">
+      <div className="flex gap-2 mb-3">
         {modes.map((mode) => (
           <button
             key={mode}
             onClick={() => setSelectedMode(mode)}
-            className={`relative flex-1 py-1.5 rounded-md text-[10px] font-medium transition-colors ${
+            className={`relative flex-1 py-2 rounded-md text-xs font-medium transition-colors ${
               selectedMode === mode
                 ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
                 : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
@@ -78,7 +78,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
           >
             {mode}
             {mode === 'Earning' && (
-              <div className="absolute -top-1 -right-1 bg-orange-500 w-3.5 h-3.5 rounded-full flex justify-center items-center text-[7px]">
+              <div className="absolute -top-1.5 -right-1.5 bg-orange-500 w-4 h-4 rounded-full flex justify-center items-center text-[8px]">
                 🔥
               </div>
             )}
@@ -86,14 +86,14 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Time */}
+      {/* Time - Same size as image, thoda upar */}
       <h3 className="text-[#A098C0] font-semibold text-[11px] mb-1.5 mt-auto">Time</h3>
-      <div className="grid grid-cols-3 gap-1.5 mb-3">
+      <div className="grid grid-cols-3 gap-2 mb-4">
         {times.map((time) => (
           <button
             key={time}
             onClick={() => setSelectedTime(time)}
-            className={`py-1.5 rounded-md text-[10px] font-medium transition-colors ${
+            className={`py-2 rounded-md text-xs font-medium transition-colors ${
               selectedTime === time
                 ? 'bg-[#4a3882] border border-[#7c5ce6] text-[#E0D8FF]'
                 : 'bg-[#35295e] border border-transparent text-[#E0D8FF] hover:bg-[#403273]'
@@ -104,10 +104,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button */}
+      {/* Confirm Button - Image ke hisaab se thoda mota kiya */}
       <button
         onClick={onClose}
-        className="w-full bg-[#1b5a7a] py-2 rounded-full text-[#A0B0C0] font-bold text-xs opacity-70 hover:opacity-100 transition-opacity"
+        className="w-full bg-[#1b5a7a] py-3 rounded-full text-[#A0B0C0] font-bold text-sm opacity-70 hover:opacity-100 transition-opacity"
       >
         Confirm
       </button>
