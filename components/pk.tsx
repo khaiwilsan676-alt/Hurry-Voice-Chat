@@ -30,12 +30,13 @@ export default function PkScreen({ onClose }: PkScreenProps) {
     { date: '2022-11-20 15:04:30', desc: 'Battle Bonus', amount: '+130' },
     { date: '2022-09-07 05:18:39', desc: 'Battle Bonus', amount: '+12' },
     { date: '2022-06-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
-    { date: '2022-05-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
+    { date: '2022-05-11 12:03:59', desc: 'Battle Bonus', amount: '+16' },
+    { date: '2022-04-10 10:01:59', desc: 'Battle Bonus', amount: '+26' },
   ];
 
   return (
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
-
+      
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1.5">
@@ -68,7 +69,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        <button
+        <button 
           type="button"
           onClick={() => setShowDetails(true)}
           className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors cursor-pointer z-10"
@@ -80,7 +81,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Select People */}
       <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
       <div className="flex justify-between gap-2 mb-3">
-        <button
+        <button 
           type="button"
           onClick={() => {
             setPeopleSheetColor('blue');
@@ -92,8 +93,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
-
-        <button
+        
+        <button 
           type="button"
           onClick={() => {
             setPeopleSheetColor('pink');
@@ -170,7 +171,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[75%] overflow-y-auto scroll-smooth"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
               >
                 <div className="mb-4">
                   <h2 className="text-base font-bold text-white text-center">Rules</h2>
@@ -224,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — Rules sheet ke exact same size (h-[75%]) + scroll */}
+          {/* Details Sheet — same size & scroll as Rules sheet */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -232,11 +233,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[75%] overflow-y-auto scroll-smooth"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
               >
                 {/* Header with Back Button */}
-                <div className="relative flex items-center justify-center mb-5">
-                  <button
+                <div className="relative flex items-center justify-center mb-4">
+                  <button 
                     type="button"
                     onClick={() => setShowDetails(false)}
                     className="absolute left-0 text-white/80 hover:text-white transition-colors"
@@ -249,11 +250,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 </div>
 
                 {/* Today's Earning Section */}
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 mb-5">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 mb-4">
                   <h3 className="text-center text-white/70 text-[11px] mb-3">Today's earning</h3>
                   <div className="flex justify-between items-center text-center">
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
-                      <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                      <div className="text-[10px] font-semibold mb-1">
                         <span className="text-pink-500">PK</span>
                       </div>
                       <div className="flex items-center gap-1 mb-1">
@@ -291,11 +292,14 @@ export default function PkScreen({ onClose }: PkScreenProps) {
 
                 {/* History Section */}
                 <div>
-                  <h3 className="text-white/80 font-semibold text-sm mb-3">History</h3>
+                  <h3 className="text-white/80 font-semibold text-sm mb-2">History</h3>
                   <div className="flex flex-col">
                     {historyData.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
-                        <span className="text-[10px] text-white/50 w-[40%]">{item.date}</span>
+                      <div
+                        key={index}
+                        className="flex justify-between items-center py-3 border-b border-white/5 last:border-0"
+                      >
+                        <span className="text-[10px] text-white/50 w-[42%]">{item.date}</span>
                         <span className="text-[11px] flex-1 text-white/90">{item.desc}</span>
                         <span className="text-[11px] font-medium text-yellow-400 text-right">
                           🪙 {item.amount}
