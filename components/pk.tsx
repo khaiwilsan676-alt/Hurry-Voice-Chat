@@ -19,7 +19,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
   return (
-    // Main background gradient (same as before)
+    // Main background gradient
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
@@ -53,7 +53,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        {/* Yahan Details button ka size halka sa bada kiya hai (text-[10px] aur py-1 px-2.5) */}
+        {/* Details button thoda bada kiya gaya hai */}
         <button className="bg-white/10 py-1 px-2.5 rounded-md text-[10px] hover:bg-white/20 transition-colors">
           Details &gt;
         </button>
@@ -130,7 +130,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button */}
+      {/* Confirm Button (Time ke just niche) */}
       <button
         onClick={onClose}
         className="w-full mt-1 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
@@ -146,7 +146,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            // Yahan Rules sheet ka background gradient change kiya hai (image ke jesa)
+            // Rules sheet ka naya gradient color aur text-center
             className="w-full max-w-md bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
           >
             {/* Handle */}
@@ -184,7 +184,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* Select People Sheet */}
+      {/* Select People Sheet (Choti height, no rounded top, blue/pink dynamic color) */}
       {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -216,7 +216,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                   key={i}
                   className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
-                  {/* Sofa/Chair Icon matching the screenshot */}
+                  {/* Sofa/Chair Icon */}
                   <svg 
                     className="w-4 h-4 text-white/70" 
                     fill="currentColor" 
