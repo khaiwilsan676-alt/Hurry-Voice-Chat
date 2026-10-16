@@ -80,7 +80,7 @@ fun MineNativePage(onBack: () -> Unit, createdRoom: HurryRoom? = null, onCreateR
                     // Gap bilkul HomeScreen jaisa (8.dp) kar diya hai
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp) 
+                        horizontalArrangement = Arrangement.spacedBy(4.dp) 
                     ) {
                         Box(
                             modifier = Modifier.clickable(
