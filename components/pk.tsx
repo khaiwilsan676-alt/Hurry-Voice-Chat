@@ -171,7 +171,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[45vh] overflow-y-auto"
               >
                 <div className="mb-4">
                   <h2 className="text-base font-bold text-white text-center">Rules</h2>
@@ -225,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — same size & scroll as Rules sheet */}
+          {/* Details Sheet — EXACT same size as Rules Sheet (h-[45vh] + scroll) */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -233,10 +233,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[75%] overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[45vh] overflow-y-auto"
               >
                 {/* Header with Back Button */}
-                <div className="relative flex items-center justify-center mb-4">
+                <div className="relative flex items-center justify-center mb-3">
                   <button 
                     type="button"
                     onClick={() => setShowDetails(false)}
@@ -250,8 +250,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 </div>
 
                 {/* Today's Earning Section */}
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 mb-4">
-                  <h3 className="text-center text-white/70 text-[11px] mb-3">Today's earning</h3>
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-2.5 mb-3">
+                  <h3 className="text-center text-white/70 text-[11px] mb-2">Today's earning</h3>
                   <div className="flex justify-between items-center text-center">
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
                       <div className="text-[10px] font-semibold mb-1">
@@ -297,7 +297,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                     {historyData.map((item, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-center py-3 border-b border-white/5 last:border-0"
+                        className="flex justify-between items-center py-2 border-b border-white/5 last:border-0"
                       >
                         <span className="text-[10px] text-white/50 w-[42%]">{item.date}</span>
                         <span className="text-[11px] flex-1 text-white/90">{item.desc}</span>
