@@ -225,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — EXACT same classes as Rules Sheet */}
+          {/* Details Sheet — chota size */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -233,75 +233,75 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6"
+                className="w-full max-w-sm bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-3 pt-2.5 pb-4"
               >
                 {/* Header with Back Button */}
-                <div className="relative flex items-center justify-center mb-3">
+                <div className="relative flex items-center justify-center mb-2">
                   <button 
                     type="button"
                     onClick={() => setShowDetails(false)}
                     className="absolute left-0 text-white/80 hover:text-white transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
-                  <h2 className="text-base font-bold text-white text-center">Details</h2>
+                  <h2 className="text-sm font-bold text-white text-center">Details</h2>
                 </div>
 
                 {/* Today's Earning Section */}
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-2.5 mb-3">
-                  <h3 className="text-center text-white/70 text-[11px] mb-2">Today's earning</h3>
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-2 mb-2">
+                  <h3 className="text-center text-white/70 text-[10px] mb-1.5">Today's earning</h3>
                   <div className="flex justify-between items-center text-center">
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
-                      <div className="text-[10px] font-semibold mb-1">
+                      <div className="text-[9px] font-semibold mb-0.5">
                         <span className="text-pink-500">PK</span>
                       </div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-yellow-400 text-sm">$</span>
-                        <span className="font-bold text-sm">0</span>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-yellow-400 text-xs">$</span>
+                        <span className="font-bold text-xs">0</span>
                       </div>
-                      <span className="text-[9px] text-white/50">This month: 0</span>
+                      <span className="text-[8px] text-white/50">This month: 0</span>
                     </div>
 
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
-                      <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                      <div className="text-[9px] font-semibold mb-0.5 flex items-center gap-1">
                         <span className="text-yellow-500">⚔️</span>
                         <span>Battle</span>
                       </div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-yellow-400 text-sm">🪙</span>
-                        <span className="font-bold text-sm">0</span>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-yellow-400 text-xs">🪙</span>
+                        <span className="font-bold text-xs">0</span>
                       </div>
-                      <span className="text-[9px] text-white/50">This month: 0</span>
+                      <span className="text-[8px] text-white/50">This month: 0</span>
                     </div>
 
                     <div className="flex-1 flex flex-col items-center">
-                      <div className="text-[10px] font-semibold mb-1 flex items-center gap-1">
+                      <div className="text-[9px] font-semibold mb-0.5 flex items-center gap-1">
                         <span className="text-orange-400">🧮</span>
                         <span>Calculator</span>
                       </div>
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-yellow-400 text-sm">🪙</span>
-                        <span className="font-bold text-sm">0</span>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className="text-yellow-400 text-xs">🪙</span>
+                        <span className="font-bold text-xs">0</span>
                       </div>
-                      <span className="text-[9px] text-white/50">This month: 0</span>
+                      <span className="text-[8px] text-white/50">This month: 0</span>
                     </div>
                   </div>
                 </div>
 
                 {/* History Section */}
                 <div>
-                  <h3 className="text-white/80 font-semibold text-sm mb-2">History</h3>
+                  <h3 className="text-white/80 font-semibold text-xs mb-1.5">History</h3>
                   <div className="flex flex-col">
                     {historyData.map((item, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-center py-2 border-b border-white/5 last:border-0"
+                        className="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0"
                       >
-                        <span className="text-[10px] text-white/50 w-[42%]">{item.date}</span>
-                        <span className="text-[11px] flex-1 text-white/90">{item.desc}</span>
-                        <span className="text-[11px] font-medium text-yellow-400 text-right">
+                        <span className="text-[9px] text-white/50 w-[42%]">{item.date}</span>
+                        <span className="text-[10px] flex-1 text-white/90">{item.desc}</span>
+                        <span className="text-[10px] font-medium text-yellow-400 text-right">
                           🪙 {item.amount}
                         </span>
                       </div>
@@ -316,4 +316,4 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       )}
     </div>
   );
-    }
+}
