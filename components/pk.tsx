@@ -182,7 +182,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* Select People Sheet (Updated for size, position & style) */}
+      {/* Select People Sheet (Size reduced to show the + icons) */}
       {showSelectPeople && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -190,18 +190,18 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            // Yahan size h-[60vh] kiya hai, top corners flat kiye hain, aur color dynamic rakha hai
-            className={`w-full max-w-md h-[60vh] px-5 pt-8 pb-6 overflow-y-auto transition-colors duration-300 ${
+            // Yahan height h-[45vh] kar di hai taaki peeche wale + buttons dikhein
+            className={`w-full max-w-md h-[45vh] px-4 pt-5 pb-4 overflow-y-auto transition-colors duration-300 ${
               peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
             }`}
           >
             {/* Title */}
-            <h2 className="text-2xl font-bold text-white text-center mb-8">Select people</h2>
+            <h2 className="text-xl font-bold text-white text-center mb-5">Select people</h2>
 
             {/* Grid of People */}
-            <div className="grid grid-cols-5 gap-y-8 gap-x-3 justify-items-center">
+            <div className="grid grid-cols-5 gap-y-5 gap-x-2 justify-items-center">
               {/* First Slot - Current User Avatar */}
-              <div className="w-14 h-14 rounded-full overflow-hidden">
+              <div className="w-12 h-12 rounded-full overflow-hidden">
                 <img
                   src="https://via.placeholder.com/50"
                   alt="Avatar"
@@ -213,11 +213,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
               {Array.from({ length: 9 }).map((_, i) => (
                 <button
                   key={i}
-                  className="w-14 h-14 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
+                  className="w-12 h-12 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors"
                 >
                   {/* Sofa/Chair Icon matching the screenshot */}
                   <svg 
-                    className="w-7 h-7 text-white/70" 
+                    className="w-6 h-6 text-white/70" 
                     fill="currentColor" 
                     viewBox="0 0 24 24"
                   >
