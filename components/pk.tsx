@@ -29,6 +29,9 @@ export default function PkScreen({ onClose }: PkScreenProps) {
     { date: '2024-05-11 01:27:59', desc: 'Battle Bonus', amount: '+27' },
     { date: '2022-11-20 15:04:30', desc: 'Battle Bonus', amount: '+130' },
     { date: '2022-09-07 05:18:39', desc: 'Battle Bonus', amount: '+12' },
+    { date: '2022-06-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
+    { date: '2022-05-11 12:03:59', desc: 'Battle Bonus', amount: '+16' },
+    { date: '2022-04-10 10:01:59', desc: 'Battle Bonus', amount: '+26' },
   ];
 
   return (
@@ -222,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — chota size, upar avatar & Details button dikhega */}
+          {/* Details Sheet — chota size */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -230,7 +233,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-xs bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-2.5 pt-2 pb-3"
+                className="w-full max-w-[340px] bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-2.5 pt-2 pb-3 max-h-[60%] overflow-y-auto"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-1.5">
@@ -247,14 +250,14 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 </div>
 
                 {/* Today's Earning Section */}
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-md p-1.5 mb-1.5">
+                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg p-1.5 mb-1.5">
                   <h3 className="text-center text-white/70 text-[9px] mb-1">Today's earning</h3>
                   <div className="flex justify-between items-center text-center">
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
-                      <div className="text-[8px] font-semibold">
+                      <div className="text-[8px] font-semibold mb-0.5">
                         <span className="text-pink-500">PK</span>
                       </div>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5 mb-0.5">
                         <span className="text-yellow-400 text-[10px]">$</span>
                         <span className="font-bold text-[10px]">0</span>
                       </div>
@@ -262,11 +265,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                     </div>
 
                     <div className="flex-1 flex flex-col items-center border-r border-white/10">
-                      <div className="text-[8px] font-semibold flex items-center gap-0.5">
+                      <div className="text-[8px] font-semibold mb-0.5 flex items-center gap-1">
                         <span className="text-yellow-500">⚔️</span>
                         <span>Battle</span>
                       </div>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5 mb-0.5">
                         <span className="text-yellow-400 text-[10px]">🪙</span>
                         <span className="font-bold text-[10px]">0</span>
                       </div>
@@ -274,11 +277,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                     </div>
 
                     <div className="flex-1 flex flex-col items-center">
-                      <div className="text-[8px] font-semibold flex items-center gap-0.5">
+                      <div className="text-[8px] font-semibold mb-0.5 flex items-center gap-1">
                         <span className="text-orange-400">🧮</span>
-                        <span>Calc</span>
+                        <span>Calculator</span>
                       </div>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5 mb-0.5">
                         <span className="text-yellow-400 text-[10px]">🪙</span>
                         <span className="font-bold text-[10px]">0</span>
                       </div>
@@ -313,4 +316,4 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       )}
     </div>
   );
-      }
+}
