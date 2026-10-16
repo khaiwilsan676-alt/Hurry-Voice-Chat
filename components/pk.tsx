@@ -30,11 +30,12 @@ export default function PkScreen({ onClose }: PkScreenProps) {
     { date: '2022-11-20 15:04:30', desc: 'Battle Bonus', amount: '+130' },
     { date: '2022-09-07 05:18:39', desc: 'Battle Bonus', amount: '+12' },
     { date: '2022-06-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
+    { date: '2022-05-10 12:03:59', desc: 'Battle Bonus', amount: '+6' },
   ];
 
   return (
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
-      
+
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1.5">
@@ -67,7 +68,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </p>
           </div>
         </div>
-        <button 
+        <button
           type="button"
           onClick={() => setShowDetails(true)}
           className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors cursor-pointer z-10"
@@ -79,7 +80,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Select People */}
       <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
       <div className="flex justify-between gap-2 mb-3">
-        <button 
+        <button
           type="button"
           onClick={() => {
             setPeopleSheetColor('blue');
@@ -91,8 +92,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
-        
-        <button 
+
+        <button
           type="button"
           onClick={() => {
             setPeopleSheetColor('pink');
@@ -169,7 +170,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md h-[75vh] bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[75%] overflow-y-auto scroll-smooth"
               >
                 <div className="mb-4">
                   <h2 className="text-base font-bold text-white text-center">Rules</h2>
@@ -223,7 +224,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — Ab Rules Sheet ke EXACT same size (75vh fixed) me */}
+          {/* Details Sheet — Rules sheet ke exact same size (h-[75%]) + scroll */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -231,11 +232,11 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md h-[75vh] bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 h-[75%] overflow-y-auto scroll-smooth"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-5">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowDetails(false)}
                     className="absolute left-0 text-white/80 hover:text-white transition-colors"
