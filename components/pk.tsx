@@ -225,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — EXACT same classes as Rules Sheet */}
+          {/* Details Sheet — SMALLER (max-h-[30%]) */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -233,7 +233,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[45%] overflow-y-auto"
+                className="w-full max-w-md bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-4 pb-6 max-h-[30%] overflow-y-auto"
               >
                 {/* Header with Back Button */}
                 <div className="relative flex items-center justify-center mb-3">
