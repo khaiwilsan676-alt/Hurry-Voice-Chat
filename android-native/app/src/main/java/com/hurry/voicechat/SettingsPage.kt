@@ -62,20 +62,38 @@ fun SettingsPage(
                     letterSpacing = (-0.4).sp
                 )
                 Text(
-                    "Hurry is a real-time group voice chat application for multiple players. There are South Asian users from all over the world. You can find new friends who share the same interests with you, chat with them and enjoy the fun of the party!",
+                    "Welcome to Zyora",
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2563EB),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    "Zyora is a social voice-chat application made to bring people together. Join live voice rooms, meet new people, make friends, and enjoy conversations with a community that shares your interests.",
                     fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333), letterSpacing = 0.2.sp
                 )
                 Spacer(Modifier.height(24.dp))
-                Text("We have the following functions:", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333), letterSpacing = 0.2.sp)
-                Spacer(Modifier.height(18.dp))
-                Text("-Free", fontSize = 15.sp, lineHeight = 24.sp, color = Color(0xFF333333))
-                Text("You can have free, high-quality and stable voice chat through the Internet.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333), letterSpacing = 0.2.sp)
-                Spacer(Modifier.height(20.dp))
-                Text("-Online party", fontSize = 15.sp, lineHeight = 24.sp, color = Color(0xFF333333))
-                Text("Here we have various online parties, rooms of topics in birthday party, wedding party, war drum game and so on.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333), letterSpacing = 0.2.sp)
-                Spacer(Modifier.height(20.dp))
-                Text("-Gorgeous gifts", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
-                Text("While enjoying chatting with your friends, you can send them gifts. Gorgeous effects are coming with gift sent. You can have so much fun~", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333), letterSpacing = 0.2.sp)
+                Text("What you can do on Zyora", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Spacer(Modifier.height(14.dp))
+                Text("• Live Voice Rooms", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+                Text("Join rooms and talk with other people in real time.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
+                Spacer(Modifier.height(16.dp))
+                Text("• Meet New Friends", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+                Text("Discover people, connect through conversations, and build new friendships.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
+                Spacer(Modifier.height(16.dp))
+                Text("• Social Features", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF333333))
+                Text("Personalize your profile, interact with others, and enjoy the features available in the app.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
+                Spacer(Modifier.height(24.dp))
+                Text("Our Goal", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Spacer(Modifier.height(8.dp))
+                Text("We want Zyora to be a fun, welcoming, and respectful place for people to connect. Please respect other users and help keep every room friendly and safe.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
+                Spacer(Modifier.height(24.dp))
+                Text("Your Privacy", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF111827))
+                Spacer(Modifier.height(8.dp))
+                Text("You can clear Zyora's locally stored app data at any time from Android Settings. Clearing app storage may sign you out and remove information saved on your phone.", fontSize = 15.sp, lineHeight = 25.sp, color = Color(0xFF333333))
+                Spacer(Modifier.height(24.dp))
+                Text("Thank you for being part of Zyora!", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF2563EB))
             }
         }
         return
