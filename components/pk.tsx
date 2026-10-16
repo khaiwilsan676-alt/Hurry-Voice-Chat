@@ -28,7 +28,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
         <button
           onClick={() => setShowRules(true)}
-          className="w-4 h-4 rounded-full border border-white flex justify-center items-center text-[8px] font-bold hover:bg-white/10 transition-colors"
+          className="w-5 h-5 rounded-full border border-yellow-400 bg-yellow-400/20 flex justify-center items-center text-[10px] font-bold text-yellow-400 hover:bg-yellow-400/30 transition-colors"
         >
           ?
         </button>
@@ -115,7 +115,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Confirm Button */}
       <button
         onClick={onClose}
-        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full mt-3 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
