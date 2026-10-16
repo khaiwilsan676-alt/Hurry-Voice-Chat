@@ -37,7 +37,7 @@ data class RoomSettingsDataNative(
 private data class RoomThemeChoice(val id: String, val name: String, val image: String)
 private val roomThemeChoices = listOf(
     RoomThemeChoice("forest-night", "Forest Night", "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg"),
-    RoomThemeChoice("mood-light", "Moon Light", "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784533036732~2.jpg")
+    RoomThemeChoice("moon-light", "Moon Light", "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784533036732~2.jpg")
 )
 
 @Composable
@@ -53,13 +53,15 @@ fun RoomSettingPage(
     val muted = Color(0xFF858585)
     val selectedTheme = roomThemeChoices.firstOrNull { it.id == state.theme }
 
-    Column(Modifier.fillMaxSize().background(Color(0xFFF7F7F7))) {
+    Column(Modifier.fillMaxSize().background(Color.White)) {
         Row(Modifier.fillMaxWidth().background(Color.White).statusBarsPadding().height(54.dp).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack, modifier = Modifier.size(36.dp)) { Icon(Icons.Default.ArrowBack, null, tint = ink) }
-            Text("Room Settings", Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = ink, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            Spacer(Modifier.size(36.dp))
+            Text("Room Setting", Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = ink, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            TextButton(onClick = { onSave(state) }, contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp), modifier = Modifier.width(44.dp)) {
+                Text("Save", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF4388F5))
+            }
         }
-        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White).padding(14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text("Basic information", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = ink)
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -108,7 +110,7 @@ fun RoomSettingPage(
                     Icon(Icons.Default.ChevronRight, null, tint = muted)
                 }
             }
-            Button(onClick = { onSave(state) }, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4388F5))) { Text("Save", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+
         }
     }
 
