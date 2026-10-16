@@ -112,8 +112,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 mt-auto">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
+      <div className="grid grid-cols-3 gap-2 mb-3">
         {times.map((time) => (
           <button
             key={time}
@@ -129,10 +129,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         ))}
       </div>
 
-      {/* Confirm Button */}
+      {/* Confirm Button — just below Time */}
       <button
         onClick={onClose}
-        className="w-full mt-3 mb-2 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
