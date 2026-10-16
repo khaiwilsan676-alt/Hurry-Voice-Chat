@@ -6,81 +6,27 @@ interface PkScreenProps {
   onClose?: () => void;
 }
 
-// --- Updated Component: Select People Screen (Bottom Sheet) ---
-const SelectPeopleScreen = ({ type, onClose }: { type: 'blue' | 'pink'; onClose: () => void }) => {
-  const isBlue = type === 'blue';
-  
-  // Colors based on the image and theme
-  const bgColor = isBlue ? 'bg-[#1E52FF]' : 'bg-[#FF1E82]'; // Bright Blue vs Pink
-  const circleBg = isBlue ? 'bg-[#3A6BFF]' : 'bg-[#FF4A9A]';
-  const iconColor = isBlue ? 'text-[#7A9BFF]' : 'text-[#FF8ABA]';
-
-  // Placeholder array for the 9 empty slots
-  const placeholders = Array.from({ length: 9 });
-
-  return (
-    // Backdrop (dark area outside the sheet) - Clicking this closes the sheet
-    <div 
-      className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      {/* The Actual Sheet */}
-      <div 
-        className={`w-full max-w-md mx-auto h-[85vh] rounded-t-3xl p-5 overflow-y-auto ${bgColor} animate-in slide-in-from-bottom duration-300`}
-        onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside the sheet
-      >
-        
-        {/* Header (No back button) */}
-        <div className="flex justify-center items-center mb-8 mt-4">
-          <h2 className="text-xl font-bold text-white tracking-wide">Select people</h2>
-        </div>
-
-        {/* Grid Layout */}
-        <div className="grid grid-cols-5 gap-3 px-1">
-          
-          {/* First Slot: Real User Image */}
-          <div className="relative aspect-square rounded-full overflow-hidden border-2 border-white/20 cursor-pointer hover:scale-105 transition-transform">
-            <img 
-              src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" 
-              alt="User" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* 9 Empty Placeholder Slots */}
-          {placeholders.map((_, index) => (
-            <div 
-              key={index} 
-              className={`aspect-square rounded-full flex items-center justify-center cursor-pointer hover:scale-105 transition-transform ${circleBg}`}
-            >
-              {/* Sofa/Chair SVG Icon matching the image */}
-              <svg className={`w-7 h-7 ${iconColor}`} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2.5a2.5 2.5 0 0 0-2.5 2.5v4.5h-15v-4.5A2.5 2.5 0 0 0 4 10.5V8zm2 8h12v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2z"/>
-              </svg>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-// --- Main PkScreen Component ---
 export default function PkScreen({ onClose }: PkScreenProps) {
   const [selectedMode, setSelectedMode] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [showRules, setShowRules] = useState(false);
   
-  // State to manage which overlay is open ('blue' | 'pink' | null)
-  const [activeOverlay, setActiveOverlay] = useState<'blue' | 'pink' | null>(null);
+  // Naya state "Select People" sheet ke liye
+  const [showSelectSheet, setShowSelectSheet] = useState(false);
+  const [sheetTheme, setSheetTheme] = useState<'blue' | 'pink'>('blue');
 
   const modes = ['Votes', 'Coins', 'Earning'];
   const times = ['15s', '1min', '3mins', '5mins', '10mins', '15mins'];
 
+  // Function to open sheet with specific color
+  const openSelectSheet = (theme: 'blue' | 'pink') => {
+    setSheetTheme(theme);
+    setShowSelectSheet(true);
+  };
+
   return (
-    // Main background gradient
-    <div className="relative flex flex-col h-full min-h-screen bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
+    // Main background gradient (same as before)
+    <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
       <div className="flex justify-between items-center mb-2">
@@ -121,20 +67,19 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       {/* Select People */}
       <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
       <div className="flex justify-between gap-2 mb-3">
-        
-        {/* Blue + Button -> Opens Blue Overlay */}
+        {/* Blue Button - onClick added */}
         <button 
-          onClick={() => setActiveOverlay('blue')}
+          onClick={() => openSelectSheet('blue')}
           className="flex-1 h-20 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
-
-        {/* Pink + Button -> Opens Pink Overlay */}
+        
+        {/* Pink Button - onClick added */}
         <button 
-          onClick={() => setActiveOverlay('pink')}
+          onClick={() => openSelectSheet('pink')}
           className="flex-1 h-20 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
@@ -192,7 +137,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         Confirm
       </button>
 
-      {/* Rules Sheet (Same as before) */}
+      {/* Rules Sheet (Bilkul same rakha hai) */}
       {showRules && (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
@@ -202,10 +147,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md bg-[#0a0520] border-t border-[#2a1e5c] rounded-t-2xl px-4 pt-3 pb-6 max-h-[75%] overflow-y-auto"
           >
+            {/* Handle */}
             <div className="w-10 h-1 bg-[#35295e] rounded-full mx-auto mb-3" />
+
+            {/* Title */}
             <div className="mb-4">
               <h2 className="text-base font-bold text-white">Rules</h2>
             </div>
+
+            {/* Content */}
             <div className="space-y-4 text-[#E0D8FF]">
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Vote Mode</h3>
@@ -213,6 +163,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                   The person with the most votes wins; 1 person, 1 vote.
                 </p>
               </div>
+
               <div>
                 <h3 className="text-sm font-bold text-white mb-1">Coin Mode</h3>
                 <ol className="text-xs leading-relaxed text-[#A098C0] space-y-1.5 list-decimal list-inside">
@@ -231,12 +182,47 @@ export default function PkScreen({ onClose }: PkScreenProps) {
         </div>
       )}
 
-      {/* --- ACTIVE OVERLAY RENDER --- */}
-      {activeOverlay && (
-        <SelectPeopleScreen 
-          type={activeOverlay} 
-          onClose={() => setActiveOverlay(null)} 
-        />
+      {/* NEW: Select People Bottom Sheet (Niche se aane wali sheet) */}
+      {showSelectSheet && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+          onClick={() => setShowSelectSheet(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-md rounded-t-[2rem] px-4 pt-8 pb-6 h-[55vh] flex flex-col transition-colors duration-300 ${
+              sheetTheme === 'blue' ? 'bg-[#1240c9]' : 'bg-[#b80f6a]'
+            }`}
+          >
+            {/* Title */}
+            <h2 className="text-white text-2xl font-semibold text-center mb-8 tracking-wide">
+              Select people
+            </h2>
+
+            {/* Grid of People (2 rows, 5 columns) */}
+            <div className="grid grid-cols-5 gap-y-6 gap-x-2 place-items-center overflow-y-auto w-full px-2">
+              {/* First Item: User Avatar */}
+              <div className="w-14 h-14 rounded-full overflow-hidden border border-white/20 shadow-sm">
+                <img
+                  src="https://via.placeholder.com/50"
+                  alt="User"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* 9 Empty Placeholders */}
+              {Array.from({ length: 9 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center shadow-inner"
+                >
+                  {/* Couch/Sofa Icon from your image */}
+                  <span className="text-xl opacity-80">🛋️</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
