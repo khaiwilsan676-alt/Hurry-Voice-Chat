@@ -51,6 +51,7 @@ import org.json.JSONObject
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.basicMarquee // Added for marquee scrolling effect
 import coil3.compose.AsyncImage
 
 @Composable
@@ -308,7 +309,7 @@ fun RoomPage(
         
         // ═══════════ USER PILL (CUP CARD) ═══════════
         Row(
-            modifier=Modifier.align(Alignment.TopStart).padding(top=70.dp,start=0.dp)
+            modifier=Modifier.align(Alignment.TopStart).padding(top=70.dp,start=0.dp) // Added some top space as requested but leaving the pill placement
                 .height(22.dp)
                 .background(Brush.horizontalGradient(listOf(Color(0xE6242B35),Color(0x99242B35),Color.Transparent)))
                 .clickable{showInfo=true}
@@ -328,7 +329,8 @@ fun RoomPage(
         Column(Modifier.fillMaxSize().imePadding()){
             
             // ═══════════ TOP HEADER (ONLY ROOM CARD & ICONS) ═══════════
-            Row(Modifier.fillMaxWidth().padding(top=28.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
+            // Increased top padding from 28.dp to 48.dp to provide safe area / top space as requested
+            Row(Modifier.fillMaxWidth().padding(top=48.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
                 
                 // Room Card with exact DP height (38.dp)
                 Row(
@@ -348,14 +350,25 @@ fun RoomPage(
                     )
                     Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.Center) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // ═══════════ UPDATED ROOM NAME LOGIC (8 words / scrolling) ═══════════
+                            val words = roomName.split(Regex("\\s+"))
+                            val displayRoomName = if (words.size > 8) {
+                                // If more than 8 words, show it and apply basicMarquee to auto-scroll
+                                roomName
+                            } else {
+                                // Otherwise just show the name
+                                roomName
+                            }
                             Text(
-                                roomName.take(12).let { if (roomName.length > 12) "$it..." else it },
+                                text = displayRoomName,
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                modifier = if (words.size > 8) Modifier.basicMarquee().widthIn(max = 100.dp) else Modifier.widthIn(max = 100.dp),
+                                overflow = if (words.size > 8) TextOverflow.Clip else TextOverflow.Ellipsis
                             )
+                            
                             Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp)
                             
                             if (accountId != roomOwner.accountId.ifBlank { roomOwner.id }) {
@@ -383,31 +396,33 @@ fun RoomPage(
                 Spacer(Modifier.weight(1f))
 
                 // Top Right Big Icons with exact 4.dp gap matching bottom
+                // ═══════════ USER PILL ICON HEIGHT DECREASED from 38.dp to 32.dp ═══════════
                 Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)){
                     Row(
-                        modifier=Modifier.height(38.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=12.dp),
+                        modifier=Modifier.height(32.dp).clip(RoundedCornerShape(50)).background(Color.Black.copy(alpha=.30f)).clickable{showActiveUsers=true}.padding(horizontal=12.dp),
                         verticalAlignment=Alignment.CenterVertically,
                         horizontalArrangement=Arrangement.spacedBy(4.dp) 
                     ){
-                        Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(18.dp))
-                        Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=13.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+                        Image(painterResource(R.drawable.ic_hurry_people),contentDescription="Active users",modifier=Modifier.size(16.dp))
+                        Text(backendRoomUsers.size.toString(),color=Color.White,fontSize=12.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
                     }
                     if(accountId==roomOwner.accountId.ifBlank{roomOwner.id}) {
                         Box(
-                            Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showSettings=true},
+                            Modifier.size(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showSettings=true},
                             contentAlignment=Alignment.Center
-                        ){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(20.dp))}
+                        ){Image(painterResource(R.drawable.ic_hurry_settings),contentDescription="Room settings",modifier=Modifier.size(18.dp))}
                     }
                     Box(
-                        Modifier.size(38.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showExitMenu=true},
+                        Modifier.size(32.dp).clip(CircleShape).background(Color.Black.copy(alpha=.30f)).clickable{showExitMenu=true},
                         contentAlignment=Alignment.Center
-                    ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(20.dp))}
+                    ){Image(painterResource(R.drawable.ic_hurry_power),contentDescription="Exit room",modifier=Modifier.size(18.dp))}
                 }
             }
             
-            // ═══════════ SEATS AREA ═══════════
+            // ═══════════ SEATS AREA (Added top space requested) ═══════════
+            // Increased top padding from 38.dp to 48.dp
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=38.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=48.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
@@ -894,7 +909,8 @@ fun RoomPage(
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Box(Modifier.fillMaxSize().background(Color.Transparent).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
         Column(
-            modifier=Modifier.fillMaxWidth().height(26.percentHeight).background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent))).clickable(enabled=false){},
+            // ═══════════ EXIT/KEEP MENU HEIGHT INCREASED from 26% to 32% ═══════════
+            modifier=Modifier.fillMaxWidth().height(32.percentHeight).background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent))).clickable(enabled=false){},
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement=Arrangement.Center
         ){
@@ -964,7 +980,8 @@ private val Int.percentHeight: androidx.compose.ui.unit.Dp
                         Text("Wild party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
                     }
                     Column(Modifier.clickable{onFruitParty()}, horizontalAlignment=Alignment.CenterHorizontally){
-                        AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(48.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit)
+                        // ═══════════ FRUIT PARTY LOGO SIZE INCREASED from 48.dp to 58.dp ═══════════
+                        AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(58.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit)
                         Spacer(Modifier.height(8.dp))
                         Text("Fruit party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
                     }
