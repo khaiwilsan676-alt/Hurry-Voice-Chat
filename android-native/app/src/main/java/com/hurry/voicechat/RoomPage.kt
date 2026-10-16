@@ -89,6 +89,42 @@ fun TransparentGreenImage(url: String, modifier: Modifier = Modifier) {
     }
 }
 
+// User ki SVG ko Compose Canvas mein draw kiya
+@Composable
+fun SystemBellIcon(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val scaleX = size.width / 512f
+        val scaleY = size.height / 512f
+        
+        drawCircle(
+            color = Color(0xFF1685FF),
+            radius = 65f * scaleX,
+            center = Offset(256f * scaleX, 256f * scaleY)
+        )
+        
+        val bellPath = Path().apply {
+            moveTo(256f * scaleX, 229f * scaleY)
+            cubicTo(246f * scaleX, 229f * scaleY, 241f * scaleX, 238f * scaleY, 241f * scaleX, 249f * scaleY)
+            lineTo(241f * scaleX, 258f * scaleY)
+            cubicTo(241f * scaleX, 267f * scaleY, 237f * scaleX, 273f * scaleY, 232f * scaleX, 279f * scaleY)
+            quadraticBezierTo(230f * scaleX, 282f * scaleY, 235f * scaleX, 282f * scaleY)
+            lineTo(277f * scaleX, 282f * scaleY)
+            quadraticBezierTo(282f * scaleX, 282f * scaleY, 280f * scaleX, 279f * scaleY)
+            cubicTo(275f * scaleX, 273f * scaleY, 271f * scaleX, 267f * scaleY, 271f * scaleX, 258f * scaleY)
+            lineTo(271f * scaleX, 249f * scaleY)
+            cubicTo(271f * scaleX, 238f * scaleY, 266f * scaleX, 229f * scaleY, 256f * scaleX, 229f * scaleY)
+            close()
+        }
+        drawPath(bellPath, color = Color.White)
+        
+        drawOval(
+            color = Color.White,
+            topLeft = Offset((256f - 5f) * scaleX, (288f - 3.5f) * scaleY),
+            size = androidx.compose.ui.geometry.Size(10f * scaleX, 7f * scaleY)
+        )
+    }
+}
+
 data class RoomPageOwner(val id:String="",val uid:String="",val accountId:String="",val name:String="Room",val image:String="",val country:String="🇮🇳")
 data class RoomPageCurrentUser(val id:String="",val uid:String="",val accountId:String="",val name:String="User",val image:String="")
 data class NativeRoomSeat(val number:Int,val occupied:Boolean=false,val locked:Boolean=false,val muted:Boolean=false,val speaking:Boolean=false,val userName:String="",val userImage:String="",val accountId:String="",val gifSrc:String="",val gifTimestamp:Long=0L)
@@ -134,8 +170,8 @@ fun RoomPage(
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     var keyboardShownForChat by remember { mutableStateOf(false) }
     
-    // Official Announcement Visibility State
     var showOfficialAnnouncement by remember { mutableStateOf(true) }
+    var clearedBy by remember { mutableStateOf("") } // Jisse clear kiya uska naam store karne ke liye
     
     LaunchedEffect(showChat, imeVisible) {
         if (!showChat) {
@@ -209,7 +245,15 @@ fun RoomPage(
         
         val clearedListener = Emitter.Listener { args ->
             val payload=args.firstOrNull() as? JSONObject
-            if(payload!=null && payload.optString("roomId")==roomId) mainHandler.post { messages.clear(); showOfficialAnnouncement = false }
+            if(payload!=null && payload.optString("roomId")==roomId) {
+                mainHandler.post { 
+                    messages.clear()
+                    showOfficialAnnouncement = false 
+                    clearedBy = payload.optString("userName").ifBlank { 
+                        backendRoomUsers.firstOrNull { it.accountId == payload.optString("userId") }?.name ?: "Admin"
+                    }
+                }
+            }
         }
         
         val seatListener = Emitter.Listener { args ->
@@ -310,8 +354,6 @@ fun RoomPage(
     Box(Modifier.fillMaxSize().background(Color.Black)){
         AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/1784875884052~2.jpg",contentDescription="Room theme background",modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
         
-        // ═══════════ USER PILL (CUP CARD) - MOVED BELOW DP CARD ═══════════
-        // Top Padding set to 84.dp so it falls perfectly under the Top Header (which ends at 78.dp)
         Row(
             modifier=Modifier.align(Alignment.TopStart).padding(top=84.dp,start=4.dp) 
                 .height(22.dp)
@@ -331,10 +373,8 @@ fun RoomPage(
 
         Column(Modifier.fillMaxSize().imePadding()){
             
-            // ═══════════ TOP HEADER ═══════════
             Row(Modifier.fillMaxWidth().padding(top=40.dp,start=0.dp,end=8.dp),verticalAlignment=Alignment.CenterVertically){ 
                 
-                // ═══════════ HEIGHT REVERTED TO 38.DP ═══════════
                 Row(
                     modifier = Modifier
                         .height(38.dp) 
@@ -385,7 +425,7 @@ fun RoomPage(
                                 }
                             }
                         }
-                        Text("ID:" + roomOwner.accountId.ifBlank { roomOwner.id.ifBlank { roomId } }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp)
+                        Text("ID:" + roomOwner.accountId.ifBlank { roomOwner.id.ifBlank { roomId } }, color = Color.White.copy(alpha = 0.9f), fontSize = 10.sp, modifier = Modifier.offset(y = (-3).dp))
                     }
                 }
 
@@ -443,12 +483,28 @@ fun RoomPage(
                 contentPadding=PaddingValues(bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(8.dp)
             ){
-                // ═══════════ OFFICIAL ANNOUNCEMENT CONTROLLED BY STATE ═══════════
+                // ═══════════ CONDITIONAL RENDERING ANNOUNCEMENT OR CLEAR CHAT SYSTEM CARD ═══════════
                 if (showOfficialAnnouncement) {
                     item {
                         Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
                             Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
                                 Text("Official announcement: Welcome to Zyora. Any content related to porn, fraud, or fake official accounts will result in a ban!",color=Color(0xFFE2C67D),fontSize=13.sp,lineHeight=16.sp,fontWeight=androidx.compose.ui.text.font.FontWeight.Medium)
+                            }
+                        }
+                    }
+                } else if (clearedBy.isNotBlank()) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(start=4.dp, top=8.dp, end=82.dp, bottom=2.dp)) {
+                            Column(Modifier.fillMaxWidth(.92f).clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha=.30f)).padding(horizontal=14.dp,vertical=12.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    SystemBellIcon(modifier = Modifier.size(16.dp))
+                                    Text("System", color = Color.Gray, fontSize = 12.sp)
+                                }
+                                Spacer(Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(clearedBy, color = Color(0xFFE2C67D), fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                                    Text(" Cleared Chat messages", color = Color(0xFFE2C67D), fontSize = 13.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                                }
                             }
                         }
                     }
@@ -466,15 +522,14 @@ fun RoomPage(
 
                 items(messages,key={it.id}){message ->
                     if(message.type=="join") {
-                        // ═══════════ ENTER THE ROOM TEXT PLACED BELOW AVATAR ═══════════
                         Column(
                             Modifier.padding(vertical=2.dp)
                                 .wrapContentWidth()
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Color.Black.copy(alpha=.30f))
-                                .padding(horizontal=12.dp,vertical=8.dp),
+                                .padding(horizontal=12.dp,vertical=4.dp),
                             horizontalAlignment=Alignment.Start,
-                            verticalArrangement=Arrangement.spacedBy(4.dp)
+                            verticalArrangement=Arrangement.spacedBy(2.dp)
                         ){
                             Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)){
                                 AsyncImage(model=message.senderImage.ifBlank{"https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/default-avatar.png"},contentDescription=message.sender,modifier=Modifier.size(24.dp).clip(CircleShape),contentScale=ContentScale.Crop)
@@ -528,7 +583,7 @@ fun RoomPage(
                     }
                     
                     Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
-                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(86.dp).offset(y=(-4).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(105.dp).offset(y=(-8).dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                     }
                     
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
@@ -613,11 +668,10 @@ fun RoomPage(
                 key(toast.id) {
                     AnimatedVisibility(
                         visible=true,
-                        // ═══════════ PROPER RIGHT TO LEFT SLIDE ANIMATION ═══════════
                         enter=slideInHorizontally(
-                            initialOffsetX={ 1500 }, 
-                            animationSpec = tween(durationMillis = 700, easing = LinearOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(700))
+                            initialOffsetX={ 2500 }, 
+                            animationSpec = tween(durationMillis = 800, easing = LinearOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(800))
                     ) {
                         Row(
                             Modifier.clip(RoundedCornerShape(topStart=50.dp,bottomStart=50.dp,topEnd=0.dp,bottomEnd=0.dp))
@@ -644,9 +698,10 @@ fun RoomPage(
             onClose={showMenu=false},
             onClearChat={
                 messages.clear()
-                // ═══════════ CLEAR CHAT PE ANNOUNCEMENT BHI CLEAR HOGA ═══════════
                 showOfficialAnnouncement = false 
-                roomSocketRef.value?.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",accountId).put("timestamp",System.currentTimeMillis()))
+                val clearerName = currentUser.name.ifBlank { "User" }
+                clearedBy = clearerName
+                roomSocketRef.value?.emit("room_chat_clear",JSONObject().put("roomId",roomId).put("userId",accountId).put("userName",clearerName).put("timestamp",System.currentTimeMillis()))
                 showMenu=false
             },
             publicMsgOff=publicMsgOff,
@@ -987,13 +1042,13 @@ private val Int.percentHeight: androidx.compose.ui.unit.Dp
                 Row(horizontalArrangement=Arrangement.spacedBy(20.dp),verticalAlignment=Alignment.Top){
                     Column(Modifier.clickable{onWildParty()}, horizontalAlignment=Alignment.CenterHorizontally){
                         AsyncImage(model=raw+"file_000000009d808211b8ffb7c2183b4ef5.png",contentDescription="Wild party",modifier=Modifier.size(56.dp),contentScale=ContentScale.Fit)
-                        Spacer(Modifier.height(4.dp))
-                        Text("Wild party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
+                        Spacer(Modifier.height(2.dp))
+                        Text("Wild party",color=Color.White,fontSize=10.sp,maxLines=1)
                     }
                     Column(Modifier.clickable{onFruitParty()}, horizontalAlignment=Alignment.CenterHorizontally){
-                        AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(58.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit)
-                        Spacer(Modifier.height(8.dp))
-                        Text("Fruit party",color=Color.White.copy(alpha=.9f),fontSize=10.sp,maxLines=1)
+                        AsyncImage(model=raw+"file_00000000c9e08211ab3e8c4d511b7965.png",contentDescription="Fruit party",modifier=Modifier.size(54.dp).clip(RoundedCornerShape(6.dp)),contentScale=ContentScale.Fit) 
+                        Spacer(Modifier.height(2.dp))
+                        Text("Fruit party",color=Color.White,fontSize=10.sp,maxLines=1)
                     }
                 }
             }
