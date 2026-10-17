@@ -158,8 +158,8 @@ const VehicleRewardItem = ({ title, imageSrc, onClick }: { title: string, imageS
 );
 
 // TALL REWARD ITEM
-const TallRewardItem = ({ title, imageSrc }: { title: string, imageSrc: string }) => (
-  <div className="flex flex-col items-center w-[45%]">
+const TallRewardItem = ({ title, imageSrc, onClick }: { title: string, imageSrc: string, onClick?: () => void }) => (
+  <div className={`flex flex-col items-center w-[45%] ${onClick ? 'cursor-pointer active:scale-95 transition-transform' : ''}`} onClick={onClick}>
     <div className="w-full bg-gradient-to-b from-[#8C3A19] to-[#5C1A06] rounded-xl flex items-center justify-center p-2 shadow-inner border-2 border-[#FFD700] shadow-[0_0_12px_rgba(255,215,0,0.4)] relative">
       <img src={imageSrc} alt={title} className="w-full h-auto object-contain rounded-md pointer-events-none" />
     </div>
@@ -273,8 +273,8 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos — ⭐ added optional `label`
-  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed', label?: string} | null>(null)
+  // Modal states for videos & images — ⭐ added 'image' type
+  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed' | 'image', label?: string} | null>(null)
 
   // NEW STATES FOR CREATE PAGE
   const [familyName, setFamilyName] = useState('')
@@ -504,7 +504,8 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
-              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0043.jpg" />
+              {/* ⭐ Room Theme added onClick */}
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0043.jpg" onClick={() => setActiveVideoModal({src: '/IMG-20260914-WA0043.jpg', type: 'image'})} />
             </div>
           </div>
         </div>
@@ -531,7 +532,8 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
-              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0045.jpg" />
+              {/* ⭐ Room Theme added onClick */}
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0045.jpg" onClick={() => setActiveVideoModal({src: '/IMG-20260914-WA0045.jpg', type: 'image'})} />
             </div>
           </div>
         </div>
@@ -558,7 +560,8 @@ export default function Family({ onBack }: FamilyProps) {
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
-              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" />
+              {/* ⭐ Room Theme added onClick */}
+              <TallRewardItem title="Room Theme *7 d" imageSrc="/IMG-20260914-WA0046.jpg" onClick={() => setActiveVideoModal({src: '/IMG-20260914-WA0046.jpg', type: 'image'})} />
             </div>
           </div>
         </div>
@@ -583,17 +586,25 @@ export default function Family({ onBack }: FamilyProps) {
           </div>
         </div>
 
-        {/* UNIFIED CENTER VIDEO MODAL */}
+        {/* UNIFIED CENTER VIDEO & IMAGE MODAL */}
         {activeVideoModal && (
           <div 
             className={`fixed inset-0 w-full h-full z-50 flex cursor-pointer transition-all duration-200 ${
-              activeVideoModal.label 
-                ? 'bg-black/40' 
+              activeVideoModal.label || activeVideoModal.type === 'image'
+                ? 'bg-black/60' 
                 : 'bg-transparent'
             }`}
             onClick={() => setActiveVideoModal(null)}
           >
-            {activeVideoModal.type === 'vehicle' ? (
+            {activeVideoModal.type === 'image' ? (
+              <div className="relative w-full h-full flex items-center justify-center pointer-events-none p-4">
+                <img 
+                  src={activeVideoModal.src} 
+                  alt="Reward Theme" 
+                  className="w-[85vw] max-w-[400px] max-h-[85vh] object-contain drop-shadow-2xl rounded-xl"
+                />
+              </div>
+            ) : activeVideoModal.type === 'vehicle' ? (
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
@@ -634,17 +645,17 @@ export default function Family({ onBack }: FamilyProps) {
               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-transparent pointer-events-none">
                 {/* ⭐ TOP X FAMILY text — frame ke BAHAR upar se perfectly chipka hua */}
                 {activeVideoModal.label && (
-                  <div className="flex items-center justify-center gap-2 mb-[-18px] relative z-20">
-                    <div className="flex flex-col gap-[3px] items-end mr-1">
-                      <div className="w-6 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
-                      <div className="w-4 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                  <div className="flex items-center justify-center gap-1 mb-[-34px] relative z-20">
+                    <div className="flex flex-col gap-[2px] items-end mr-0.5">
+                      <div className="w-4 h-[1.5px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                      <div className="w-2.5 h-[1.5px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
                     </div>
-                    <span className="text-[#FFD700] font-bold text-2xl tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] font-serif uppercase">
+                    <span className="text-[#FFD700] font-bold text-[15px] tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] font-serif uppercase">
                       {activeVideoModal.label}
                     </span>
-                    <div className="flex flex-col gap-[3px] items-start ml-1">
-                      <div className="w-6 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
-                      <div className="w-4 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                    <div className="flex flex-col gap-[2px] items-start ml-0.5">
+                      <div className="w-4 h-[1.5px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                      <div className="w-2.5 h-[1.5px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
                     </div>
                   </div>
                 )}
@@ -678,9 +689,9 @@ export default function Family({ onBack }: FamilyProps) {
 
                 {/* ⭐ 5 stars — frame ke BAHAR niche se perfectly chipka hua */}
                 {activeVideoModal.label && (
-                  <div className="flex gap-1.5 mt-[-18px] relative z-20 leading-none">
+                  <div className="flex gap-1 mt-[-34px] relative z-20 leading-none">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-7 h-7 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
+                      <svg key={i} className="w-4 h-4 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     ))}
