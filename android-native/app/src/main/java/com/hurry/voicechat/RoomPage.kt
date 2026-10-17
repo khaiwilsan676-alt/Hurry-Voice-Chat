@@ -580,13 +580,9 @@ fun RoomPage(
                         if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                     }
                     
-                    Box(modifier = Modifier.wrapContentSize(unbounded = true), contentAlignment = Alignment.Center){
-                        AsyncImage(
-                            model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",
-                            contentDescription="Gift",
-                            modifier=Modifier.requiredSize(85.dp).clickable{showGift=true},
-                            contentScale=ContentScale.Fit
-                        )
+                    Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
+                        // Yahan size 125.dp kar diya gaya hai aur original Box size wapas kar diya hai
+                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(125.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
                     }
                     
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
@@ -674,7 +670,7 @@ fun RoomPage(
                     AnimatedVisibility(
                         visibleState = visibleState,
                         enter=slideInHorizontally(
-                            initialOffsetX={ it }, 
+                            initialOffsetX={ 2500 }, // Ye 2500 set hone se right side of screen se slide karke left me aayega
                             animationSpec = tween(durationMillis = 800, easing = LinearOutSlowInEasing)
                         ) + fadeIn(animationSpec = tween(800))
                     ) {
@@ -980,8 +976,21 @@ fun RoomPage(
 @Composable private fun RoomExitMenu(onKeep:()->Unit,onExit:()->Unit,onDismiss:()->Unit){
     val raw="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
     Box(Modifier.fillMaxSize().background(Color.Transparent).clickable{onDismiss()},contentAlignment=Alignment.TopCenter){
+        
+        // Ye rahi teri Black sheet. Maine iski height 32% se badhakar 48% kar di hai.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.percentHeight)
+                .background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent)))
+                .clickable(enabled=false){}
+        )
+        
+        // Ye tere icons wala hissa hai. Ise wahi 32% par hi center rakha hai, taaki icons ek inch bhi upar-niche na khiskein.
         Column(
-            modifier=Modifier.fillMaxWidth().height(32.percentHeight).background(Brush.verticalGradient(listOf(Color.Black,Color.Black,Color.Black.copy(alpha=.5f),Color.Transparent))).clickable(enabled=false){},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(32.percentHeight),
             horizontalAlignment=Alignment.CenterHorizontally,
             verticalArrangement=Arrangement.Center
         ){
