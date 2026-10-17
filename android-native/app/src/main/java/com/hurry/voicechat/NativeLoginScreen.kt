@@ -49,8 +49,7 @@ import java.net.URL
 
 private const val HURRY_FIREBASE_API_KEY = "AIzaSyBNTxdeuqc3F7R4eyjmwdQqQ2YWv9-9yv4"
 private const val HURRY_API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
-private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20260804_011114_027_bsl.mp4"
-// Old logo removed, updated to local asset path
+private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20261017_121052.mp4"
 private const val HURRY_LOGO = "file:///android_asset/logo.png"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -453,28 +452,47 @@ private fun GoogleLoginIcon(modifier: Modifier = Modifier) {
 @Composable
 private fun AccountLoginIcon(modifier: Modifier = Modifier) {
     val accountIcon = remember {
+        // Updated viewportWidth & Height to 512f based on the new SVG
         ImageVector.Builder(
-            name = "Account", defaultWidth = 48.dp, defaultHeight = 48.dp, viewportWidth = 48f, viewportHeight = 48f
-        ).path(
-            fill = SolidColor(Color(0xFFFFFFFF)),
-            stroke = SolidColor(Color(0xFF202124)),
-            strokeLineWidth = 2f
-        ) {
-            moveTo(24f, 2f)
-            arcToRelative(22f, 22f, 0f, true, true, 0f, 44f)
-            arcToRelative(22f, 22f, 0f, true, true, 0f, -44f)
+            name = "Account", defaultWidth = 48.dp, defaultHeight = 48.dp, viewportWidth = 512f, viewportHeight = 512f
+        ).path(fill = SolidColor(Color(0xFFFFFFFF))) {
+            // Head (Circle)
+            moveTo(224f, 41f)
+            arcToRelative(108f, 108f, 0f, true, true, 0f, 216f)
+            arcToRelative(108f, 108f, 0f, true, true, 0f, -216f)
             close()
-        }.path(fill = SolidColor(Color(0xFF202124))) {
-            moveTo(24f, 10f)
-            arcToRelative(7f, 7f, 0f, true, true, 0f, 14f)
-            arcToRelative(7f, 7f, 0f, true, true, 0f, -14f)
+            
+            // Person Body
+            moveTo(220f, 280f)
+            curveTo(157f, 283f, 112f, 319f, 88f, 369f)
+            curveTo(75f, 396f, 68f, 425f, 68f, 454f)
+            lineTo(224f, 454f)
+            lineTo(224f, 352f)
+            curveTo(224f, 324f, 223f, 301f, 220f, 280f)
             close()
-        }.path(fill = SolidColor(Color(0xFF202124))) {
-            moveTo(10f, 38f)
-            curveTo(10f, 29f, 15.5f, 25f, 24f, 25f)
-            curveTo(32.5f, 25f, 38f, 29f, 38f, 38f)
-            curveTo(34f, 42f, 29f, 44f, 24f, 44f)
-            curveTo(19f, 44f, 14f, 42f, 10f, 38f)
+            
+            // Lock Shackle
+            moveTo(253f, 361f)
+            verticalLineTo(328f)
+            curveTo(253f, 291f, 274f, 271f, 303f, 271f)
+            curveTo(332f, 271f, 353f, 291f, 353f, 328f)
+            verticalLineTo(361f)
+            horizontalLineTo(329f)
+            verticalLineTo(328f)
+            curveTo(329f, 306f, 320f, 295f, 303f, 295f)
+            curveTo(286f, 295f, 277f, 306f, 277f, 328f)
+            verticalLineTo(361f)
+            close()
+            
+            // Lock Body
+            moveTo(241f, 357f)
+            quadTo(241f, 348f, 251f, 348f)
+            horizontalLineTo(355f)
+            quadTo(365f, 348f, 365f, 358f)
+            verticalLineTo(437f)
+            quadTo(365f, 447f, 355f, 447f)
+            horizontalLineTo(251f)
+            quadTo(241f, 447f, 241f, 437f)
             close()
         }.build()
     }
