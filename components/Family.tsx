@@ -499,8 +499,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* ⭐ Top 1 Frames — label added */}
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 1 FAMILY'})} />
+              {/* ⭐ Top 1 Frames — label updated to match image */}
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP1 Family'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -526,8 +526,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* ⭐ Top 2 Frames — label added */}
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 2 FAMILY'})} />
+              {/* ⭐ Top 2 Frames — label updated */}
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP2 Family'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -553,8 +553,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              {/* ⭐ Top 3 Frames — label added */}
-              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend', label: 'TOP 3 FAMILY'})} />
+              {/* ⭐ Top 3 Frames — label updated */}
+              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend', label: 'TOP3 Family'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -572,8 +572,8 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
-              {/* ⭐ Top 4-10 Frames — label added */}
-              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 4-10 FAMILY'})} />
+              {/* ⭐ Top 4-10 Frames — label updated */}
+              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP4-10 Family'})} />
               <MixedImageRewardItem 
                 title="Vehicle *3 days" 
                 imageSrc="/IMG_20260919_222041.jpg" 
@@ -588,7 +588,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div 
             className={`fixed inset-0 w-full h-full z-50 flex cursor-pointer transition-all duration-200 ${
               activeVideoModal.label 
-                ? 'bg-black/30 backdrop-blur-[1px]' 
+                ? 'bg-black/40' 
                 : 'bg-transparent'
             }`}
             onClick={() => setActiveVideoModal(null)}
@@ -632,11 +632,21 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-transparent pointer-events-none">
-                {/* ⭐ TOP X FAMILY text — frame ke BAHAR upar se chipka hua */}
+                {/* ⭐ TOP X FAMILY text — frame ke BAHAR upar se perfectly chipka hua */}
                 {activeVideoModal.label && (
-                  <span className="text-[#FFD700] font-black text-xl tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mb-0 relative z-10 leading-none">
-                    {activeVideoModal.label}
-                  </span>
+                  <div className="flex items-center justify-center gap-2 mb-[-18px] relative z-20">
+                    <div className="flex flex-col gap-[3px] items-end mr-1">
+                      <div className="w-6 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                      <div className="w-4 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                    </div>
+                    <span className="text-[#FFD700] font-bold text-2xl tracking-wider drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] font-serif uppercase">
+                      {activeVideoModal.label}
+                    </span>
+                    <div className="flex flex-col gap-[3px] items-start ml-1">
+                      <div className="w-6 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                      <div className="w-4 h-[2px] bg-[#FFD700] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"></div>
+                    </div>
+                  </div>
                 )}
                 
                 <video 
@@ -647,9 +657,9 @@ export default function Family({ onBack }: FamilyProps) {
                   muted
                   disablePictureInPicture
                   disableRemotePlayback
-                  className={`object-cover rounded-xl drop-shadow-2xl ${
+                  className={`object-contain drop-shadow-2xl z-10 ${
                     activeVideoModal.label 
-                      ? 'w-[72vw] max-w-[320px] aspect-square' 
+                      ? 'w-[80vw] max-w-[350px] aspect-square' 
                       : 'w-[85vw] h-[85vw] max-w-[400px] max-h-[400px]'
                   }`}
                   style={activeVideoModal.type === 'black' ? { 
@@ -666,11 +676,11 @@ export default function Family({ onBack }: FamilyProps) {
                   }} 
                 />
 
-                {/* ⭐ 5 stars — frame ke BAHAR niche se chipka hua */}
+                {/* ⭐ 5 stars — frame ke BAHAR niche se perfectly chipka hua */}
                 {activeVideoModal.label && (
-                  <div className="flex gap-1 mt-0 relative z-10 leading-none">
+                  <div className="flex gap-1.5 mt-[-18px] relative z-20 leading-none">
                     {[...Array(5)].map((_, i) => (
-                      <svg key={i} className="w-6 h-6 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
+                      <svg key={i} className="w-7 h-7 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     ))}
