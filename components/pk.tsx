@@ -35,88 +35,88 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   ];
 
   return (
-    <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
-      
+    <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-4 py-3 overflow-hidden">
+
       {/* Header */}
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-1.5">
-          <div className="w-6 h-6 bg-yellow-400 rounded-full flex justify-center items-center">
-            <span className="text-[10px]">🥊</span>
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-yellow-400 rounded-full flex justify-center items-center">
+            <span className="text-xs">🥊</span>
           </div>
-          <h2 className="text-sm font-bold">Battle</h2>
+          <h2 className="text-base font-bold">Battle</h2>
         </div>
         <button
           type="button"
           onClick={() => setShowRules(true)}
-          className="w-5 h-5 rounded-full border border-yellow-400 bg-yellow-400/20 flex justify-center items-center text-[10px] font-bold text-yellow-400 hover:bg-yellow-400/30 transition-colors"
+          className="w-6 h-6 rounded-full border border-yellow-400 bg-yellow-400/20 flex justify-center items-center text-xs font-bold text-yellow-400 hover:bg-yellow-400/30 transition-colors"
         >
           ?
         </button>
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 flex justify-between items-center mb-2 border border-white/10">
-        <div className="flex items-center gap-2">
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 flex justify-between items-center mb-3 border border-white/10">
+        <div className="flex items-center gap-2.5">
           <img
             src="https://via.placeholder.com/50"
             alt="Avatar"
-            className="w-7 h-7 rounded-full object-cover"
+            className="w-9 h-9 rounded-full object-cover"
           />
           <div>
-            <h3 className="font-semibold text-[11px] leading-tight">A a r a v 💙</h3>
-            <p className="text-white/60 text-[9px] leading-tight">
-              Today's earning <span className="text-[9px]">🪙</span> 0
+            <h3 className="font-semibold text-xs leading-tight">A a r a v 💙</h3>
+            <p className="text-white/60 text-[10px] leading-tight">
+              Today's earning <span>🪙</span> 0
             </p>
           </div>
         </div>
-        <button 
+        <button
           type="button"
           onClick={() => setShowDetails(true)}
-          className="bg-white/10 py-0.5 px-2 rounded-md text-[9px] hover:bg-white/20 transition-colors cursor-pointer z-10"
+          className="bg-white/10 py-1 px-2.5 rounded-md text-[10px] hover:bg-white/20 transition-colors cursor-pointer z-10"
         >
           Details &gt;
         </button>
       </div>
 
       {/* Select People */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
-      <div className="flex justify-between gap-2 mb-3">
-        <button 
+      <h3 className="text-white/70 font-semibold text-xs mb-2">Select People</h3>
+      <div className="flex justify-between gap-2.5 mb-4">
+        <button
           type="button"
           onClick={() => {
             setPeopleSheetColor('blue');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-20 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-24 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
-          <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-xl font-light leading-none text-white pb-1">+</span>
+          <div className="w-10 h-10 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-2xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
-        
-        <button 
+
+        <button
           type="button"
           onClick={() => {
             setPeopleSheetColor('pink');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-20 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-24 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
-          <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
-            <span className="text-xl font-light leading-none text-white pb-1">+</span>
+          <div className="w-10 h-10 rounded-full bg-white/20 flex justify-center items-center">
+            <span className="text-2xl font-light leading-none text-white pb-1">+</span>
           </div>
         </button>
       </div>
 
       {/* Mode */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Mode</h3>
-      <div className="flex gap-2 mb-3">
+      <h3 className="text-white/70 font-semibold text-xs mb-2">Mode</h3>
+      <div className="flex gap-2.5 mb-4">
         {modes.map((mode) => (
           <button
             type="button"
             key={mode}
             onClick={() => setSelectedMode(mode)}
-            className={`relative flex-1 py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
+            className={`relative flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all border-2 ${
               selectedMode === mode
                 ? 'bg-gradient-to-b from-[#0d4d5e] to-[#0a859b] border-[#00e5ff] text-white shadow-[0_0_10px_rgba(0,229,255,0.6)]'
                 : 'bg-[#3b2b50]/80 border-transparent text-white/70 hover:bg-[#4a3763]/90'
@@ -133,14 +133,14 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <h3 className="text-white/70 font-semibold text-xs mb-2">Time</h3>
+      <div className="grid grid-cols-3 gap-2.5 mb-4">
         {times.map((time) => (
           <button
             type="button"
             key={time}
             onClick={() => setSelectedTime(time)}
-            className={`py-2 rounded-lg text-xs font-semibold transition-all border-2 ${
+            className={`py-2.5 rounded-lg text-sm font-semibold transition-all border-2 ${
               selectedTime === time
                 ? 'bg-gradient-to-b from-[#0d4d5e] to-[#0a859b] border-[#00e5ff] text-white shadow-[0_0_10px_rgba(0,229,255,0.6)]'
                 : 'bg-[#3b2b50]/80 border-transparent text-white/70 hover:bg-[#4a3763]/90'
@@ -155,7 +155,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       <button
         type="button"
         onClick={onClose}
-        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3.5 rounded-full text-white font-bold text-base opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
@@ -248,7 +248,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                 <div className="px-2.5 pt-2 pb-3">
                   {/* Header with Back Button */}
                   <div className="relative flex items-center justify-center mb-1.5">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowDetails(false)}
                       className="absolute left-0 text-white/80 hover:text-white transition-colors"
