@@ -103,7 +103,6 @@ private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: B
                 setBackgroundColor(AndroidColor.TRANSPARENT)
                 // Match the real Medal.tsx SVG chroma filters: remove black or green
                 // pixels from the medal video while preserving the square crop.
-                useTextureView = true
                 val matrix = if (variant == "green") {
                     ColorMatrix(floatArrayOf(
                         1f, 0f, 0f, 0f, 0f,
