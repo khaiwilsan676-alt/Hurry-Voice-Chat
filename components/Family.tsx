@@ -415,7 +415,7 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setCurrentView('main')}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
           >
-            <ArrowLeft size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <ArrowLeft size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
           {/* ⭐ FAMILY RULES SHEET BUTTON */}
@@ -424,7 +424,7 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setShowRulesSheet(true)}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
           >
-            <QuestionMarkIcon size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
@@ -585,7 +585,7 @@ export default function Family({ onBack }: FamilyProps) {
           <div 
             className={`fixed inset-0 w-full h-full z-50 flex cursor-pointer transition-all duration-200 ${
               activeVideoModal.label 
-                ? 'bg-black/30 backdrop-blur-[3px]' 
+                ? 'bg-black/30 backdrop-blur-[1px]' 
                 : 'bg-transparent'
             }`}
             onClick={() => setActiveVideoModal(null)}
@@ -629,9 +629,9 @@ export default function Family({ onBack }: FamilyProps) {
               </div>
             ) : (
               <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-transparent pointer-events-none">
-                {/* ⭐ TOP X FAMILY text — chipka hua frame ke just upar */}
+                {/* ⭐ TOP X FAMILY text — frame ke BAHAR upar se chipka hua */}
                 {activeVideoModal.label && (
-                  <span className="text-[#FFD700] font-black text-xl tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mb-1 relative z-10">
+                  <span className="text-[#FFD700] font-black text-xl tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mb-0 relative z-10 leading-none">
                     {activeVideoModal.label}
                   </span>
                 )}
@@ -663,9 +663,9 @@ export default function Family({ onBack }: FamilyProps) {
                   }} 
                 />
 
-                {/* ⭐ 5 stars — chipka hua frame ke just niche */}
+                {/* ⭐ 5 stars — frame ke BAHAR niche se chipka hua */}
                 {activeVideoModal.label && (
-                  <div className="flex gap-1 mt-1 relative z-10">
+                  <div className="flex gap-1 mt-0 relative z-10 leading-none">
                     {[...Array(5)].map((_, i) => (
                       <svg key={i} className="w-6 h-6 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -850,12 +850,12 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="relative z-20 flex flex-col w-full">
         <div className="flex flex-row items-center justify-between w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
-            <ArrowLeft size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <ArrowLeft size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
           {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
-            <QuestionMarkIcon size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <QuestionMarkIcon size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
