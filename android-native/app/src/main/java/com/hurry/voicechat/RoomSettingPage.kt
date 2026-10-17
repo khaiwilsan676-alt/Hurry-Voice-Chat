@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,29 +19,43 @@ import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -64,17 +79,37 @@ data class RoomSettingsDataNative(
     val roomDp: String = "",
     val admin: List<String> = emptyList()
 )
+
 private data class RoomThemeChoice(val id: String, val name: String, val image: String)
 private data class NativeSettingMember(val accountId: String, val name: String, val image: String)
+
 private const val SETTINGS_API = "https://hurry-voice-chat-lz75.onrender.com"
 private const val RAW_SETTINGS = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/"
+
 private val roomThemeChoices = listOf(
     RoomThemeChoice("forest-night", "Forest Night", RAW_SETTINGS + "1784875884052~2.jpg"),
     RoomThemeChoice("mood-light", "Moon Light", RAW_SETTINGS + "1784533036732~2.jpg")
 )
-private val settingsBlue = Color(0xFF4388F5)
-private val settingsInk = Color(0xFF262626)
-private val settingsMuted = Color(0xFF999999)
+
+// Tailwind palette
+private val blue500 = Color(0xFF3B82F6)
+private val blue400 = Color(0xFF60A5FA)
+private val gray800 = Color(0xFF1F2937)
+private val gray700 = Color(0xFF374151)
+private val gray600 = Color(0xFF4B5563)
+private val gray500 = Color(0xFF6B7280)
+private val gray400 = Color(0xFF9CA3AF)
+private val gray300 = Color(0xFFD1D5DB)
+private val gray200 = Color(0xFFE5E7EB)
+private val gray100 = Color(0xFFF3F4F6)
+private val gray50 = Color(0xFFF9FAFB)
+private val red500 = Color(0xFFEF4444)
+private val yellowCard1 = Color(0xFFFDF3D0)
+private val yellowCard2 = Color(0xFFFBEEC4)
+private val yellowBorder = Color(0xFFFDE68A)
+private val yellowInkDark = Color(0xFF8A6A1F)
+private val yellowInk = Color(0xFF7A5F1C)
+private val yellowBtn = Color(0xFFF0C24B)
 
 private suspend fun cropImageToDataUrl(context: Context, uri: android.net.Uri): String = withContext(Dispatchers.IO) {
     val bytes = context.contentResolver.openInputStream(uri)?.use { input ->
@@ -146,7 +181,6 @@ private suspend fun saveRoomSettingsRemote(roomId: String, userId: String, data:
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomSettingPage(
     initial: RoomSettingsDataNative = RoomSettingsDataNative(),
@@ -169,6 +203,7 @@ fun RoomSettingPage(
     var saving by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf("") }
     val members = remember { mutableStateListOf<NativeSettingMember>() }
+
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) scope.launch {
             runCatching { cropImageToDataUrl(context, uri) }
@@ -183,6 +218,7 @@ fun RoomSettingPage(
                 .onFailure { saveError = it.message ?: "Could not load image" }
         }
     }
+
     val themeItems = remember(customTheme) {
         if (customTheme.isNotBlank()) listOf(RoomThemeChoice("custom", "Custom", customTheme)) + roomThemeChoices
         else roomThemeChoices
@@ -190,8 +226,7 @@ fun RoomSettingPage(
 
     DisposableEffect(roomOwnerId) {
         if (roomOwnerId.isBlank()) return@DisposableEffect onDispose { }
-        val socket = runCatching { IO.socket(SETTINGS_API) }.getOrNull()
-        if (socket == null) return@DisposableEffect onDispose { }
+        val socket = runCatching { IO.socket(SETTINGS_API) }.getOrNull() ?: return@DisposableEffect onDispose { }
         val listener = Emitter.Listener { args ->
             val payload = args.firstOrNull() as? JSONObject ?: return@Listener
             if (payload.optString("roomId") != roomOwnerId) return@Listener
@@ -206,8 +241,7 @@ fun RoomSettingPage(
                 )
             }
             android.os.Handler(android.os.Looper.getMainLooper()).post {
-                members.clear()
-                members.addAll(parsed)
+                members.clear(); members.addAll(parsed)
             }
         }
         socket.on("room_members_list", listener)
@@ -215,280 +249,872 @@ fun RoomSettingPage(
         socket.emit("get_room_members", JSONObject().put("roomId", roomOwnerId))
         onDispose {
             socket.off("room_members_list", listener)
-            socket.disconnect()
-            socket.close()
+            socket.disconnect(); socket.close()
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Color.White)) {
-        Row(
-            Modifier.fillMaxWidth().background(Color.White).statusBarsPadding().height(56.dp).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = settingsInk)
-            }
-            Text("Room Setting", Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = settingsInk, textAlign = TextAlign.Center)
-            TextButton(enabled = !saving, onClick = {
-                scope.launch {
-                    saving = true
-                    saveError = ""
-                    val ready = state.copy(roomName = state.roomName.trim().ifBlank { "Room" }, admin = admins)
-                    runCatching {
-                        saveRoomSettingsRemote(roomOwnerId, currentUserId, ready)
-                        context.getSharedPreferences("room_settings", Context.MODE_PRIVATE).edit()
-                            .putInt("micMode_$roomOwnerId", ready.micMode)
-                            .putString("theme_$roomOwnerId", ready.theme)
-                            .apply()
-                    }.onSuccess {
-                        state = ready
-                        onSave(ready)
-                    }.onFailure { saveError = it.message ?: "Network error. Try again." }
-                    saving = false
+    Box(Modifier.fillMaxSize().background(Color.White)) {
+        Column(Modifier.fillMaxSize()) {
+            // ═══════════ HEADER ═══════════
+            Row(
+                Modifier.fillMaxWidth().background(Color.White)
+                    .statusBarsPadding()
+                    .padding(start = 8.dp, end = 8.dp, top = 24.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center
+                ) { Icon(Icons.Default.ArrowBack, "Back", tint = gray800, modifier = Modifier.size(24.dp)) }
+                Text(
+                    "Room Setting",
+                    Modifier.weight(1f),
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = gray800, textAlign = TextAlign.Center
+                )
+                TextButton(
+                    enabled = !saving,
+                    onClick = {
+                        scope.launch {
+                            saving = true; saveError = ""
+                            val ready = state.copy(roomName = state.roomName.trim().ifBlank { "Room" }, admin = admins)
+                            runCatching {
+                                saveRoomSettingsRemote(roomOwnerId, currentUserId, ready)
+                                context.getSharedPreferences("room_settings", Context.MODE_PRIVATE).edit()
+                                    .putInt("micMode_$roomOwnerId", ready.micMode)
+                                    .putString("theme_$roomOwnerId", ready.theme)
+                                    .apply()
+                            }.onSuccess {
+                                state = ready; onSave(ready); onBack()
+                            }.onFailure { saveError = it.message ?: "Network error. Try again." }
+                            saving = false
+                        }
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        if (saving) "Saving..." else "Save",
+                        fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                        color = if (saving) gray400 else blue500
+                    )
                 }
-            }, contentPadding = PaddingValues(horizontal = 8.dp)) {
-                Text(if (saving) "Saving..." else "Save", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = settingsBlue)
             }
-        }
-        Column(
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Box(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 24.dp), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)).border(1.dp, Color(0xFFE2E5E9), RoundedCornerShape(16.dp)).background(Color(0xFFF1F3F5)), contentAlignment = Alignment.Center) {
-                        if (state.roomDp.isNotBlank()) AsyncImage(model = state.roomDp, contentDescription = "Room photo", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                        else Text("Room", color = settingsMuted, fontSize = 12.sp)
+
+            // ═══════════ BODY ═══════════
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 24.dp)
+            ) {
+                // Photo block
+                Column(
+                    Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        Modifier.size(96.dp).clip(RoundedCornerShape(16.dp))
+                            .border(2.dp, gray200, RoundedCornerShape(16.dp))
+                            .background(gray100),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (state.roomDp.isNotBlank()) AsyncImage(
+                            model = state.roomDp, contentDescription = "Room photo",
+                            modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop
+                        ) else Text("Room", color = gray400, fontSize = 12.sp)
                     }
                     Spacer(Modifier.height(12.dp))
                     Row(
-                        Modifier.clip(CircleShape).border(1.dp, Color(0xFFD7DADF), CircleShape).background(Color.White)
-                            .clickable { pendingPicker = "photo"; picker.launch("image/*") }.padding(horizontal = 14.dp, vertical = 7.dp),
+                        Modifier.clip(CircleShape)
+                            .border(1.dp, gray300, CircleShape)
+                            .background(Color.White)
+                            .clickable { pendingPicker = "photo"; picker.launch("image/*") }
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = Color(0xFF666666), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(5.dp))
-                        Text("Edit Room photo", color = Color(0xFF555555), fontSize = 12.sp)
+                        Icon(Icons.Default.Edit, null, tint = gray700, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Edit Room photo", color = gray700, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 }
+
+                // Rows — no dividers
+                SettingRow("Room Name", state.roomName) { draft = state.roomName; sheet = "name" }
+                SettingRow("Room Announcement", state.announcement) { draft = state.announcement; sheet = "announcement" }
+                SettingRow("Theme", themeItems.firstOrNull { it.id == state.theme }?.name ?: "") { sheet = "theme" }
+                SettingRow("Admin", "${admins.size} Selected") { adminSearch = ""; sheet = "admin" }
+                SettingRow("Lock Room", if (state.isLocked) "Locked" else "", red = state.isLocked) {
+                    password = if (state.isLocked) state.roomPassword else ""; sheet = "lock"
+                }
+                // Mic Mode — special layout (label static, value is button)
+                Box(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Mic Mode", Modifier.weight(1f),
+                            fontSize = 14.sp, fontWeight = FontWeight.Medium, color = gray600
+                        )
+                        Row(
+                            Modifier.clip(RoundedCornerShape(8.dp))
+                                .clickable { tempMicMode = state.micMode; sheet = "mic" }
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "Mic ${state.micMode}",
+                                fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = gray800
+                            )
+                            Icon(Icons.Default.ChevronRight, null, tint = gray400, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+
+                if (saveError.isNotBlank()) {
+                    Text(saveError, color = red500, fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
+                }
             }
-            SettingRow("Room Name", state.roomName) { draft = state.roomName; sheet = "name" }
-            SettingRow("Room Announcement", state.announcement) { draft = state.announcement; sheet = "announcement" }
-            SettingRow("Theme", themeItems.firstOrNull { it.id == state.theme }?.name ?: "Choose theme") { sheet = "theme" }
-            SettingRow("Admin", "${admins.size} Selected") { adminSearch = ""; sheet = "admin" }
-            SettingRow("Lock Room", if (state.isLocked) "Locked" else "") { password = if (state.isLocked) state.roomPassword else ""; sheet = "password" }
-            SettingRow("Mic Mode", "Mic ${state.micMode}") { tempMicMode = state.micMode; sheet = "mic" }
-            if (saveError.isNotBlank()) Text(saveError, color = Color(0xFFD94343), fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
-            Spacer(Modifier.height(20.dp))
         }
     }
 
-    if (sheet.isNotEmpty()) {
-        ModalBottomSheet(
-            onDismissRequest = { sheet = "" },
-            containerColor = if (sheet == "admin" || sheet == "admin-rooms" || sheet == "admin-help") Color(0xFF101010) else Color.White,
-            contentColor = if (sheet == "admin" || sheet == "admin-rooms" || sheet == "admin-help") Color.White else settingsInk,
-            dragHandle = null
-        ) {
-            when (sheet) {
-                "name" -> {
-                    SheetHeader("Room name") { sheet = "" }
-                    OutlinedTextField(draft, { draft = it.take(30) }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), singleLine = true, placeholder = { Text("Please enter room name") }, supportingText = { Text("${draft.length}/30", Modifier.fillMaxWidth(), textAlign = TextAlign.End) })
-                    SheetAction("Save") { state = state.copy(roomName = draft.trim().ifBlank { "Room" }); sheet = "" }
-                }
-                "announcement" -> {
-                    SheetHeader("Room Announcement") { sheet = "" }
-                    OutlinedTextField(draft, { draft = it.take(200) }, Modifier.fillMaxWidth().heightIn(min = 150.dp).padding(horizontal = 16.dp), placeholder = { Text("Please enter room announcement") }, supportingText = { Text("${draft.length}/200", Modifier.fillMaxWidth(), textAlign = TextAlign.End) })
-                    SheetAction("Save") { state = state.copy(announcement = draft); sheet = "" }
-                }
-                "theme" -> {
-                    SheetHeader("Room Theme") { sheet = "" }
-                    LazyVerticalGrid(columns = GridCells.Fixed(3), modifier = Modifier.fillMaxWidth().heightIn(max = 460.dp).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        item {
-                            Column(Modifier.fillMaxWidth().clickable { pendingPicker = "theme"; picker.launch("image/*") }, horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box(Modifier.fillMaxWidth().aspectRatio(0.75f).clip(RoundedCornerShape(8.dp)).background(Color(0xFFF1F3F5)), contentAlignment = Alignment.Center) { Text("+", fontSize = 34.sp, color = settingsMuted) }
-                                Text("Custom", fontSize = 11.sp, color = settingsInk, modifier = Modifier.padding(top = 5.dp))
+    // ═══════════ MODALS ═══════════
+    when (sheet) {
+        "name" -> CenteredModal(scrimAlpha = 0.5f, onDismiss = { sheet = "" }) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                    .clip(RoundedCornerShape(16.dp)).background(Color.White).padding(vertical = 16.dp)
+            ) {
+                ModalHeader("Room name", onBack = { sheet = "" }, horizontal = 12.dp)
+                Spacer(Modifier.height(12.dp))
+                RoundedInput(
+                    value = draft,
+                    onChange = { draft = it.take(30) },
+                    placeholder = "Please enter room name",
+                    counter = "${draft.length}/30",
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                Spacer(Modifier.height(20.dp))
+                PillButton("Save") { state = state.copy(roomName = draft.trim().ifBlank { "Room" }); sheet = "" }
+                    .let { }  // structural sugar
+            }
+        }
+        "announcement" -> CenteredModal(scrimAlpha = 0.5f, onDismiss = { sheet = "" }) {
+            Column(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                    .clip(RoundedCornerShape(16.dp)).background(Color.White).padding(vertical = 16.dp)
+            ) {
+                ModalHeader("Room announcement", onBack = { sheet = "" }, horizontal = 12.dp)
+                Spacer(Modifier.height(8.dp))
+                Box(
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(gray100)
+                ) {
+                    BasicTextField(
+                        value = draft,
+                        onValueChange = { draft = it.take(200) },
+                        modifier = Modifier.fillMaxWidth()
+                            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 32.dp)
+                            .heightIn(min = 180.dp),
+                        textStyle = TextStyle(fontSize = 14.sp, color = gray800),
+                        decorationBox = { inner ->
+                            Box {
+                                if (draft.isEmpty()) Text(
+                                    "Please enter room announcement",
+                                    color = gray400, fontSize = 14.sp
+                                )
+                                inner()
                             }
                         }
-                        gridItems(themeItems) { theme ->
-                            Column(Modifier.fillMaxWidth().clickable { state = state.copy(theme = theme.id); sheet = "" }, horizontalAlignment = Alignment.CenterHorizontally) {
-                                Box {
-                                    AsyncImage(model = theme.image, contentDescription = theme.name, modifier = Modifier.fillMaxWidth().aspectRatio(0.75f).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Crop)
-                                    if (state.theme == theme.id) Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.align(Alignment.TopEnd).padding(5.dp).size(20.dp).clip(CircleShape).background(settingsBlue).padding(3.dp))
+                    )
+                    Text(
+                        "${draft.length}/200",
+                        color = gray500, fontSize = 12.sp,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = 8.dp)
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                PillButton("Save") { state = state.copy(announcement = draft); sheet = "" }
+            }
+        }
+        "lock" -> CenteredModal(scrimAlpha = 0.3f, onDismiss = { sheet = "" }) {
+            Box(
+                Modifier.width(320.dp).padding(horizontal = 16.dp)
+                    .clip(RoundedCornerShape(16.dp)).background(Color.White).padding(24.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Set Room Password", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = gray800)
+                    Spacer(Modifier.height(24.dp))
+                    PasswordInputBoxes(password) { password = it }
+                    Spacer(Modifier.height(24.dp))
+                    if (state.isLocked && password == state.roomPassword) {
+                        PillButton(
+                            "Unlock Room",
+                            color = red500,
+                            onClick = {
+                                state = state.copy(isLocked = false, roomPassword = ""); password = ""; sheet = ""
+                            }
+                        )
+                    } else {
+                        PillButton(
+                            if (state.isLocked) "Update Password" else "Set Password",
+                            enabled = password.length == 4,
+                            onClick = {
+                                if (password.length == 4) {
+                                    state = state.copy(isLocked = true, roomPassword = password); sheet = ""
                                 }
-                                Text(theme.name, fontSize = 11.sp, color = settingsInk, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 5.dp))
                             }
-                        }
+                        )
                     }
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(12.dp))
+                    Box(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                            .clickable { sheet = ""; password = "" }.padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) { Text("Cancel", color = gray500, fontSize = 14.sp, fontWeight = FontWeight.Medium) }
                 }
-                "mic" -> {
-                    Column(
-                        Modifier.fillMaxWidth().heightIn(max = 620.dp)
+            }
+        }
+        "theme" -> ThemeFullScreen(
+            current = state.theme,
+            items = themeItems,
+            hasCustom = customTheme.isNotBlank(),
+            onBack = { sheet = "" },
+            onPick = { id -> state = state.copy(theme = id); sheet = "" },
+            onUploadCustom = { pendingPicker = "theme"; picker.launch("image/*") }
+        )
+        "mic" -> BottomSheetModal(scrimAlpha = 0.3f, heightFraction = 0.85f, onDismiss = { sheet = "" }) {
+            Column(Modifier.fillMaxSize()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        Modifier.size(36.dp).clip(CircleShape).clickable { sheet = "" },
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.ArrowBack, null, tint = gray800, modifier = Modifier.size(20.dp)) }
+                    Text(
+                        "Select Mic Mode", Modifier.weight(1f),
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = gray800, textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.width(36.dp))
+                }
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 16.dp, bottom = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                onClick = { sheet = "" },
-                                modifier = Modifier.size(32.dp)
+                        listOf(5, 10, 15).forEach { mode ->
+                            val asset = when (mode) {
+                                5 -> RAW_SETTINGS + "IMG_20261009_172932~2.jpg"
+                                10 -> RAW_SETTINGS + "IMG_20261009_173133~2.jpg"
+                                else -> RAW_SETTINGS + "IMG_20261009_172551.jpg"
+                            }
+                            val selected = tempMicMode == mode
+                            Column(
+                                Modifier.weight(1f)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .then(
+                                        if (selected) Modifier
+                                            .border(2.dp, blue500, RoundedCornerShape(12.dp))
+                                            .background(Color(0xFFEFF6FF)) else Modifier
+                                    )
+                                    .clickable { tempMicMode = mode }
+                                    .padding(6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(
-                                    Icons.Default.ArrowBack,
-                                    contentDescription = "Back",
-                                    tint = Color(0xFF374151),
-                                    modifier = Modifier.size(20.dp)
+                                AsyncImage(
+                                    model = asset, contentDescription = "Mic $mode",
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(0.75f),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Text(
+                                    "Mic $mode", fontSize = 14.sp,
+                                    color = if (selected) blue500 else gray700,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                                 )
                             }
-                            Text(
-                                "Select Mic Mode",
-                                Modifier.weight(1f).padding(end = 28.dp),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937),
-                                textAlign = TextAlign.Center
+                        }
+                    }
+                }
+                Box(
+                    Modifier.fillMaxWidth()
+                        .drawBehind {
+                            drawLine(
+                                color = gray100, start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                                end = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                                strokeWidth = 1.dp.toPx()
                             )
                         }
-                        Row(
-                            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp, bottom = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            listOf(5, 10, 15).forEach { mode ->
-                                val asset = when (mode) {
-                                    5 -> RAW_SETTINGS + "IMG_20261009_172932~2.jpg"
-                                    10 -> RAW_SETTINGS + "IMG_20261009_173133~2.jpg"
-                                    else -> RAW_SETTINGS + "IMG_20261009_172551.jpg"
-                                }
-                                Column(
-                                    Modifier.weight(1f)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .then(
-                                            if (tempMicMode == mode) Modifier
-                                                .border(2.dp, settingsBlue, RoundedCornerShape(12.dp))
-                                                .background(Color(0xFFEFF6FF))
-                                            else Modifier
-                                        )
-                                        .clickable { tempMicMode = mode }
-                                        .padding(6.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    AsyncImage(
-                                        model = asset,
-                                        contentDescription = "Mic mode $mode",
-                                        modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 230.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                    Text(
-                                        "Mic $mode",
-                                        fontSize = 14.sp,
-                                        color = if (tempMicMode == mode) settingsBlue else Color(0xFF374151),
-                                        fontWeight = if (tempMicMode == mode) FontWeight.Bold else FontWeight.Medium,
-                                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                                    )
-                                }
-                            }
-                        }
-                        Spacer(Modifier.weight(1f, fill = false))
-                        Column(
-                            Modifier.fillMaxWidth()
-                                .background(Color.White)
-                                .border(width = 0.5.dp, color = Color(0xFFF3F4F6))
-                                .padding(horizontal = 16.dp)
-                                .padding(top = 12.dp, bottom = 16.dp)
-                        ) {
-                            Button(
-                                onClick = { state = state.copy(micMode = tempMicMode); sheet = "" },
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6))
-                            ) {
-                                Text("Confirm", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-                            }
-                        }
-                    }
-                }
-                "password" -> {
-                    SheetHeader(if (state.isLocked) "Room Password" else "Lock Room") { sheet = "" }
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        (0..3).forEach { index -> Box(Modifier.weight(1f).height(54.dp).border(1.dp, Color(0xFFD1D5DB), RoundedCornerShape(8.dp)).background(Color(0xFFF5F6F8), RoundedCornerShape(8.dp)), contentAlignment = Alignment.Center) { Text(password.getOrNull(index)?.toString() ?: "", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = settingsInk) } }
-                    }
-                    OutlinedTextField(password, { password = it.filter(Char::isDigit).take(4) }, Modifier.fillMaxWidth().padding(horizontal = 24.dp), singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), label = { Text("4-digit password") })
-                    if (state.isLocked) TextButton(onClick = { state = state.copy(isLocked = false, roomPassword = ""); password = ""; sheet = "" }, modifier = Modifier.fillMaxWidth()) { Text("Unlock Room", color = Color(0xFFE15B64)) }
-                    SheetAction(if (state.isLocked) "Update Password" else "Set Password") {
-                        if (password.length == 4) { state = state.copy(isLocked = true, roomPassword = password); sheet = "" }
-                        else saveError = "Please enter all 4 digits"
-                    }
-                }
-                "admin" -> {
-                    SheetHeader("Admin Center", dark = true) { sheet = "" }
-                    OutlinedTextField(adminSearch, { adminSearch = it }, Modifier.fillMaxWidth().padding(horizontal = 16.dp), placeholder = { Text("Search a ID for Admin", color = Color.Gray) }, singleLine = true, colors = OutlinedTextFieldDefaults.colors(unfocusedTextColor = Color.White, focusedTextColor = Color.White, unfocusedContainerColor = Color(0xFF202020), focusedContainerColor = Color(0xFF202020)))
-                    Text("Room members", color = Color.LightGray, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                    val filtered = members.filter { it.accountId.contains(adminSearch, true) || it.name.contains(adminSearch, true) }
-                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 360.dp).padding(horizontal = 12.dp)) {
-                        items(filtered, key = { it.accountId }) { member ->
-                            val selected = admins.contains(member.accountId)
-                            Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                AsyncImage(model = member.image.ifBlank { RAW_SETTINGS + "default-avatar.png" }, contentDescription = member.name, modifier = Modifier.size(38.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-                                Column(Modifier.weight(1f).padding(start = 10.dp)) {
-                                    Text(member.name, color = Color.White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                    Text("ID: ${member.accountId}", color = Color.Gray, fontSize = 10.sp)
-                                }
-                                TextButton(onClick = { admins = if (selected) admins.filterNot { it == member.accountId } else if (admins.size < 20) admins + member.accountId else admins }) { Text(if (selected) "×1 Admin" else "Admin", color = Color.White) }
-                            }
-                        }
-                    }
-                    if (members.isEmpty()) Text("Waiting for live room members…", color = Color.Gray, fontSize = 12.sp, modifier = Modifier.padding(16.dp))
-                    SheetAction("Done") { state = state.copy(admin = admins); sheet = "" }
-                    TextButton(onClick = { sheet = "admin-help" }, modifier = Modifier.fillMaxWidth()) { Text("Admin rules", color = Color.LightGray) }
-                }
-                "admin-help" -> {
-                    SheetHeader("Admin Rules", dark = true) { sheet = "admin" }
-                    Text("1. You can select up to 20 admins.\n2. Additional admin slots unlock at Level 25, Level 30 and Level 35 (+5 admins each).", color = Color.White, fontSize = 13.sp, lineHeight = 20.sp, modifier = Modifier.padding(18.dp))
-                    SheetAction("Close", dark = true) { sheet = "admin" }
-                }
-                "admin-rooms" -> {
-                    SheetHeader("Admin Center", dark = true) { sheet = "" }
-                    Text("Rooms where I'm an admin (1/20)", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp))
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        AsyncImage(model = RAW_SETTINGS + "default-avatar.png", contentDescription = null, modifier = Modifier.size(42.dp).clip(CircleShape), contentScale = ContentScale.Crop)
-                        Column(Modifier.weight(1f).padding(start = 10.dp)) { Text("👍Mastigroup🦗", color = Color.White, fontSize = 13.sp); Text("ID: 385201", color = Color.Gray, fontSize = 11.sp) }
-                        TextButton(onClick = { sheet = "admin-room-help" }) { Text("?", color = Color.White) }
-                    }
-                    TextButton(onClick = { sheet = "" }, modifier = Modifier.fillMaxWidth()) { Text("Close", color = Color.White) }
-                }
-                "admin-room-help" -> {
-                    SheetHeader("Admin Rules", dark = true) { sheet = "admin-rooms" }
-                    Text("Room admin capacity can increase with account level. Please follow the room management rules.", color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(18.dp))
-                    SheetAction("Close", dark = true) { sheet = "admin-rooms" }
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .navigationBarsPadding()
+                ) {
+                    PillButton("Confirm", onClick = { state = state.copy(micMode = tempMicMode); sheet = "" })
                 }
             }
-            Spacer(Modifier.height(20.dp))
+        }
+        "admin" -> BottomSheetModal(scrimAlpha = 0.5f, heightFraction = 0.4f, dark = true, onDismiss = { sheet = "" }) {
+            Column(Modifier.fillMaxSize().navigationBarsPadding()) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        Modifier.size(36.dp).clip(CircleShape).clickable { sheet = "" },
+                        contentAlignment = Alignment.Center
+                    ) { Icon(Icons.Default.KeyboardArrowLeft, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
+                    Text(
+                        "Admin Center", Modifier.weight(1f),
+                        fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center
+                    )
+                    Box(
+                        Modifier.size(36.dp).clip(CircleShape).clickable { sheet = "admin-help" },
+                        contentAlignment = Alignment.Center
+                    ) { Text("?", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+                }
+                Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color.White.copy(alpha = 0.1f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        BasicTextField(
+                            value = adminSearch,
+                            onValueChange = { adminSearch = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = TextStyle(fontSize = 12.sp, color = Color.White),
+                            singleLine = true,
+                            decorationBox = { inner ->
+                                Box {
+                                    if (adminSearch.isEmpty()) Text(
+                                        "Search a ID for Admin", color = gray400, fontSize = 12.sp
+                                    )
+                                    inner()
+                                }
+                            }
+                        )
+                    }
+                }
+                val filtered = members.filter {
+                    it.accountId.contains(adminSearch, true) || it.name.contains(adminSearch, true)
+                }
+                LazyColumn(
+                    Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(filtered, key = { it.accountId }) { member ->
+                        val isAdmin = admins.contains(member.accountId)
+                        Row(
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.05f))
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = member.image.ifBlank { RAW_SETTINGS + "default-avatar.png" },
+                                contentDescription = member.name,
+                                modifier = Modifier.size(36.dp).clip(CircleShape)
+                                    .border(1.dp, Color.White.copy(alpha = 0.1f), CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                            Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                                Text(
+                                    member.name, color = Color.White, fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis
+                                )
+                                Text("ID: ${member.accountId}", color = gray400, fontSize = 10.sp)
+                            }
+                            Box(
+                                Modifier.clip(RoundedCornerShape(8.dp))
+                                    .background(if (isAdmin) Color(0xFF2563EB) else blue500)
+                                    .clickable {
+                                        admins = if (isAdmin) admins.filterNot { it == member.accountId }
+                                        else if (admins.size < 20) admins + member.accountId else admins
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text(
+                                    if (isAdmin) "×1 Admin" else "Admin",
+                                    color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                    if (filtered.isEmpty()) item {
+                        Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+                            Text("No members found", color = gray400, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        }
+        "admin-help" -> CenteredModal(scrimAlpha = 0.6f, onDismiss = { sheet = "admin" }) {
+            Box(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp).widthIn(max = 320.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color(0xFFFFFDF3))
+                    .drawBehind {
+                        // simple vertical gradient approximation
+                    }
+                    .border(1.dp, yellowBorder, RoundedCornerShape(16.dp))
+            ) {
+                Column {
+                    Box(Modifier.fillMaxWidth().background(yellowCard1)) {
+                        Text(
+                            "Room Admin",
+                            Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                            color = yellowInkDark, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Column(Modifier.background(yellowCard2).padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        Text(
+                            "Admin permissions include:",
+                            color = yellowInkDark, fontSize = 14.sp, fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "locking the mic, muting the mic, kicking someone out, inviting someone, removing someone from a seat, and playing music.",
+                            color = yellowInk, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Each room has 5 admins. You can increase the admin limit in the following ways:",
+                            color = yellowInk, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            "1. By leveling up your ID, you can add 5 more admins; you can increase the total number of admins up to 20.",
+                            color = yellowInk, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "2. If you wish to appoint more admins, follow the rules below to add admins for free.",
+                            color = yellowInk, fontSize = 12.sp, lineHeight = 18.sp
+                        )
+                        Spacer(Modifier.height(12.dp))
+                        Column(
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, yellowBorder, RoundedCornerShape(8.dp))
+                        ) {
+                            listOf(
+                                "Level 25" to "+5 admins",
+                                "Level 30" to "+5 admins",
+                                "Level 35" to "+5 admins"
+                            ).forEachIndexed { idx, (lvl, cnt) ->
+                                Row(
+                                    Modifier.fillMaxWidth()
+                                        .background(if (idx % 2 == 0) Color(0xFFFAEEC2) else yellowCard1)
+                                ) {
+                                    Text(
+                                        lvl, Modifier.weight(1f).padding(8.dp),
+                                        color = yellowInk, fontSize = 11.sp
+                                    )
+                                    Text(
+                                        cnt, Modifier.weight(1f).padding(8.dp),
+                                        color = yellowInk, fontSize = 11.sp, textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                        PillButton(
+                            "Close",
+                            color = yellowBtn,
+                            textColor = yellowInk,
+                            onClick = { sheet = "admin" }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ═══════════════════════════ HELPERS ═══════════════════════════
+
+@Composable
+private fun SettingRow(
+    title: String,
+    value: String,
+    red: Boolean = false,
+    onClick: () -> Unit
+) {
+    // NO DIVIDER — only spacing
+    Box(Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+        Row(
+            Modifier.fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(title, Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = gray600)
+            if (value.isNotBlank()) {
+                Text(
+                    value, fontSize = 12.sp,
+                    color = if (red) red500 else gray400,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 140.dp)
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight, null, tint = gray400,
+                modifier = Modifier.padding(start = 8.dp).size(16.dp)
+            )
         }
     }
 }
 
 @Composable
-private fun SettingRow(title: String, value: String, onClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(horizontal = 1.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(title, Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF555555))
-        if (value.isNotBlank()) Text(value, fontSize = 12.sp, color = if (title == "Lock Room" && value == "Locked") Color(0xFFE15B64) else Color(0xFF999999), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 150.dp))
-        Icon(Icons.Default.ChevronRight, null, tint = Color(0xFF999999), modifier = Modifier.padding(start = 4.dp).size(18.dp))
+private fun ModalHeader(title: String, onBack: () -> Unit, horizontal: Dp = 8.dp) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = horizontal, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier.size(36.dp).clip(CircleShape).clickable(onClick = onBack),
+            contentAlignment = Alignment.Center
+        ) { Icon(Icons.Default.ArrowBack, null, tint = gray800, modifier = Modifier.size(20.dp)) }
+        Text(
+            title, Modifier.weight(1f),
+            fontSize = 16.sp, fontWeight = FontWeight.Bold, color = gray800, textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.width(36.dp))
     }
-    HorizontalDivider(color = Color(0xFFF2F2F2), thickness = 0.6.dp)
 }
+
 @Composable
-private fun SheetHeader(title: String, dark: Boolean = false, onBack: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = if (dark) Color.White else settingsInk) }
-        Text(title, Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Bold, color = if (dark) Color.White else settingsInk, textAlign = TextAlign.Center)
-        Spacer(Modifier.width(48.dp))
+private fun RoundedInput(
+    value: String,
+    onChange: (String) -> Unit,
+    placeholder: String = "",
+    counter: String = "",
+    modifier: Modifier = Modifier
+) {
+    // Matches: <div class="relative bg-gray-100 rounded-full">
+    //            <input class="px-5 py-4 pr-16 rounded-full text-base" />
+    //            <div class="absolute right-5 top-1/2 -translate-y-1/2 text-xs">0/30</div>
+    Box(modifier.fillMaxWidth().clip(CircleShape).background(gray100)) {
+        BasicTextField(
+            value = value,
+            onValueChange = onChange,
+            modifier = Modifier.fillMaxWidth().padding(
+                start = 20.dp,
+                end = if (counter.isNotEmpty()) 64.dp else 20.dp,
+                top = 16.dp,
+                bottom = 16.dp
+            ),
+            textStyle = TextStyle(fontSize = 16.sp, color = gray800),
+            singleLine = true,
+            decorationBox = { inner ->
+                Box {
+                    if (value.isEmpty() && placeholder.isNotEmpty())
+                        Text(placeholder, color = gray400, fontSize = 16.sp)
+                    inner()
+                }
+            }
+        )
+        if (counter.isNotEmpty()) Text(
+            counter, color = gray500, fontSize = 12.sp,
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 20.dp)
+        )
     }
 }
+
 @Composable
-private fun SheetAction(label: String, dark: Boolean = false, onClick: () -> Unit) {
-    Button(onClick = onClick, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp).height(46.dp), shape = RoundedCornerShape(10.dp), colors = ButtonDefaults.buttonColors(containerColor = if (dark) Color(0xFF2878E8) else settingsBlue)) {
-        Text(label, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+private fun PillButton(
+    label: String,
+    color: Color = blue500,
+    textColor: Color = Color.White,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Box(
+        Modifier.fillMaxWidth().padding(horizontal = 12.dp).height(48.dp)
+            .clip(CircleShape)
+            .background(if (enabled) color else gray300)
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label, fontSize = 16.sp, fontWeight = FontWeight.SemiBold,
+            color = if (enabled) textColor else gray400
+        )
     }
+}
+
+@Composable
+private fun PasswordInputBoxes(value: String, onChange: (String) -> Unit) {
+    val focusReqs = remember { List(4) { FocusRequester() } }
+    var focusedIdx by remember { mutableIntStateOf(-1) }
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
+    ) {
+        (0..3).forEach { index ->
+            val char = value.getOrNull(index)?.toString() ?: ""
+            val isFocused = focusedIdx == index
+            Box(
+                Modifier.size(56.dp)
+                    .border(
+                        2.dp,
+                        if (isFocused) blue500 else gray300,
+                        RoundedCornerShape(8.dp)
+                    )
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                BasicTextField(
+                    value = char,
+                    onValueChange = { input ->
+                        val digits = input.filter(Char::isDigit)
+                        when {
+                            digits.isEmpty() -> {
+                                if (index < value.length) onChange(value.removeRange(index, index + 1))
+                                else if (index > 0 && value.isNotEmpty()) {
+                                    onChange(value.dropLast(1))
+                                    focusReqs[index - 1].requestFocus()
+                                }
+                            }
+                            digits.length > 1 -> {
+                                val newValue = (value.take(index) + digits).take(4)
+                                onChange(newValue)
+                                focusReqs[minOf(newValue.length, 3)].requestFocus()
+                            }
+                            else -> {
+                                val sb = StringBuilder(value)
+                                while (sb.length < index) sb.append(' ')
+                                if (index < sb.length) sb.setCharAt(index, digits[0]) else sb.append(digits[0])
+                                onChange(sb.toString().trimEnd().take(4))
+                                if (index < 3) focusReqs[index + 1].requestFocus()
+                            }
+                        }
+                    },
+                    modifier = Modifier.width(40.dp)
+                        .focusRequester(focusReqs[index])
+                        .onFocusChanged {
+                            if (it.isFocused) focusedIdx = index
+                            else if (focusedIdx == index) focusedIdx = -1
+                        },
+                    textStyle = TextStyle(
+                        textAlign = TextAlign.Center, fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold, color = gray800
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    singleLine = true
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CenteredModal(
+    scrimAlpha: Float = 0.5f,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            Modifier.fillMaxSize().background(Color.Black.copy(alpha = scrimAlpha))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { }
+            ) { content() }
+        }
+    }
+}
+
+@Composable
+private fun BottomSheetModal(
+    scrimAlpha: Float = 0.5f,
+    heightFraction: Float = 0.85f,
+    dark: Boolean = false,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    val screenH = LocalConfiguration.current.screenHeightDp.dp
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+    ) {
+        Box(
+            Modifier.fillMaxSize().background(Color.Black.copy(alpha = scrimAlpha))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onDismiss
+                ),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Box(
+                Modifier.fillMaxWidth().heightIn(max = screenH * heightFraction)
+                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                    .background(if (dark) Color.Black else Color.White)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { }
+            ) { content() }
+        }
+    }
+}
+
+@Composable
+private fun ThemeFullScreen(
+    current: String,
+    items: List<RoomThemeChoice>,
+    hasCustom: Boolean,
+    onBack: () -> Unit,
+    onPick: (String) -> Unit,
+    onUploadCustom: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onBack,
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+    ) {
+        Column(Modifier.fillMaxSize().background(Color.White)) {
+            Row(
+                Modifier.fillMaxWidth().statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier.size(40.dp).clip(CircleShape).clickable(onClick = onBack),
+                    contentAlignment = Alignment.Center
+                ) { Icon(Icons.Default.ArrowBack, null, tint = gray800, modifier = Modifier.size(24.dp)) }
+                Text(
+                    "Room Theme", Modifier.weight(1f),
+                    fontSize = 18.sp, fontWeight = FontWeight.Bold, color = gray800, textAlign = TextAlign.Center
+                )
+                Spacer(Modifier.width(40.dp))
+            }
+            Column(
+                Modifier.weight(1f).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 12.dp, vertical = 16.dp)
+            ) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (!hasCustom) {
+                        item {
+                            Box(
+                                Modifier.fillMaxWidth().aspectRatio(0.75f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .dashedBorder(gray300, 1.dp, 8.dp)
+                                    .background(gray50)
+                                    .clickable(onClick = onUploadCustom),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text("+", color = gray400, fontSize = 16.sp)
+                                    Text(
+                                        "Custom", color = gray500, fontSize = 10.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        modifier = Modifier.padding(top = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    gridItems(items) { theme ->
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .then(
+                                    if (current == theme.id) Modifier
+                                        .padding(2.dp)
+                                        .border(2.dp, blue400, RoundedCornerShape(8.dp)) else Modifier
+                                )
+                                .clickable { onPick(theme.id) }
+                        ) {
+                            Box(Modifier.fillMaxWidth().aspectRatio(0.75f).clip(RoundedCornerShape(8.dp))) {
+                                AsyncImage(
+                                    model = theme.image, contentDescription = theme.name,
+                                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop
+                                )
+                                if (theme.id == "custom") {
+                                    Box(
+                                        Modifier.align(Alignment.TopStart).padding(4.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color.Black.copy(alpha = 0.6f))
+                                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                                    ) { Text("Custom", color = Color.White, fontSize = 8.sp) }
+                                }
+                            }
+                            Text(
+                                theme.name, fontSize = 10.sp, color = gray700,
+                                fontWeight = FontWeight.Medium, textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 2.dp),
+                                maxLines = 1, overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Dashed border helper
+private fun Modifier.dashedBorder(color: Color, width: Dp, cornerRadius: Dp): Modifier = this.drawBehind {
+    val strokeWidth = width.toPx()
+    val radiusPx = cornerRadius.toPx()
+    val path = Path().apply {
+        addRoundRect(
+            RoundRect(
+                left = strokeWidth / 2, top = strokeWidth / 2,
+                right = size.width - strokeWidth / 2, bottom = size.height - strokeWidth / 2,
+                cornerRadius = CornerRadius(radiusPx, radiusPx)
+            )
+        )
+    }
+    drawPath(
+        path = path, color = color,
+        style = Stroke(
+            width = strokeWidth,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f)
+        )
+    )
+}
+
+// Small import alias for TextButton used as custom text button
+@Composable
+private fun TextButton(
+    enabled: Boolean,
+    onClick: () -> Unit,
+    contentPadding: PaddingValues,
+    content: @Composable () -> Unit
+) {
+    Box(
+        Modifier.clip(RoundedCornerShape(8.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(contentPadding),
+        contentAlignment = Alignment.Center
+    ) { content() }
 }
