@@ -145,7 +145,7 @@ private fun HurryLaunchScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Zyora-Voice-Chat/main/public/image_20261014_125545-iss-logo-ko-dekh-yr-iski-body-position-dekh-or-han-right-wale-hand-lion-ke-fol.jpg",
+                model = "https://raw.githubusercontent.com/khaiwilsan676-alt/Zyora-Voice-Chat/main/public/logo.png",
                 contentDescription = "Zyora logo",
                 modifier = Modifier
                     .width(68.dp)
