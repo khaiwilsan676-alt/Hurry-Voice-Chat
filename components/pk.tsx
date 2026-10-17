@@ -35,10 +35,10 @@ export default function PkScreen({ onClose }: PkScreenProps) {
   ];
 
   return (
-    <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-y-auto">
+    <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-2 flex-shrink-0">
         <div className="flex items-center gap-1.5">
           <div className="w-6 h-6 bg-yellow-400 rounded-full flex justify-center items-center">
             <span className="text-[10px]">🥊</span>
@@ -55,7 +55,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 flex justify-between items-center mb-2 border border-white/10">
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 flex justify-between items-center mb-2 border border-white/10 flex-shrink-0">
         <div className="flex items-center gap-2">
           <img
             src="https://via.placeholder.com/50"
@@ -79,15 +79,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Select People */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
-      <div className="flex justify-between gap-2 mb-3">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Select People</h3>
+      <div className="flex justify-between gap-2 mb-3 flex-1 min-h-0">
         <button 
           type="button"
           onClick={() => {
             setPeopleSheetColor('blue');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-20 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-full min-h-[56px] bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
@@ -100,7 +100,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             setPeopleSheetColor('pink');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-20 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-full min-h-[56px] bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
@@ -109,8 +109,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Mode */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Mode</h3>
-      <div className="flex gap-2 mb-3">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Mode</h3>
+      <div className="flex gap-2 mb-3 flex-shrink-0">
         {modes.map((mode) => (
           <button
             type="button"
@@ -133,8 +133,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-3">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Time</h3>
+      <div className="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
         {times.map((time) => (
           <button
             type="button"
@@ -155,7 +155,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       <button
         type="button"
         onClick={onClose}
-        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full flex-shrink-0 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
@@ -195,7 +195,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Select People Sheet — NO SCROLL, natural height */}
+          {/* Select People Sheet */}
           {showSelectPeople && (
             <div
               className="fixed inset-0 z-[999] flex items-end justify-center bg-black/60"
@@ -203,7 +203,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                className={`w-full max-w-md rounded-t-2xl px-4 pt-3 pb-6 transition-colors duration-300 ${
+                className={`w-full max-w-md rounded-t-2xl px-4 pt-3 pb-6 max-h-[55%] overflow-y-auto transition-colors duration-300 ${
                   peopleSheetColor === 'blue' ? 'bg-[#1a3b9e]' : 'bg-[#a81666]'
                 }`}
               >
@@ -213,7 +213,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                   <div className="w-9 h-9 rounded-full overflow-hidden">
                     <img src="https://via.placeholder.com/50" alt="Avatar" className="w-full h-full object-cover" />
                   </div>
-                  {Array.from({ length: 19 }).map((_, i) => (
+                  {Array.from({ length: 9 }).map((_, i) => (
                     <button type="button" key={i} className="w-9 h-9 rounded-full bg-white/20 flex justify-center items-center hover:bg-white/30 transition-colors">
                       <svg className="w-4 h-4 text-white/70" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M4 10v7h3v-7H4zm13 0v7h3v-7h-3zm-9-4v11h8V6H8zm-3 6h2V8c0-1.1.9-2 2-2h6c1.1 0 2 .9 2 2v4h2c1.1 0 2 .9 2 2v7c0 .6-.4 1-1 1h-1c-.6 0-1-.4-1-1v-3H7v3c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1v-7c0-1.1.9-2 2-2z" />
@@ -225,7 +225,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             </div>
           )}
 
-          {/* Details Sheet — full width, NO SCROLL, natural height */}
+          {/* Details Sheet — full width left-right */}
           {showDetails && (
             <div
               className="fixed inset-0 z-[999] bg-black/60"
@@ -243,7 +243,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
                   margin: 0,
                   padding: 0,
                 }}
-                className="bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl"
+                className="bg-gradient-to-r from-[#4B003D] via-[#1E0038] to-[#001C5E] border-t border-[#2a1e5c] rounded-t-2xl max-h-[60%] overflow-y-auto"
               >
                 <div className="px-2.5 pt-2 pb-3">
                   {/* Header with Back Button */}
