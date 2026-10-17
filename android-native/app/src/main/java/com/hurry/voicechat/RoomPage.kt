@@ -392,7 +392,6 @@ fun RoomPage(
                     )
                     Column(Modifier.padding(start = 8.dp), verticalArrangement = Arrangement.Center) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            val words = roomName.split(Regex("\\s+"))
                             val displayRoomName = roomName
                             
                             Text(
@@ -401,8 +400,8 @@ fun RoomPage(
                                 fontSize = 13.sp,
                                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                                 maxLines = 1,
-                                modifier = if (words.size > 7) Modifier.basicMarquee().widthIn(max = 100.dp) else Modifier.widthIn(max = 100.dp),
-                                overflow = if (words.size > 7) TextOverflow.Clip else TextOverflow.Ellipsis
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE).widthIn(max = 100.dp),
+                                overflow = TextOverflow.Clip
                             )
                             
                             Text(roomCountryFlag(roomOwner.country), color = Color.White, fontSize = 13.sp)
@@ -454,7 +453,7 @@ fun RoomPage(
             }
             
             Column(
-                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=40.dp, bottom=8.dp),
+                Modifier.fillMaxWidth().padding(horizontal=10.dp).padding(top=44.dp, bottom=8.dp),
                 verticalArrangement=Arrangement.spacedBy(10.dp)
             ) {
                 seats.chunked(5).forEach { rowSeats ->
@@ -581,9 +580,13 @@ fun RoomPage(
                         if(selfSeatIndex>=0) RoomFooterButton(onClick={showEmoji=true},description="Emoji",icon=R.drawable.ic_hurry_emoji)
                     }
                     
-                    Box(Modifier.size(62.dp),contentAlignment=Alignment.Center){
-                        // Yahan size 125.dp kar diya gaya hai bina kisi offset ke
-                        AsyncImage(model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",contentDescription="Gift",modifier=Modifier.size(125.dp).clickable{showGift=true},contentScale=ContentScale.Fit)
+                    Box(modifier = Modifier.wrapContentSize(unbounded = true), contentAlignment = Alignment.Center){
+                        AsyncImage(
+                            model="https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/file_0000000019c4821180028eebae10dbfc.png",
+                            contentDescription="Gift",
+                            modifier=Modifier.requiredSize(85.dp).clickable{showGift=true},
+                            contentScale=ContentScale.Fit
+                        )
                     }
                     
                     Row(Modifier.weight(1f),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp,Alignment.End)){
@@ -612,7 +615,7 @@ fun RoomPage(
 
         Column(
             modifier=Modifier.align(Alignment.BottomEnd)
-                .padding(end=10.dp, bottom=74.dp) 
+                .padding(end=10.dp, bottom=68.dp) 
                 .heightIn(max=330.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment=Alignment.CenterHorizontally,
@@ -666,10 +669,12 @@ fun RoomPage(
         ) {
             entryToasts.toList().forEach { toast ->
                 key(toast.id) {
+                    val visibleState = remember { androidx.compose.animation.core.MutableTransitionState(false).apply { targetState = true } }
+                    
                     AnimatedVisibility(
-                        visible=true,
+                        visibleState = visibleState,
                         enter=slideInHorizontally(
-                            initialOffsetX={ 2500 }, 
+                            initialOffsetX={ it }, 
                             animationSpec = tween(durationMillis = 800, easing = LinearOutSlowInEasing)
                         ) + fadeIn(animationSpec = tween(800))
                     ) {
