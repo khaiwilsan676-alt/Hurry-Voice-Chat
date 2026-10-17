@@ -1,4 +1,4 @@
-herepackage com.hurry.voicechat
+package com.hurry.voicechat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
