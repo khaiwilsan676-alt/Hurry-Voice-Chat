@@ -323,21 +323,91 @@ fun RoomSettingPage(
                     Spacer(Modifier.height(20.dp))
                 }
                 "mic" -> {
-                    SheetHeader("Select Mic Mode") { sheet = "" }
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        listOf(5, 10, 15).forEach { mode ->
-                            Column(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).border(if (tempMicMode == mode) 2.dp else 1.dp, if (tempMicMode == mode) settingsBlue else Color(0xFFE5E7EB), RoundedCornerShape(10.dp)).background(if (tempMicMode == mode) Color(0xFFEAF2FF) else Color.White).clickable { tempMicMode = mode }.padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        Modifier.fillMaxWidth().heightIn(max = 620.dp)
+                    ) {
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 16.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(
+                                onClick = { sheet = "" },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.ArrowBack,
+                                    contentDescription = "Back",
+                                    tint = Color(0xFF374151),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Text(
+                                "Select Mic Mode",
+                                Modifier.weight(1f).padding(end = 28.dp),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF1F2937),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Row(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp, bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            listOf(5, 10, 15).forEach { mode ->
                                 val asset = when (mode) {
                                     5 -> RAW_SETTINGS + "IMG_20261009_172932~2.jpg"
                                     10 -> RAW_SETTINGS + "IMG_20261009_173133~2.jpg"
                                     else -> RAW_SETTINGS + "IMG_20261009_172551.jpg"
                                 }
-                                AsyncImage(model = asset, contentDescription = "Mic mode $mode", modifier = Modifier.fillMaxWidth().aspectRatio(0.72f).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Fit)
-                                Text("Mic $mode", fontSize = 13.sp, color = if (tempMicMode == mode) settingsBlue else settingsInk, fontWeight = if (tempMicMode == mode) FontWeight.Bold else FontWeight.Medium, modifier = Modifier.padding(vertical = 8.dp))
+                                Column(
+                                    Modifier.weight(1f)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .then(
+                                            if (tempMicMode == mode) Modifier
+                                                .border(2.dp, settingsBlue, RoundedCornerShape(12.dp))
+                                                .background(Color(0xFFEFF6FF))
+                                            else Modifier
+                                        )
+                                        .clickable { tempMicMode = mode }
+                                        .padding(6.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    AsyncImage(
+                                        model = asset,
+                                        contentDescription = "Mic mode $mode",
+                                        modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp, max = 230.dp),
+                                        contentScale = ContentScale.Fit
+                                    )
+                                    Text(
+                                        "Mic $mode",
+                                        fontSize = 14.sp,
+                                        color = if (tempMicMode == mode) settingsBlue else Color(0xFF374151),
+                                        fontWeight = if (tempMicMode == mode) FontWeight.Bold else FontWeight.Medium,
+                                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(Modifier.weight(1f, fill = false))
+                        Column(
+                            Modifier.fillMaxWidth()
+                                .background(Color.White)
+                                .border(width = 0.5.dp, color = Color(0xFFF3F4F6))
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 12.dp, bottom = 16.dp)
+                        ) {
+                            Button(
+                                onClick = { state = state.copy(micMode = tempMicMode); sheet = "" },
+                                modifier = Modifier.fillMaxWidth().height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6))
+                            ) {
+                                Text("Confirm", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                             }
                         }
                     }
-                    SheetAction("Confirm") { state = state.copy(micMode = tempMicMode); sheet = "" }
                 }
                 "password" -> {
                     SheetHeader(if (state.isLocked) "Room Password" else "Lock Room") { sheet = "" }
