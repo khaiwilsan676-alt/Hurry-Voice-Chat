@@ -568,7 +568,13 @@ useEffect(() => {
         if (cached.roomDp && cached.roomDp !== "/default-avatar.png") setRoomDp(cached.roomDp);
         if (cached.announcement) setRoomAnnouncement(cached.announcement);
         if (cached.micMode) setMicMode(Number(cached.micMode));
-        if (cached.theme && THEME_BACKGROUNDS[cached.theme]) setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
+        if (cached.theme) {
+          if (cached.theme.startsWith('data:image') || cached.theme.startsWith('http') || cached.theme.startsWith('/')) {
+            setBackgroundImage(cached.theme);
+          } else if (THEME_BACKGROUNDS[cached.theme]) {
+            setBackgroundImage(THEME_BACKGROUNDS[cached.theme]);
+          }
+        }
         if (cached.isLocked !== undefined) setIsLocked(Boolean(cached.isLocked));
         if (cached.roomPassword) setRoomPassword(cached.roomPassword);
       } else {
@@ -589,7 +595,13 @@ useEffect(() => {
           if (realDp && realDp !== 'undefined' && realDp !== 'null' && realDp !== "/default-avatar.png") setRoomDp(realDp);
           if (dbRoom.announcement) setRoomAnnouncement(dbRoom.announcement);
           if (dbRoom.micMode) setMicMode(Number(dbRoom.micMode));
-          if (dbRoom.theme && THEME_BACKGROUNDS[dbRoom.theme]) setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
+          if (dbRoom.theme) {
+            if (dbRoom.theme.startsWith('data:image') || dbRoom.theme.startsWith('http') || dbRoom.theme.startsWith('/')) {
+              setBackgroundImage(dbRoom.theme);
+            } else if (THEME_BACKGROUNDS[dbRoom.theme]) {
+              setBackgroundImage(THEME_BACKGROUNDS[dbRoom.theme]);
+            }
+          }
           if (dbRoom.isLocked !== undefined) setIsLocked(Boolean(dbRoom.isLocked));
           if (dbRoom.roomPassword) setRoomPassword(dbRoom.roomPassword);
           if (dbRoom.country) setRoomCountry(String(dbRoom.country));
@@ -730,7 +742,13 @@ useEffect(() => {
     if (data.roomDp) setRoomDp(data.roomDp);
     if (data.announcement !== undefined) setRoomAnnouncement(data.announcement);
     if (data.micMode !== undefined) setMicMode(Number(data.micMode));
-    if (data.theme && THEME_BACKGROUNDS[data.theme]) setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+    if (data.theme) {
+      if (data.theme.startsWith('data:image') || data.theme.startsWith('http') || data.theme.startsWith('/')) {
+        setBackgroundImage(data.theme);
+      } else if (THEME_BACKGROUNDS[data.theme]) {
+        setBackgroundImage(THEME_BACKGROUNDS[data.theme]);
+      }
+    }
     if (data.isLocked !== undefined) setIsLocked(Boolean(data.isLocked));
     if (data.roomPassword !== undefined) setRoomPassword(data.roomPassword || "");
     try {
@@ -844,7 +862,7 @@ useEffect(() => {
   if (joinMessageSentRef.current || userAccountId === "guest") return;
   joinMessageSentRef.current = true;
   sendMessageToSocket('Enter the Room', undefined, 'join');
-}, [userAccountId, roomId, sendMessageToSocket]);
+}, [userAccountId, roomId]);
 
 useEffect(() => {
   if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -1033,12 +1051,18 @@ const handleSaveSettings = async (data: Partial<RoomSettingsData>) => {
   const nextRoomDp = data.roomDp !== undefined ? data.roomDp : roomDp;
   const nextAnnouncement = data.announcement !== undefined ? data.announcement : roomAnnouncement;
   const nextMicMode = data.micMode !== undefined ? data.micMode : micMode;
-  const nextTheme = data.theme !== undefined ? data.theme : Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage);
+  const nextTheme = data.theme !== undefined ? data.theme : Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || backgroundImage;
   const nextLocked = data.isLocked !== undefined ? data.isLocked : isLocked;
   const nextPassword = data.roomPassword !== undefined ? data.roomPassword : roomPassword;
 
   setRoomName(nextRoomName); setRoomAnnouncement(nextAnnouncement); setRoomDp(nextRoomDp); setMicMode(nextMicMode);
-  if (nextTheme && THEME_BACKGROUNDS[nextTheme]) setBackgroundImage(THEME_BACKGROUNDS[nextTheme]);
+  if (nextTheme) {
+    if (nextTheme.startsWith('data:image') || nextTheme.startsWith('http') || nextTheme.startsWith('/')) {
+      setBackgroundImage(nextTheme);
+    } else if (THEME_BACKGROUNDS[nextTheme]) {
+      setBackgroundImage(THEME_BACKGROUNDS[nextTheme]);
+    }
+  }
   setIsLocked(nextLocked); setRoomPassword(nextPassword);
   if (!roomId) return;
 
@@ -1233,7 +1257,7 @@ if (showSettingPage) return (
   <RoomSettingPage
     onBack={closeSettings}
     roomOwnerId={roomOwnerId}
-    roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || 'mood-light' }}
+    roomData={{ roomName, roomDp, announcement: roomAnnouncement, micMode, isLocked, roomPassword, theme: Object.keys(THEME_BACKGROUNDS).find(key => THEME_BACKGROUNDS[key] === backgroundImage) || backgroundImage || 'mood-light' }}
     onSave={handleSaveSettings}
   />
 );
