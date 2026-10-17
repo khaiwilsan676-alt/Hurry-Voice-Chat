@@ -46,3 +46,18 @@ dependencies {
     implementation("androidx.room:room-ktx:2.8.4")
     ksp("androidx.room:room-compiler:2.8.4")
 }
+
+// Generate the native launcher icon from the same current Zyora logo used by the app.
+val zyoraLauncherResDir = layout.buildDirectory.dir("generated/res/zyoraLauncherLogo")
+val downloadZyoraLauncherLogo by tasks.registering {
+    outputs.file(zyoraLauncherResDir.map { it.file("drawable-nodpi/zyora_launcher_logo.jpg") })
+    doLast {
+        val target = zyoraLauncherResDir.get().file("drawable-nodpi/zyora_launcher_logo.jpg").asFile
+        target.parentFile.mkdirs()
+        val logoUrl = java.net.URL("https://raw.githubusercontent.com/khaiwilsan676-alt/Zyora-Voice-Chat/main/public/image_20261014_125545-iss-logo-ko-dekh-yr-iski-body-position-dekh-or-han-right-wale-hand-lion-ke-fol.jpg")
+        logoUrl.openStream().use { input -> target.outputStream().use { output -> input.copyTo(output) } }
+        check(target.length() > 0L) { "Zyora launcher logo download was empty" }
+    }
+}
+android.sourceSets.getByName("main").res.srcDir(zyoraLauncherResDir)
+tasks.named("preBuild").configure { dependsOn(downloadZyoraLauncherLogo) }
