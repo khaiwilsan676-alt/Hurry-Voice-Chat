@@ -72,16 +72,17 @@ private fun InviteArt(file: String, modifier: Modifier = Modifier, key: InviteKe
                         val b = p and 0xff
                         if (key == InviteKey.GREEN) {
                             val maxRB = maxOf(r, b)
-                            val diff = g - maxRB
-                            // Stronger chroma key for green-screen artwork and JPEG spill.
-                            if (g > 55 && diff > 18 && g > r * 1.12f && g > b * 1.12f) {
+                            val greenDifference = g - maxRB
+                            // Match the real InviteFriends.tsx chroma-key thresholds so
+                            // the green screen is actually transparent instead of remaining
+                            // as a green tint around the artwork.
+                            if (greenDifference > 30 && g > 60) {
                                 pixels[i] = p and 0x00ffffff
-                            } else if (g > 45 && diff > 7 && g > r * 1.04f && g > b * 1.04f) {
-                                val factor = ((diff - 7) / 11f).coerceIn(0f, 1f)
+                            } else if (greenDifference > 10 && g > 50) {
+                                val factor = ((greenDifference - 10) / 20f).coerceIn(0f, 1f)
                                 val na = (a * (1f - factor)).roundToInt().coerceIn(0, 255)
-                                val cleanR = minOf(r, maxRB)
-                                val cleanG = minOf(g, maxRB + 8)
-                                pixels[i] = (na shl 24) or (cleanR shl 16) or (cleanG shl 8) or b
+                                val cleanGreen = maxRB
+                                pixels[i] = (na shl 24) or (r shl 16) or (cleanGreen shl 8) or b
                             }
                         } else {
                             if (r > 210 && g > 210 && b > 210) {
