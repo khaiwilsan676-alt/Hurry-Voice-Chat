@@ -38,7 +38,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
     <div className="relative flex flex-col h-full bg-gradient-to-br from-[#6e004b] via-[#1c003f] to-[#000c4d] text-white px-3 py-2 overflow-hidden">
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-2 flex-shrink-0">
+      <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-1.5">
           <div className="w-6 h-6 bg-yellow-400 rounded-full flex justify-center items-center">
             <span className="text-[10px]">🥊</span>
@@ -55,7 +55,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 flex justify-between items-center mb-2 border border-white/10 flex-shrink-0">
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 flex justify-between items-center mb-2 border border-white/10">
         <div className="flex items-center gap-2">
           <img
             src="https://via.placeholder.com/50"
@@ -79,15 +79,15 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Select People */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Select People</h3>
-      <div className="flex justify-between gap-2 mb-3 flex-1 min-h-0">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Select People</h3>
+      <div className="flex justify-between gap-2 mb-3">
         <button 
           type="button"
           onClick={() => {
             setPeopleSheetColor('blue');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-full min-h-[56px] bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-20 bg-[#1a3b9e]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
@@ -100,7 +100,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
             setPeopleSheetColor('pink');
             setShowSelectPeople(true);
           }}
-          className="flex-1 h-full min-h-[56px] bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
+          className="flex-1 h-20 bg-[#a81666]/80 backdrop-blur-sm rounded-xl flex justify-center items-center transition-transform hover:scale-[1.02] active:scale-95 border border-white/10"
         >
           <div className="w-8 h-8 rounded-full bg-white/20 flex justify-center items-center">
             <span className="text-xl font-light leading-none text-white pb-1">+</span>
@@ -109,8 +109,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Mode */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Mode</h3>
-      <div className="flex gap-2 mb-3 flex-shrink-0">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Mode</h3>
+      <div className="flex gap-2 mb-3">
         {modes.map((mode) => (
           <button
             type="button"
@@ -133,8 +133,8 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       </div>
 
       {/* Time */}
-      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5 flex-shrink-0">Time</h3>
-      <div className="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
+      <h3 className="text-white/70 font-semibold text-[11px] mb-1.5">Time</h3>
+      <div className="grid grid-cols-3 gap-2 mb-3">
         {times.map((time) => (
           <button
             type="button"
@@ -155,7 +155,7 @@ export default function PkScreen({ onClose }: PkScreenProps) {
       <button
         type="button"
         onClick={onClose}
-        className="w-full flex-shrink-0 bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
+        className="w-full bg-[#1b5a7a]/90 backdrop-blur-sm py-3 rounded-full text-white font-bold text-sm opacity-90 hover:opacity-100 transition-opacity border border-white/10"
       >
         Confirm
       </button>
