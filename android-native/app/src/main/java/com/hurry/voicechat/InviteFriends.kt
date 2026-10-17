@@ -357,13 +357,31 @@ private fun InviteShareItem(label: String, color: Color, glyph: String, onClick:
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.clickable(onClick = onClick)) {
         Box(Modifier.size(48.dp).clip(CircleShape).background(color), contentAlignment = Alignment.Center) {
             when (glyph) {
-                "whatsapp" -> InviteBrandGlyph("M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.23.31-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.26.26 1.15.53 1.44.53.48 0 1.15-.07 1.58-.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z", Modifier.size(24.dp))
-                "facebook" -> InviteBrandGlyph("M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z", Modifier.size(24.dp))
+                "whatsapp" -> InviteWhatsAppMark(Modifier.size(24.dp))
+                "facebook" -> InviteBrandGlyph("M15.12 5.32H17V2.14C16.68 2.1 15.58 2 14.3 2c-2.68 0-4.52 1.64-4.52 4.66V9.3H6.75v3.55h3.03V22h3.73v-9.15h3.1l.49-3.55h-3.59V7.01c0-1.03.28-1.69 1.61-1.69z", Modifier.size(22.dp))
                 "link" -> Icon(Icons.Default.Link, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
                 "more" -> Icon(Icons.Default.MoreHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(22.dp))
             }
         }
         Text(label, color = Color(0xFF1F2937), fontSize = 11.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun InviteWhatsAppMark(modifier: Modifier = Modifier) {
+    val handset = remember {
+        PathParser().parsePathString(
+            "M188 145 C180 145 173 150 168 157 L145 189 C138 200 140 216 145 231 C169 300 212 343 281 368 C296 374 312 376 323 368 L355 345 C363 339 367 331 367 323 C367 317 363 312 358 309 L311 282 C302 277 292 279 286 286 L266 310 C235 294 210 269 195 238 L218 218 C225 212 227 202 222 193 L195 146 C193 145 190 145 188 145 Z"
+        ).toPath()
+    }
+    androidx.compose.foundation.Canvas(modifier) {
+        drawContext.transform.scale(size.width / 512f, size.height / 512f, pivot = androidx.compose.ui.geometry.Offset.Zero)
+        drawCircle(color = Color.White, radius = 232f, center = androidx.compose.ui.geometry.Offset(256f, 256f))
+        drawCircle(color = Color(0xFF25D366), radius = 216f, center = androidx.compose.ui.geometry.Offset(256f, 256f))
+        val tail = PathParser().parsePathString("M90 380 L65 456 L150 431 Z").toPath()
+        drawPath(tail, color = Color(0xFF25D366))
+        drawPath(handset, color = Color.White)
+        drawContext.transform.scale(512f / size.width, 512f / size.height, pivot = androidx.compose.ui.geometry.Offset.Zero)
     }
 }
 
