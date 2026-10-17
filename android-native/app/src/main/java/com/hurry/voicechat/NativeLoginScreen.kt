@@ -49,7 +49,7 @@ import java.net.URL
 
 private const val HURRY_FIREBASE_API_KEY = "AIzaSyBNTxdeuqc3F7R4eyjmwdQqQ2YWv9-9yv4"
 private const val HURRY_API_BASE = "https://hurry-voice-chat-lz75.onrender.com"
-private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20261017_121052.mp4"
+private const val HURRY_VIDEO = "https://raw.githubusercontent.com/khaiwilsan676-alt/Hurry-Voice-Chat/main/public/VID_20261017_130447.mp4"
 private const val HURRY_LOGO = "file:///android_asset/logo.png"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,12 +102,36 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
         
         if (showPrivacyPolicy) {
             Column(
-                Modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).padding(horizontal = 22.dp),
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .statusBarsPadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 22.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Row(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("‹", color = Color(0xFF374151), fontSize = 38.sp, modifier = Modifier.clickable { showPrivacyPolicy = false }.padding(horizontal = 8.dp))
-                    Text("Privacy Policy", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color(0xFF374151),
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null
+                            ) { showPrivacyPolicy = false }
+                    )
+                    Text(
+                        "Privacy Policy",
+                        color = Color(0xFF111827),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
                 }
                 Text("Privacy Policy", color = Color(0xFF111827), fontSize = 25.sp, fontWeight = FontWeight.Bold)
                 Text("Last updated: October 14, 2026", color = Color(0xFF6B7280), fontSize = 13.sp, modifier = Modifier.padding(top = 8.dp, bottom = 22.dp))
@@ -128,7 +152,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                     AsyncImage(model = HURRY_LOGO, contentDescription = "Zyora", modifier = Modifier.size(80.dp).clip(RoundedCornerShape(18.dp)))
                     Text("Zyora", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.weight(1.2f))
+                Spacer(Modifier.weight(1.4f))
                 Button(
                     onClick = { error = ""; showGoogleSetupMessage = true },
                     enabled = !loading,
@@ -172,6 +196,7 @@ fun NativeLoginScreen(onLoginSuccess: () -> Unit) {
                         ) { showPrivacyPolicy = true },
                     textAlign = TextAlign.Center
                 )
+                Spacer(Modifier.height(22.dp))
             }
         } else {
             Column(
