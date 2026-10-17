@@ -2,6 +2,11 @@ package com.hurry.voicechat
 
 import android.content.Context
 import android.graphics.Color as AndroidColor
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.os.Build
+import android.view.View
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -74,7 +79,7 @@ private val medalGold = Color(0xFFFACC15)
 private val medalBg = Color(0xFF02050E)
 
 @Composable
-private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: Boolean = true) {
+private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: Boolean = true, variant: String = "black") {
     val context = LocalContext.current
     val player = remember(video) {
         ExoPlayer.Builder(context).build().apply {
@@ -96,6 +101,30 @@ private fun MedalVideo(video: String, modifier: Modifier = Modifier, animated: B
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 setShutterBackgroundColor(AndroidColor.TRANSPARENT)
                 setBackgroundColor(AndroidColor.TRANSPARENT)
+                // Match the real Medal.tsx SVG chroma filters: remove black or green
+                // pixels from the medal video while preserving the square crop.
+                useTextureView = true
+                val matrix = if (variant == "green") {
+                    ColorMatrix(floatArrayOf(
+                        1f, 0f, 0f, 0f, 0f,
+                        0f, 1f, 0f, 0f, 0f,
+                        0f, 0f, 1f, 0f, 0f,
+                        1.5f, -2.5f, 1.5f, 1f, 0f
+                    ))
+                } else {
+                    ColorMatrix(floatArrayOf(
+                        1f, 0f, 0f, 0f, 0f,
+                        0f, 1f, 0f, 0f, 0f,
+                        0f, 0f, 1f, 0f, 0f,
+                        4f, 4f, 4f, 0f, -204f
+                    ))
+                }
+                val colorFilter = ColorMatrixColorFilter(matrix)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    setRenderEffect(android.graphics.RenderEffect.createColorFilterEffect(colorFilter))
+                } else {
+                    setLayerType(View.LAYER_TYPE_HARDWARE, Paint().apply { this.colorFilter = colorFilter })
+                }
                 keepScreenOn = false
                 this.player = player
             }
@@ -200,7 +229,7 @@ fun Medal(onBack: () -> Unit = {}, medals: List<HurryMedal> = emptyList()) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-                            MedalVideo(medal.video, Modifier.size((medal.size.coerceAtMost(250) / 2).dp).aspectRatio(1f), animated = false)
+                            MedalVideo(medal.video, Modifier.size((medal.size.coerceAtMost(250) / 2).dp).aspectRatio(1f), animated = false, variant = medal.variant)
                         }
                         Text(medal.name, color = Color(0xFFE4DFED), fontSize = 13.sp, maxLines = 1, textAlign = TextAlign.Center)
                     }
@@ -218,7 +247,7 @@ fun Medal(onBack: () -> Unit = {}, medals: List<HurryMedal> = emptyList()) {
                     IconButton(onClick = { overlay = "Rules" }, modifier = Modifier.align(Alignment.TopEnd).padding(top = 22.dp)) {
                         Icon(Icons.Default.HelpOutline, "Rules", tint = Color.White)
                     }
-                    MedalVideo(display.video, Modifier.align(Alignment.Center).size(280.dp).aspectRatio(1f), animated = true)
+                    MedalVideo(display.video, Modifier.align(Alignment.Center).size(280.dp).aspectRatio(1f), animated = true, variant = display.variant)
                 }
                 Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     AsyncImage(model = medalAsset("IMG_20260924_132112.png"), contentDescription = "Medal frame", modifier = Modifier.size(288.dp))
