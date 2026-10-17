@@ -307,7 +307,7 @@ private fun HurryNativeRoot() {
                                 "Seller Center" -> SellerCenter(onBack = { openedMePage = null })
                                 "SVIP" -> Svip(onBack = { openedMePage = null })
                                 "Language Setting" -> LanguagePage(onBack = { openedMePage = null })
-                                "Settings" -> SettingsPage(onBack = { openedMePage = null })
+                                "Settings" -> MeNativeSubPage("Settings", onBack = { openedMePage = null })
                                 "Customer Service" -> HurrySupport(onBack = { openedMePage = null })
                                 "Help & Feedback" -> HelpFeedbackPage(onBack = { openedMePage = null })
                                 else -> MeNativeSubPage(openedMePage!!, onBack = { openedMePage = null })
