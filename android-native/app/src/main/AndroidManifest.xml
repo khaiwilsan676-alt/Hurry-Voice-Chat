@@ -4,8 +4,8 @@
     <application
         android:theme="@style/Theme.Hurry"
         android:label="Zyora"
-        android:icon="@drawable/hurry_logo"
-        android:roundIcon="@drawable/hurry_logo">
+        android:icon="@drawable/zyora_launcher_logo"
+        android:roundIcon="@drawable/zyora_launcher_logo">
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
