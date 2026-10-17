@@ -276,7 +276,6 @@ fun RoomSettingPage(
             SettingRow("Room Announcement", state.announcement) { draft = state.announcement; sheet = "announcement" }
             SettingRow("Theme", themeItems.firstOrNull { it.id == state.theme }?.name ?: "Choose theme") { sheet = "theme" }
             SettingRow("Admin", "${admins.size} Selected") { adminSearch = ""; sheet = "admin" }
-            SettingRow("Room where I'm an admin", "(1/20)") { sheet = "admin-rooms" }
             SettingRow("Lock Room", if (state.isLocked) "Locked" else "") { password = if (state.isLocked) state.roomPassword else ""; sheet = "password" }
             SettingRow("Mic Mode", "Mic ${state.micMode}") { tempMicMode = state.micMode; sheet = "mic" }
             if (saveError.isNotBlank()) Text(saveError, color = Color(0xFFD94343), fontSize = 12.sp, modifier = Modifier.padding(vertical = 8.dp))
@@ -289,7 +288,7 @@ fun RoomSettingPage(
             onDismissRequest = { sheet = "" },
             containerColor = if (sheet == "admin" || sheet == "admin-rooms" || sheet == "admin-help") Color(0xFF101010) else Color.White,
             contentColor = if (sheet == "admin" || sheet == "admin-rooms" || sheet == "admin-help") Color.White else settingsInk,
-            dragHandle = { BottomSheetDefaults.DragHandle(color = if (sheet.startsWith("admin")) Color.DarkGray else Color.LightGray) }
+            dragHandle = null
         ) {
             when (sheet) {
                 "name" -> {
