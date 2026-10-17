@@ -224,18 +224,19 @@ const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, classN
   </svg>
 );
 
-// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT
+// ⭐ REUSABLE FAMILY RULES SHEET COMPONENT (DARK THEME MATCHING APP BACKGROUND)
 const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
   <div 
-    className="fixed inset-0 bg-black/50 z-[100] flex items-end"
+    className="fixed inset-0 bg-black/60 z-[100] flex items-end"
     onClick={onClose}
   >
     <div 
-      className="bg-white w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative"
+      className="w-full max-h-[80vh] rounded-t-3xl p-6 flex flex-col shadow-2xl overflow-y-auto relative bg-gradient-to-b from-[#3B0C06] to-[#1a0d06] border-t-2 border-[#FFD700] shadow-[0_0_30px_rgba(255,215,0,0.25)]"
       onClick={(e) => e.stopPropagation()}
     >
-      <h2 className="text-black font-bold text-lg mb-4">Family rules</h2>
-      <div className="text-black/80 text-sm space-y-3 pb-6">
+      <div className="w-12 h-1.5 bg-[#FFD700]/40 rounded-full mx-auto mb-4"></div>
+      <h2 className="text-[#FFD700] font-bold text-lg mb-4 tracking-wide">Family rules</h2>
+      <div className="text-[#FDE68A]/90 text-sm space-y-3 pb-6 leading-relaxed">
         <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 5:30 AM (GMT+5:30).</p>
         <p>2. There is no need to wait for official approval.</p>
         <p>3. A family can have a maximum of 100 members.</p>
@@ -248,8 +249,8 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
       </div>
 
       {/* ⭐ Regards, Zyora Team */}
-      <div className="flex justify-end pt-2 pb-1">
-        <span className="text-black/60 text-xs font-semibold italic tracking-wide">
+      <div className="flex justify-end pt-2 pb-1 border-t border-[#FFD700]/20">
+        <span className="text-[#FFD700]/70 text-xs font-semibold italic tracking-wide pt-3">
           Regards, Zyora Team
         </span>
       </div>
@@ -578,10 +579,50 @@ export default function Family({ onBack }: FamilyProps) {
         {/* UNIFIED CENTER VIDEO MODAL */}
         {activeVideoModal && (
           <div 
-            className="fixed inset-0 w-full h-full bg-transparent z-50 flex cursor-pointer"
+            className="fixed inset-0 w-full h-full bg-black/80 z-50 flex flex-col items-center justify-center cursor-pointer backdrop-blur-sm"
             onClick={() => setActiveVideoModal(null)}
           >
-            {activeVideoModal.type === 'vehicle' ? (
+            {(activeVideoModal.type === 'black' || activeVideoModal.type === 'black-noblend') ? (
+              // ⭐ NEW MEDAL SCENE WITH TOP1 FAMILY TEXT AND STARS
+              <div className="relative flex flex-col items-center justify-center pointer-events-none w-full max-w-[400px]">
+                {/* TOP1 Family Text with Wings */}
+                <div className="flex items-center justify-center gap-1 mb-2 z-10">
+                  <span className="text-[#FFD700] text-xl font-black italic tracking-widest drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
+                    ⪢ TOP1 Family ⪡
+                  </span>
+                </div>
+                
+                {/* Video Medal */}
+                <video 
+                  src={activeVideoModal.src} 
+                  autoPlay 
+                  loop
+                  playsInline
+                  muted
+                  disablePictureInPicture
+                  disableRemotePlayback
+                  className="w-[85vw] h-[85vw] max-w-[320px] max-h-[320px] object-cover rounded-xl drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]" 
+                  style={activeVideoModal.type === 'black' ? { 
+                    mixBlendMode: 'screen', 
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  } : {
+                    mixBlendMode: 'normal',
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  }} 
+                />
+
+                {/* Bottom Stars */}
+                <div className="flex gap-2 mt-2 z-10">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="w-7 h-7 text-[#FFD700] fill-current drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            ) : activeVideoModal.type === 'vehicle' ? (
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
@@ -629,15 +670,7 @@ export default function Family({ onBack }: FamilyProps) {
                   disablePictureInPicture
                   disableRemotePlayback
                   className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
-                  style={activeVideoModal.type === 'black' ? { 
-                    mixBlendMode: 'screen', 
-                    backgroundColor: 'transparent',
-                    filter: 'url(#remove-black)' 
-                  } : activeVideoModal.type === 'black-noblend' ? {
-                    mixBlendMode: 'normal',
-                    backgroundColor: 'transparent',
-                    filter: 'url(#remove-black)' 
-                  } : {
+                  style={{
                     backgroundColor: 'transparent',
                     filter: 'url(#remove-green)' 
                   }} 
