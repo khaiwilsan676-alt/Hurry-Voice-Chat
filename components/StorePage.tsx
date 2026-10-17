@@ -1193,15 +1193,17 @@ export default function StorePage({
               <span className="text-[16px] font-semibold text-gray-400 tracking-wide">3D</span>
             </div>
 
-            {/* Chat bubble preview — NO BOX, NO BORDER, NO BACKGROUND */}
+            {/* Chat bubble preview — ADDED ZYORA TEXT */}
             <div className="relative w-[120px] h-[120px] mb-3 flex items-center justify-center">
               <Image
                 src={tryChatBubbleItem.image}
                 alt={tryChatBubbleItem.name}
-                width={120}
-                height={120}
+                fill
                 className="object-contain"
               />
+              <span className="absolute text-white font-bold text-[24px] tracking-wide drop-shadow-[0_0_8px_rgba(255,215,0,0.9)] z-10 font-sans">
+                Zyora
+              </span>
             </div>
 
             <div className="flex flex-col items-center justify-center mb-3">
@@ -1291,6 +1293,10 @@ export default function StorePage({
               ) : giftItem.tab === "Chat Bubble" ? (
                 <div className="relative w-full h-full flex items-center justify-center">
                   <Image src={giftItem.image} alt={giftItem.name} fill className="object-contain" />
+                  {/* ADDED ZYORA TEXT */}
+                  <span className="absolute text-white font-bold text-[28px] tracking-wide drop-shadow-[0_0_10px_rgba(255,215,0,0.9)] z-10 font-sans">
+                    Zyora
+                  </span>
                 </div>
               ) : giftItem.image.endsWith('.mp4') ? (
                 <WebGLVideoAvatar src={giftItem.image} />
