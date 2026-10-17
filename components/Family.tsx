@@ -201,8 +201,8 @@ const MixedImageRewardItem = ({ title, imageSrc, onClick }: { title: string, ima
   </div>
 );
 
-// QUESTION MARK ICON (Custom SVG - "?" symbol)
-const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, className?: string }) => (
+// QUESTION MARK ICON (Custom SVG - "?" symbol) — now accepts explicit color prop
+const QuestionMarkIcon = ({ size = 28, className = "", color = "currentColor" }: { size?: number, className?: string, color?: string }) => (
   <svg 
     width={size} 
     height={size} 
@@ -211,16 +211,16 @@ const QuestionMarkIcon = ({ size = 28, className = "" }: { size?: number, classN
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2" fill="none" />
+    <circle cx="12" cy="12" r="11" stroke={color} strokeWidth="2" fill="none" />
     <path 
       d="M9.5 9.5C9.5 8.12 10.62 7 12 7C13.38 7 14.5 8.12 14.5 9.5C14.5 10.88 13.38 12 12 12V13.5" 
-      stroke="currentColor" 
+      stroke={color} 
       strokeWidth="2" 
       strokeLinecap="round" 
       strokeLinejoin="round"
       fill="none"
     />
-    <circle cx="12" cy="16.5" r="1.2" fill="currentColor" />
+    <circle cx="12" cy="16.5" r="1.2" fill={color} />
   </svg>
 );
 
@@ -410,21 +410,24 @@ export default function Family({ onBack }: FamilyProps) {
           className="flex flex-row items-center justify-between w-full px-2 relative z-30"
           style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
         >
+          {/* ⭐ BACK BUTTON — WHITE (forced color) */}
           <button
             type="button"
             onClick={() => setCurrentView('main')}
+            style={{ color: '#FFFFFF' }}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
           >
-            <ArrowLeft size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <ArrowLeft size={28} color="#FFFFFF" className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
-          {/* ⭐ FAMILY RULES SHEET BUTTON */}
+          {/* ⭐ QUESTION MARK BUTTON — WHITE (forced color) */}
           <button
             type="button"
             onClick={() => setShowRulesSheet(true)}
+            style={{ color: '#FFFFFF' }}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
           >
-            <QuestionMarkIcon size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+            <QuestionMarkIcon size={28} color="#FFFFFF" className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
@@ -849,13 +852,26 @@ export default function Family({ onBack }: FamilyProps) {
 
       <div className="relative z-20 flex flex-col w-full">
         <div className="flex flex-row items-center justify-between w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
-          <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
-            <ArrowLeft size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+          {/* ⭐ BACK BUTTON — WHITE (forced color) */}
+          <button 
+            type="button" 
+            onClick={onBack} 
+            style={{ color: '#FFFFFF' }}
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" 
+            aria-label="Go back"
+          >
+            <ArrowLeft size={28} color="#FFFFFF" className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
-          {/* ⭐ FAMILY RULES SHEET BUTTON */}
-          <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
-            <QuestionMarkIcon size={28} className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+          {/* ⭐ QUESTION MARK BUTTON — WHITE (forced color) */}
+          <button 
+            type="button" 
+            onClick={() => setShowRulesSheet(true)} 
+            style={{ color: '#FFFFFF' }}
+            className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" 
+            aria-label="Details"
+          >
+            <QuestionMarkIcon size={28} color="#FFFFFF" className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
