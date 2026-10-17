@@ -235,7 +235,7 @@ const FamilyRulesSheet = ({ onClose }: { onClose: () => void }) => (
       onClick={(e) => e.stopPropagation()}
     >
       <div className="w-12 h-1.5 bg-[#FFD700]/40 rounded-full mx-auto mb-4"></div>
-      <h2 className="text-[#FFD700] font-bold text-lg mb-4 tracking-wide">Family rules</h2>
+      <h2 className="text-[#FFD700] font-bold text-lg mb-4 tracking-wide text-center">Family rules</h2>
       <div className="text-[#FDE68A]/90 text-sm space-y-3 pb-6 leading-relaxed">
         <p>1. The top 10 families in the weekly family rankings will receive various rewards. Rewards are distributed every Sunday at 5:30 AM (GMT+5:30).</p>
         <p>2. There is no need to wait for official approval.</p>
@@ -273,8 +273,8 @@ export default function Family({ onBack }: FamilyProps) {
 
   const [activeRow, setActiveRow] = useState<'left' | 'mid' | 'right' | null>('left')
   
-  // Modal states for videos
-  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed'} | null>(null)
+  // Modal states for videos — ⭐ added optional `label`
+  const [activeVideoModal, setActiveVideoModal] = useState<{src: string, type: 'black' | 'green' | 'vehicle' | 'black-noblend' | 'mixed', label?: string} | null>(null)
 
   // NEW STATES FOR CREATE PAGE
   const [familyName, setFamilyName] = useState('')
@@ -415,7 +415,7 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setCurrentView('main')}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform"
           >
-            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+            <ArrowLeft size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
           {/* ⭐ FAMILY RULES SHEET BUTTON */}
@@ -424,7 +424,7 @@ export default function Family({ onBack }: FamilyProps) {
             onClick={() => setShowRulesSheet(true)}
             className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform"
           >
-            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
+            <QuestionMarkIcon size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
@@ -496,7 +496,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              {/* ⭐ Top 1 Frames — label added */}
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 1 FAMILY'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -522,7 +523,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              {/* ⭐ Top 2 Frames — label added */}
+              <GreenVideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 2 FAMILY'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -548,7 +550,8 @@ export default function Family({ onBack }: FamilyProps) {
               />
             </div>
             <div className="flex justify-center gap-8 w-full px-2">
-              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend'})} />
+              {/* ⭐ Top 3 Frames — label added */}
+              <VideoRewardItem title="Frames *7 days" videoSrc="/gemini_generated_video_123c050b~2.mp4" scaleClass="scale-100" blendScreen={false} onClick={() => setActiveVideoModal({src: '/gemini_generated_video_123c050b~2.mp4', type: 'black-noblend', label: 'TOP 3 FAMILY'})} />
               <RewardItem title="Family Frame *7 d" />
             </div>
             <div className="flex justify-center w-full px-2">
@@ -566,7 +569,8 @@ export default function Family({ onBack }: FamilyProps) {
           <div className="w-full bg-[#3B0C06] border-2 border-[#FFD700] rounded-xl pt-12 pb-8 flex flex-col shadow-[0_0_20px_rgba(255,215,0,0.15)] relative z-10">
             <div className="flex justify-evenly w-full px-2">
               <RewardItem title="Medal *3 days" />
-              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green'})} />
+              {/* ⭐ Top 4-10 Frames — label added */}
+              <GreenVideoRewardItem title="Frames *3 days" videoSrc="/gemini_generated_video_0d259062.mp4" onClick={() => setActiveVideoModal({src: '/gemini_generated_video_0d259062.mp4', type: 'green', label: 'TOP 4-10 FAMILY'})} />
               <MixedImageRewardItem 
                 title="Vehicle *3 days" 
                 imageSrc="/IMG_20260919_222041.jpg" 
@@ -579,50 +583,14 @@ export default function Family({ onBack }: FamilyProps) {
         {/* UNIFIED CENTER VIDEO MODAL */}
         {activeVideoModal && (
           <div 
-            className="fixed inset-0 w-full h-full bg-black/80 z-50 flex flex-col items-center justify-center cursor-pointer backdrop-blur-sm"
+            className={`fixed inset-0 w-full h-full z-50 flex cursor-pointer transition-all duration-200 ${
+              activeVideoModal.label 
+                ? 'bg-black/30 backdrop-blur-[3px]' 
+                : 'bg-transparent'
+            }`}
             onClick={() => setActiveVideoModal(null)}
           >
-            {(activeVideoModal.type === 'black' || activeVideoModal.type === 'black-noblend') ? (
-              // ⭐ NEW MEDAL SCENE WITH TOP1 FAMILY TEXT AND STARS
-              <div className="relative flex flex-col items-center justify-center pointer-events-none w-full max-w-[400px]">
-                {/* TOP1 Family Text with Wings */}
-                <div className="flex items-center justify-center gap-1 mb-2 z-10">
-                  <span className="text-[#FFD700] text-xl font-black italic tracking-widest drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]">
-                    ⪢ TOP1 Family ⪡
-                  </span>
-                </div>
-                
-                {/* Video Medal */}
-                <video 
-                  src={activeVideoModal.src} 
-                  autoPlay 
-                  loop
-                  playsInline
-                  muted
-                  disablePictureInPicture
-                  disableRemotePlayback
-                  className="w-[85vw] h-[85vw] max-w-[320px] max-h-[320px] object-cover rounded-xl drop-shadow-[0_0_20px_rgba(255,215,0,0.3)]" 
-                  style={activeVideoModal.type === 'black' ? { 
-                    mixBlendMode: 'screen', 
-                    backgroundColor: 'transparent',
-                    filter: 'url(#remove-black)' 
-                  } : {
-                    mixBlendMode: 'normal',
-                    backgroundColor: 'transparent',
-                    filter: 'url(#remove-black)' 
-                  }} 
-                />
-
-                {/* Bottom Stars */}
-                <div className="flex gap-2 mt-2 z-10">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-7 h-7 text-[#FFD700] fill-current drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-            ) : activeVideoModal.type === 'vehicle' ? (
+            {activeVideoModal.type === 'vehicle' ? (
               <div className="relative w-full h-full flex items-end justify-center pointer-events-none pb-8">
                 <video 
                   src={activeVideoModal.src} 
@@ -660,7 +628,14 @@ export default function Family({ onBack }: FamilyProps) {
                 />
               </div>
             ) : (
-              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-transparent pointer-events-none">
+              <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-transparent pointer-events-none">
+                {/* ⭐ TOP X FAMILY text — chipka hua frame ke just upar */}
+                {activeVideoModal.label && (
+                  <span className="text-[#FFD700] font-black text-xl tracking-[0.2em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mb-1 relative z-10">
+                    {activeVideoModal.label}
+                  </span>
+                )}
+                
                 <video 
                   src={activeVideoModal.src} 
                   autoPlay 
@@ -669,12 +644,35 @@ export default function Family({ onBack }: FamilyProps) {
                   muted
                   disablePictureInPicture
                   disableRemotePlayback
-                  className="w-[85vw] h-[85vw] max-w-[400px] max-h-[400px] object-cover rounded-xl drop-shadow-2xl" 
-                  style={{
+                  className={`object-cover rounded-xl drop-shadow-2xl ${
+                    activeVideoModal.label 
+                      ? 'w-[72vw] max-w-[320px] aspect-square' 
+                      : 'w-[85vw] h-[85vw] max-w-[400px] max-h-[400px]'
+                  }`}
+                  style={activeVideoModal.type === 'black' ? { 
+                    mixBlendMode: 'screen', 
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  } : activeVideoModal.type === 'black-noblend' ? {
+                    mixBlendMode: 'normal',
+                    backgroundColor: 'transparent',
+                    filter: 'url(#remove-black)' 
+                  } : {
                     backgroundColor: 'transparent',
                     filter: 'url(#remove-green)' 
                   }} 
                 />
+
+                {/* ⭐ 5 stars — chipka hua frame ke just niche */}
+                {activeVideoModal.label && (
+                  <div className="flex gap-1 mt-1 relative z-10">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className="w-6 h-6 text-[#FFD700] fill-current drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -852,12 +850,12 @@ export default function Family({ onBack }: FamilyProps) {
       <div className="relative z-20 flex flex-col w-full">
         <div className="flex flex-row items-center justify-between w-full px-2 relative z-30" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}>
           <button type="button" onClick={onBack} className="p-2 cursor-pointer relative z-30 flex items-center justify-start active:scale-95 transition-transform" aria-label="Go back">
-            <ArrowLeft size={28} className="text-white drop-shadow-md" />
+            <ArrowLeft size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
           
           {/* ⭐ FAMILY RULES SHEET BUTTON */}
           <button type="button" onClick={() => setShowRulesSheet(true)} className="p-2 cursor-pointer relative z-30 flex items-center justify-end active:scale-95 transition-transform" aria-label="Details">
-            <QuestionMarkIcon size={28} className="text-white drop-shadow-md" />
+            <QuestionMarkIcon size={28} className="text-[#FFD700] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
 
